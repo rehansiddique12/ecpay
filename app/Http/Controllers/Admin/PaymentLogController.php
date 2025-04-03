@@ -15,6 +15,9 @@ use App\Models\Commission;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\DailyPartnerSummary;
 use App\ModelsPartnerCommission;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Txn;
+use Illuminate\Support\Facades\DB;
 
 class PaymentLogController extends Controller
 {
@@ -35,6 +38,7 @@ class PaymentLogController extends Controller
         }
 
         while ($attempt < $maxAttempts && $success==0) {
+
             LaravelLog::info('Verifypayment try('. $attempt + 1 .') txn_id: '.$txn_id.' partner_txn_id: '.$partner_transection_id);
 
             try {
@@ -99,6 +103,7 @@ class PaymentLogController extends Controller
                     return response()->json(['message' => 'Wrong API key'], 404);
                 }
 
+
                 $Txn = Txn::where('txn_no', $request->txn_id)->where('api_id', $api_id)->orderBy('id', 'DESC')->first();
                 if (!$Txn) {
                     $Txn = new Txn();
@@ -107,6 +112,7 @@ class PaymentLogController extends Controller
                     $Txn->api_id = $api_id;
                     $Txn->save();
                 }
+
 
                 DB::beginTransaction();
                 $payment_record = Payment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->lockForUpdate()->first();

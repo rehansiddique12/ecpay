@@ -10,6 +10,9 @@ use App\Models\TransactionSetting;
 use Carbon\Carbon;
 use App\Models\EWalletAccount;
 use App\Models\Commission;
+use Illuminate\Support\Facades\Validator;
+use App\Models\ApiHit;
+use App\Models\Signature;
 
 class PaymentController extends Controller
 {
@@ -258,6 +261,7 @@ class PaymentController extends Controller
         $fund = new Payment();
         $fund->user_id = 0;
         $fund->gateway_id = $gate->id;
+        $fund->e_wallet_name = $request->e_wallet_name;
         // $fund->gateway_currency = strtoupper($gate->currency);
         $fund->amount = $request->amount;
         $fund->partner_transection_id = $partner_transection_id;
@@ -602,5 +606,41 @@ class PaymentController extends Controller
             return response()->json(['message' => 'No payment records found.'], 404);
         }
     }
+
+    public function updateLimits()
+    {
+        $todayDate = date('Y-m-d');
+        $thisMonth = date('m');
+        $e_wallet_accounts = EWalletAccount::get();
+        foreach ($e_wallet_accounts as $e_wallet_account) {
+            if ($e_wallet_account->last_limit_reset != $todayDate) {
+                $e_wallet_account->daily_received = 0;
+                $e_wallet_account->daily_sent = 0;
+            }
+            if (date('m', strtotime($e_wallet_account->last_limit_reset)) != $thisMonth) {
+                $e_wallet_account->monthly_received = 0;
+                $e_wallet_account->monthly_sent = 0;
+            }
+            $e_wallet_account->last_limit_reset = $todayDate;
+            $e_wallet_account->save();
+        }
+    }
+
+    public function updateEWallets()
+    {
+        $records = EWalletAccount::get();
+        foreach ($records as $record) {
+            $record->is_live = 0;
+            $ApiHit = ApiHit::where('e_wallet_name', $record->e_wallet_name)
+                ->where('acc_no', $record->account_no)
+                ->whereBetween('created_at', [now()->subSeconds(70), now()])
+                ->first();
+            if ($ApiHit) {
+                $record->is_live = 1;
+            }
+            $record->save();
+        }
+    }
+
 
 }
