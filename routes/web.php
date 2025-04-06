@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\TelegramGroupController;
+use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
@@ -102,6 +103,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/staff', [ManageRolePermissionController::class, 'staff'])->name('staff');
         Route::post('/staff', [ManageRolePermissionController::class, 'storeStaff'])->name('storeStaff');
         Route::put('/staff/{admin}', [ManageRolePermissionController::class, 'updateStaff'])->name('updateStaff');
+        // Parant Routs
+        Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
 
         Route::get('/apis', [PayoutRecordController::class,'apis'])->name('apis');
         Route::post('/apis/add', [PayoutRecordController::class,'apisAdd'])->name('apis.add');
