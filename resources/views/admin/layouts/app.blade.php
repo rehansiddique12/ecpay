@@ -567,7 +567,7 @@
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                      <a class="dropdown-item mt-0" href="profile">
+                      <a class="dropdown-item mt-0" href="{{route('admin.profile')}}">
                         <div class="d-flex align-items-center">
                           <div class="flex-shrink-0 me-2">
                             <div class="avatar avatar-online">
@@ -589,13 +589,13 @@
                       <div class="dropdown-divider my-1 mx-n2"></div>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="profile">
+                      <a class="dropdown-item" href="{{route('admin.profile')}}">
                         <i class="icon-base ti tabler-user me-3 icon-md"></i
                         ><span class="align-middle">My Profile</span>
                       </a>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="password">
+                      <a class="dropdown-item" href="{{route('admin.password')}}">
                         <i class="icon-base ti tabler-settings me-3 icon-md"></i
                         ><span class="align-middle">Password</span>
                       </a>
@@ -628,7 +628,7 @@
                     </li> --}}
                     <li>
                       <div class="d-grid px-2 pt-2 pb-1">
-                        <a class="btn btn-sm btn-danger d-flex" href="auth-login-cover.html" target="_blank">
+                        <a class="btn btn-sm btn-danger d-flex" href="{{route('logout')}}" target="_blank">
                           <small class="align-middle">Logout</small>
                           <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
                         </a>
@@ -719,7 +719,7 @@
                   </li>
 
                   <!-- Apps -->
-                  <li class="menu-item">
+                  <li class="menu-item active"">
                     <a href="" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
                       <div data-i18n="Partner">Partner</div>
@@ -891,7 +891,7 @@
                   </li>
 
                   <!-- Pages -->
-                  <li class="menu-item active">
+                  {{-- <li class="menu-item active">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                       <i class="menu-icon icon-base ti tabler-file"></i>
                       <div data-i18n="Pages">Pages</div>
@@ -1178,10 +1178,10 @@
                         </a>
                       </li>
                     </ul>
-                  </li>
+                  </li> --}}
 
                   <!-- Components -->
-                  <li class="menu-item">
+                  {{-- <li class="menu-item">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                       <i class="menu-icon icon-base ti tabler-toggle-left"></i>
                       <div data-i18n="Components">Components</div>
@@ -1426,10 +1426,10 @@
                         </ul>
                       </li>
                     </ul>
-                  </li>
+                  </li> --}}
 
                   <!-- Forms -->
-                  <li class="menu-item">
+                  {{-- <li class="menu-item">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                       <i class="menu-icon icon-base ti tabler-forms"></i>
                       <div data-i18n="Forms">Forms</div>
@@ -1541,10 +1541,10 @@
                         </a>
                       </li>
                     </ul>
-                  </li>
+                  </li> --}}
 
                   <!-- Tables -->
-                  <li class="menu-item">
+                  {{-- <li class="menu-item">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                       <i class="menu-icon icon-base ti tabler-layout-grid"></i>
                       <div data-i18n="Tables">Tables</div>
@@ -1581,10 +1581,10 @@
                         </ul>
                       </li>
                     </ul>
-                  </li>
+                  </li> --}}
 
                   <!-- Charts & Maps -->
-                  <li class="menu-item">
+                  {{-- <li class="menu-item">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                       <i class="menu-icon icon-base ti tabler-chart-bar"></i>
                       <div data-i18n="Charts">Charts</div>
@@ -1615,10 +1615,10 @@
                         </a>
                       </li>
                     </ul>
-                  </li>
+                  </li> --}}
 
                   <!-- Multi Level Menu -->
-                  <li class="menu-item">
+                  {{-- <li class="menu-item">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                       <i class="menu-icon icon-base ti tabler-layout-board"></i>
                       <div data-i18n="Multi Level">Multi Level</div>
@@ -1637,7 +1637,7 @@
                         </ul>
                       </li>
                     </ul>
-                  </li>
+                  </li> --}}
                 </ul>
               </div>
             </aside>

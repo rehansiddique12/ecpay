@@ -1125,7 +1125,6 @@ class PayoutRecordController extends Controller
 
     public function addAccount()
     {
-
         $pageTitle = "Create Account";
         return view('admin.payout.create_account', compact('pageTitle'));
     }

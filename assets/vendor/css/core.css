@@ -18287,10 +18287,10 @@ li:not(:first-child) .dropdown-item, .dropdown-menu .dropdown-item:not(:first-ch
   background-color: rgba(var(--bs-info-rgb), var(--bs-bg-opacity)) !important;
 }
 
-.bg-warning {
+/* .bg-warning {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-warning-rgb), var(--bs-bg-opacity)) !important;
-}
+} */
 
 .bg-danger {
   --bs-bg-opacity: 1;
@@ -28761,6 +28761,7 @@ body:not(.modal-open) .layout-content-navbar .layout-navbar {
   --bs-footer-link-color: color-mix(in sRGB, var(--bs-gray-contrast) 84%, var(--bs-gray));
   --bs-footer-brand-color: var(--bs-gray-contrast);
 }
+
 
 /* Dark Theme */
 [data-bs-theme=dark] .footer.bg-dark {

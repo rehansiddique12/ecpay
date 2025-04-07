@@ -41,13 +41,13 @@
 
         .upload-icon {
             margin-bottom: 1rem;
-            color: #6c757d;
+            color: whitesmoke;
         }
 
         .dropzone-message {
             font-size: 1rem;
             margin-bottom: 0.5rem;
-            color: #333;
+            color: whitesmoke;
         }
 
         .dropzone-note {
@@ -87,6 +87,7 @@
         max-height: 200px;
         object-fit: cover;
     }
+
     </style>
     <div class="row ">
         <div class="col-12">
@@ -289,16 +290,6 @@
                             </div>
                         </div>
 
-
-
-
-
-
-
-
-
-
-
                         <div class="row justify-content-between">
                             <div class="col-sm-6 col-md-3">
                                 <div class="col-12">
@@ -306,30 +297,27 @@
                                         <div class="card-body">
                                             <div class="dropzone-container" id="my-dropzone">
                                                 <input type="file" name="file" id="file-input" class="file-input" multiple>
-                                                
-                                                <!-- Preview Container -->
                                                 <div id="image-preview" class="hidden">
                                                     <img id="preview-img" src="" alt="Selected Image" class="img-fluid rounded mt-2" />
                                                 </div>
-                        
                                                 <div class="upload-icon">
                                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                                         xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M12 16V8M12 8L8 12M12 8L16 12" stroke="currentColor"
                                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                        <path d="M3 15V16C3 17.6569 3 18.4853 3.24224 19.0815C3.45338 19.5989 
-                                                            3.80112 20.0466 4.31853 20.3578C4.91476 20.7 5.74319 20.7 7.4 20.7H16.6C18.2568 
-                                                            20.7 19.0852 20.7 19.6815 20.3578C20.1989 20.0466 20.5466 19.5989 20.7578 19.0815C21 
+                                                        <path d="M3 15V16C3 17.6569 3 18.4853 3.24224 19.0815C3.45338 19.5989
+                                                            3.80112 20.0466 4.31853 20.3578C4.91476 20.7 5.74319 20.7 7.4 20.7H16.6C18.2568
+                                                            20.7 19.0852 20.7 19.6815 20.3578C20.1989 20.0466 20.5466 19.5989 20.7578 19.0815C21
                                                             18.4853 21 17.6569 21 16V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                                             stroke-linejoin="round" />
                                                     </svg>
                                                 </div>
-                        
+
                                                 <div class="dropzone-content">
                                                     <p class="dropzone-message">Drop files here or click to upload</p>
                                                 </div>
                                             </div>
-                        
+
                                             @error('image')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
@@ -338,6 +326,25 @@
                                 </div>
                             </div>
                         </div>
+
+                        <script>
+                            const fileInput = document.getElementById('file-input');
+                            const previewContainer = document.getElementById('image-preview');
+                            const previewImage = document.getElementById('preview-img');
+
+                            fileInput.addEventListener('change', function () {
+                                const files = fileInput.files;
+                                if (files && files[0]) {
+                                    const reader = new FileReader();
+                                    reader.onload = function (e) {
+                                        previewImage.src = e.target.result;
+                                        previewContainer.classList.remove('hidden');
+                                    };
+                                    reader.readAsDataURL(files[0]);
+                                }
+                            });
+                        </script>
+
                         <div class="row mt-3 justify-content-between">
                             <div class="col-lg-3 col-md-6">
                                 <div class="form-group">
@@ -360,7 +367,7 @@
             </div>
         </div>
     </div>
-    </div>
+
 
     @push('js')
         <script>
@@ -460,6 +467,7 @@
             }
         });
     });
+
         </script>
     @endpush
 

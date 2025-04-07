@@ -18,7 +18,7 @@
                     {{-- @endif --}}
 
                     <div class="table-responsive">
-                        <table class="categories-show-table table table-hover table-striped table-bordered settable">
+                        <table class="categories-show-table table table-hover table-striped table-bordered settable table-sm">
                             <thead class="thead-dark">
                                 <tr>
                                     <th scope="col">@lang('ID')</th>
@@ -33,9 +33,9 @@
                                 <tr>
                                     <td>{{ $item->id }}</td>
                                     <td>{{ $item->username }}</td>
-                                    <td>{{ optional($item->parent)->username ?? 'N/A' }}</td> <!-- Display Parent Username -->
-                                    <td>{{ optional(optional($item->parent)->parent)->username ?? 'N/A' }}</td> <!-- Parent2 Username -->
-                                    <td>{{ optional(optional(optional($item->parent)->parent)->parent)->username ?? 'N/A' }}</td> <!-- Parent3 Username -->
+                                    <td>{{ optional($item->parent)->username ?? ' ' }}</td> <!-- Display Parent Username -->
+                                    <td>{{ optional(optional($item->parent)->parent)->username ?? ' ' }}</td> <!-- Parent2 Username -->
+                                    <td>{{ optional(optional(optional($item->parent)->parent)->parent)->username ?? ' ' }}</td> <!-- Parent3 Username -->
                                 </tr>
                                 @empty
                                 <tr>
@@ -56,8 +56,5 @@
         </div>
 
     </div>
-
-
-
 
     </x-admin-layout>

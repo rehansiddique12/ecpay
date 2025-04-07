@@ -97,7 +97,7 @@
                 </button>
 
                 <div class="table-responsive">
-                    <table class="categories-show-table table table-hover table-striped table-bordered">
+                    <table class="categories-show-table table table-hover table-striped table-bordered table-sm">
                         <thead class="thead-dark text-warning" style="background: var(--bs-menu-active-bg); color:#ffffff;">
                             <tr>
 
@@ -271,7 +271,7 @@
 
     });
 
-    
+
 </script>
 
 @endpush

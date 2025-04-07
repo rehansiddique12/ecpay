@@ -7,7 +7,7 @@
                 @csrf
                 <div class="modal-body">
                     <div class="row justify-content-between align-items-center">
-                        <div class="col-md-12">
+                        {{-- <div class="col-md-12">
                             <div class="form-group">
                                 <select name="partner_id" class="form-control">
                                     <option value="">@lang('Select Domain')</option>
@@ -17,7 +17,33 @@
                                     @endforeach
                                 </select>
                             </div>
+                        </div> --}}
+
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <select name="partner_id" class="form-control select2">
+                                    <option value="">@lang('Select Domain')</option>
+                                    @foreach($domains as $domain)
+                                        <option value="{{ $domain->id }}"
+                                        @if(@request()->domain == $domain->id) selected @endif>
+                                            {{ $domain->name }} ===> ( {{ $domain->website }} )
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
+
+                        <script>
+                        $(document).ready(function() {
+                            $('.select2').select2({
+                                placeholder: "@lang('Select Domain')",
+                                allowClear: true
+                            });
+                        });
+                        </script>
+
+                        
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="pr-3 mt-4">Amount</label>
