@@ -23,6 +23,8 @@ use App\Models\EWalletCharge;
 use App\Models\Log;
 use App\Models\DailyPartnerSummary;
 use App\Models\DailyPartnerSummaryLog;
+// rehan
+
 use App\Models\Settlement;
 use App\Http\Traits\Upload;
 use App\Models\SmsLog;
@@ -39,6 +41,10 @@ class PayoutRecordController extends Controller
         $pageTitle = "Manage APIs";
         return view('admin.payout.api', compact('records', 'pageTitle'));
     }
+
+    // Partner controller
+
+
 
     public function apisDelete($id)
     {
@@ -1120,7 +1126,6 @@ class PayoutRecordController extends Controller
 
     public function addAccount()
     {
-
         $pageTitle = "Create Account";
         return view('admin.payout.create_account', compact('pageTitle'));
     }

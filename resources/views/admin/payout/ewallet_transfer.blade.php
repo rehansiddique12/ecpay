@@ -138,7 +138,7 @@
         <div class="card-body">
             <h4 style="color: #7367f0">Transfer Logs</h4>
             <div class="table-responsive">
-                <table class="categories-show-table table table-hover table-striped table-bordered">
+                <table class="categories-show-table table table-hover table-striped table-bordered  table-sm">
                     <thead class="thead-dark">
                         <tr>
                             <th scope="col">@lang('Category')</th>

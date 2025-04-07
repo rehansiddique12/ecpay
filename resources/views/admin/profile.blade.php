@@ -84,41 +84,62 @@
                         @csrf
                         @method('put')
                         <div class="form-row justify-content-between flex">
-                            {{-- <div class="col-sm-6 col-md-3">
-                                <div class="image-input ">
-                                    <label for="image-upload" id="image-label"><i class="fas fa-upload"></i></label>
-                                    <input type="file" name="image" placeholder="" id="image">
-                                    <img id="image_preview_container" class="preview-image" src="{{ getFile(config('location.admin.path').$admin->image) }}"
-                                         alt="preview image">
-                                </div>
-                                @error('image')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div> --}}
+
 
                         <div class="flex">
                             <div class="col-sm-6 col-md-4">
                                 <div class="image-input dropzone-container">
                                     <div class="dropzone" id="image-dropzone" onclick="document.getElementById('image').click()">
                                         <div class="upload-icon" id="upload-icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-svg">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round" class="upload-svg">
                                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                 <polyline points="17 8 12 3 7 8"></polyline>
                                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                                             </svg>
                                         </div>
                                         <h3 class="dropzone-title" id="dropzone-title">Drop files here or click to upload</h3>
-                                        <p class="dropzone-description" id="dropzone-description">(This is just a demo dropzone. Selected files are not actually uploaded.)</p>
+                                        <p class="dropzone-description" id="dropzone-description">
+                                            (This is just a demo dropzone. Selected files are not actually uploaded.)
+                                        </p>
 
-                                        <input type="file" name="image" id="image" class="hidden-input" accept="image/*">
+                                        <input type="file" name="image" id="image" class="hidden-input" accept="image/*" style="display:none;" onchange="handleImageSelection(event)">
 
                                         <!-- Preview Image -->
-                                        <img id="image_preview_container" class="preview-image" src="" alt="Preview Image" style="display: none; max-width: 100%; height: auto; margin-top: 10px;">
+                                        <img id="image_preview_container" class="preview-image"
+                                            src="" alt="Preview Image"
+                                            style="display: none; max-width: 100%; height: auto; margin-top: 10px;">
                                     </div>
                                     @error('image')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
+
+                                <script>
+                                    function handleImageSelection(event) {
+                                        const file = event.target.files[0]; // Get the selected file
+
+                                        if (file) {
+                                            const reader = new FileReader();
+
+                                            reader.onload = function(e) {
+                                                // Set the image source to the selected file's data URL
+                                                const imagePreview = document.getElementById('image_preview_container');
+                                                imagePreview.src = e.target.result;
+                                                imagePreview.style.display = 'block'; // Show the preview image
+
+                                                // Hide the dropzone elements
+                                                document.getElementById('upload-icon').style.display = 'none';
+                                                document.getElementById('dropzone-title').style.display = 'none';
+                                                document.getElementById('dropzone-description').style.display = 'none';
+                                            };
+
+                                            reader.readAsDataURL(file); // Read the file as a data URL
+                                        }
+                                    }
+                                </script>
+
                             </div>
 
                             <div class="col-sm-6 col-md-7">
@@ -211,134 +232,6 @@
 
 
 @push('js')
-    <script>
-        $(document).ready(function (e) {
-            "use strict";
 
-            $('#image').change(function(){
-                let reader = new FileReader();
-                reader.onload = (e) => {
-                    $('#image_preview_container').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(this.files[0]);
-            });
-        });
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-    const dropzone = document.getElementById('image-dropzone');
-    const input = document.getElementById('image');
-    const preview = document.getElementById('image_preview_container');
-
-    // Handle drag events
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Highlight dropzone when item is dragged over it
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropzone.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, unhighlight, false);
-    });
-
-    function highlight() {
-        dropzone.classList.add('border-primary', 'bg-primary-light');
-    }
-
-    function unhighlight() {
-        dropzone.classList.remove('border-primary', 'bg-primary-light');
-    }
-
-    // Handle dropped files
-    dropzone.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        input.files = files;
-
-        if (files[0]) {
-            updatePreview(files[0]);
-        }
-    }
-
-    // Handle file input change
-    input.addEventListener('change', function() {
-        if (this.files[0]) {
-            updatePreview(this.files[0]);
-        }
-    });
-
-    // Update image preview
-    function updatePreview(file) {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-});
-
-// document.getElementById("image").addEventListener("change", function(event) {
-//         const file = event.target.files[0];
-//         if (file) {
-//             const reader = new FileReader();
-//             reader.onload = function(e) {
-//                 document.getElementById("image-preview").src = e.target.result;
-//                 document.getElementById("image-preview-container").classList.remove("hidden");
-//                 document.getElementById("upload-icon").classList.add("hidden");
-//                 document.getElementById("dropzone-title").classList.add("hidden");
-//                 document.getElementById("dropzone-description").classList.add("hidden");
-//             };
-//             reader.readAsDataURL(file);
-//         }
-//     });
-
-// document.getElementById('image').addEventListener('change', function(event) {
-//     var file = event.target.files[0];
-//     if (file) {
-//         var reader = new FileReader();
-//         reader.onload = function(e) {
-//             var preview = document.getElementById('image_preview_container');
-//             preview.src = e.target.result;
-//             preview.style.display = 'block';
-
-//             // Hide upload icon and text
-//             document.getElementById('upload-icon').style.display = 'none';
-//         }
-//         reader.readAsDataURL(file);
-//     }
-// });
-
-document.getElementById('image').addEventListener('change', function(event) {
-    var file = event.target.files[0];
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var preview = document.getElementById('image_preview_container');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-
-            // Hide upload icon and text
-            document.getElementById('upload-icon').style.display = 'none';
-            document.getElementById('dropzone-title').style.display = 'none';
-            document.getElementById('dropzone-description').style.display = 'none';
-        }
-        reader.readAsDataURL(file);
-    }
-});
-
-    </script>
 @endpush
 </x-admin-layout>

@@ -9,7 +9,7 @@
 
 
                 <div class="table-responsive">
-                    <table class="categories-show-table table table-hover table-striped table-bordered">
+                    <table class="categories-show-table table table-hover table-striped table-bordered table-sm">
                         <thead class="thead-dark">
                             <tr>
                                 <th>QR Code</th>

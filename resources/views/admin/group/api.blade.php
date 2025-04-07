@@ -18,7 +18,7 @@
                 {{-- @endif --}}
 
                 <div class="table-responsive">
-                    <table class="categories-show-table table table-hover table-striped table-bordered settable">
+                    <table class="categories-show-table table table-hover table-striped table-bordered settable table-sm">
                         <thead class="thead-dark bg-primary">
                             <tr>
                                 <th scope="col">@lang('ID')</th>

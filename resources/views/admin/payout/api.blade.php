@@ -1,10 +1,10 @@
-F<x-admin-layout :title="$pageTitle">
+<x-admin-layout :title="$pageTitle">
     @push('styles')
     <script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
     @endpush
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
+    <div class="row " >
+        <div class="col-md-12" >
+            <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow" >
                 <div class="card-body">
                     {{-- @if(adminAccessRoute(config('role.partners.access.add'))) --}}
                     <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
@@ -14,10 +14,10 @@ F<x-admin-layout :title="$pageTitle">
                     {{-- @endif --}}
 
 
-                    <div class="table-responsive">
-                        <table class="categories-show-table table table-hover table-striped table-bordered settable">
+                    <div class="table-responsive " >
+                        <table class="categories-show-table table table-hover table-striped table-bordered settable table-responsive table-sm">
                             <thead class="thead-dark">
-                                <tr>
+                                <tr >
                                     <th scope="col">@lang('ID')</th>
                                     <th scope="col">@lang('Name')</th>
                                     <th scope="col">@lang('Username')</th>
@@ -36,32 +36,32 @@ F<x-admin-layout :title="$pageTitle">
                             <tbody>
                                 @forelse($records as $key => $item)
                                 <tr>
-                                    <td style="max-width: 75px;">{{ $item['id'] }}</td>
-                                    <td style="max-width: 150px;">{{ $item['name'] }}</td>
-                                    <td>{{ $item['username'] }}</td>
+                                    <td style="max-width: 70px;">{{ $item['id'] }}</td>
+                                    <td style="max-width: 110px;">{{ $item['name'] }}</td>
+                                    <td style="max-width: 100px;">{{ $item['username'] }}</td>
                                     <td style="max-width: 150px;">{{ $item['email'] }}</td>
-                                    <td>{{ $item['phone'] }}</td>
+                                    <td style="max-width: 100px;">{{ $item['phone'] }}</td>
                                     <td>{{ $item['acc_type'] }}</td>
-                                    <td style="max-width: 150px;">{{ $item['website'] }}</td>
-                                    <td style="max-width: 300px;">
+                                    <td style="max-width: 130px;">{{ $item['website'] }}</td>
+                                    <td style="max-width: 220px;">
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
                                         {{ $item['api_endpoint_deposit'] }}<br>
-                                    
+
                                         <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
                                         {{ $item['api_endpoint_withdrawal'] }}<br>
-                                    
+
                                         <span class="bg-info text-white p-1 d-inline-block mt-2">Redirect URL:</span>
                                         {{ $item['redirect_url'] }}<br>
                                     </td>
-                                    
-                                    <td style="max-width: 300px;">
+
+                                    <td style="max-width: 220px;">
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">API Key:</span>
                                         {{ $item['api_key'] }}<br>
-                                    
+
                                         <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Secret Key:</span>
                                         {{ $item['secret_key'] }}
                                     </td>
-                                    
+
                                     <td>{{ $item['balance'] }}</td>
                                     <td style="max-width: 300px;">
                                         <span class="bg-success text-white p-1" style="display: inline-block; margin-bottom: 10px;">Deposit:</span>
@@ -69,7 +69,7 @@ F<x-admin-layout :title="$pageTitle">
                                         <span class="bg-primary text-white p-1" style="display: inline-block; margin-top: 10px;">Withdrawal:</span>
                                         {{ $item['min_withdrawal'] }}
                                     </td>
-                                    
+
                                     <td data-label="@lang('Status')" class="text-lg-center text-right">
                                         @if ($item->status == 0)
                                         <span class="badge badge-light">

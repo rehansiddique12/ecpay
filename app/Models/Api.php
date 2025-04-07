@@ -40,4 +40,9 @@ class Api extends Authenticatable
     {
         // return $this->hasOne(Commission::class, 'api_id', 'id');
     }
+
+    public function parent()
+{
+    return $this->belongsTo(Api::class, 'parent_id');
+}
 }
