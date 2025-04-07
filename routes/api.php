@@ -24,5 +24,11 @@ Route::get('/paymentGateway', [PaymentController::class, 'paymentGateway']);
 Route::post('/paymentGatewayInfo', [PaymentController::class, 'paymentGatewayInfo']);
 Route::post('/uploadReceipt', [PaymentController::class, 'uploadReceipt']);
 Route::post('/lastPaymentDetail', [PaymentController::class, 'lastPaymentDetail']);
+Route::get('/payoutGateway', [PayoutRecordController::class, 'payoutGateway']);
+Route::post('/addPayout', [PayoutRecordController::class, 'addPayout']);
+Route::post('/lastPayoutDetail', [PayoutRecordController::class, 'lastPayoutDetail']);
+Route::get('/allPayoutInfo', [PayoutRecordController::class, 'allPayoutInfo']);
+Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
+Route::post('/rejectPayoutInfo', [PayoutRecordController::class, 'rejectPayoutInfo']);
 
 Route::post('/verifyPayment', [PaymentLogController::class, 'verifyPayment']);

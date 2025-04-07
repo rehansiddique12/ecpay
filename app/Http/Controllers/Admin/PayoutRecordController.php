@@ -27,6 +27,7 @@ use App\Models\Settlement;
 use App\Http\Traits\Upload;
 use App\Models\SmsLog;
 use App\Models\EWalletTransfer;
+use App\Models\PayoutMethod;
 
 class PayoutRecordController extends Controller
 {
@@ -1608,6 +1609,1388 @@ class PayoutRecordController extends Controller
         session()->flash('success', 'Added Successfully');
         return back();
     }
+
+    public function payoutGateway()
+    {
+
+        $gateways = PayoutMethod::where('status', 1)
+            ->select('name', 'image')
+            ->get();
+
+        foreach ($gateways as $key => $gateway) {
+            $data[$key]['name'] = $gateway->name;
+            $data[$key]['image'] = $gateway->image ? (env('APP_URL') . config('location.withdraw.path') . $gateway->image) : '';
+        }
+
+        return $data;
+    }
+
+      public function addPayout(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'api_key' => 'required|string',
+                'e_wallet_name' => 'required|string',
+                'amount' => 'required',
+                'user_account_no' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+
+
+            $acc = $request->user_account_no;
+            $ewalletee = strtolower($request->e_wallet_name);
+
+            if (!is_numeric($acc)) {
+                return response()->json(['code' => 605, 'error' => 'Account number formate not valid'], 404);
+            }
+
+            if (substr($acc, 0, 2) === "01") {
+                $num_digits = strlen($acc);
+                if ($ewalletee == 'bkash' && $num_digits != 11) {
+                    return response()->json(['code' => 605, 'error' => 'Account number should be 11 digit'], 404);
+                }
+                if ($ewalletee == 'nagad' && $num_digits != 11) {
+                    return response()->json(['code' => 605, 'error' => 'Account number should be 11 digit'], 404);
+                }
+                if ($ewalletee == 'rocket' && ($num_digits < 11 || $num_digits > 12)) {
+                    return response()->json(['code' => 605, 'error' => 'Account number should be 11 or 12 digit'], 404);
+                }
+            } else {
+                return response()->json(['code' => 605, 'error' => 'Account number should start from 01'], 404);
+            }
+
+            $request->amount = str_replace(',', '', $request->amount);
+            $user_sign = "";
+
+            $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+            if ($api_key) {
+                $source = $api_key->website;
+                $api_id = $api_key->id;
+                if (empty($source)) {
+                    $source = "";
+                }
+
+                $secretKey = $api_key->secret_key;
+
+                if ($api_key->sign == 1) {
+                    if ($request->filled('sign')) {
+                        $string_to_hash = json_encode(array(
+                            "amount" => $request->amount,
+                            "api_key" => $request->api_key,
+                            "e_wallet_name" => $request->e_wallet_name,
+                            "user_account_no" => $request->user_account_no
+                        ));
+                        $user_sign = $request->sign;
+                        $hash = hash("sha256", $string_to_hash);
+                        $hmac = hash_hmac('sha256', $hash, $secretKey);
+                        $timestamp = time();
+                        $timestamp_str = (string) $timestamp;
+                        $timestamp_length = strlen($timestamp_str);
+                        $sign = $request->sign;
+                        $decoded = base64_decode($sign);
+                        $request_hash = substr($decoded, 0, -$timestamp_length);
+                        $sign_timestamp = substr($decoded, -$timestamp_length);
+                        if (hash_equals($request_hash, $hmac)) {
+                            if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
+                                $signature = Signature::where('sign', $sign)->first();
+                                if (!$signature) {
+                                    $signature = new Signature();
+                                    $signature->sign = $sign;
+                                    $signature->save();
+                                } else {
+                                    return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
+                                }
+                            } else {
+                                return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
+                            }
+                        } else {
+                            return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
+                        }
+                    } else {
+                        return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
+                    }
+                }
+            } else {
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
+
+            if ($api_key->min_withdrawal > $request->amount) {
+                return response()->json(['message' => 'Min Withdrawal Limit is ' . $api_key->min_withdrawal], 404);
+            }
+
+            $partner_transection_id = 0;
+            if ($request->filled('partner_transection_id')) {
+                $partner_transection_id = $request->partner_transection_id;
+            }
+
+            $member_id = "";
+            if ($request->filled('member_id')) {
+                $member_id = $request->member_id;
+            }
+
+            $method = PayoutMethod::where('status', 1)
+                ->where('name', $request->e_wallet_name)
+                ->first();
+
+            $currentMonth = now()->format('Y-m');
+            $charge = 0;
+
+            if ($source != env('APP_WEBSITE')) {
+                // $api_key->balance +=$request->amount;
+                // $api_key->save();
+
+
+                $sum = Payout::whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->where('api_id', $api_id)
+                    ->where('status', 'Complete')
+                    ->sum('amount');
+
+                if (!$sum) {
+                    $sum = 0;
+                }
+
+                $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+                if ($commissions) {
+                    $charge = $commissions->withdrawal_percentage * $request->amount / 100;
+                } else {
+                    $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
+                    if ($commissions) {
+                        $charge = $commissions->withdrawal_percentage * $request->amount / 100;
+                    }
+                }
+            }
+
+            $pending_payout_ids = Payout::where('api_id', $api_key->id)
+                ->where('status', 'Pending')
+                ->whereNotNull('payout_log_id')
+                ->where('payout_log_id', '!=', '')
+                ->pluck('payout_log_id');
+
+            $previous_pending = Payout::where('api_id', $api_key->id)
+                ->where(function ($query) use ($pending_payout_ids) {
+                    $query->whereIn('status', [0, 1])
+                        ->orWhere(function ($subQuery) use ($pending_payout_ids) {
+                            $subQuery->where('status', 2)
+                                    ->whereIn('id', $pending_payout_ids);
+                        });
+                })
+                ->sum('amount');
+
+
+                // $previous_pending = PayoutLog::where('api_id', $api_key->id)
+                // ->whereIn('status', [0, 1])
+                // ->sum('amount');
+
+
+            if ($request->amount + $charge + $previous_pending > $api_key->balance) {
+                return response()->json([
+                    'code' => '51',
+                    'status' => 'fail',
+                    'message' => 'Insufficient Balance'
+                ], 404);
+            }
+
+            $payout = new Payout();
+            $payout->source = $source;
+            $payout->sign = $user_sign;
+            $payout->api_id = $api_id;
+            $payout->e_wallet_name = $request->e_wallet_name;
+            $payout->amount = $request->amount;
+            $payout->user_account_no = $request->user_account_no;
+            $payout->partner_transection_id = $partner_transection_id;
+            if ($request->filled('partner_transection_id')) {
+                $payout->partner_transection_id = $request->partner_transection_id;
+            }
+            if ($request->filled('member_id')) {
+                $payout->member_id = $request->member_id;
+            }
+            $payout->save();
+
+
+            if ($charge > 0 && $api_key->parent_id > 0) {
+                // $parent_commissions = Commission::where('id', $commissions->parent_id)->first();
+                if ($commissions->parent_id > 0 && $commissions->parent_withdrawal_percentage > 0) {
+                    $PartnerCommission = new PartnerCommission();
+                    $PartnerCommission->api_id = $api_key->id;
+                    $PartnerCommission->from_id = $api_key->parent_id;
+                    $PartnerCommission->type = 2;
+                    $PartnerCommission->amount = $request->amount;
+                    $PartnerCommission->charges = $charge;
+                    $PartnerCommission->total_amount = $request->amount + $charge;
+                    $PartnerCommission->charges_p = $commissions->withdrawal_percentage;
+                    $profit_p = $commissions->parent_withdrawal_percentage;
+                    $profit = $profit_p * $request->amount / 100;
+                    $PartnerCommission->profit = $profit;
+                    $PartnerCommission->profit_p = $profit_p;
+                    $PartnerCommission->transaction_id = $payout->id;
+                    $PartnerCommission->status = 0;
+                    $PartnerCommission->save();
+
+                    // $main_parent_commissions = Commission::where('id', $parent_commissions->parent_id)->first();
+
+                }
+
+                if ($commissions->parent2_id > 0 && $commissions->parent2_withdrawal_percentage > 0) {
+                    $PartnerCommission = new PartnerCommission();
+                    $PartnerCommission->api_id = $api_key->id;
+                    $PartnerCommission->from_id = $commissions->parent2_id;
+                    $PartnerCommission->type = 2;
+                    $PartnerCommission->amount = $request->amount;
+                    $PartnerCommission->charges = $charge;
+                    $PartnerCommission->total_amount = $request->amount + $charge;
+                    $PartnerCommission->charges_p = $commissions->withdrawal_percentage;
+                    $profit_p = $commissions->parent2_withdrawal_percentage;
+                    $profit = $profit_p * $request->amount / 100;
+                    $PartnerCommission->profit = $profit;
+                    $PartnerCommission->profit_p = $profit_p;
+                    $PartnerCommission->transaction_id = $payout->id;
+                    $PartnerCommission->status = 0;
+                    $PartnerCommission->save();
+                }
+            }
+
+            $pre_payout = new Payout();
+            $pre_payout->user_id = 0;
+            $pre_payout->api_id = $api_id;
+            $pre_payout->gateway_id = $method->id;
+            $pre_payout->amount = $request->amount;
+            $pre_payout->charge = $charge;
+            $pre_payout->status = 1;
+            $pre_payout->user_account_no = $request->user_account_no;
+            $pre_payout->save();
+
+            // $payout->payout_log_id = $pre_payout->id;
+            $payout->charge = $charge;
+            $payout->save();
+
+            if ($api_key->acc_type == "Partner") {
+
+                $current_time = Carbon::now('Asia/Dhaka');
+
+                $this->updateLimits();
+                $this->updateEWallets();
+
+
+
+
+
+                    $account = EWalletAccount::where('e_wallet_name', $pre_payout->method->name)
+                        ->where('type', 'Agent')
+                        ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                        ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$pre_payout->amount])
+                        ->where('status', 1)
+                        ->where('max_withdrawal_amount', '>=', $request->amount)
+                        ->whereIn('account_type', ['Withdrawal', 'Both'])
+                        ->where(function ($query) use ($current_time) {
+                            $query->where('apply_time_limit', 0)
+                                ->orWhere(function ($query) use ($current_time) {
+                                    $query->where('apply_time_limit', 1)
+                                        ->where('from_time', '<=', $current_time)
+                                        ->where('to_time', '>=', $current_time);
+                                });
+                        })
+                        ->orderBy('daily_sent', 'asc')
+                        ->first();
+                    if (!$account) {
+                        $account = EWalletAccount::where('e_wallet_name', $pre_payout->method->name)
+                            ->where('type', 'Merchant')
+                            ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                            ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$pre_payout->amount])
+                            ->where('status', 1)
+                            ->where('max_withdrawal_amount', '>=', $request->amount)
+                            ->whereIn('account_type', ['Withdrawal', 'Both'])
+                            ->where(function ($query) use ($current_time) {
+                                $query->where('apply_time_limit', 0)
+                                    ->orWhere(function ($query) use ($current_time) {
+                                        $query->where('apply_time_limit', 1)
+                                            ->where('from_time', '<=', $current_time)
+                                            ->where('to_time', '>=', $current_time);
+                                    });
+                            })
+                            ->orderBy('daily_sent', 'asc')
+                            ->first();
+                        if (!$account) {
+                            $account = EWalletAccount::where('e_wallet_name', $pre_payout->method->name)
+                                ->where('type', 'Personal')
+                                ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                                ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$pre_payout->amount])
+                                ->where('status', 1)
+                                ->where('max_withdrawal_amount', '>=', $request->amount)
+                                ->whereIn('account_type', ['Withdrawal', 'Both'])
+                                ->where(function ($query) use ($current_time) {
+                                    $query->where('apply_time_limit', 0)
+                                        ->orWhere(function ($query) use ($current_time) {
+                                            $query->where('apply_time_limit', 1)
+                                                ->where('from_time', '<=', $current_time)
+                                                ->where('to_time', '>=', $current_time);
+                                        });
+                                })
+                                ->orderBy('daily_sent', 'asc')
+                                ->first();
+                        }
+                    }
+
+
+
+                if (!$account) {
+                    return response()->json(['message' => 'No E-wallet account Available at this time to proceed this request.'], 404);
+                }
+
+                $pre_payout->status = 2;
+                $pre_payout->save();
+
+                $payout->e_wallet_phone_number = $account->account_no;
+                $payout->e_wallet_type = $account->type;
+                $payout->status = 'Pending';
+                $payout->save();
+            }
+
+            return response()->json(['id' => $payout->id, 'message' => 'Payout Request has been sent'], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->validator->errors()], 400);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred while processing your request'], 500);
+        }
+    }
+
+    public function lastPayoutDetail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+            'partner_transaction_id' => 'filled|string',
+            'e_wallet_name' => 'required_unless:partner_transaction_id,null|string',
+            'amount' => 'required_unless:partner_transaction_id,null',
+            'user_account_no' => 'required_unless:partner_transaction_id,null|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $request->amount = str_replace(',', '', $request->amount);
+
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        if ($api_key) {
+            $source = $api_key->website;
+            $secretKey = $api_key->secret_key;
+
+            if ($api_key->sign == 1) {
+                if ($request->filled('sign')) {
+                    $string_to_hash = json_encode(array(
+                        "amount" => $request->amount,
+                        "api_key" => $request->api_key,
+                        "e_wallet_name" => $request->e_wallet_name,
+                        "user_account_no" => $request->user_account_no
+                    ));
+                    if ($request->filled('partner_transection_id')) {
+                        $string_to_hash = json_encode(array(
+                            "api_key" => $request->api_key,
+                            "partner_transection_id" => $request->partner_transection_id
+                        ));
+                    }
+                    // return $string_to_hash;
+                    $hash = hash("sha256", $string_to_hash);
+                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+                    $timestamp = time();
+                    $timestamp_str = (string) $timestamp;
+                    $timestamp_length = strlen($timestamp_str);
+                    $sign = $request->sign;
+                    $decoded = base64_decode($sign);
+                    $request_hash = substr($decoded, 0, -$timestamp_length);
+                    $sign_timestamp = substr($decoded, -$timestamp_length);
+                    if (hash_equals($request_hash, $hmac)) {
+                        if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
+                            $signature = Signature::where('sign', $sign)->first();
+                            if (!$signature) {
+                                $signature = new Signature();
+                                $signature->sign = $sign;
+                                $signature->save();
+                            } else {
+                                return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
+                            }
+                        } else {
+                            return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
+                        }
+                    } else {
+                        return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
+                    }
+                } else {
+                    return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
+                }
+            }
+        } else {
+            return response()->json(['message' => 'Wrong API key'], 404);
+        }
+
+        if ($request->filled('partner_transection_id')) {
+            $lastPayout = Payout::where('partner_transection_id', $request->partner_transection_id)->where('api_id', $api_key->id)
+                ->latest()->first();
+            if ($lastPayout) {
+
+                if (is_null($lastPayout->member_id)) {
+                    unset($lastPayout->member_id);
+                }
+                return response()->json($lastPayout);
+            } else {
+                return response()->json(['message' => 'No payout records found.'], 404);
+            }
+        }
+
+
+
+        $lastPayout = Payout::where('e_wallet_name', $request->e_wallet_name)->where('api_id', $api_key->id)
+            ->where('amount', $request->amount)
+            ->where('user_account_no', $request->user_account_no)
+            ->latest()->first();
+
+        $lastPayout->sign = "";
+
+
+
+
+        if ($lastPayout) {
+            return response()->json($lastPayout);
+        } else {
+            return response()->json(['message' => 'No payout records found.'], 404);
+        }
+    }
+
+    public function allPayoutInfo()
+    {
+
+        $allPayoutInfo = Payout::where('status', 'Pending')
+            ->where('created_at', '>=', Carbon::now()->subDay())
+            ->get();
+
+        $array = [];
+        $count = 0;
+        foreach ($allPayoutInfo as $payout) {
+            $originalName = $payout->e_wallet_name;
+            $updatedName = '';
+
+            switch (strtolower($originalName)) {
+                case 'bkash':
+                    $updatedName = 'bKash';
+                    break;
+                case 'nagad':
+                    $updatedName = 'Nagad';
+                    break;
+                case 'rocket':
+                    $updatedName = 'Rocket';
+                    break;
+                    // Add more cases as needed
+
+                default:
+                    // Use the original name if it doesn't match any of the cases
+                    $updatedName = $originalName;
+                    break;
+            }
+
+            // Update the e_wallet_name column
+            $payout->update(['e_wallet_name' => $updatedName]);
+
+            $array[$count] = $payout;
+            $array[$count]['amount'] = round($payout->amount, 2);
+            $array[$count]['charge'] = round($payout->charge, 2);
+            $array[$count]['fee'] = round($payout->fee, 2);
+            $array[$count]['e_wallet_charges'] = round($payout->e_wallet_charges, 2);
+            $array[$count]['commission'] = round($payout->commission, 2);
+
+            $count++;
+        }
+
+        if ($allPayoutInfo) {
+            return response()->json($array);
+        } else {
+            return response()->json(['message' => 'No payout records found.'], 404);
+        }
+    }
+
+    public function addPayoutInfo(Request $request)
+    {
+
+        DB::beginTransaction();
+        try {
+            $validator = Validator::make($request->all(), [
+                'api_key' => 'required|string',
+                'id' => 'required|numeric',
+                'e_wallet_name' => 'nullable|string',
+                'amount' => 'nullable',
+                'user_account_no' => 'nullable|string',
+                'txn_id' => 'nullable|string',
+                'date' => 'required',
+                'time' => 'required',
+                'date_time' => 'nullable',
+                'transaction_type' => 'required|string',
+                'e_wallet_phone_number' => 'nullable|string',
+                'ip_address' => 'nullable|string',
+                'e_wallet_type' => 'nullable|string',
+                'mac_address' => 'nullable|string',
+                'status' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+
+            $data = Payout::where('id', $request->id)->lockForUpdate()->first();
+            if (!$data) {
+                DB::rollBack();
+                return response()->json(['message' => 'Payout log not exist.']);
+            }
+
+            $request->amount = str_replace(',', '', $request->amount);
+
+            if ($request->status == "Complete") {
+                $payour_record = Payout::where('status', "Complete")->where('id', $request->id)->first();
+                if ($payour_record) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'Payout Already Added']);
+                }
+            }
+
+            if ($request->status != "Complete" && $request->status != "Reject") {
+                DB::rollBack();
+                return response()->json(['message' => 'Wrong Status!']);
+            }
+
+            $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+            if ($api_key && $api_key->website == env('APP_WEBSITE')) {
+                $source = $api_key->website;
+            } else {
+                DB::rollBack();
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
+
+            $payout = Payout::where('id', $request->id)->lockForUpdate()->first();
+
+            if ($request->filled('e_wallet_name')) {
+                $payout->e_wallet_name = $request->e_wallet_name;
+            }
+
+            if ($request->filled('amount')) {
+                $payout->amount = $request->amount;
+            }
+
+            if ($request->filled('user_account_no')) {
+                $payout->user_account_no = $request->user_account_no;
+            }
+
+            if ($request->filled('txn_id')) {
+                $payout->txn_id = $request->txn_id;
+            }
+
+            if ($request->filled('transaction_type')) {
+                $payout->transaction_type = $request->transaction_type;
+            }
+
+            if ($request->filled('e_wallet_phone_number')) {
+                $payout->e_wallet_phone_number = $request->e_wallet_phone_number;
+            }
+
+            if ($request->filled('e_wallet_type')) {
+                $payout->e_wallet_type = $request->e_wallet_type;
+            }
+
+            if ($request->filled('mac_address')) {
+                $payout->mac_address = $request->mac_address;
+            }
+
+            if ($request->filled('status')) {
+                $payout->status = $request->status;
+            }
+
+            if ($request->filled('fee')) {
+                $payout->fee = $request->fee;
+            }
+
+            if ($request->filled('commission')) {
+                $payout->commission = $request->commission;
+            }
+
+            $payout->ip_address = $request->ip();
+
+            if ($request->filled('date')) {
+                $formattedDate = Carbon::createFromFormat('h:ia d/m/y', $request->date)->format('Y-m-d');
+                $payout->date = $formattedDate;
+            }
+
+            if ($request->filled('time')) {
+                $formattedTime = Carbon::createFromFormat('h:ia d/m/y', $request->time)->format('H:i:s');
+                $payout->time = $formattedTime;
+            }
+
+            if (is_null($request->date_time)) {
+                $formattedDateTime = isset($formattedDate) && isset($formattedTime) ? $formattedDate . ' ' . $formattedTime : null;
+                $payout->date_time = $formattedDateTime;
+            } else {
+                $formattedDateTime = Carbon::parse($request->date_time)->format('Y-m-d H:i:s');
+                $payout->date_time = $formattedDateTime;
+            }
+
+            $now = Carbon::now();
+            $twoHoursAgo = $now->subHours(2);
+
+            $parsedDateTime = Carbon::parse($formattedDateTime, 'Asia/Dhaka');
+            if ($parsedDateTime->lessThan($twoHoursAgo)) {
+                return "$formattedDateTime is less than two hours ago.";
+            }
+
+            if ($request->status == "Complete") {
+                $payout->completions_at = Carbon::now();
+            }
+            $payout->save();
+            $this->updateLimits();
+
+            $commit = 0;
+            if ($request->status == "Complete") {
+
+                $net_amount = $payout->amount + $payout->charge;
+                $api_endpoint = "";
+                $partner_api_key = Api::where('id', $payout->api_id)->where('type', 'Admin')->lockForUpdate()->first();
+                if ($partner_api_key) {
+                    $partner_api_key->balance -= $net_amount;
+                    $partner_api_key->save();
+                    $api_endpoint = $partner_api_key->api_endpoint_withdrawal;
+
+                    $Log = new Log();
+                    $Log->date_time = $payout->created_at;
+                    $Log->final_amount = - ($payout->amount + $payout->charge);
+                    $Log->balance = $partner_api_key->balance;
+                    $Log->transection_type = 2;
+                    $Log->transection_id = $payout->id;
+                    $Log->partner_id = $payout->api_id;
+                    $Log->source = 'AddPayoutInfo';
+                    $Log->save();
+
+                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $payout->created_at)->get();
+                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                        $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($payout->amount + $payout->charge);
+                        $amount_to_update = round($amount_to_update, 2);
+                        // $amount_to_update = floor($amount_to_update * 100) / 100;
+                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                        $DailyPartnerSummary_record->save();
+
+                        $summary_log = new DailyPartnerSummaryLog();
+                        $summary_log->partner_id = $partner_api_key->id;
+                        $summary_log->partner_balance = $partner_api_key->balance;
+                        $summary_log->payment_id = $payout->id;
+                        $summary_log->total_amount = - ($payout->amount + $payout->charge);
+                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                        $summary_log->source = 'AddPayoutInfo';
+                        $summary_log->save();
+                    }
+                }
+                $PartnerCommissions = PartnerCommission::where('transaction_id', $payout->id)->where('type', 2)->where('status', 0)->get();
+                foreach ($PartnerCommissions as $PartnerCommission) {
+                    $PartnerCommission->status = 1;
+                    $PartnerCommission->save();
+                    $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                    $parent_api_key->balance += $PartnerCommission->profit;
+                    $parent_api_key->save();
+
+                    $Log = new Log();
+                    $Log->date_time = $PartnerCommission->created_at;
+                    $Log->final_amount = $PartnerCommission->profit;
+                    $Log->balance = $parent_api_key->balance;
+                    $Log->transection_type = 5;
+                    $Log->transection_id = $PartnerCommission->id;
+                    $Log->partner_id = $PartnerCommission->from_id;
+                    $Log->source = 'AddPayoutInfo';
+                    $Log->save();
+
+
+                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                        $amount_to_update = round($amount_to_update, 2);
+                        // $amount_to_update = floor($amount_to_update * 100) / 100;
+                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                        $DailyPartnerSummary_record->save();
+
+                        $summary_log = new DailyPartnerSummaryLog();
+                        $summary_log->partner_id = $parent_api_key->id;
+                        $summary_log->partner_balance = $parent_api_key->balance;
+                        $summary_log->payment_id = $PartnerCommission->id;
+                        $summary_log->total_amount = $PartnerCommission->profit;
+                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                        $summary_log->source = 'AddPayoutInfo';
+                        $summary_log->save();
+                    }
+                }
+
+                $account = EWalletAccount::where('e_wallet_name', $payout->e_wallet_name)
+                    ->where('account_no', $payout->e_wallet_phone_number)
+                    ->lockForUpdate()
+                    ->first();
+                if ($account) {
+                    //E-Wallet Account Log Save
+                    $previous_account_balance = number_format($account->balance, 2, '.', '');
+
+                    $account->balance -= $payout->amount;
+                    $account->daily_sent += $payout->amount;
+                    $account->monthly_sent += $payout->amount;
+                    $account->send += $payout->amount;
+                    if ($request->filled('fee')) {
+                        $account->fee += $request->fee;
+                    }
+
+                    if ($request->filled('commission')) {
+                        $account->commission += $request->commission;
+                    }
+                    $account->save();
+
+
+                    $e_wallet_log_save = new EWalletLog();
+                    $e_wallet_log_save->previous_balance = $previous_account_balance;
+                    $e_wallet_log_save->amount = -$payout->amount;
+                    $e_wallet_log_save->charge = isset($payout->fee) ? $payout->fee : 0.00;
+                    $e_wallet_log_save->commission = isset($payout->commission) ? $payout->commission : 0.00;
+                    $e_wallet_log_save->final_amount = (-$payout->amount - $payout->fee + $payout->commission);
+                    $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
+                    $e_wallet_log_save->transaction_type = 2;
+                    $e_wallet_log_save->transaction_id = $payout->id;
+                    $e_wallet_log_save->account_id = $account->id;
+                    $e_wallet_log_save->source = "addPayoutInfo";
+                    $e_wallet_log_save->save();
+
+                    $data = Payout::where('id', $payout->payout_log_id)->with('method')->first();
+                    if ($data) {
+                        $data->status = 2;
+                        $data->save();
+
+                        $e_wallet_charge = 0;
+                        $count_payouts = Payout::where('e_wallet_name', $payout->e_wallet_name)->where('e_wallet_phone_number', $payout->e_wallet_phone_number)->where('status', 'Complete')->whereDate('date', $formattedDate)->count();
+                        if ($count_payouts >= $account->free_transections_day) {
+                            $e_wallet_charges = EWalletCharge::where('account_id', $account->id)->where('from_amount', '<=', $payout->amount)->where('to_amount', '>=', $payout->amount)->first();
+                            if ($e_wallet_charges) {
+                                $e_wallet_charge = $e_wallet_charges->wcharges;
+                                if ($e_wallet_charges->wcharges_type == 2) {
+                                    $e_wallet_charge = $e_wallet_charges->wcharges * $payout->amount / 100;
+                                }
+                            } else {
+                                $e_wallet_charges = EWalletCharge::where('account_id', $account->id)->orderBy('to_amount', 'desc')->first();
+                                if ($e_wallet_charges) {
+                                    $e_wallet_charge = $e_wallet_charges->wcharges;
+                                    if ($e_wallet_charges->wcharges_type == 2) {
+                                        $e_wallet_charge = $e_wallet_charges->wcharges * $payout->amount / 100;
+                                    }
+                                }
+                            }
+                        }
+
+                        $payout->e_wallet_charges = $e_wallet_charge;
+                        $payout->save();
+
+
+                    }
+                }
+
+                 $commit = 1;
+                 DB::commit();
+
+                if (!empty($api_endpoint) && $partner_api_key->website != env('APP_WEBSITE')) {
+                    $string_to_hash = json_encode(array(
+                        "amount" => strval($this->convertStringToNumber($payout->amount)),
+                        "api_key" => $partner_api_key->api_key,
+                        "e_wallet_name" => $payout->e_wallet_name,
+                        "id" => strval($payout->id),
+                        'transaction_type' => 'Withdrawal',
+                        "user_account_no" => strval($payout->user_account_no),
+                    ));
+                    $secretKey = $partner_api_key->secret_key;
+                    $hash = hash("sha256", $string_to_hash);
+                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+                    $timestamp = time();
+                    $combined = $hmac . $timestamp;
+                    $sign = base64_encode($combined);
+
+
+                    $array_data = [
+                                'id' => $payout->id,
+                                'partner_transection_id' => $payout->partner_transection_id,
+                                'transaction_type' => 'Withdrawal',
+                                'e_wallet_name' => $payout->e_wallet_name,
+                                'amount' => $this->convertStringToNumber($payout->amount),
+                                'user_account_no' => $payout->user_account_no,
+                                'txn_id' => $payout->txn_id,
+                                'e_wallet_phone_number' => $payout->e_wallet_phone_number,
+                                'e_wallet_type' => $payout->e_wallet_type,
+                                'charges' => $this->convertStringToNumber($payout->charge),
+                                'status' => $payout->status,
+                                'completion_date' => $payout->date,
+                                'completion_time' => $payout->time,
+                                'created_at' => $payout->created_at,
+                                'updated_at' => $payout->updated_at,
+                                'sign' => $sign,
+                    ];
+
+                    if(!empty($payout->member_id)){
+                        $array_data['member_id'] = $payout->member_id;
+                    }
+
+                    $requestData = [
+                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                        'request_url' => $partner_api_key->api_endpoint_withdrawal,
+                        'request_payload' => json_encode($array_data),
+                        'request_headers' => json_encode([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                        ]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                    $csrfToken = Str::random(40);
+                    $responseData = [];
+                    try {
+
+                        $response = Http::withHeaders([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                        ])
+                            ->post($api_endpoint, $array_data);
+
+                        $responseData = [
+                            'response_code' => $response->status(),
+                            'response_payload' => $response->body(),
+                            'response_headers' => json_encode($response->headers()),
+                        ];
+
+                        DB::table('api_logs')->where('id', $logId)->update($responseData);
+                    } catch (\Exception $e) {
+                        // Ignore the error and do nothing
+                    }
+                }
+
+            } elseif ($request->status == "Reject") {
+
+                $payout_data = Payout::where('id', $payout->id)->lockForUpdate()->first();
+                if ($payout_data) {
+                    if (!empty($payout_data->api_id) && $payout_data->api_id != 0) {
+                        if ($payout_data->status == "Complete") {
+                            $partner_api_key = Api::where('id', $payout_data->api_id)->lockForUpdate()->first();
+                            $partner_api_key->balance += ($payout_data->amount + $payout_data->charge);
+                            $partner_api_key->save();
+
+                            $Log = new Log();
+                            $Log->date_time = $payout_data->updated_at;
+                            $Log->final_amount = ($payout_data->amount + $payout_data->charge);
+                            $Log->balance = $partner_api_key->balance;
+                            $Log->transection_type = 7;
+                            $Log->transection_id = $payout_data->id;
+                            $Log->partner_id = $payout_data->api_id;
+                            $Log->source = 'AddPayoutInfo';
+                            $Log->save();
+
+                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $payout_data->created_at)->get();
+                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($payout_data->amount + $payout_data->charge);
+                                $amount_to_update = round($amount_to_update, 2);
+                                // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                $DailyPartnerSummary_record->save();
+
+                                $summary_log = new DailyPartnerSummaryLog();
+                                $summary_log->partner_id = $partner_api_key->id;
+                                $summary_log->partner_balance = $partner_api_key->balance;
+                                $summary_log->payment_id = $payout_data->id;
+                                $summary_log->total_amount = $payout_data->amount + $payout_data->charge;
+                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                $summary_log->source = 'AddPayoutInfo';
+                                $summary_log->save();
+                            }
+
+
+                            $PartnerCommissions = PartnerCommission::where('transaction_id', $payout_data->id)->where('type', 2)->where('status', 1)->get();
+                            foreach ($PartnerCommissions as $PartnerCommission) {
+                                $PartnerCommission->status = 0;
+                                $PartnerCommission->save();
+                                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                                $parent_api_key->balance -= $PartnerCommission->profit;
+                                $parent_api_key->save();
+
+                                $Log = new Log();
+                                $Log->date_time = $PartnerCommission->created_at;
+                                $Log->final_amount = -$PartnerCommission->profit;
+                                $Log->balance = $parent_api_key->balance;
+                                $Log->transection_type = 5;
+                                $Log->transection_id = $PartnerCommission->id;
+                                $Log->partner_id = $PartnerCommission->from_id;
+                                $Log->source = 'AddPayoutInfo';
+                                $Log->save();
+
+                                $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                                foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                    $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
+                                    $amount_to_update = round($amount_to_update, 2);
+                                    // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                    $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                    $DailyPartnerSummary_record->save();
+
+                                    $summary_log = new DailyPartnerSummaryLog();
+                                    $summary_log->partner_id = $parent_api_key->id;
+                                    $summary_log->partner_balance = $parent_api_key->balance;
+                                    $summary_log->payment_id = $PartnerCommission->id;
+                                    $summary_log->total_amount = -$PartnerCommission->profit;
+                                    $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                    $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                    $summary_log->source = 'AddPayoutInfo';
+                                    $summary_log->save();
+                                }
+                            }
+
+
+                            $account = EWalletAccount::where('e_wallet_name', $payout_data->e_wallet_name)
+                                ->where('account_no', $payout_data->e_wallet_phone_number)
+                                ->where('status', 1)
+                                ->lockForUpdate()
+                                ->first();
+                            if ($account) {
+
+                                //E-Wallet Account Log Save
+                                $previous_account_balance = number_format($account->balance, 2, '.', '');
+
+
+                                $account->balance += $payout_data->amount;
+                                $account->daily_sent -= $payout_data->amount;
+                                $account->monthly_sent -= $payout_data->amount;
+                                $account->send -= $payout_data->amount;
+                                $account->save();
+
+                                $e_wallet_log_save = new EWalletLog();
+                                $e_wallet_log_save->previous_balance = $previous_account_balance;
+                                $e_wallet_log_save->amount = $payout_data->amount;
+                                $e_wallet_log_save->charge = isset($payout_data->fee) ? $payout_data->fee : 0.00;
+                                $e_wallet_log_save->commission = isset($payout_data->commission) ? $payout_data->commission : 0.00;
+                                $e_wallet_log_save->final_amount = ($payout_data->amount + $payout_data->fee - $payout_data->commission  );
+                                $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
+                                $e_wallet_log_save->transaction_type = 4;
+                                $e_wallet_log_save->transaction_id = $payout_data->id;
+                                $e_wallet_log_save->account_id = $account->id;
+                                $e_wallet_log_save->source = "addPayoutInfo";
+                                $e_wallet_log_save->save();
+                            }
+                        }
+                    }
+                    $payout_data->status = "Reject";
+                    $payout_data->save();
+                }
+
+                $data = Payout::where('id', $payout->payout_log_id)->where('status' , '!=' , 3)->with('user', 'method')->first();
+                if ($data) {
+                    $data->status = 3;
+                    $data->save();
+
+                    $user = $data->user;
+                    $user->balance += $data->net_amount;
+                    $user->save();
+
+                    $basic = (object) config('basic');
+                    $transaction = new Transaction();
+                    $transaction->user_id = $user->id;
+                    $transaction->amount = getAmount($data->net_amount);
+                    $transaction->final_balance = $user->balance;
+                    $transaction->charge = $data->charge;
+                    $transaction->trx_type = '+';
+                    $transaction->remarks = getAmount($data->amount) . ' ' . $basic->currency . ' withdraw amount has been refunded';
+                    if (isset($data->trx_id) && !empty($data->trx_id)) {
+                        $transaction->trx_id = $data->trx_id;
+                    }
+                    $transaction->save();
+
+                    $api_endpoint = "";
+                    $partner_api_key = Api::where('id', $payout->api_id)->where('type', 'Admin')->first();
+                    if ($partner_api_key) {
+                        $api_endpoint = $partner_api_key->api_endpoint_withdrawal;
+                    }
+
+
+                    $commit = 1;
+                    DB::commit();
+
+
+                    if (!empty($api_endpoint) && $partner_api_key->website != env('APP_WEBSITE')) {
+
+                        $string_to_hash = json_encode(array(
+                            "amount" => strval($this->convertStringToNumber($payout->amount)),
+                            "api_key" => $partner_api_key->api_key,
+                            "e_wallet_name" => $payout->e_wallet_name,
+                            "id" => strval($payout->id),
+                            'transaction_type' => 'Withdrawal',
+                            "user_account_no" => strval($payout->user_account_no),
+                        ));
+                        $secretKey = $partner_api_key->secret_key;
+                        $hash = hash("sha256", $string_to_hash);
+                        $hmac = hash_hmac('sha256', $hash, $secretKey);
+                        $timestamp = time();
+                        $combined = $hmac . $timestamp;
+                        $sign = base64_encode($combined);
+
+                        $array_data = [
+                                    'id' => $payout->id,
+                                    'partner_transection_id' => $payout->partner_transection_id,
+                                    'transaction_type' => 'Withdrawal',
+                                    'e_wallet_name' => $payout->e_wallet_name,
+                                    'amount' => $this->convertStringToNumber($payout->amount),
+                                    'user_account_no' => $payout->user_account_no,
+                                    'txn_id' => $payout->txn_id,
+                                    'e_wallet_phone_number' => $payout->e_wallet_phone_number,
+                                    'e_wallet_type' => $payout->e_wallet_type,
+                                    'charges' => $this->convertStringToNumber($payout->charge),
+                                    'status' => $payout->status,
+                                    'completion_date' => $payout->date,
+                                    'completion_time' => $payout->time,
+                                    'created_at' => $payout->created_at,
+                                    'updated_at' => $payout->updated_at,
+                                    'sign' => $sign,
+                        ];
+
+                        if(!empty($payout->member_id)){
+                            $array_data['member_id'] = $payout->member_id;
+                        }
+
+                        $requestData = [
+                            'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                            'request_url' => $partner_api_key->api_endpoint_withdrawal,
+                            'request_payload' => json_encode($array_data),
+                            'request_headers' => json_encode([
+                                'Content-Type' => 'application/json',
+                                'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                            ]),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+
+                        $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                        $csrfToken = Str::random(40);
+                        $responseData = [];
+                        try {
+
+                            $response = Http::withHeaders([
+                                'Content-Type' => 'application/json',
+                                'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                            ])
+                                ->post($api_endpoint, $array_data);
+
+                            $responseData = [
+                                'response_code' => $response->status(),
+                                'response_payload' => $response->body(),
+                                'response_headers' => json_encode($response->headers()),
+                            ];
+
+                            DB::table('api_logs')->where('id', $logId)->update($responseData);
+                        } catch (\Exception $e) {
+                            // Ignore the error and do nothing
+                        }
+                    }
+
+
+
+                    $msg = [
+                        'amount' => getAmount($data->amount),
+                        'currency' => $basic->currency,
+                    ];
+                    $action = [
+                        "link" => '#',
+                        "icon" => "fa fa-money-bill-alt "
+                    ];
+
+                }
+
+                if($commit==0){
+                    DB::commit();
+                }
+            }
+
+            if($commit==0){
+                DB::commit();
+            }
+            return response()->json(['message' => 'Payout information updated successfully'], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json(['errors' => $e->validator->errors()], 400);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'An error occurred while processing your request'], 500);
+        }
+    }
+
+    public function rejectPayoutInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+            'id' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        if ($api_key && $api_key->website == env('APP_WEBSITE')) {
+            $source = $api_key->website;
+        } else {
+            return response()->json(['message' => 'Wrong API key'], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $payout = Payout::where('id', $request->id)->lockForUpdate()->first();
+            if ($payout->try < 2) {
+                $payout->try = $payout->try + 1;
+                $payout->save();
+                DB::commit();
+                return response()->json(['message' => 'Payout Tried ' . $payout->try . ' out of 3.'], 200);
+            } else {
+                $payout->try = $payout->try + 1;
+                $payout->status = "Reject";
+                $payout->save();
+
+                $payout_data = Payout::where('id', $payout->id)->first();
+                if ($payout_data) {
+
+                    if (!empty($payout_data->api_id) && $payout_data->api_id != 0) {
+                        if ($payout_data->status == "Complete") {
+                            $partner_api_key = Api::where('id', $payout_data->api_id)->lockForUpdate()->first();
+                            $partner_api_key->balance += ($payout_data->amount + $payout_data->charge);
+                            $partner_api_key->save();
+
+                            $Log = new Log();
+                            $Log->date_time = $payout_data->updated_at;
+                            $Log->final_amount = ($payout_data->amount + $payout_data->charge);
+                            $Log->balance = $partner_api_key->balance;
+                            $Log->transection_type = 7;
+                            $Log->transection_id = $payout_data->id;
+                            $Log->partner_id = $payout_data->api_id;
+                            $Log->source = 'RejectPayoutInfo';
+                            $Log->save();
+
+                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $payout_data->created_at)->get();
+                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($payout_data->amount + $payout_data->charge);
+                                $amount_to_update = round($amount_to_update, 2);
+                                // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                $DailyPartnerSummary_record->save();
+
+                                $summary_log = new DailyPartnerSummaryLog();
+                                $summary_log->partner_id = $partner_api_key->id;
+                                $summary_log->partner_balance = $partner_api_key->balance;
+                                $summary_log->payment_id = $payout_data->id;
+                                $summary_log->total_amount = $payout_data->amount + $payout_data->charge;
+                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                $summary_log->source = 'RejectPayoutInfo';
+                                $summary_log->save();
+                            }
+
+
+                            $PartnerCommissions = PartnerCommission::where('transaction_id', $payout_data->id)->where('type', 2)->where('status', 1)->get();
+                            foreach ($PartnerCommissions as $PartnerCommission) {
+                                $PartnerCommission->status = 0;
+                                $PartnerCommission->save();
+                                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                                $parent_api_key->balance -= $PartnerCommission->profit;
+                                $parent_api_key->save();
+
+                                $Log = new Log();
+                                $Log->date_time = $PartnerCommission->created_at;
+                                $Log->final_amount = -$PartnerCommission->profit;
+                                $Log->balance = $parent_api_key->balance;
+                                $Log->transection_type = 5;
+                                $Log->transection_id = $PartnerCommission->id;
+                                $Log->partner_id = $PartnerCommission->from_id;
+                                $Log->source = 'RejectPayoutInfo';
+                                $Log->save();
+
+                                $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                                foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                    $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
+                                    $amount_to_update = round($amount_to_update, 2);
+                                    // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                    $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                    $DailyPartnerSummary_record->save();
+
+                                    $summary_log = new DailyPartnerSummaryLog();
+                                    $summary_log->partner_id = $parent_api_key->id;
+                                    $summary_log->partner_balance = $parent_api_key->balance;
+                                    $summary_log->payment_id = $PartnerCommission->id;
+                                    $summary_log->total_amount = -$PartnerCommission->profit;
+                                    $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                    $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                    $summary_log->source = 'RejectPayoutInfo';
+                                    $summary_log->save();
+                                }
+                            }
+
+                            $account = EWalletAccount::where('e_wallet_name', $payout_data->e_wallet_name)
+                                ->where('account_no', $payout_data->e_wallet_phone_number)
+                                ->where('status', 1)
+                                ->lockForUpdate()
+                                ->first();
+                            if ($account) {
+
+                                //E-Wallet Account Log Save
+                                $previous_account_balance = number_format($account->balance, 2, '.', '');
+
+                                $account->balance += $payout_data->amount;
+                                $account->daily_sent -= $payout_data->amount;
+                                $account->monthly_sent -= $payout_data->amount;
+                                $account->send -= $payout_data->amount;
+                                $account->save();
+
+
+                                $e_wallet_log_save = new EWalletLog();
+                                $e_wallet_log_save->previous_balance = $previous_account_balance;
+                                $e_wallet_log_save->amount = $payout_data->amount;
+                                $e_wallet_log_save->charge = isset($payout_data->fee) ? $payout_data->fee : 0.00;
+                                $e_wallet_log_save->commission = isset($payout_data->commission) ? $payout_data->commission : 0.00;
+                                $e_wallet_log_save->final_amount = ($payout_data->amount + $payout_data->fee - $payout_data->commission  );
+                                $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
+                                $e_wallet_log_save->transaction_type = 4;
+                                $e_wallet_log_save->transaction_id = $payout_data->id;
+                                $e_wallet_log_save->account_id = $account->id;
+                                $e_wallet_log_save->source = "rejectPayoutInfo";
+                                $e_wallet_log_save->save();
+                            }
+                        }
+                    }
+
+                    $payout_data->status = "Reject";
+                    $payout_data->save();
+                }
+
+                $commit = 0;
+
+                $data = Payout::where('id', $payout->id)->where('status', '!=' , 3)->with('user', 'gateway')->first();
+                if ($data) {
+
+                    $data->status = 3;
+                    $data->save();
+
+                    $user = $data->user;
+                    $user->balance += $data->net_amount;
+                    $user->save();
+
+                    $basic = (object) config('basic');
+
+                    $transaction = new Transaction();
+                    $transaction->user_id = $user->id;
+                    $transaction->amount = getAmount($data->net_amount);
+                    $transaction->final_balance = $user->balance;
+                    $transaction->charge = $data->charge;
+                    $transaction->trx_type = '+';
+                    $transaction->remarks = getAmount($data->amount) . ' ' . $basic->currency . ' withdraw amount has been refunded';
+                    $transaction->trx_id = empty($data->trx_id) ? 'null' : $data->trx_id;
+                    $transaction->save();
+
+                    $commit = 1;
+                    DB::commit();
+
+                    $api_endpoint = "";
+                    $partner_api_key = Api::where('id', $payout->api_id)->where('type', 'Admin')->first();
+                    if ($partner_api_key) {
+                        $api_endpoint = $partner_api_key->api_endpoint_withdrawal;
+                        if (!empty($partner_api_key->api_endpoint_withdrawal) && $partner_api_key->website != env('APP_WEBSITE')) {
+
+                            $string_to_hash = json_encode(array(
+                                "amount" => strval($this->convertStringToNumber($payout->amount)),
+                                "api_key" => $partner_api_key->api_key,
+                                "e_wallet_name" => $payout->e_wallet_name,
+                                "id" => strval($payout->id),
+                                'transaction_type' => 'Withdrawal',
+                                "user_account_no" => strval($payout->user_account_no),
+                            ));
+                            $secretKey = $partner_api_key->secret_key;
+                            $hash = hash("sha256", $string_to_hash);
+                            $hmac = hash_hmac('sha256', $hash, $secretKey);
+                            $timestamp = time();
+                            $combined = $hmac . $timestamp;
+                            $sign = base64_encode($combined);
+
+                            $array_data = [
+                                        'id' => $payout->id,
+                                        'partner_transection_id' => $payout->partner_transection_id,
+                                        'transaction_type' => 'Withdrawal',
+                                        'e_wallet_name' => $payout->e_wallet_name,
+                                        'amount' => $this->convertStringToNumber($payout->amount),
+                                        'user_account_no' => $payout->user_account_no,
+                                        'txn_id' => $payout->txn_id,
+                                        'e_wallet_phone_number' => $payout->e_wallet_phone_number,
+                                        'e_wallet_type' => $payout->e_wallet_type,
+                                        'charges' => $this->convertStringToNumber($payout->charge),
+                                        'status' => $payout->status,
+                                        'completion_date' => $payout->date,
+                                        'completion_time' => $payout->time,
+                                        'created_at' => $payout->created_at,
+                                        'updated_at' => $payout->updated_at,
+                                        'sign' => $sign,
+                            ];
+
+                            if(!empty($payout->member_id)){
+                                $array_data['member_id'] = $payout->member_id;
+                            }
+
+
+                            $requestData = [
+                                'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                                'request_url' => $partner_api_key->api_endpoint_withdrawal,
+                                'request_payload' => json_encode($array_data),
+                                'request_headers' => json_encode([
+                                    'Content-Type' => 'application/json',
+                                    'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                                ]),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ];
+
+                            $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                            $csrfToken = Str::random(40);
+                            $responseData = [];
+                            try {
+                                $response = Http::withHeaders([
+                                    'Content-Type' => 'application/json',
+                                    'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                                ])
+                                    ->post($partner_api_key->api_endpoint_withdrawal, $array_data);
+
+                                $responseData = [
+                                    'response_code' => $response->status(),
+                                    'response_payload' => $response->body(),
+                                    'response_headers' => json_encode($response->headers()),
+                                ];
+                                DB::table('api_logs')->where('id', $logId)->update($responseData);
+                            } catch (\Exception $e) {
+                                // Ignore the error and do nothing
+                            }
+                        }
+                    }
+                }
+            }
+
+            if($commit==0){
+                DB::commit();
+            }
+            return response()->json(['message' => 'Payout Rejected'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+    }
+
 
 
 

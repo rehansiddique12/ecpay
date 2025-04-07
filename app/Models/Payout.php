@@ -23,4 +23,13 @@ class Payout extends Model
     ];
 
     // Add any relationships or additional methods here
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function gateway()
+    {
+        return $this->belongsTo(Gateway::class, 'gateway_id');
+    }
 }
