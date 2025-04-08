@@ -317,7 +317,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-warning">@lang('Update')</button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -464,7 +464,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
