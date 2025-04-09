@@ -1,6 +1,7 @@
 @php
   $isAccountsActive = Request::routeIs('admin.accounts.add') ||
                       Request::routeIs('admin.accounts') ||
+                      Request::routeIs('admin.workboard') ||
                       Request::routeIs('admin.balance.logs');
 
 
@@ -628,6 +629,12 @@
                           <div data-i18n="Partner Group">Partner Group</div>
                         </a>
                       </li>
+                      {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
+                        <a href="{{ route('admin.workboard') }}" class="menu-link">
+                          <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                          <div data-i18n="WorkBoard">WorkBoard</div>
+                        </a>
+                      </li> --}}
                     </ul>
                   </li>
 

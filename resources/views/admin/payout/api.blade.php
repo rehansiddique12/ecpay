@@ -2,10 +2,12 @@
     @push('styles')
     <script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
     @endpush
+
     <div class="row " >
         <div class="col-md-12" >
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow" >
                 <div class="card-body">
+                    <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                     {{-- @if(adminAccessRoute(config('role.partners.access.add'))) --}}
                     <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
                         Add New
@@ -316,7 +318,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-warning">@lang('Update')</button>
+                        <button type="submit" class="btn btn-primary">@lang('Update')</button>
                         <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
@@ -561,7 +563,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -659,7 +661,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Add')</button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>

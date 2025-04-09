@@ -2997,6 +2997,12 @@ class PayoutRecordController extends Controller
     }
 
 
+    // public function workboard(Request $request){
+    //     return view('admin.workboard');
+
+    // }
+
+
 
 
 

@@ -6,6 +6,7 @@
     <div class="col-md-12">
         <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
             <div class="card-body">
+                <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
 
 
                 <div class="table-responsive">
@@ -213,7 +214,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">@lang('Add')</button>
-                    <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                 </div>
             </form>
         </div>
@@ -251,7 +252,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">@lang('Update')</button>
-                    <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                 </div>
             </form>
         </div>

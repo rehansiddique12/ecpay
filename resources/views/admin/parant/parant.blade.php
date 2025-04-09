@@ -11,6 +11,7 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
+                    <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                     {{-- @if(adminAccessRoute(config('role.partners.access.add'))) --}}
                     {{-- <a href="javascript:void(0)" class="btn btn-sm btn-primary mr-2" data-target="#newModal" data-toggle="modal">
                         <span><i class="fa fa-plus-circle"></i> @lang('Add New')</span>
