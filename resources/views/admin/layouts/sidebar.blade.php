@@ -1,15 +1,16 @@
 @php
   $isAccountsActive = Request::routeIs('admin.accounts.add') ||
                       Request::routeIs('admin.accounts') ||
-                      Request::routeIs('admin.workboard') ||
-                      Request::routeIs('admin.balance.logs');
+                      Request::routeIs('admin.balance.logs') ||
+                      Request::routeIs('') ;
 
 
   $isMainActive = in_array(Route::currentRouteName(), [
     'admin.dashboard',
     'admin.staff',
     'admin.groups',
-    'admin.parant'
+    'admin.parant',
+    'admin.workboard'
   ]);
 
   $isPartnerActive = in_array(Route::currentRouteName(), [
@@ -629,12 +630,12 @@
                           <div data-i18n="Partner Group">Partner Group</div>
                         </a>
                       </li>
-                      {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
+                      <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
                         <a href="{{ route('admin.workboard') }}" class="menu-link">
                           <i class="menu-icon icon-base ti tabler-menu-2"></i>
                           <div data-i18n="WorkBoard">WorkBoard</div>
                         </a>
-                      </li> --}}
+                      </li>
                     </ul>
                   </li>
 
