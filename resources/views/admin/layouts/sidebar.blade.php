@@ -619,6 +619,12 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Partner Group">Partner Group</div>
                                 </a>
                             </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
+                                <a href="{{ route('admin.workboard') }}" class="menu-link">
+                                  <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                  <div data-i18n="WorkBoard">WorkBoard</div>
+                                </a>
+                              </li>
                         </ul>
                     </li>
 
@@ -738,12 +744,6 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                         @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                         @endforeach
-                      </li>
-                      <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
-                        <a href="{{ route('admin.workboard') }}" class="menu-link">
-                          <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                          <div data-i18n="WorkBoard">WorkBoard</div>
-                        </a>
                       </li>
                     </ul>
                 </div>
