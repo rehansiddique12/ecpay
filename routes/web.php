@@ -106,6 +106,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('/staff/{admin}', [ManageRolePermissionController::class, 'updateStaff'])->name('updateStaff');
         // Parant Routs
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
+        Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
 
         Route::get('/apis', [PayoutRecordController::class,'apis'])->name('apis');
         Route::post('/apis/add', [PayoutRecordController::class,'apisAdd'])->name('apis.add');

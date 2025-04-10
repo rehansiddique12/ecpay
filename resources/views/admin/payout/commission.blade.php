@@ -5,6 +5,7 @@ $key = 0;
 <div class="row">
     <div class="col-md-12">
         <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+            <h3 style="color: #7367f0">{{$pageTitle}}</h3>
         <form action="{{ route('admin.apis.commission.add') }}" method="post">
             @csrf
             <div class="">
@@ -283,7 +284,7 @@ $key = 0;
 
         <hr>
         @if(count($cron_commissions)>0)
-        <h3 style="color:black">Pending to Update</h3>
+        <h3 style="color: #7367f0">Pending to Update</h3>
                @foreach($cron_commissions as $key => $commission)
                <div id="row-p{{$key}}">
                 <br>

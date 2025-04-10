@@ -22,6 +22,19 @@ $isPartnerActive = in_array(Route::currentRouteName(), [
 $isTransactionActive = in_array(Route::currentRouteName(), [
 'admin.payment.log',
 ]);
+  $isAccountsActive = Request::routeIs('admin.accounts.add') ||
+                      Request::routeIs('admin.accounts') ||
+                      Request::routeIs('admin.balance.logs') ||
+                      Request::routeIs('') ;
+
+
+  $isMainActive = in_array(Route::currentRouteName(), [
+    'admin.dashboard',
+    'admin.staff',
+    'admin.groups',
+    'admin.parant',
+    'admin.workboard'
+  ]);
 
 @endphp
 
@@ -725,6 +738,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                         @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                         @endforeach
+                      </li>
+                      <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
+                        <a href="{{ route('admin.workboard') }}" class="menu-link">
+                          <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                          <div data-i18n="WorkBoard">WorkBoard</div>
+                        </a>
+                      </li>
                     </ul>
                 </div>
                 @endif

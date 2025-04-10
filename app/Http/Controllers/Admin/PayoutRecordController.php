@@ -4025,6 +4025,13 @@ class PayoutRecordController extends Controller
     }
 
 
+    public function workboard(Request $request)
+    {
+        $pageTitle = "Workboard";
+        return view('admin.payout.workboard', compact( 'pageTitle'));
+    }
+
+
 
 
 
