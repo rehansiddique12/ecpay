@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\PaymentLogController;
+use App\Http\Controllers\Admin\PayoutRecordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,7 @@ Route::post('/paymentGatewayInfo', [PaymentController::class, 'paymentGatewayInf
 Route::post('/uploadReceipt', [PaymentController::class, 'uploadReceipt']);
 Route::post('/lastPaymentDetail', [PaymentController::class, 'lastPaymentDetail']);
 Route::get('/payoutGateway', [PayoutRecordController::class, 'payoutGateway']);
+
 Route::post('/addPayout', [PayoutRecordController::class, 'addPayout']);
 Route::post('/lastPayoutDetail', [PayoutRecordController::class, 'lastPayoutDetail']);
 Route::get('/allPayoutInfo', [PayoutRecordController::class, 'allPayoutInfo']);

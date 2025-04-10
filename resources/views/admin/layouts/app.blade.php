@@ -75,7 +75,7 @@
         <!-- / Navbar -->
 
         <!-- Layout container -->
-        
+
             <!--/ Content -->
 
             <!-- Footer -->
@@ -162,5 +162,6 @@
 
     <!-- Page JS -->
     <script src="{{asset('/assets//js/pages-pricing.js')}}"></script>
+    @stack('js')
   </body>
 </html>

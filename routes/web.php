@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\TelegramGroupController;
 use App\Http\Controllers\Admin\ParentController;
+use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
@@ -162,6 +163,23 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('/profile', [AdminDashboardController::class,'profileUpdate'])->name('profileUpdate');
         Route::get('/password', [AdminDashboardController::class,'password'])->name('password');
         Route::put('/password', [AdminDashboardController::class,'passwordUpdate'])->name('passwordUpdate');
+
+        Route::get('payment/log', [PaymentLogController::class,'index'])->name('payment.log');
+        Route::get('payment/search', [PaymentLogController::class,'search'])->name('payment.search');
+        Route::put('payment/update_e_wallet', [PaymentLogController::class,'update_e_wallet'])->name('payment.update_e_wallet');
+        Route::post('/accounts/run/callback/deposit', [PaymentLogController::class,'runCallback'])->name('run.deposit.callback');
+
+        Route::get('/user/edit/{id}', [UsersController::class,'userEdit'])->name('user-edit');
+        Route::put('payment/action/{id}', [PaymentLogController::class,'action'])->name('payment.action');
+
+        Route::get('/payout-log', [PayoutRecordController::class,'index'])->name('payout-log');
+        Route::get('/payout-log/search', [PayoutRecordController::class,'search'])->name('payout-log.search');
+        Route::put('payout/update_e_wallet', [PayoutRecordController::class,'update_e_wallet'])->name('payout.update_e_wallet');
+        Route::post('/accounts/run/callback', [PayoutRecordController::class,'runCallback'])->name('run.callback');
+        Route::get('/payout-report/get-notification', [PayoutRecordController::class,'getNotification'])->name('payout-report.getnotification');
+        Route::get('/payout-request', [PayoutRecordController::class,'request'])->name('payout-request');
+        Route::put('/payout-action/{id}', [PayoutRecordController::class,'action'])->name('payout-action');
+
 
 
 
