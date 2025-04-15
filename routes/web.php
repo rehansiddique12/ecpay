@@ -8,10 +8,14 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\TelegramGroupController;
 use App\Http\Controllers\Admin\ParentController;
+use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
+// rehan
+use App\Http\Controllers\Admin\ReportsController;
+
 
 /*```php
 // No code was selected, so I'll provide a general improvement suggestion.
@@ -107,6 +111,23 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Parant Routs
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
+
+        // rehan Reports:
+        Route::get('reports/cal', [ReportsController::class,'cal'])->name('reports.cal');
+        Route::get('reports/logs', [ReportsController::class,'logs'])->name('reports.logs');
+        Route::get('reports/cal2', [ReportsController::class,'cal2'])->name('reports.cal2');
+        Route::get('reports/master_report', [ReportsController::class,'master_report'])->name('reports.master_report');
+        Route::get('reports/revenue_center', [ReportsController::class,'revenue_center'])->name('reports.revenue_center');
+        Route::get('reports/live_ewallet_balance', [ReportsController::class,'live_ewallet_balance'])->name('reports.live_ewallet_balance');
+        Route::get('reports/daily_ewallet_summary', [ReportsController::class,'daily_ewallet_summary'])->name('reports.daily_ewallet_summary');
+        Route::get('reports/partner_account_summary', [ReportsController::class,'partner_account_summary'])->name('reports.partner_account_summary');
+        Route::get('reports/merchant_charges_summary', [ReportsController::class,'merchant_charges_summary'])->name('reports.merchant_charges_summary');
+        Route::get('reports/daily_transection_summary', [ReportsController::class,'daily_transection_summary'])->name('reports.daily_transection_summary');
+        Route::get('payment_gateway_performance_report', [PaymentMethodController::class,'payment_gateway_report'])->name('payment.payment_gateway_report');
+        Route::get('reports/merchant_charges_summary/search', [ReportsController::class,'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
+        Route::get('reports/partner_account_balance_summary', [ReportsController::class,'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
+        Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class,'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
+
 
         Route::get('/apis', [PayoutRecordController::class,'apis'])->name('apis');
         Route::post('/apis/add', [PayoutRecordController::class,'apisAdd'])->name('apis.add');

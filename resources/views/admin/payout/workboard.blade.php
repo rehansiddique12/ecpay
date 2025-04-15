@@ -53,8 +53,6 @@
             <div class="container-fluid  text-white d-flex p-0">
                 <!-- Left Panel -->
                 <div class="left-panel">
-                    <p class="fs-4 fw-bold">WORKBOARD</p>
-
                     <nav class="custom-box1 nav-box d-flex justify-content-between align-items-center text-light">
                         <div class="d-flex align-items-center">
                             <p class="mb-0 me-2">SEARCH:</p>

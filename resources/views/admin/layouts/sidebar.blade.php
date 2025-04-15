@@ -17,6 +17,21 @@ $isPartnerActive = in_array(Route::currentRouteName(), [
 'admin.settlements',
 'admin.apis',
 ]);
+$isReportsActive = in_array(Route::currentRouteName(), [
+'admin.reports.live_ewallet_balance',
+'admin.reports.daily_ewallet_summary',
+'admin.reports.daily_transection_summary',
+'admin.reports.merchant_charges_summary',
+'admin.reports.partner_account_summary',
+'admin.reports.partner_account_balance_summary',
+'admin.reports.partner_account_balance_summary_completions',
+'admin.reports.revenue_center',
+'admin.reports.logs',
+'admin.reports.cal',
+'admin.reports.cal2',
+'admin.reports.master_report',
+'admin.payment_gateway_performance_report',
+]);
 
 
 $isTransactionActive = in_array(Route::currentRouteName(), [
@@ -243,7 +258,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                 <!-- Quick links -->
 
                 <!-- Notification -->
-                {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
+            {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
             <a
               class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
               href="javascript:void(0);"
@@ -724,6 +739,108 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             </li>
 
 
+                        </ul>
+                    </li>
+
+
+                    {{-- rehan reports --}}
+                    <li class="menu-item {{ $isReportsActive ? 'active open' : '' }}">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon icon-base ti tabler-users"></i>
+                            <div data-i18n="Reports">Reports</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.live_ewallet_balance' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.live_ewallet_balance') }}" class="menu-link">
+                                    <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Live E-Wallet Balance">Live E-Wallet Balance</div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_ewallet_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.daily_ewallet_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Daily E-Wallet Summary">Daily E-Wallet Summary </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_transection_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.daily_transection_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Daily Transection Summary">Daily Transection Summary </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.merchant_charges_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.merchant_charges_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Merchant Charges Summary">Merchant Charges Summary </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.partner_account_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Account Summary">Partner Account Summary </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.partner_account_balance_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Account Balance Summary Creations">Partner Account Balance Summary Creations </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary_completions' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.partner_account_balance_summary_completions') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Account Balance Summary Completions">Partner Account Balance Summary Completions </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.revenue_center' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.revenue_center') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Revenue Center">Revenue Center </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.logs' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.logs') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Balance Logs">Partner Balance Logs </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.cal') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Balance R1">Partner Balance R1 </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal2' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.cal2') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Balance R2">Partner Balance R2 </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.master_report' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.master_report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Master Report">Master Report </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payment.payment_gateway_report' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payment.payment_gateway_report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Gateway Performance Report">Gateway Performance Report </div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
