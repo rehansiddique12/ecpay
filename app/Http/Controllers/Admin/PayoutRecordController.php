@@ -38,6 +38,58 @@ class PayoutRecordController extends Controller
 {
     use Upload;
 
+    public function reportDetail($date, $gateway, $status)
+    {
+
+        $gateways = PayoutMethod::where('status', 1)
+            ->get();
+        // dd($gateways);
+        $pageTitle = "Payout Report Detail";
+        $domains = Api::where('type', 'Admin')->get();
+
+        $heading['date'] = $date;
+        $heading['gateway'] = $gateway;
+        $heading['status'] = $status;
+
+        if ($gateway == "All") {
+            $gateway = "";
+        }
+
+        if ($status == "Pending") {
+            $status = 1;
+        } elseif ($status == "Approved") {
+            $status = 2;
+        } else {
+            $status = "";
+        }
+
+        // dd($status);
+
+        $records = Payout::where('status', 'like', '%' . $status . '%')
+    ->where('status', '!=', 0)
+    ->whereDate('created_at', $date) // Moved here directly
+    ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Moved here directly
+    ->orderBy('id', 'DESC')
+    ->with('user', 'method')
+    ->paginate(config('basic.paginate'));
+
+
+    $funds_t = PayoutLog::where('status', '!=', 0)
+    ->where('status', 'like', '%' . $status . '%')
+    ->whereDate('created_at', $date) // Applied directly
+    ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Applied directly
+    ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+    ->with('user', 'method') // Removed 'payout'
+    ->first();
+
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+
+        return view('admin.payout.report_detail', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
+    }
+
+
+
     public function search(Request $request)
     {
         $search = $request->all();
@@ -202,7 +254,7 @@ class PayoutRecordController extends Controller
 
     public function request()
     {
-        $page_title = "Payout Request";
+        $pageTitle = "Payout Request";
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = PayoutLog::where('status', '!=', 0)->orderBy('id', 'DESC')->first()->id;
         $records = PayoutLog::whereIn('status', [1, 2])
@@ -214,7 +266,7 @@ class PayoutRecordController extends Controller
                 })->orWhereDoesntHave('payout');
             })
             ->paginate(config('basic.paginate'));
-        return view('admin.payout.logs', compact('records', 'page_title', 'domains', 'letest_record'));
+        return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
     public  function action(Request $request, $id)

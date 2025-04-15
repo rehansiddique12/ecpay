@@ -227,7 +227,7 @@
                                 @if(($fund->status == 2))
                                <i class="icon-base ti tabler-pencil me-1"></i>
                                 @else
-                                <i class="fa fa-eye"></i>
+                                <i class="icon-base ti tabler-eye me-1"></i>
                                 @endif
 
                             </button>

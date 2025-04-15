@@ -32,6 +32,457 @@ class PaymentLogController extends Controller
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
     }
 
+    public function apiLog()
+    {
+        $pageTitle = "3rd Party Deposit Logs";
+        $domains = Api::where('type', 'Admin')->get();
+        $funds = Payment::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+        return view('admin.payment.api_log', compact('pageTitle', 'funds', 'domains'));
+    }
+
+    public function apisearch(Request $request)
+    {
+        $search = $request->all();
+        $domains = Api::where('type', 'Admin')->get();
+        $dateSearch = $request->date_time;
+        $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
+
+        $query = Payment::query();
+        if ($request->filled('name')) {
+            $query->where('e_wallet_name', 'like', '%' . $request->input('name') . '%');
+        }
+
+        if ($request->filled('status') && $request->input('status') != '-1') {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('date_time')) {
+            $query->whereDate('created_at', $dateSearch);
+        }
+
+        if ($request->filled('domain')) {
+            $query->where('api_id', $request->input('domain'));
+        }
+        $funds = $query->orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+
+        $pageTitle = "Search API Payment Logs";
+        return view('admin.payment.api_log', compact('funds', 'pageTitle', 'domains'));
+    }
+
+    public function apiLogUnclaimed()
+    {
+        $pageTitle = "Unclaimed Payments";
+        $domains = Api::where('type', 'Admin')->get();
+        $funds = Payment::where('status', '!=', 'Complete')->orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+        return view('admin.payment.unclaimed', compact('pageTitle', 'funds', 'domains'));
+    }
+
+    public function apiLogUnclaimedsearch(Request $request)
+    {
+        $pageTitle = "Unclaimed Payments Search";
+        $domains = Api::where('type', 'Admin')->get();
+
+        $dateSearch = $request->date_time;
+        $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
+
+
+        $funds = Payment::where('status', '!=', 'Complete')->whereDate('created_at', $dateSearch)->orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+        return view('admin.payment.unclaimed', compact('pageTitle', 'funds', 'domains'));
+    }
+
+    public function report()
+    {
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Payment Report";
+        $domains = Api::where('type', 'Admin')->get();
+        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+    }
+
+    public function reportSearch(Request $request)
+    {
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)->get();
+        $search = $request->all();
+        $fund_count = 0;
+        $fund_sum = 0;
+        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+
+        // Aggregate totals (COUNT & SUM)
+        $funds_t = Payment::where('status', '!=', 'initiate')
+            ->when($search['name'], function ($query) use ($search) {
+                $query->whereHas('user', function ($subQuery) use ($search) {
+                    $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
+                        ->orWhere('email', 'like', '%' . $search['name'] . '%')
+                        ->orWhere('username', 'like', '%' . $search['name'] . '%');
+                });
+            })
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                             ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+            ->when($search['status'] != 4, function ($query) use ($search) {
+                $query->where('status', $search['status']);
+            })
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where('sender', 'LIKE', "%{$request->account_no}%")
+                      ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+            })
+            ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
+            ->first();
+
+        $fund_count = $funds_t->amount_count ?? 0;
+        $fund_sum = round($funds_t->amount_sum ?? 0, 2);
+
+        // Paginated list of payments
+        $payments = Payment::where('status', '!=', 0)
+            ->when($search['name'], function ($query) use ($search) {
+                $query->whereHas('user', function ($subQuery) use ($search) {
+                    $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
+                        ->orWhere('email', 'like', '%' . $search['name'] . '%')
+                        ->orWhere('username', 'like', '%' . $search['name'] . '%');
+                });
+            })
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                             ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+            ->when($search['status'] != 4, function ($query) use ($search) {
+                $query->where('status', $search['status']);
+            })
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with('user', 'gateway')
+            ->paginate(config('basic.paginate'));
+
+        $pageTitle = "Search Payment Logs";
+        return view('admin.payment.report', compact('funds','payments', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains'));
+    }
+
+    public function dailyReport()
+    {
+
+        $domains = Api::where('type', 'Admin')->get();
+
+        $from_date = date('Y-m-01');
+        $to_date = date('Y-m-d');
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Daily Deposit Report";
+        $paymentsByDate = Payment::select(
+            DB::raw('DATE(created_at) as payment_date'),
+            DB::raw('COUNT(*) as payment_count'),
+            DB::raw('SUM(amount) as total_amount'),
+            DB::raw('COUNT(CASE WHEN status = 2 THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+        )
+            ->whereDate('created_at', '>=', $from_date)->whereDate('created_at', '<=', $to_date)
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->get();
+        // dd($paymentsByDate);
+
+        return view('admin.payment.daily_report', compact('paymentsByDate', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
+    }
+
+    public function dailyReportSearch(Request $request)
+    {
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Daily Deposit Report";
+        $query = Payment::select(
+            DB::raw('DATE(created_at) as payment_date'),
+            DB::raw('COUNT(*) as payment_count'),
+            DB::raw('SUM(amount) as total_amount'),
+            DB::raw('COUNT(CASE WHEN status = 2 THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+        )
+            ->whereDate('created_at', '>=', $request->from_date)->whereDate('created_at', '<=', $request->to_date)
+            ->when($request->filled('website'), function ($query) use ($request) {
+                return $query->where('api_id', $request->website);
+            })
+            ->groupBy(DB::raw('DATE(created_at)'));
+
+
+        if ($request->filled('gateway')) {
+            $gateway = strtolower($request->gateway);
+            $this_gateway = Gateway::where('name', $gateway)->first();
+            $query->where('gateway_id', $this_gateway->id);
+        }
+
+        $paymentsByDate = $query->get();
+        $from_date = $request->from_date;
+        $to_date = $request->to_date;
+        return view('admin.payment.daily_report', compact('paymentsByDate', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
+    }
+
+    public function allReport()
+    {
+        $domains = Api::where('type', 'Admin')->get();
+        $from_date = date('Y-m-01');
+        // $from_date = '2023-09-01';
+        $to_date = date('Y-m-d');
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "All Report";
+
+        $paymentsByDate = Payment::select(
+            DB::raw('DATE(created_at) as payment_date'),
+            DB::raw('COUNT(*) as payment_count'),
+            DB::raw('SUM(amount) as payment_total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as payment_pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as payment_complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as payment_pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as payment_complete_amount')
+        )
+            ->whereDate('created_at', '>=', $from_date)->whereDate('created_at', '<=', $to_date)
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->get();
+
+        $payoutsByDate = Payout::select(
+            DB::raw('DATE(created_at) as payout_date'),
+            DB::raw('COUNT(*) as payout_count'),
+            DB::raw('SUM(amount) as payout_total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as payout_pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as payout_complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as payout_pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as payout_complete_amount')
+        )
+            ->whereDate('created_at', '>=', $from_date)->whereDate('created_at', '<=', $to_date)
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->get();
+
+
+        $data = [];
+        $currentDate = strtotime($from_date);
+        $endDate = strtotime($to_date);
+
+        $count = 0;
+        while ($currentDate <= $endDate) {
+            $currentDateFormatted = date('Y-m-d', $currentDate);
+
+            foreach ($paymentsByDate as $key => $payment) {
+                if ($currentDate == strtotime($payment->payment_date)) {
+                    $data[$count]['date'] = $payment->payment_date;
+                    $data[$count]['payment_count'] = $payment->payment_count;
+                    $data[$count]['payment_total_amount'] = $payment->payment_total_amount;
+                    $data[$count]['payment_pending_count'] = $payment->payment_pending_count;
+                    $data[$count]['payment_complete_count'] = $payment->payment_complete_count;
+                    $data[$count]['payment_pending_amount'] = $payment->payment_pending_amount;
+                    $data[$count]['payment_complete_amount'] = $payment->payment_complete_amount;
+                }
+            }
+
+            foreach ($payoutsByDate as $key => $payout) {
+                if ($currentDate == strtotime($payout->payout_date)) {
+                    $data[$count]['date'] = $payout->payout_date;
+                    $data[$count]['payout_count'] = $payout->payout_count;
+                    $data[$count]['payout_total_amount'] = $payout->payout_total_amount;
+                    $data[$count]['payout_pending_count'] = $payout->payout_pending_count;
+                    $data[$count]['payout_complete_count'] = $payout->payout_complete_count;
+                    $data[$count]['payout_pending_amount'] = $payout->payout_pending_amount;
+                    $data[$count]['payout_complete_amount'] = $payout->payout_complete_amount;
+                }
+            }
+
+            // Increment the date by one day
+            $currentDate = strtotime('+1 day', $currentDate);
+            $count++;
+        }
+
+
+        // dd($data);
+
+        return view('admin.payment.all_report', compact('data', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
+    }
+
+    public function reportDetail($date, $gateway, $status)
+    {
+        $gateways = Gateway::where('status', 1)->get();
+
+        $pageTitle = "Payment Report Detail";
+        $domains = Api::where('type', 'Admin')->get();
+
+        $heading['date'] = $date;
+        $heading['gateway'] = $gateway;
+        $heading['status'] = $status;
+
+        if ($gateway == "All") {
+            $gateway = "";
+        }
+
+        if ($status == "Pending") {
+            $status = 2;
+        } elseif ($status == "Approved") {
+            $status = 1;
+        } else {
+            $status = "";
+        }
+
+
+
+        $funds = Payment::where('status', '!=', 'initiate')
+            ->orderBy('id', 'DESC')
+            ->with('user', 'gateway')
+            ->whereDate('created_at', $date)
+            ->whereHas('payment', function ($query) use ($date, $gateway) {
+                $query->where('e_wallet_name', 'like', '%' . $gateway . '%'); // Add the e_wallet_name condition
+            })
+            ->when($status != -1, function ($query) use ($status) {
+                return $query->where('status', 'like', '%' . $status . '%');
+            })
+            ->paginate(config('basic.paginate'));
+
+            $funds_t = Payment::where('status', '!=', 'initiate')
+            ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+            ->with('user', 'gateway')
+            ->whereDate('created_at', $date)
+            ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Moved this condition here
+            ->when($status != -1, function ($query) use ($status) {
+                return $query->where('status', 'like', '%' . $status . '%');
+            })
+            ->first();
+
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+
+        return view('admin.payment.reportdetail', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
+    }
+
+
+    public function allReportSearch(Request $request)
+    {
+
+        $domains = Api::where('type', 'Admin')->get();
+
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "All Report Search";
+
+        $paymentsQuery = Payment::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as payment_count'),
+            DB::raw('SUM(amount) as payment_total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as payment_pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as payment_complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as payment_pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as payment_complete_amount')
+        )
+            ->whereDate('created_at', '>=', $request->from_date)->whereDate('created_at', '<=', $request->to_date)
+            ->when($request->filled('website'), function ($query) use ($request) {
+                return $query->where('api_id', $request->website);
+            })
+            ->groupBy(DB::raw('DATE(created_at)'));
+
+        if ($request->filled('gateway')) {
+            $paymentsQuery->where('e_wallet_name', $request->gateway);
+        }
+
+        $paymentsByDate = $paymentsQuery->get();
+
+
+        $payoutsQuery = Payout::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('COUNT(*) as payout_count'),
+            DB::raw('SUM(amount) as payout_total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as payout_pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as payout_complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as payout_pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as payout_complete_amount')
+        )
+            ->whereDate('created_at', '>=', $request->from_date)->whereDate('created_at', '<=', $request->to_date)
+            ->when($request->filled('website'), function ($query) use ($request) {
+                return $query->where('api_id', $request->website);
+            })
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('date', 'ASC');
+
+        if ($request->filled('gateway')) {
+            $payoutsQuery->where('e_wallet_name', $request->gateway);
+        }
+
+        $payoutsByDate = $payoutsQuery->get();
+
+
+        $data = [];
+        $currentDate = strtotime($request->from_date);
+        $endDate = strtotime($request->to_date);
+
+        $count = 0;
+        while ($currentDate <= $endDate) {
+            $currentDateFormatted = date('Y-m-d', $currentDate);
+
+            foreach ($paymentsByDate as $key => $payment) {
+                if ($currentDate == strtotime($payment->date)) {
+                    $data[$count]['date'] = $payment->date;
+                    $data[$count]['payment_count'] = $payment->payment_count;
+                    $data[$count]['payment_total_amount'] = $payment->payment_total_amount;
+                    $data[$count]['payment_pending_count'] = $payment->payment_pending_count;
+                    $data[$count]['payment_complete_count'] = $payment->payment_complete_count;
+                    $data[$count]['payment_pending_amount'] = $payment->payment_pending_amount;
+                    $data[$count]['payment_complete_amount'] = $payment->payment_complete_amount;
+                }
+            }
+
+            foreach ($payoutsByDate as $key => $payout) {
+                if ($currentDate == strtotime($payout->date)) {
+                    $data[$count]['date'] = $payout->date;
+                    $data[$count]['payout_count'] = $payout->payout_count;
+                    $data[$count]['payout_total_amount'] = $payout->payout_total_amount;
+                    $data[$count]['payout_pending_count'] = $payout->payout_pending_count;
+                    $data[$count]['payout_complete_count'] = $payout->payout_complete_count;
+                    $data[$count]['payout_pending_amount'] = $payout->payout_pending_amount;
+                    $data[$count]['payout_complete_amount'] = $payout->payout_complete_amount;
+                }
+            }
+
+            // Increment the date by one day
+            $currentDate = strtotime('+1 day', $currentDate);
+            $count++;
+        }
+
+        $from_date = $request->from_date;
+        $to_date = $request->to_date;
+        return view('admin.payment.all_report', compact('data', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
+    }
+
+
+
+
     public function action(Request $request, $id)
     {
         dd('hello');
@@ -158,7 +609,7 @@ class PaymentLogController extends Controller
                 $payment->charge = $charge;
                 $payment->status = 'Complete';
                 $payment->completed_source = 'AdminPanel';
-                $payment->completion_at = $data->created_at;
+                $payment->created_at = $data->created_at;
                 $payment->trans_complete_date = Carbon::now();
                 $payment->transaction_id = $data->id;
                 $payment->partner_transection_id = $data->partner_transection_id;
@@ -256,7 +707,7 @@ class PaymentLogController extends Controller
                 $data->status = 1;
                 $data->feedback = @$req['feedback'];
                 $data->payment_id = $payment->id;
-                $data->completion_at = $data->created_at;
+                $data->created_at = $data->created_at;
                 $data->trans_completed_date = Carbon::now();
                 $data->update();
 
@@ -1120,9 +1571,9 @@ class PaymentLogController extends Controller
 
                     $payment_record->status = 'Complete';
                     $order->status = 1;
-                    $order->completion_at = $order->created_at;
+                    $order->created_at = $order->created_at;
                     $order->trans_completed_date = Carbon::now();
-                    $payment_record->completion_at = $order->created_at;
+                    $payment_record->created_at = $order->created_at;
                     $payment_record->trans_complete_date = Carbon::now();
                     $payment_record->completed_source = 'APIVerify';
 
