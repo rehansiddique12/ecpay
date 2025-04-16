@@ -41,6 +41,8 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
 'admin.payment.report',
 'admin.payment.report.daily',
 'admin.payment.report.all',
+'admin.payout-report',
+'admin.payout.report.daily',
 ]);
   $isAccountsActive = Request::routeIs('admin.accounts.add') ||
                       Request::routeIs('admin.accounts') ||
@@ -784,16 +786,16 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
         </li>
 
         <li
-        class="menu-item {{ Route::currentRouteName() == 'admin.payout-log' ? 'active' : '' }}">
-        <a href="{{ route('admin.payout-log') }}" class="menu-link">
+        class="menu-item {{ Route::currentRouteName() == 'admin.payout-report' ? 'active' : '' }}">
+        <a href="{{ route('admin.payout-report') }}" class="menu-link">
             <i class="menu-icon icon-base ti tabler-messages"></i>
             <div data-i18n="Withdrawal Report">Withdrawal Report  </div>
         </a>
     </li>
 
     <li
-    class="menu-item {{ Route::currentRouteName() == 'admin.payout-log' ? 'active' : '' }}">
-    <a href="{{ route('admin.payout-log') }}" class="menu-link">
+    class="menu-item {{ Route::currentRouteName() == 'admin.payout.report.daily' ? 'active' : '' }}">
+    <a href="{{ route('admin.payout.report.daily') }}" class="menu-link">
         <i class="menu-icon icon-base ti tabler-messages"></i>
         <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report  </div>
     </a>
