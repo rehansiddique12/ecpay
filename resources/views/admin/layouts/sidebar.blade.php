@@ -40,6 +40,13 @@ $isMerchantReportsActive = in_array(Route::currentRouteName(), [
 
 $isTransactionActive = in_array(Route::currentRouteName(), [
 'admin.payment.log',
+'admin.payment.apiLog',
+'admin.payment.apiLogunclaimed',
+'admin.payment.report',
+'admin.payment.report.daily',
+'admin.payment.report.all',
+'admin.payout-report',
+'admin.payout.report.daily',
 ]);
   $isAccountsActive = Request::routeIs('admin.accounts.add') ||
                       Request::routeIs('admin.accounts') ||
@@ -742,6 +749,62 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                 </a>
                             </li>
 
+                            <li
+                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLog' ? 'active' : '' }}">
+                            <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-messages"></i>
+                                <div data-i18n="Api Deposit Log">Api Deposit Log </div>
+                            </a>
+                        </li>
+
+                        <li
+                        class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLogunclaimed' ? 'active' : '' }}">
+                        <a href="{{ route('admin.payment.apiLogunclaimed') }}" class="menu-link">
+                            <i class="menu-icon icon-base ti tabler-messages"></i>
+                            <div data-i18n="Unclaimed Payment">Unclaimed Payment </div>
+                        </a>
+                    </li>
+
+                    <li
+                    class="menu-item {{ Route::currentRouteName() == 'admin.payment.report' ? 'active' : '' }}">
+                    <a href="{{ route('admin.payment.report') }}" class="menu-link">
+                        <i class="menu-icon icon-base ti tabler-messages"></i>
+                        <div data-i18n="Deposit Report">Deposit Report  </div>
+                    </a>
+                </li>
+
+                <li
+                class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.daily' ? 'active' : '' }}">
+                <a href="{{ route('admin.payment.report.daily') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                    <div data-i18n="Daily Deposit Report">Daily Deposit Report  </div>
+                </a>
+            </li>
+
+            <li
+            class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.all' ? 'active' : '' }}">
+            <a href="{{ route('admin.payment.report.all') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-messages"></i>
+                <div data-i18n="All Report">All Report  </div>
+            </a>
+        </li>
+
+        <li
+        class="menu-item {{ Route::currentRouteName() == 'admin.payout-report' ? 'active' : '' }}">
+        <a href="{{ route('admin.payout-report') }}" class="menu-link">
+            <i class="menu-icon icon-base ti tabler-messages"></i>
+            <div data-i18n="Withdrawal Report">Withdrawal Report  </div>
+        </a>
+    </li>
+
+    <li
+    class="menu-item {{ Route::currentRouteName() == 'admin.payout.report.daily' ? 'active' : '' }}">
+    <a href="{{ route('admin.payout.report.daily') }}" class="menu-link">
+        <i class="menu-icon icon-base ti tabler-messages"></i>
+        <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report  </div>
+    </a>
+</li>
+
 
                         </ul>
                     </li>
@@ -757,7 +820,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.reports.live_ewallet_balance' ? 'active' : '' }}">
                                 <a href="{{ route('admin.reports.live_ewallet_balance') }}" class="menu-link">
-                                    <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Live E-Wallet Balance">Live E-Wallet Balance</div>
                                 </a>
                             </li>

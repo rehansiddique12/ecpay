@@ -38,6 +38,184 @@ class PayoutRecordController extends Controller
 {
     use Upload;
 
+    public function reportDetail($date, $gateway, $status)
+    {
+
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        // dd($gateways);
+        $pageTitle = "Payout Report Detail";
+        $domains = Api::where('type', 'Admin')->get();
+
+        $heading['date'] = $date;
+        $heading['gateway'] = $gateway;
+        $heading['status'] = $status;
+
+        if ($gateway == "All") {
+            $gateway = "";
+        }
+
+        if ($status == "Pending") {
+            $status = 1;
+        } elseif ($status == "Approved") {
+            $status = 2;
+        } else {
+            $status = "";
+        }
+
+        // dd($status);
+
+        $records = Payout::where('status', 'like', '%' . $status . '%')
+    ->where('status', '!=', 0)
+    ->whereDate('created_at', $date) // Moved here directly
+    ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Moved here directly
+    ->orderBy('id', 'DESC')
+    ->with('user', 'method')
+    ->paginate(config('basic.paginate'));
+
+
+    $funds_t = PayoutLog::where('status', '!=', 0)
+    ->where('status', 'like', '%' . $status . '%')
+    ->whereDate('created_at', $date) // Applied directly
+    ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Applied directly
+    ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+    ->with('user', 'method') // Removed 'payout'
+    ->first();
+
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+
+        return view('admin.payout.report_detail', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
+    }
+
+    public function report()
+    {
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Payout Report";
+        $domains = Api::where('type', 'Admin')->get();
+        $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+    }
+
+    public function reportSearch(Request $request)
+    {
+        $search = $request->all();
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)->get();
+
+        // Clone base query for count & sum separately
+        $baseQuery = Payout::query()
+            ->when(isset($search['name']), function ($query) use ($search) {
+                return $query->where('trx_id', 'LIKE', $search['name'])
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('email', 'LIKE', "%{$search['name']}%")
+                            ->orWhere('username', 'LIKE', "%{$search['name']}%");
+                    });
+            })
+            ->when(isset($search['status']), function ($query) use ($search) {
+                if ($search['status'] == 2) {
+                    return $query->where('status', 2)->where('status', 'Complete');
+                } else {
+                    return $query->where('status', $search['status']);
+                }
+            })
+            ->when(isset($search['domain']), function ($query) use ($search) {
+                return $query->where('api_id', $search['domain']);
+            })
+            ->where('status', '!=', 0)
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                             ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when(isset($search['account_no']), function ($query) use ($search) {
+                return $query->where('user_account_no', 'LIKE', "%{$search['account_no']}%");
+            })
+            ->when(isset($search['gateway']), function ($query) use ($search) {
+                return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
+            });
+
+        // Get totals separately
+        $fund_count = (clone $baseQuery)->count();
+        $fund_sum = round((clone $baseQuery)->sum('amount'), 2);
+
+        // Get paginated records
+        $records = $baseQuery
+            ->orderByDesc('id')
+            ->with('user', 'gateway') // removed payout
+            ->paginate(config('basic.paginate'));
+
+        $pageTitle = "Search Payout Logs";
+        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+    }
+
+    public function dailyReport()
+    {
+        $domains = Api::where('type', 'Admin')->get();
+        $from_date = date('Y-m-01');
+        $to_date = date('Y-m-d');
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Daily Withdrawal Report";
+        $payoutsByDate = Payout::select(
+            DB::raw('DATE(created_at) as payout_date'),
+            DB::raw('COUNT(*) as payout_count'),
+            DB::raw('SUM(amount) as total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
+        )
+            ->whereDate('created_at', '>=', $from_date)->whereDate('created_at', '<=', $to_date)
+            ->groupBy('payout_date')
+            ->get();
+        // dd($payoutsByDate);
+
+        return view('admin.payout.daily_report', compact('payoutsByDate', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
+    }
+
+    public function dailyReportSearch(Request $request)
+    {
+
+
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Daily Withdrawal Report";
+        $query = Payout::select(
+            DB::raw('DATE(created_at) as payout_date'),
+            DB::raw('COUNT(*) as payout_count'),
+            DB::raw('SUM(amount) as total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
+        )
+            // ->whereBetween(DB::raw('DATE(created_at)'), [$request->from_date, $request->to_date])
+            ->whereDate('created_at', '>=', $request->from_date)->whereDate('created_at', '<=', $request->to_date)
+            ->when($request->website, function ($query) use ($request) {
+                $query->where('api_id', $request->website);
+            })
+            ->groupBy('payout_date');
+
+
+        if ($request->filled('gateway')) {
+            $query->where('e_wallet_name', $request->gateway);
+        }
+
+        $payoutsByDate = $query->get();
+
+        $from_date = $request->from_date;
+        $to_date = $request->to_date;
+        return view('admin.payout.daily_report', compact('payoutsByDate', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
+    }
+
+
+
+
     public function search(Request $request)
     {
         $search = $request->all();
@@ -202,7 +380,7 @@ class PayoutRecordController extends Controller
 
     public function request()
     {
-        $page_title = "Payout Request";
+        $pageTitle = "Payout Request";
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = PayoutLog::where('status', '!=', 0)->orderBy('id', 'DESC')->first()->id;
         $records = PayoutLog::whereIn('status', [1, 2])
@@ -214,7 +392,7 @@ class PayoutRecordController extends Controller
                 })->orWhereDoesntHave('payout');
             })
             ->paginate(config('basic.paginate'));
-        return view('admin.payout.logs', compact('records', 'page_title', 'domains', 'letest_record'));
+        return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
     public  function action(Request $request, $id)

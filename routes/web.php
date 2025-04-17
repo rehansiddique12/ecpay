@@ -208,6 +208,25 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/payout-request', [PayoutRecordController::class,'request'])->name('payout-request');
         Route::put('/payout-action/{id}', [PayoutRecordController::class,'action'])->name('payout-action');
 
+        Route::get('payment/apiLog', [PaymentLogController::class,'apiLog'])->name('payment.apiLog');
+        Route::get('payment/apisearch', [PaymentLogController::class,'apisearch'])->name('payment.apisearch');
+        Route::get('payment/apiLogUnclaimed', [PaymentLogController::class,'apiLogUnclaimed'])->name('payment.apiLogunclaimed');
+        Route::get('payment/apiLogUnclaimed/search', [PaymentLogController::class,'apiLogUnclaimedsearch'])->name('payment.apiLogunclaimed.search');
+
+        Route::get('payment/report', [PaymentLogController::Class,'report'])->name('payment.report');
+        Route::get('payment/report/search', [PaymentLogController::class,'reportSearch'])->name('payment.report.search');
+        Route::get('payment/report/daily', [PaymentLogController::class,'dailyReport'])->name('payment.report.daily');
+        Route::get('payment/report/daily/search', [PaymentLogController::class,'dailyReportSearch'])->name('payment.report.daily.search');
+        Route::get('payment/report/all', [PaymentLogController::class,'allReport'])->name('payment.report.all');
+        Route::get('payment/report/all/search', [PaymentLogController::class,'allReportSearch'])->name('payment.report.all.search');
+        Route::get('payment/report/detail/{date}/{gateway}/{status}', [PaymentLogController::class,'reportDetail'])->name('payment.report.detail');
+        Route::get('payout/report/detail/{date}/{gateway}/{status}', [PayoutRecordController::class,'reportDetail'])->name('payout.report.detail');
+        Route::get('/payout-report', [PayoutRecordController::class,'report'])->name('payout-report');
+        Route::get('/payout-report/search', [PayoutRecordController::class,'reportSearch'])->name('payout-report.search');
+        Route::get('payout/report/daily', [PayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
+        Route::get('payout/report/daily/search', [PayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
+
+
 
 
 
