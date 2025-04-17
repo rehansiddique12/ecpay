@@ -89,7 +89,7 @@
                     <tbody>
                     @forelse($records as $key => $item)
                         <tr>
-                            <td>{{ optional($item->payout)->id }}</td>
+                            <td>{{ $item->id }}</td>
                             <td data-label="@lang('Date')"> {{ dateTime($item->created_at,'d M,Y H:i') }}</td>
                              <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                                 {{ $item->trx_id }}<br>
@@ -173,11 +173,11 @@
                                     <div class="dropdown-menu">
                                             <!-- active / deactive button here -->
                                             @if(adminAccessRoute(config('role.payout_manage.access.edit')))
-                                            <button type="button" class="btn btn-sm btn-icon edit_button" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem({{ $item->id }})">
+                                            <button type="button" class="btn btn-sm edit_button" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem({{ $item->id }})">
                                                 <i class="icon-base ti tabler-report-money me-1"></i> Send Callback
                                             </button><br>
                                             @if(isset($item))
-                                            <button class="btn btn-icon edit_buttonc  btn-sm" data-bs-toggle="modal" data-bs-target="#myModalc" data-title="Edit" data-id="{{ $item->id }}" data-e_wallet_phone_number="{{$item->e_wallet_phone_number}}">
+                                            <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal" data-bs-target="#myModalc" data-title="Edit" data-id="{{ $item->id }}" data-e_wallet_phone_number="{{$item->e_wallet_phone_number}}">
                                                 <i class="icon-base ti tabler-device-mobile  me-1"></i> Change E-Wallet No
                                             </button><br>
                                             @endif
@@ -185,14 +185,14 @@
 
                                         $details = ($item->information != null) ? json_encode($item->information) : null;
                                     @endphp
-                                    <button type="button" class="btn btn-sm btn-icon edit_button"
+                                    <button type="button" class="btn btn-sm  edit_button"
                                             data-bs-toggle="modal" data-bs-target="#myModal"
-                                            data-bs-route="{{route('admin.payout-action',$item->id)}}"
-                                            data-bs-feedback="{{$item->feedback}}"
-                                            data-bs-info="{{$details}}"
-                                            data-bs-id="{{$item->id}}"
-                                            data-bs-status="{{$item->status}}"
-                                            data-bs-statusb="{{$item->payout?$item->payout->status:''}}">
+                                            data-route="{{route('admin.payout-action',$item->id)}}"
+                                            data-feedback="{{$item->feedback}}"
+                                            data-info="{{$details}}"
+                                            data-id="{{$item->id}}"
+                                            data-status="{{$item->status}}"
+                                            data-statusb="{{$item->status ? $item->status:''}}">
                                         @if(Request::routeIs('admin.payout-request'))
                                         <i class="icon-base ti tabler-pencil me-1"></i> Edit
                                         @else

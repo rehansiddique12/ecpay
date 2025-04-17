@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Txn;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
+use Stevebauman\Purify\Facades\Purify;
 
 class PaymentLogController extends Controller
 {
@@ -28,7 +30,7 @@ class PaymentLogController extends Controller
     {
         $pageTitle = "Payment Logs";
         $domains = Api::where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 0)->orderBy('id', 'DESC')->with('user', 'gateway', 'payment' ,'txn_record')->paginate(config('basic.paginate'));
+        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway', 'payment' ,'txn_record')->paginate(config('basic.paginate'));
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
     }
 
@@ -485,7 +487,6 @@ class PaymentLogController extends Controller
 
     public function action(Request $request, $id)
     {
-        dd('hello');
         $this->validate($request, [
             'id' => 'required',
             'status' => ['required', Rule::in(['1', '3'])],
@@ -493,7 +494,7 @@ class PaymentLogController extends Controller
 
         DB::beginTransaction();
         try {
-            $data = Fund::where('id', $request->id)->whereIn('status', [2])->lockForUpdate()->with('user', 'gateway')->firstOrFail();
+            $data = Payment::where('id', $request->id)->whereIn('status', ['Complete'])->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             if (!empty($request->sender)) {
                 $data->account_no = $request->sender;
                 $data->save();
@@ -507,7 +508,7 @@ class PaymentLogController extends Controller
 
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
-                    ->where('status', 1)
+                    ->where('status', 'Pending')
                     ->first();
                 if (!$account) {
                     throw new \Exception("E-Wallet Account Disable or not Exist.");
@@ -837,16 +838,6 @@ class PaymentLogController extends Controller
                     BasicService::setBonus($user, getAmount($data->amount), 'deposit');
                 }
 
-                // $this->sendMailSms($user, 'PAYMENT_APPROVED', [
-                //     'gateway_name' => $data->gateway->name,
-                //     'amount' => getAmount($data->amount),
-                //     'charge' => getAmount($data->charge),
-                //     'currency' => $basic->currency,
-                //     'transaction' => $data->transaction,
-                //     'feedback' => $data->feedback,
-                // ]);
-
-
                 $msg = [
                     'amount' => getAmount($data->amount),
                     'currency' => $basic->currency,
@@ -943,13 +934,6 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                // $this->sendMailSms($user, $type = 'DEPOSIT_REJECTED', [
-                //     'amount' => getAmount($data->amount),
-                //     'currency' => $basic->currency,
-                //     'method' => optional($data->gateway)->name,
-                //     'transaction' => $data->transaction,
-                //     'feedback' => $data->feedback
-                // ]);
 
                 $msg = [
                     'amount' => getAmount($data->amount),
