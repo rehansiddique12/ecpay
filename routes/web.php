@@ -4,15 +4,16 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\LoginController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ParentController;
+use App\Http\Controllers\Admin\PaymentLogController;
+use App\Http\Controllers\Partner\MerchantController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\TelegramGroupController;
-use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\PaymentMethodController;
-use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
-use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 // rehan
 use App\Http\Controllers\Admin\ReportsController;
 
@@ -129,6 +130,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class,'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
 
 
+
+        /* ===== Merchant Ticket ====*/
+
+
+
         Route::get('/apis', [PayoutRecordController::class,'apis'])->name('apis');
         Route::post('/apis/add', [PayoutRecordController::class,'apisAdd'])->name('apis.add');
         Route::post('/apis/add-by-parent', [PayoutRecordController::class,'apisAddByParent'])->name('apis.addByParent');
@@ -239,6 +245,15 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/twoFA', [PartnerDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [PartnerDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
         Route::get('/twoFA/disable', [PartnerDashboardController::class, 'disableTwoFA'])->name('twoFA.disable');
+
+
+
+        Route::get('merchant/report_by_date', [MerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
+        Route::get('merchant-reports/export', [MerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
+
+        Route::get('merchant/report_by_name', [MerchantController::class,'report_by_name'])->name('merchant_reports.by_name');
+         Route::get('merchant-reports/export_name', [MerchantController::class,'export_by_name'])->name('merchant_reports.export_by_name');
+
 
 
     });
