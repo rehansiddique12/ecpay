@@ -9,7 +9,7 @@
     }
 </style>
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-    <form action="{{ route('partner.merchant_reports.by_month') }}" method="get">
+    <form action="{{ route('admin.merchant_reports.by_month') }}" method="get">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         <div class="row align-items-left">
 
@@ -39,7 +39,8 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="{{ route('partner.merchant_reports.export_by_month', ['from_date' => $from_date ,'merchant' => @request()->merchant]) }}"
+                    {{-- <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button> --}}
+                    <a href="{{ route('admin.merchant_reports.export_by_month', ['from_date' => $from_date]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
                         <i class="fas fa-share"></i> @lang('Export')
                      </a>

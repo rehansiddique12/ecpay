@@ -1,7 +1,7 @@
 <x-admin-layout :title="$pageTitle">
 
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-    <form action="{{ route('partner.merchant_reports.by_name') }}" method="get">
+    <form action="{{ route('admin.merchant_reports.by_name') }}" method="get">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         <div class="row align-items-left">
             <div class="col-md-3">
@@ -33,9 +33,9 @@
                 <div class="form-group mt-2">
                     <br>
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i>   @lang('Search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="{{ route('partner.merchant_reports.export_by_name', ['from_date' => $from_date , 'to_date' => $to_date , 'merchant' => @request()->merchant]) }}"
+                    <a href="{{ route('admin.merchant_reports.export_by_name', ['from_date' => $from_date]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
                         <i class="fas fa-share"></i> @lang('Export')
                      </a>
@@ -113,6 +113,7 @@
                                             $previousMerchant = $apis[$result->api_id];
                                         @endphp
                                         @endif
+                                        {{-- {{$apis[$result->api_id]}} --}}
                                     </td>
                                     <td>{{$result->date }}</td>
                                     <td>{{number_format($result->total_deposit_transactions , 0)}}</td>

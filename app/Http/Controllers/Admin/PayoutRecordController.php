@@ -2,37 +2,43 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Carbon\Carbon;
+use App\Models\Log;
 use App\Models\Api;
-use App\Models\ApiHit;
-use App\Models\Commission;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Models\EWalletAccount;
-use App\Models\ApiTransaction;
-use App\Models\Transaction;
-use App\Models\CronCommission;
-use App\Models\PartnerCommission;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Session;
-use App\Models\Payment;
 use App\Models\Payout;
+use App\Models\ApiHit;
+use App\Models\Payment;
 use App\Models\EWalletLog;
 use App\Models\AccountLog;
+use App\Models\Commission;
+use Illuminate\Support\Str;
+use App\Models\Transaction;
+use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
-use App\Models\Log;
+use App\Models\CronCommission;
+use App\Models\EWalletAccount;
+use App\Models\ApiTransaction;
+use App\Models\PartnerCommission;
+use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use App\Http\Controllers\Controller;
 use App\Models\DailyPartnerSummaryLog;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 // rehan
 
-use App\Models\Settlement;
-use App\Http\Traits\Upload;
+use App\Models\Fund;
 use App\Models\SmsLog;
-use App\Models\EWalletTransfer;
+use App\Models\ApiLog;
 use App\Models\Gateway;
+use App\Models\PayoutLog;
+use App\Models\Settlement;
+use App\Models\Adjustment;
+use App\Http\Traits\Upload;
+use App\Models\EWalletTransfer;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PartnerCommissionExport;
 
 class PayoutRecordController extends Controller
 {
@@ -4210,7 +4216,257 @@ class PayoutRecordController extends Controller
     }
 
 
+    // Partner Commission
+
+    public function apiCommissions(Request $request)
+    {
+
+        $from_date = $request->from_date ?? now()->toDateString();
+        $to_date = $request->to_date ?? now()->toDateString();
+
+        // Base query
+        $recordsQuery = PartnerCommission::with('api', 'fromapi')
+            ->where('status', 1)
+            ->whereHas('api')
+            ->whereHas('fromapi');
+
+        // Default filter for today's records
+        if (!empty($from_date) && !empty($to_date)) {
+            $recordsQuery->whereDate('created_at', '>=', $from_date);
+            $recordsQuery->whereDate('created_at', '<=', $to_date);
+        }
+        else
+        {
+            $recordsQuery->whereDate('created_at', now());
+        }
+
+        if (!empty($request->partner)) {
+            $recordsQuery->where('api_id', $request->partner);
+        }
+
+        if (!empty($request->parent)) {
+            $recordsQuery->where('from_id', $request->parent);
+        }
+
+        if (!empty($request->type) || $request->type == '0') {
+            $recordsQuery->where('type', $request->type);
+        }
+        $TotalAmountSum = $recordsQuery->sum('amount');
+        $TotalChargesSum = $recordsQuery->sum('charges');
+        $TotalAAmountSum = $recordsQuery->sum('total_amount');
+        $TotalProfitSum = $recordsQuery->sum('profit');
+        // echo $TotalAmount.'<br>';
+        // Paginate the results
+        $records = $recordsQuery->orderBy('id', 'DESC')->paginate(50); // 10 items per page
+        // Check if the current page is the last page
+        $isLastPage = $records->currentPage() === $records->lastPage();
+
+        $totalAmount = null;
+        $totalChargesSum = null;
+        $totalAAmountSum = null;
+        $totalProfitSum = null;
+
+        if ($isLastPage) {
+            $totalAmount = number_format($TotalAmountSum, 2);
+            $totalChargesSum = number_format($TotalChargesSum, 2);
+            $totalAAmountSum = number_format($TotalAAmountSum, 2);
+            $totalProfitSum = number_format($TotalProfitSum, 2);
+        }
+        // dd($recordsQuery->sum('amount'));
+        $pageTitle = "Partners Commission History";
+        $partners = Api::where('type', 'Admin')->get();
+
+        return view('admin.payout.commission_report', compact('records', 'pageTitle', 'partners'  ,'from_date'  ,'to_date' , 'totalAmount' , 'isLastPage' , 'totalChargesSum' , 'totalAAmountSum' , 'totalProfitSum'));
+    }
+
+    public function exportCommissions(Request $request)
+    {
+        $from_date = $request->from_date ?? now()->toDateString();
+        $to_date = $request->to_date ?? now()->toDateString();
+        $partner = $request->partner;
+        $parent = $request->parent;
+        $type = $request->type;
+
+        return Excel::download(
+            new PartnerCommissionExport($from_date, $to_date, $partner, $parent, $type),
+            'commissions_report_' . now()->format('Ymd') . '.csv'
+        );
+    }
 
 
+    public function adjustments()
+    {
 
+        $records = Adjustment::with('api')->orderBy('id', 'DESC')->get();
+        $pageTitle = "Partners Adjustments History";
+        $partners = Api::where('type', 'Admin')->get();
+
+        $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
+        $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
+
+        $monthyear = Carbon::now()->copy()->subMonth()->startOfMonth();
+        $currentmonth = date('Y-m-d');
+        $total_adjustment_amount = 0;
+        $total_payment = 0;
+        $total_payout = 0;
+
+
+        foreach ($partners as $partner) {
+            $api_id = $partner->id;
+            $website = $partner->website;
+            if ($website != env('APP_WEBSITE')) {
+                $payments_current_month = Fund::where('status', 1)
+                    // ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
+                    ->whereDate('created_at', '>=', $firstDayOfMonth)->whereDate('created_at', '<=', $lastDayOfMonth)
+                    ->where('api_id', $api_id)
+                    ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+                    ->first();
+                if ($payments_current_month->fund_count > 0) {
+
+
+                    $charge = 0;
+                    $commissions = Commission::where('api_id', $partner->id)->where('from_amount', '<=', $payments_current_month->fund_sum)->where('to_amount', '>=', $payments_current_month->fund_sum)->first();
+                    if ($commissions) {
+                        $charge = $commissions->deposit_percentage * $payments_current_month->fund_sum / 100;
+                    } else {
+                        $commissions = Commission::where('api_id', $partner->id)->orderBy('to_amount', 'desc')->first();
+                        if ($commissions) {
+                            $charge = $commissions->deposit_percentage * $payments_current_month->fund_sum / 100;
+                        }
+                    }
+
+
+                    $get_adjustment = $payments_current_month->charge_sum - $charge;
+                    $total_payment = $payments_current_month->fund_sum;
+                    $total_adjustment_amount += $get_adjustment;
+                }
+
+                $funds_current_month = PayoutLog::where('status', 2)
+                    // ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth]) // Filter by the current month
+                    ->whereDate('created_at', '>=', $firstDayOfMonth)->whereDate('created_at', '<=', $lastDayOfMonth)
+                    ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+                    ->where('api_id', $api_id)
+                    ->first();
+
+                if ($funds_current_month->fund_count > 0) {
+                    $charge = 0;
+                    $commissions = Commission::where('api_id', $partner->id)->where('from_amount', '<=', $funds_current_month->fund_sum)->where('to_amount', '>=', $funds_current_month->fund_sum)->first();
+                    if ($commissions) {
+                        $charge = $commissions->withdrawal_percentage * $funds_current_month->fund_sum / 100;
+                    } else {
+                        $commissions = Commission::where('api_id', $partner->id)->orderBy('to_amount', 'desc')->first();
+                        if ($commissions) {
+                            $charge = $commissions->withdrawal_percentage * $funds_current_month->fund_sum / 100;
+                        }
+                    }
+
+                    $get_adjustment = $funds_current_month->charge_sum - $charge;
+                    $total_payout = $funds_current_month->fund_sum;
+                    $total_adjustment_amount += $get_adjustment;
+                }
+
+                if ($total_adjustment_amount > 0) {
+
+                    $adjustments = Adjustment::where('partner_id', $partner->id)
+                        ->whereMonth('month', $monthyear->month)
+                        ->whereYear('month', $monthyear->year)
+                        ->get();
+                    if (!$adjustments) {
+
+                        $adjustment = new Adjustment;
+                        $adjustment->month = $lastDayOfMonth;
+                        $adjustment->adjustment = $total_adjustment_amount;
+                        $adjustment->payment = $total_payment;
+                        $adjustment->payout = $total_payout;
+                        $adjustment->partner_id = $partner->id;
+                        $adjustment->save();
+                    }
+                }
+            }
+        }
+
+
+        return view('admin.payout.adjustments', compact('records', 'pageTitle', 'partners'));
+    }
+
+    public function adjustmentSearch(Request $request)
+    {
+
+        $partners = Api::where('type', 'Admin')->get();
+
+        $records = Adjustment::with('api');
+
+        if (!empty($request->from_date) && !empty($request->to_date)) {
+            $records->whereDate('month', '>=', $request->from_date);
+            $records->whereDate('month', '<=', $request->to_date);
+        } elseif (!empty($request->from_date)) {
+            $records->whereDate('month', '>=', $request->from_date);
+        } elseif (!empty($request->to_date)) {
+            $records->whereDate('month', '<=', $request->to_date);
+        }
+
+        if (!empty($request->partner)) {
+            $records->where('partner_id', $request->partner);
+        }
+
+        if (!empty($request->status) || $request->status == '0') {
+            $records->where('status', $request->status);
+        }
+
+        $records = $records->orderBy('id', 'DESC')->get();
+
+        $pageTitle = "Search Adjustment History";
+        return view('admin.payout.adjustments', compact('records', 'pageTitle', 'partners'));
+    }
+
+
+    public function partnerBalance(Request $request)
+    {
+        $records = ApiTransaction::with('api')->orderBy('id', 'DESC')->paginate(20);
+        $pageTitle = "Partners Adjustments";
+        $partners = Api::where('type', 'Admin')->paginate(10);
+
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+    public function partnerBalanceSearch(Request $request)
+    {
+
+        $partners = Api::where('type', 'Admin')->paginate(20);
+
+        $records = ApiTransaction::with('api');
+
+        if (!empty($request->from_date) && !empty($request->to_date)) {
+            $records->whereDate('created_at', '>=', $request->from_date);
+            $records->whereDate('created_at', '<=', $request->to_date);
+        } elseif (!empty($request->from_date)) {
+            $records->whereDate('created_at', '>=', $request->from_date);
+        } elseif (!empty($request->to_date)) {
+            $records->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        if (!empty($request->partner)) {
+            $records->where('partner_id', $request->partner);
+        }
+
+        if (!empty($request->adjustment) || $request->adjustment == '0') {
+            $records->where('adjustment', $request->adjustment);
+        }
+
+        $records = $records->orderBy('id', 'DESC')->paginate(20);
+
+        $pageTitle = "Search Partner Adjustments";
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+
+    public function apilogs(Request $request)
+    {
+        $data = ApiLog::orderBy('id', 'DESC')->paginate(50);
+        $pageTitle = "API Logs";
+        return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
+    }
+
+
+    
 }

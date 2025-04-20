@@ -6,8 +6,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\PaymentLogController;
-use App\Http\Controllers\Partner\MerchantController;
+use App\Http\Controllers\Admin\MerchantController;
 use App\Http\Controllers\Admin\PayoutRecordController;
+use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\TelegramGroupController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
@@ -98,7 +99,7 @@ require __DIR__.'/auth.php';
 Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
     Route::middleware(['guest:admin'])->group(function () {
-        Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+        Route::get('/', [LoginController::class, 'showLoginForm'])->name('loginfrom');
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
 
@@ -109,9 +110,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/staff', [ManageRolePermissionController::class, 'staff'])->name('staff');
         Route::post('/staff', [ManageRolePermissionController::class, 'storeStaff'])->name('storeStaff');
         Route::put('/staff/{admin}', [ManageRolePermissionController::class, 'updateStaff'])->name('updateStaff');
+
         // Parant Routs
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
+        Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
 
         // rehan Reports:
         Route::get('reports/cal', [ReportsController::class,'cal'])->name('reports.cal');
@@ -131,7 +134,30 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
 
 
-        /* ===== Merchant Ticket ====*/
+        /* ===== AdminMerchant Ticket ====*/
+        Route::get('merchant/report_by_date', [MerchantController::class, 'report_by_date'])->name('merchant_reports.by_date');
+        Route::get('/admin/merchant-reports/export/{from_date?}', [MerchantController::class, 'export_by_date'])->name('merchant_reports.export_by_date');
+
+        Route::get('merchant/report_by_name', [MerchantController::class, 'report_by_name'])->name('merchant_reports.by_name');
+        Route::get('/admin/merchant-reports/exportt/{from_date?}', [MerchantController::class, 'export_by_name'])->name('merchant_reports.export_by_name');
+
+        Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
+        Route::get('/admin/merchant-reports/exports/{from_date?}', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
+
+
+
+        // Partner Commission
+        Route::get('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.commissions');
+        Route::post('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.post.commissions');
+        Route::get('/admin/commissions/export', [PayoutRecordController::class,'exportCommissions'])->name('commissions.export');
+
+        Route::get('/adjustments', [PayoutRecordController::class, 'adjustments'])->name('adjustments');
+        Route::get('adjustments/search', [PayoutRecordController::class, 'adjustmentSearch'])->name('adjustments.search');
+        Route::get('/adjustments/approve/{id}', [PayoutRecordController::class, 'approveAdjustment'])->name('adjustments.approve');
+
+        Route::get('/partner/balance', [PayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
+        Route::get('partner/balance/search', [PayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
+        Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
 
 
 
@@ -248,11 +274,14 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
 
 
-        Route::get('merchant/report_by_date', [MerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
-        Route::get('merchant-reports/export', [MerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
+        // Route::get('merchant/report_by_date', [MerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
+        // Route::get('merchant-reports/export', [MerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
 
-        Route::get('merchant/report_by_name', [MerchantController::class,'report_by_name'])->name('merchant_reports.by_name');
-         Route::get('merchant-reports/export_name', [MerchantController::class,'export_by_name'])->name('merchant_reports.export_by_name');
+        // Route::get('merchant/report_by_name', [MerchantController::class,'report_by_name'])->name('merchant_reports.by_name');
+        // Route::get('merchant-reports/export_name', [MerchantController::class,'export_by_name'])->name('merchant_reports.export_by_name');
+
+        // Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
+        // Route::get('merchant-reports/export_month', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
 
 
 

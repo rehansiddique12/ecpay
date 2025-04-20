@@ -1,6 +1,7 @@
 <x-admin-layout :title="$pageTitle">
+
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-    <form action="{{ route('partner.merchant_reports.by_date') }}" method="get">
+    <form action="{{ route('admin.merchant_reports.by_date') }}" method="get">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         <div class="row align-items-left">
             <div class="col-md-3">
@@ -16,8 +17,8 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button>
-                    <a href="{{ route('partner.merchant_reports.export_by_date', ['from_date' => $from_date]) }}"
+                    {{-- <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button> --}}
+                    <a href="{{ route('admin.merchant_reports.export_by_date', ['from_date' => $from_date]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
                         <i class="fas fa-share"></i> @lang('Export')
                      </a>
@@ -82,7 +83,6 @@
 
 </div>
 
-
 @push('js')
 <script>
     // JavaScript/jQuery to dynamically update the export button href when the date is changed
@@ -91,7 +91,7 @@
         var exportButton = document.getElementById('exportButton');
 
         // Update the href of the export button with the selected date
-        exportButton.href = "{{ route('partner.merchant_reports.export_by_date', ['from_date' => '']) }}/" + selectedDate;
+        exportButton.href = "{{ route('admin.merchant_reports.export_by_date', ['from_date' => '']) }}/" + selectedDate;
     });
 </script>
 @endpush

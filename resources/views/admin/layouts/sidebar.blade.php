@@ -1,66 +1,79 @@
 @php
-$isAccountsActive = Request::routeIs('admin.accounts.add') ||
-Request::routeIs('admin.accounts') ||
-Request::routeIs('admin.balance.logs');
+    $isAccountsActive =
+        Request::routeIs('admin.accounts.add') ||
+        Request::routeIs('admin.accounts') ||
+        Request::routeIs('admin.balance.logs');
 
+    $isMainActive = in_array(Route::currentRouteName(), [
+        'admin.dashboard',
+        'admin.staff',
+        'admin.groups',
+        'admin.parant',
+    ]);
 
-$isMainActive = in_array(Route::currentRouteName(), [
-'admin.dashboard',
-'admin.staff',
-'admin.groups',
-'admin.parant'
-]);
+    $isPartnerActive = in_array(Route::currentRouteName(), [
+        'admin.apis.balance.add.get',
+        'admin.transfer.balance',
+        'admin.settlements',
+        'admin.apis',
+        'admin.api.commissions',
+        'admin.adjustments',
+        'admin.adjustments.search',
+        'admin.partner.balance',
+        'admin.partner.balance.search',
+        'admin.transections.apilogs'
+    ]);
+    $isReportsActive = in_array(Route::currentRouteName(), [
+        'admin.reports.live_ewallet_balance',
+        'admin.reports.daily_ewallet_summary',
+        'admin.reports.daily_transection_summary',
+        'admin.reports.merchant_charges_summary',
+        'admin.reports.partner_account_summary',
+        'admin.reports.partner_account_balance_summary',
+        'admin.reports.partner_account_balance_summary_completions',
+        'admin.reports.revenue_center',
+        'admin.reports.logs',
+        'admin.reports.cal',
+        'admin.reports.cal2',
+        'admin.reports.master_report',
+        'admin.payment_gateway_performance_report',
+    ]);
+    // $isMerchantReportsActive = in_array(Route::currentRouteName(), [
+    // 'partner.merchant_reports.by_date',
+    // 'partner.merchant_reports.by_name',
+    // 'partner.merchant_reports.by_month'
 
-$isPartnerActive = in_array(Route::currentRouteName(), [
-'admin.apis.balance.add.get',
-'admin.transfer.balance',
-'admin.settlements',
-'admin.apis',
-]);
-$isReportsActive = in_array(Route::currentRouteName(), [
-'admin.reports.live_ewallet_balance',
-'admin.reports.daily_ewallet_summary',
-'admin.reports.daily_transection_summary',
-'admin.reports.merchant_charges_summary',
-'admin.reports.partner_account_summary',
-'admin.reports.partner_account_balance_summary',
-'admin.reports.partner_account_balance_summary_completions',
-'admin.reports.revenue_center',
-'admin.reports.logs',
-'admin.reports.cal',
-'admin.reports.cal2',
-'admin.reports.master_report',
-'admin.payment_gateway_performance_report',
-]);
-$isMerchantReportsActive = in_array(Route::currentRouteName(), [
-'partner.merchant_reports.by_date',
+    // ]);
 
-]);
+    $isMerchantReportsActive = in_array(Route::currentRouteName(), [
+        'admin.merchant_reports.by_date',
+        'admin.merchant_reports.by_name',
+        'admin.merchant_reports.by_month',
+    ]);
 
+    $isTransactionActive = in_array(Route::currentRouteName(), [
+        'admin.payment.log',
+        'admin.payment.apiLog',
+        'admin.payment.apiLogunclaimed',
+        'admin.payment.report',
+        'admin.payment.report.daily',
+        'admin.payment.report.all',
+        'admin.payout-report',
+        'admin.payout.report.daily',
+    ]);
+    $isAccountsActive =
+        Request::routeIs('admin.accounts.add') ||
+        Request::routeIs('admin.accounts') ||
+        Request::routeIs('admin.balance.logs') ||
+        Request::routeIs('');
 
-$isTransactionActive = in_array(Route::currentRouteName(), [
-'admin.payment.log',
-'admin.payment.apiLog',
-'admin.payment.apiLogunclaimed',
-'admin.payment.report',
-'admin.payment.report.daily',
-'admin.payment.report.all',
-'admin.payout-report',
-'admin.payout.report.daily',
-]);
-  $isAccountsActive = Request::routeIs('admin.accounts.add') ||
-                      Request::routeIs('admin.accounts') ||
-                      Request::routeIs('admin.balance.logs') ||
-                      Request::routeIs('') ;
-
-
-  $isMainActive = in_array(Route::currentRouteName(), [
-    'admin.dashboard',
-    'admin.staff',
-    'admin.groups',
-    'admin.parant',
-    'admin.workboard'
-  ]);
+    $isMainActive = in_array(Route::currentRouteName(), [
+        'admin.dashboard',
+        'admin.staff',
+        'admin.groups',
+        'admin.parant',
+        'admin.workboard',
+    ]);
 
 @endphp
 
@@ -72,7 +85,8 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
             <a href="index.html" class="app-brand-link">
                 <span class="app-brand-logo demo">
                     <span class="text-primary">
-                        <svg width="32" height="22" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="32" height="22" viewBox="0 0 32 22" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd"
                                 d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z"
                                 fill="currentColor" />
@@ -269,7 +283,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                 <!-- Quick links -->
 
                 <!-- Notification -->
-            {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
+                {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
             <a
               class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
               href="javascript:void(0);"
@@ -525,17 +539,17 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                     <a class="nav-link dropdown-toggle hide-arrow p-0" href="profile" data-bs-toggle="dropdown">
                         <div class="avatar avatar-online">
-                            <img src="{{asset('public/uploads/admin/'.Auth::user()->image )}}"
+                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
                                 alt="{{ Auth::user()->name }}" class="rounded-circle" />
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item mt-0" href="{{route('admin.profile')}}">
+                            <a class="dropdown-item mt-0" href="{{ route('admin.profile') }}">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-2">
                                         <div class="avatar avatar-online">
-                                            <img src="{{asset('public/uploads/admin/'.Auth::user()->image )}}"
+                                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
                                                 alt="{{ Auth::user()->name }}" class="rounded-circle" />
                                         </div>
                                     </div>
@@ -550,13 +564,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             <div class="dropdown-divider my-1 mx-n2"></div>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{route('admin.profile')}}">
+                            <a class="dropdown-item" href="{{ route('admin.profile') }}">
                                 <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
                                     Profile</span>
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{route('admin.password')}}">
+                            <a class="dropdown-item" href="{{ route('admin.password') }}">
                                 <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
                                     class="align-middle">Password</span>
                             </a>
@@ -588,7 +602,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
               </li> --}}
                         <li>
                             <div class="d-grid px-2 pt-2 pb-1">
-                                <a class="btn btn-sm btn-danger d-flex" href="{{route('logout')}}" target="_blank">
+                                <a class="btn btn-sm btn-danger d-flex" href="{{ route('logout') }}" target="_blank">
                                     <small class="align-middle">Logout</small>
                                     <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
                                 </a>
@@ -618,7 +632,8 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                         </a>
 
                         <ul class="menu-sub">
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                     <div data-i18n="Dashboards">Dashboard</div>
@@ -645,12 +660,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Partner Group">Partner Group</div>
                                 </a>
                             </li>
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.workboard') }}" class="menu-link">
-                                  <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                  <div data-i18n="WorkBoard">WorkBoard</div>
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="WorkBoard">WorkBoard</div>
                                 </a>
-                              </li>
+                            </li>
                         </ul>
                     </li>
 
@@ -723,9 +739,42 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Api Key">Api Key</div>
                                 </a>
                             </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.api.commissions' ? 'active' : '' }}">
+                                <a href="{{ route('admin.api.commissions') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Commission">Partner Commission</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.adjustments' ? 'active' : '' }}">
+                                <a href="{{ route('admin.adjustments') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Monthly Adjustments ">Monthly Adjustments </div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.partner.balance' ? 'active' : '' }}">
+                                <a href="{{ route('admin.partner.balance') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Adjustments ">Adjustments </div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.transections.apilogs' ? 'active' : '' }}">
+                                <a href="{{ route('admin.transections.apilogs') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="API Logs ">API Logs </div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
+                                <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Transfer Balance">Transfer Balance</div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
+
+
+                    {{-- Transaction --}}
                     <li class="menu-item {{ $isTransactionActive ? 'active open' : '' }}">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon icon-base ti tabler-users"></i>
@@ -750,60 +799,60 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             </li>
 
                             <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLog' ? 'active' : '' }}">
-                            <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Api Deposit Log">Api Deposit Log </div>
-                            </a>
-                        </li>
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLog' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="Api Deposit Log">Api Deposit Log </div>
+                                </a>
+                            </li>
 
-                        <li
-                        class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLogunclaimed' ? 'active' : '' }}">
-                        <a href="{{ route('admin.payment.apiLogunclaimed') }}" class="menu-link">
-                            <i class="menu-icon icon-base ti tabler-messages"></i>
-                            <div data-i18n="Unclaimed Payment">Unclaimed Payment </div>
-                        </a>
-                    </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLogunclaimed' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payment.apiLogunclaimed') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="Unclaimed Payment">Unclaimed Payment </div>
+                                </a>
+                            </li>
 
-                    <li
-                    class="menu-item {{ Route::currentRouteName() == 'admin.payment.report' ? 'active' : '' }}">
-                    <a href="{{ route('admin.payment.report') }}" class="menu-link">
-                        <i class="menu-icon icon-base ti tabler-messages"></i>
-                        <div data-i18n="Deposit Report">Deposit Report  </div>
-                    </a>
-                </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payment.report' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payment.report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="Deposit Report">Deposit Report </div>
+                                </a>
+                            </li>
 
-                <li
-                class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.daily' ? 'active' : '' }}">
-                <a href="{{ route('admin.payment.report.daily') }}" class="menu-link">
-                    <i class="menu-icon icon-base ti tabler-messages"></i>
-                    <div data-i18n="Daily Deposit Report">Daily Deposit Report  </div>
-                </a>
-            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.daily' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payment.report.daily') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="Daily Deposit Report">Daily Deposit Report </div>
+                                </a>
+                            </li>
 
-            <li
-            class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.all' ? 'active' : '' }}">
-            <a href="{{ route('admin.payment.report.all') }}" class="menu-link">
-                <i class="menu-icon icon-base ti tabler-messages"></i>
-                <div data-i18n="All Report">All Report  </div>
-            </a>
-        </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.all' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payment.report.all') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="All Report">All Report </div>
+                                </a>
+                            </li>
 
-        <li
-        class="menu-item {{ Route::currentRouteName() == 'admin.payout-report' ? 'active' : '' }}">
-        <a href="{{ route('admin.payout-report') }}" class="menu-link">
-            <i class="menu-icon icon-base ti tabler-messages"></i>
-            <div data-i18n="Withdrawal Report">Withdrawal Report  </div>
-        </a>
-    </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payout-report' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payout-report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="Withdrawal Report">Withdrawal Report </div>
+                                </a>
+                            </li>
 
-    <li
-    class="menu-item {{ Route::currentRouteName() == 'admin.payout.report.daily' ? 'active' : '' }}">
-    <a href="{{ route('admin.payout.report.daily') }}" class="menu-link">
-        <i class="menu-icon icon-base ti tabler-messages"></i>
-        <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report  </div>
-    </a>
-</li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.payout.report.daily' ? 'active' : '' }}">
+                                <a href="{{ route('admin.payout.report.daily') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-messages"></i>
+                                    <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report </div>
+                                </a>
+                            </li>
 
 
                         </ul>
@@ -854,16 +903,20 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             </li>
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary' ? 'active' : '' }}">
-                                <a href="{{ route('admin.reports.partner_account_balance_summary') }}" class="menu-link">
+                                <a href="{{ route('admin.reports.partner_account_balance_summary') }}"
+                                    class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Partner Account Balance Summary Creations">Partner Account Balance Summary Creations </div>
+                                    <div data-i18n="Partner Account Balance Summary Creations">Partner Account Balance
+                                        Summary Creations </div>
                                 </a>
                             </li>
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary_completions' ? 'active' : '' }}">
-                                <a href="{{ route('admin.reports.partner_account_balance_summary_completions') }}" class="menu-link">
+                                <a href="{{ route('admin.reports.partner_account_balance_summary_completions') }}"
+                                    class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Partner Account Balance Summary Completions">Partner Account Balance Summary Completions </div>
+                                    <div data-i18n="Partner Account Balance Summary Completions">Partner Account
+                                        Balance Summary Completions </div>
                                 </a>
                             </li>
                             <li
@@ -910,7 +963,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             </li>
                         </ul>
                     </li>
-                    <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
+                    {{-- <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon icon-base ti tabler-users"></i>
                             <div data-i18n="Merchant Reports">Merchant Reports</div>
@@ -931,8 +984,38 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                 </a>
                             </li>
                             <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_transection_summary' ? 'active' : '' }}">
-                                <a href="{{ route('admin.reports.daily_transection_summary') }}" class="menu-link">
+                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_month' ? 'active' : '' }}">
+                                <a href="{{ route('partner.merchant_reports.by_month') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Summary By Year">Summary By Year </div>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li> --}}
+                    <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon icon-base ti tabler-users"></i>
+                            <div data-i18n="Merchant Reports">Merchant Reports</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_date' ? 'active' : '' }}">
+                                <a href="{{ route('admin.merchant_reports.by_date') }}" class="menu-link">
+                                    <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Summary By Date">Summary By Date</div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_name' ? 'active' : '' }}">
+                                <a href="{{ route('admin.merchant_reports.by_name') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Summary By Name">Summary By Name </div>
+                                </a>
+                            </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_month' ? 'active' : '' }}">
+                                <a href="{{ route('admin.merchant_reports.by_month') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Summary By Year">Summary By Year </div>
                                 </a>
@@ -950,22 +1033,22 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
             <div class="card">
                 <!-- Pricing Plans -->
                 @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                        @endforeach
-                      </li>
-                    </ul>
-                </div>
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                            </li>
+                        </ul>
+                    </div>
                 @endif
 
-                @if(session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
+                @if (session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
                 @endif
 
-                {{$slot}}
+                {{ $slot }}
             </div>
         </div>
