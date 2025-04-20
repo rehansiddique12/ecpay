@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Admin\ManualGatewayController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\TelegramGroupController;
@@ -252,7 +253,23 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payout/report/daily', [PayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
 
+         // Manual Methods
+         Route::get('payment-methods/manual', [ManualGatewayController::class,'index'])->name('deposit.manual.index');
+         Route::get('payment-methods/manual/new', [ManualGatewayController::class,'create'])->name('deposit.manual.create');
+         Route::post('payment-methods/manual/new', [ManualGatewayController::class,'store'])->name('deposit.manual.store');
+         Route::get('payment-methods/manual/edit/{id}', [ManualGatewayController::class,'edit'])->name('deposit.manual.edit');
+         Route::put('payment-methods/manual/update/{id}', [ManualGatewayController::class,'update'])->name('deposit.manual.update');
+         Route::post('payment-methods/deactivate', [PaymentMethodController::class,'deactivate'])->name('payment.methods.deactivate');
+         Route::get('payment-methods/deactivate', [PaymentMethodController::class,'deactivate'])->name('payment.methods.deactivate');
 
+         Route::get('/e-wallet/accounts', [PayoutRecordController::class,'eWalletAccounts'])->name('ewallet.accounts');
+         Route::get('/e_wallet_accounts/{id}/toggle-status', [PayoutRecordController::class,'toggleStatus'])->name('e_wallet_accounts.toggle_status');
+         Route::delete('/e-wallet/admin/delete/{account}', [PayoutRecordController::class,'adminAccountDelete'])->name('ewallet.accounts.delete');
+         Route::post('/accounts/deposit/test', [PayoutRecordController::class,'depositTest'])->name('deposit.test');
+         Route::post('/e-wallet/admin/add', [PayoutRecordController::class,'eWalletAccountsAdd'])->name('ewallet.accounts.add');
+         Route::post('/accounts/deposit/testp', [PayoutRecordController::class,'depositTestp'])->name('deposit.testp');
+         Route::post('/accounts/withdrawal/test', [PayoutRecordController::class,'withdrawalTest'])->name('withdrawal.test');
+         Route::post('/accounts/withdrawal/testp', [PayoutRecordController::class,'withdrawalTestp'])->name('withdrawal.testp');
 
 
 

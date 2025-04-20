@@ -90,7 +90,7 @@
                         <td data-label="@lang('Date')"> {{ dateTime($fund->created_at,'d M,Y H:i') }}</td>
                         <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                             {{ $fund->transaction }}<br>
-                            <span class="text text-success">{{ optional($fund->payment)->txn_id }}</span>
+                            <span class="text text-success">{{ $fund->txn_id }}</span>
 
                         </td>
                         <td>{{ !empty($fund->partner_transection_id)?$fund->partner_transection_id:'' }}
@@ -124,7 +124,6 @@
                         <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($fund->amount) }} {{$fund->gateway_currency}}</td>
                         <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }} {{$fund->gateway_currency}}</td>
                         <td data-label="@lang('Payable')" class="font-weight-bold">{{ getAmount($fund->final_amount) }} {{$fund->gateway_currency}}</td>
-
 
                         <td data-label="@lang('Status')" class="text-lg-center text-right">
                             @if($fund->status == 2)
@@ -181,7 +180,7 @@
                             <span class="text text-dark">({{ $fund->source }})</span>
                             @endif
                         </td>
-                        <td>{{ optional($fund->payment)->completion_at }}</td>
+                        <td>{{ $fund->created_at }}</td>
                         <td>
                             @if(!empty($fund->receipt_image))
                             <a data-fancybox="images" href="{{ getFile(config('location.receipts.path').$fund->receipt_image) }}">
@@ -213,7 +212,7 @@
                             }
                             @endphp
 
-                            @if($fund->gateway_id > 999)
+                            {{-- @if($fund->gateway_id > 999) --}}
                             <button class="edit_button  btn  {{($fund->status == 2) ?  'btn-primary' : 'btn-success'}} text-white  btn-sm " data-bs-toggle="modal"
                                  data-bs-target="#myModal"
                                   data-title="{{($fund->status == 2) ?  trans('Edit') : trans('Details')}}"
@@ -231,9 +230,9 @@
                                 @endif
 
                             </button>
-                            @else
-                            -
-                            @endif
+                            {{-- @else --}}
+                            {{-- - --}}
+                            {{-- @endif --}}
                             <button class="edit_buttonc  btn btn-danger text-white  btn-sm" data-bs-toggle="modal" data-bs-target="#myModalc" data-bs-title="Edit" data-bs-id="{{ $fund->id }}" data-bs-e_wallet_phone_number="{{$fund->e_wallet_phone_number}}">
                                <i class="icon-base ti tabler-device-mobile me-1"></i>
                             </button>
@@ -272,7 +271,8 @@
             date_default_timezone_set('Asia/Kuala_Lumpur');
 
             ?>
-            <form role="form" class="actionRoute" action="{{route('admin.payment.action',1)}}">
+            {{-- <form role="form" class="actionRoute" action=""> --}}
+                <form role="form" method="POST" class="actionRoute" action="" enctype="multipart/form-data" onsubmit="submitForm(this)">
                 @csrf
                 @method('put')
                 <div class="modal-body">
@@ -418,7 +418,7 @@
 </div>
 
 @push('js')
-{{-- <script>
+<script>
 function submitForm(form) {
     // Disable the submit button to prevent multiple submissions
     document.getElementById('approvebtn').disabled = true;
@@ -426,7 +426,7 @@ function submitForm(form) {
     // Submit the form
     form.submit();
 }
-</script> --}}
+</script>
 {{-- <script>
     function refreshDateTime() {
 
@@ -466,40 +466,42 @@ function submitForm(form) {
         //     selectOnClose: true
         // });
 
-        // $(document).on("click", '.edit_button', function(e) {
-        //     var id = $(this).data('id');
-        //     var sender = $(this).data('sender');
-        //     var feedback = $(this).data('feedback');
-        //     var e_wallet_phone_number = $(this).data('e_wallet_phone_number');
+        jQuery(document).on("click", '.edit_button', function(e) {
+    var id = jQuery(this).data('id');
+    var sender = jQuery(this).data('sender');
+    var feedback = jQuery(this).data('feedback');
+    var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
 
-        //     $(".action_id").val(id);
-        //     $(".sender").val(sender);
-        //     $(".e_wallet_phone_number").val(e_wallet_phone_number);
-        //     $(".actionRoute").attr('action', $(this).data('route'));
-        //     var details = Object.entries($(this).data('info'));
-        //     var list = [];
-        //     details.map(function(item, i) {
-        //         if (item[1].type == 'file') {
-        //             var singleInfo = `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
-        //         } else {
-        //             var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>  `;
-        //         }
-        //         list[i] = ` <li class="list-group-item"><span class="font-weight-bold "> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`
-        //     });
-        //     $('.withdraw-detail').html(list);
+    jQuery(".action_id").val(id);
+    jQuery(".sender").val(sender);
+    jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
+    jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
 
-        //     if (feedback == '') {
-        //         var $res = `<div class="form-group"><br>
-        //                         <label class="font-weight-bold">{{trans('Send You Feedback')}}</label>
-        //                         <textarea name="feedback" class="form-control" row="3" required>{{old('feedback')}}</textarea>
-        //                     </div>`
-        //     } else {
-        //         var $res = `<h5>{{trans('Feedback')}}</h5>
-        //             <p>${feedback}</p>`
-        //     }
+    var details = Object.entries(jQuery(this).data('info'));
+    var list = [];
+    details.map(function(item, i) {
+        if (item[1].type == 'file') {
+            var singleInfo = `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
+        } else {
+            var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
+        }
+        list[i] = ` <li class="list-group-item"><span class="font-weight-bold"> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`;
+    });
+    jQuery('.withdraw-detail').html(list);
 
-        //     $('.get-feedback').html($res)
-        // });
+    if (feedback == '') {
+        var res = `<div class="form-group"><br>
+                        <label class="font-weight-bold">{{trans('Send You Feedback')}}</label>
+                        <textarea name="feedback" class="form-control" row="3" required>{{old('feedback')}}</textarea>
+                   </div>`;
+    } else {
+        var res = `<h5>{{trans('Feedback')}}</h5>
+                    <p>${feedback}</p>`;
+    }
+
+    jQuery('.get-feedback').html(res);
+});
+
 
 
 

@@ -74,6 +74,31 @@
         'admin.parant',
         'admin.workboard',
     ]);
+$isTransactionActive = in_array(Route::currentRouteName(), [
+'admin.payment.log',
+'admin.payment.apiLog',
+'admin.payment.apiLogunclaimed',
+'admin.payment.report',
+'admin.payment.report.daily',
+'admin.payment.report.all',
+'admin.payout-report',
+'admin.payout.report.daily',
+]);
+  $isAccountsActive = Request::routeIs('admin.accounts.add') ||
+                      Request::routeIs('admin.accounts') ||
+                      Request::routeIs('admin.balance.logs') ||
+                      Request::routeIs('admin.ewallet.accounts') ||
+                      Request::routeIs('') ;
+
+
+  $isMainActive = in_array(Route::currentRouteName(), [
+    'admin.dashboard',
+    'admin.staff',
+    'admin.groups',
+    'admin.parant',
+    'admin.workboard',
+    'admin.deposit.manual.index'
+  ]);
 
 @endphp
 
@@ -667,6 +692,14 @@
                                     <div data-i18n="WorkBoard">WorkBoard</div>
                                 </a>
                             </li>
+                              </li>
+
+                              <li class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
+                                  <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                  <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                </a>
+                              </li>
                         </ul>
                     </li>
 
@@ -695,6 +728,12 @@
                                 <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Account Balance">Account Balance</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="E-Wallet Test">E-Wallet Test </div>
                                 </a>
                             </li>
                         </ul>
@@ -972,7 +1011,7 @@
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_date' ? 'active' : '' }}">
                                 <a href="{{ route('partner.merchant_reports.by_date') }}" class="menu-link">
-                                    <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Summary By Date">Summary By Date</div>
                                 </a>
                             </li>
@@ -1032,6 +1071,7 @@
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="card">
                 <!-- Pricing Plans -->
+<<<<<<< HEAD
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>
@@ -1042,6 +1082,15 @@
                         </ul>
                     </div>
                 @endif
+=======
+                @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+>>>>>>> 17fcd96136f2f4e7d032ae5a41ccdf8f3e804f86
 
                 @if (session('success'))
                     <div class="alert alert-success">
