@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 use App\Models\Api;
 use App\Models\Fund;
+use App\Models\Gateway;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,21 @@ use App\Http\Controllers\Controller;
 
 class PaymentMethodController extends Controller
 {
+
+    public function deactivate(Request $request)
+    {
+        $data = Gateway::where('code', $request->code)->firstOrFail();
+
+        if ($data->status == 1) {
+            $data->status = 0;
+        } else {
+            $data->status = 1;
+        }
+        $data->save();
+
+        return back()->with('success', 'Updated Successfully.');
+    }
+
     public function payment_gateway_report(Request $request)
     {
         $pageTitle = "Payment Gateway Performance Report";

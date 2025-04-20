@@ -51,6 +51,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
   $isAccountsActive = Request::routeIs('admin.accounts.add') ||
                       Request::routeIs('admin.accounts') ||
                       Request::routeIs('admin.balance.logs') ||
+                      Request::routeIs('admin.ewallet.accounts') ||
                       Request::routeIs('') ;
 
 
@@ -59,7 +60,8 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
     'admin.staff',
     'admin.groups',
     'admin.parant',
-    'admin.workboard'
+    'admin.workboard',
+    'admin.deposit.manual.index'
   ]);
 
 @endphp
@@ -651,6 +653,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                   <div data-i18n="WorkBoard">WorkBoard</div>
                                 </a>
                               </li>
+
+                              <li class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
+                                  <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                  <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                </a>
+                              </li>
                         </ul>
                     </li>
 
@@ -679,6 +688,12 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                 <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Account Balance">Account Balance</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="E-Wallet Test">E-Wallet Test </div>
                                 </a>
                             </li>
                         </ul>
@@ -919,7 +934,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_date' ? 'active' : '' }}">
                                 <a href="{{ route('partner.merchant_reports.by_date') }}" class="menu-link">
-                                    <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Summary By Date">Summary By Date</div>
                                 </a>
                             </li>

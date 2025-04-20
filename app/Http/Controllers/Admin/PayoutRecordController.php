@@ -32,12 +32,204 @@ use App\Http\Traits\Upload;
 use App\Models\SmsLog;
 use App\Models\EWalletTransfer;
 use App\Models\Gateway;
+use App\Models\AdminAccount;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class PayoutRecordController extends Controller
 {
     use Upload;
+    public function eWalletAccounts(Request $request)
+    {
+        $this->updateLimits();
+        $records = EWalletAccount::get();
+        $accounts = AdminAccount::get();
+        $nagad_accounts = AdminAccount::where('e_wallet_name', 'Nagad')->get();
+        $rocket_accounts = AdminAccount::where('e_wallet_name', 'Rocket')->get();
+        $bkash_accounts = AdminAccount::where('e_wallet_name', 'bKash')->get();
+        foreach ($records as $record) {
+            $record->live = 0;
+            $ApiHit = ApiHit::where('e_wallet_name', $record->e_wallet_name)
+                ->where('acc_no', $record->account_no)
+                ->whereBetween('created_at', [now()->subSeconds(70), now()])
+                ->first();
+            if ($ApiHit) {
+                $record->live = 1;
+            }
+        }
+        $pageTitle = "All Accounts";
+        return view('admin.payout.ewallet_accounts', compact('records', 'pageTitle', 'accounts'));
+    }
+
+    public function toggleStatus($id)
+    {
+        $eWalletAccount = EWalletAccount::findOrFail($id);
+        $eWalletAccount->status = !$eWalletAccount->status;
+        $eWalletAccount->save();
+        return redirect()->back()->with('success', 'Status toggled successfully');
+    }
+
+    public function adminAccountDelete($id)
+    {
+        $account = AdminAccount::findOrFail($id);
+        $account->delete();
+        return back();
+    }
+
+    public function depositTest(Request $request)
+    {
+        // $form_data = $request->all();
+        //
+
+        $this->updateLimits();
+        $account = EWalletAccount::where('id', $request->account_id)
+            ->first();
+        if (!$account) {
+            return response()->json(['error' => 'You Can not Proceed With this E-wallet account'], 422);
+        }
+
+        $gate = Gateway::where('code', $request->gateway)->where('status', 1)->first();
+        $charge = 0;
+        $e_wallet_phone_number = $account->account_no;
+
+        $fund = new Fund();
+        $fund->user_id = 0;
+        $fund->gateway_id = $gate->id;
+        $fund->gateway_currency = strtoupper($gate->currency);
+        $fund->amount = $request->amount;
+        $fund->charge = $charge;
+        $fund->account_no = $request->account_no;
+        $fund->rate = $gate->convention_rate;
+        $fund->final_amount = getAmount($request->amount);
+        $fund->btc_amount = 0;
+        $fund->btc_wallet = "";
+        $fund->transaction = strRandom();
+        $fund->try = 0;
+        $fund->status = 2;
+        $fund->e_wallet_phone_number = $e_wallet_phone_number;
+        $fund->source = "Admin Test";
+        $fund->save();
+
+        $data = [
+            'orderid' => $fund['id'],
+            'result' => 'process',
+        ];
+        return response()->json($data);
+    }
+
+    public function eWalletAccountsAdd(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'acc_no' => 'required|string',
+            'e_wallet_name' => 'required|string',
+        ]);
+
+        $account = new AdminAccount;
+        $account->acc_no = $request->acc_no;
+        $account->e_wallet_name = $request->e_wallet_name;
+        $account->save();
+        session()->flash('success', 'Added Successfully');
+        return back();
+    }
+
+    public function depositTestp(Request $request)
+    {
+        // Check if a payment already exists with this transaction_id
+        $payment = Payment::where('transaction_id', $request->orderid)
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        if ($payment) {
+            return response()->json(['result' => 'success']);
+        }
+
+        // If not, fetch the original unpaid record using orderid (as the identifier)
+        $existing = Payment::where('id', $request->orderid)->first();
+
+        if (!$existing) {
+            return response()->json(['result' => 'fail']);
+        }
+
+        // Now search for a matching pending payment within 30 minutes
+        $match = Payment::where('e_wallet_name', $request->gateway)
+            ->where('amount', $existing->amount)
+            ->where('sender', $existing->sender)
+            ->where('created_at', '>=', Carbon::now()->subMinutes(30))
+            ->where('status', 'Pending')
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        if ($match) {
+            $match->charge = 0;
+            $match->status = 'Complete';
+            $match->transaction_id = $request->orderid;
+            $match->save();
+
+            return response()->json(['result' => 'success']);
+        }
+
+        return response()->json(['result' => 'fail']);
+    }
+
+    public function withdrawalTest(Request $request)
+    {
+        $method = Gateway::where('status', 1)
+            ->where('name', $request->gateway)
+            ->first();
+
+        if (!$method) {
+            return response()->json(['error' => 'Invalid gateway selected'], 422);
+        }
+
+        $currentMonth = now()->format('Y-m');
+        $charge = 0;
+
+        $payout = new Payout();
+        $payout->e_wallet_name = $request->gateway;
+        $payout->amount = $request->amount;
+        $payout->user_account_no = $request->account_no;
+        $payout->charge = $charge;
+        $payout->save();
+
+        $this->updateLimits();
+
+        $account = EWalletAccount::where('id', $request->account_id)->first();
+        if (!$account) {
+            return response()->json(['error' => 'You cannot proceed with this E-wallet account'], 422);
+        }
+
+        $payout->e_wallet_phone_number = $account->account_no;
+        $payout->e_wallet_type = $account->type;
+        $payout->status = 'Pending';
+        $payout->save();
+
+        $data = [
+            'orderid' => $payout->id,
+            'result' => 'process',
+        ];
+
+        return response()->json($data);
+    }
+
+
+    public function withdrawalTestp(Request $request)
+    {
+        // $form_data = $request->all();
+
+        $payour_record = Payout::where('status', "Complete")->where('id', $request->wid)->first();
+        if ($payour_record) {
+            $data = [
+                'result' => 'success',
+            ];
+            return response()->json($data);
+        }
+
+        $data = [
+            'result' => 'fail',
+        ];
+        return response()->json($data);
+    }
+
 
     public function reportDetail($date, $gateway, $status)
     {
