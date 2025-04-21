@@ -1071,18 +1071,6 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="card">
                 <!-- Pricing Plans -->
-<<<<<<< HEAD
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                            </li>
-                        </ul>
-                    </div>
-                @endif
-=======
                 @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     {{ session('error') }}
@@ -1090,7 +1078,6 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                 </div>
             @endif
 
->>>>>>> 17fcd96136f2f4e7d032ae5a41ccdf8f3e804f86
 
                 @if (session('success'))
                     <div class="alert alert-success">

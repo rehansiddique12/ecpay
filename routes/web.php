@@ -151,7 +151,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.commissions');
         Route::post('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class,'exportCommissions'])->name('commissions.export');
-
+        Route::get('/api/export-profile/{id}', [PayoutRecordController::class,'exportprofile'])->name('api.profile.export');
+    Route::post('/apis/{id}/generate-password', [PayoutRecordController::class, 'generatePassword'])->name('apis.generatePassword');
         Route::get('/adjustments', [PayoutRecordController::class, 'adjustments'])->name('adjustments');
         Route::get('adjustments/search', [PayoutRecordController::class, 'adjustmentSearch'])->name('adjustments.search');
         Route::get('/adjustments/approve/{id}', [PayoutRecordController::class, 'approveAdjustment'])->name('adjustments.approve');
