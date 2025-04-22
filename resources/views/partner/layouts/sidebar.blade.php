@@ -1,46 +1,195 @@
-<aside id="layout-menu" class="layout-menu menu-vertical menu">
-    <div class="app-brand demo">
-        <a href="" class="app-brand-link">
-            <span class="app-brand-logo demo">
-                <span class="text-primary">
-                    <svg width="32" height="22" viewBox="0 0 32 22" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z"
-                            fill="currentColor" />
-                        <path opacity="0.06" fill-rule="evenodd" clip-rule="evenodd"
-                            d="M7.69824 16.4364L12.5199 3.23696L16.5541 7.25596L7.69824 16.4364Z"
-                            fill="#161616" />
-                        <path opacity="0.06" fill-rule="evenodd" clip-rule="evenodd"
-                            d="M8.07751 15.9175L13.9419 4.63989L16.5849 7.28475L8.07751 15.9175Z"
-                            fill="#161616" />
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z"
-                            fill="currentColor" />
-                    </svg>
+@php
+$isAccountsActive =
+Request::routeIs('admin.accounts.add') ||
+Request::routeIs('admin.accounts') ||
+Request::routeIs('admin.balance.logs');
+
+$isMainActive = in_array(Route::currentRouteName(), [
+'partner.dashboard',
+]);
+
+@endphp
+
+
+
+<nav class="layout-navbar navbar navbar-expand-xl align-items-center" id="layout-navbar">
+    <div class="container-xxl">
+        <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4 ms-0">
+            <a href="index.html" class="app-brand-link">
+                <span class="app-brand-logo demo">
+                    <span class="text-primary">
+                        <svg width="32" height="22" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z"
+                                fill="currentColor" />
+                            <path opacity="0.06" fill-rule="evenodd" clip-rule="evenodd"
+                                d="M7.69824 16.4364L12.5199 3.23696L16.5541 7.25596L7.69824 16.4364Z" fill="#161616" />
+                            <path opacity="0.06" fill-rule="evenodd" clip-rule="evenodd"
+                                d="M8.07751 15.9175L13.9419 4.63989L16.5849 7.28475L8.07751 15.9175Z" fill="#161616" />
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z"
+                                fill="currentColor" />
+                        </svg>
+                    </span>
                 </span>
-            </span>
-            <span class="app-brand-text demo menu-text fw-bold ms-3">Vuexy</span>
-        </a>
-
-        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-            <i class="icon-base ti menu-toggle-icon d-none d-xl-block"></i>
-            <i class="icon-base ti tabler-x d-block d-xl-none"></i>
-        </a>
-    </div>
-
-    <div class="menu-inner-shadow"></div>
-
-    <ul class="menu-inner py-1">
-        <!-- Page -->
-        @if(partnerAccessRoute(config('rolep.dashboard.access.view')))
-        <li class="menu-item @activeLink('partner.dashboard')">
-            <a href="{{ route('partner.dashboard') }}" class="menu-link">
-                <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                <div data-i18n="Page 1">Dashboard</div>
+                <span class="app-brand-text demo menu-text fw-bold text-heading">Vuexy</span>
             </a>
-        </li>
-        @endif
 
-    </ul>
-</aside>
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-xl-none">
+                <i class="icon-base ti tabler-x icon-sm d-flex align-items-center justify-content-center"></i>
+            </a>
+        </div>
+
+        <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="icon-base ti tabler-menu-2 icon-md"></i>
+            </a>
+        </div>
+
+        <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+            <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+                <!-- Search -->
+                <li class="nav-item navbar-search-wrapper btn btn-text-secondary btn-icon rounded-pill">
+                    <a class="nav-item nav-link search-toggler px-0" href="javascript:void(0);">
+                        <span class="d-inline-block text-body-secondary fw-normal" id="autocomplete"></span>
+                    </a>
+                </li>
+                <!-- /Search -->
+
+
+
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                    <a class="nav-link dropdown-toggle hide-arrow p-0" href="profile" data-bs-toggle="dropdown">
+                        <div class="avatar avatar-online">
+                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
+                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item mt-0" href="{{ route('admin.profile') }}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-2">
+                                        <div class="avatar avatar-online">
+                                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
+                                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0">{{ auth()->user()->username }}</h6>
+                                        <small class="text-body-secondary">{{ auth()->user()->email }}</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <div class="dropdown-divider my-1 mx-n2"></div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('partner.profile') }}">
+                                <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
+                                    Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('partner.password') }}">
+                                <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
+                                    class="align-middle">Password</span>
+                            </a>
+                        </li>
+                        {{-- <li>
+                            <a class="dropdown-item" href="pages-account-settings-billing.html">
+                                <span class="d-flex align-items-center align-middle">
+                                    <i class="flex-shrink-0 icon-base ti tabler-file-dollar me-3 icon-md"></i><span
+                                        class="flex-grow-1 align-middle">Billing Plan</span>
+                                    <span
+                                        class="flex-shrink-0 badge bg-danger d-flex align-items-center justify-content-center">4</span>
+                                </span>
+                            </a>
+                        </li> --}}
+                        <li>
+                            <div class="dropdown-divider my-1 mx-n2"></div>
+                        </li>
+                        {{-- <li>
+                            <a class="dropdown-item" href="pages-pricing.html">
+                                <i class="icon-base ti tabler-currency-dollar me-3 icon-md"></i><span
+                                    class="align-middle">Pricing</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="pages-faq.html">
+                                <i class="icon-base ti tabler-question-mark me-3 icon-md"></i><span
+                                    class="align-middle">FAQ</span>
+                            </a>
+                        </li> --}}
+                        <li>
+                            <div class="d-grid px-2 pt-2 pb-1">
+                                <form method="POST" action="{{ route('partner.logout') }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-danger btn-block d-flex align-items-center">
+                                        <small class="align-middle">Logout</small>
+                                        <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <!--/ User -->
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="layout-page">
+    <!-- Content wrapper -->
+    <div class="content-wrapper">
+        <!-- Menu -->
+        <aside id="layout-menu" class="layout-menu-horizontal menu-horizontal menu flex-grow-0">
+            <div class="container-xxl d-flex h-100">
+                <ul class="menu-inner">
+                    <!-- Dashboards -->
+                    <li class="menu-item {{ request()->is('dashboard') ? 'active open' : '' }}">
+                    <li class="menu-item {{ $isMainActive ? 'active open' : '' }}">
+                        <a href="javascript:void(0)" class="menu-link menu-toggle">
+                            <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>
+                            <div data-i18n="Main">Main</div>
+                        </a>
+
+                        <ul class="menu-sub">
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.dashboard' ? 'active' : '' }}">
+                                <a href="{{ route('partner.dashboard') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Dashboards">Dashboard</div>
+                                </a>
+                            </li>
+
+                    </li>
+                </ul>
+                </li>
+            </div>
+        </aside>
+        <!-- / Menu -->
+
+        <!-- Content -->
+        <div class="container-xxl flex-grow-1 container-p-y">
+            <div class="card">
+                <!-- Pricing Plans -->
+                @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+
+
+                @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+                @endif
+
+                {{ $slot }}
+            </div>
+        </div>

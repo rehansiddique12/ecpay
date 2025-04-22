@@ -627,10 +627,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
               </li> --}}
                         <li>
                             <div class="d-grid px-2 pt-2 pb-1">
-                                <a class="btn btn-sm btn-danger d-flex" href="{{ route('logout') }}" target="_blank">
-                                    <small class="align-middle">Logout</small>
-                                    <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
-                                </a>
+                                <form method="POST" action="{{ route('admin.logout') }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-danger btn-block d-flex align-items-center">
+                                        <small class="align-middle">Logout</small>
+                                        <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
+                                    </button>
+                                </form>
                             </div>
                         </li>
                     </ul>

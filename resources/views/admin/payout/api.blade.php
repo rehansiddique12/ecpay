@@ -38,7 +38,7 @@
                                 @forelse($records as $key => $item)
                                 <tr>
                                     <td style="max-width: 70px;">{{ $item['id'] }}</td>
-                                    <td style="max-width: 110px;">{{ $item['name'] }}</td>
+                                    <td style="max-width: 110px;"><a href="">{{ $item['name'] }}</a></td>
                                     <td style="max-width: 100px;">{{ $item['username'] }}</td>
                                     <td style="max-width: 130px;">{{ $item['website'] }}</td>
                                     <td style="max-width: 220px;">

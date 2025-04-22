@@ -42,6 +42,7 @@ use App\Exports\PartnerCommissionExport;
 use App\Models\AdminAccount;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 
 class PayoutRecordController extends Controller
@@ -4732,6 +4733,14 @@ class PayoutRecordController extends Controller
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }
 
+
+    public function apisLgoin($id)
+    {
+        $api = Api::findOrFail($id);
+        Auth::guard('partner')->login($api);
+
+        return redirect()->route('partner.profile')->with('success', 'Login to Partner Dashboard.');
+    }
 
 
 }
