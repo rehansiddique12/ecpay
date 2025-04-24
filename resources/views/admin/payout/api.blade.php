@@ -10,29 +10,28 @@
     </style>
     @endpush
 
-    <div class="row " >
-        <div class="col-md-12" >
-            <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow" >
+    <div class="row ">
+        <div class="col-md-12">
+            <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
                     <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                     {{-- @if(adminAccessRoute(config('role.partners.access.add'))) --}}
-                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
+                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal"
+                        data-bs-target="#newModal">
                         Add New
                     </button>
 
                     {{-- @endif --}}
 
 
-                    <div class="table-responsive " >
-                        <table class="categories-show-table table table-hover table-striped table-bordered settable table-responsive table-sm">
+                    <div class="table-responsive ">
+                        <table
+                            class="categories-show-table table table-hover table-striped table-bordered settable table-responsive table-sm">
                             <thead class="thead-dark">
-                                <tr >
+                                <tr>
                                     <th scope="col">@lang('ID')</th>
                                     <th scope="col">@lang('Name')</th>
                                     <th scope="col">@lang('Username')</th>
-                                    <th scope="col">@lang('Email')</th>
-                                    <th scope="col">@lang('Phone')</th>
-                                    <th scope="col">@lang('Type')</th>
                                     <th scope="col">@lang('Website')</th>
                                     <th class="setcolumn" scope="col">API End-Point</th>
                                     <th class="setcolumn" scope="col">@lang('Keys')</th>
@@ -46,17 +45,15 @@
                                 @forelse($records as $key => $item)
                                 <tr>
                                     <td style="max-width: 70px;">{{ $item['id'] }}</td>
-                                    <td style="max-width: 110px;">{{ $item['name'] }}</td>
+                                    <td style="max-width: 110px;"><a href="">{{ $item['name'] }}</a></td>
                                     <td style="max-width: 100px;">{{ $item['username'] }}</td>
-                                    <td style="max-width: 150px;">{{ $item['email'] }}</td>
-                                    <td style="max-width: 100px;">{{ $item['phone'] }}</td>
-                                    <td>{{ $item['acc_type'] }}</td>
                                     <td style="max-width: 130px;">{{ $item['website'] }}</td>
                                     <td style="max-width: 220px;">
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
                                         {{ $item['api_endpoint_deposit'] }}<br>
 
-                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
+                                        <span
+                                            class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
                                         {{ $item['api_endpoint_withdrawal'] }}<br>
 
                                         <span class="bg-info text-white p-1 d-inline-block mt-2">Redirect URL:</span>
@@ -67,15 +64,18 @@
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">API Key:</span>
                                         {{ $item['api_key'] }}<br>
 
-                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Secret Key:</span>
+                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Secret
+                                            Key:</span>
                                         {{ $item['secret_key'] }}
                                     </td>
 
                                     <td>{{ $item['balance'] }}</td>
                                     <td style="max-width: 300px;">
-                                        <span class="bg-success text-white p-1" style="display: inline-block; margin-bottom: 10px;">Deposit:</span>
+                                        <span class="bg-success text-white p-1"
+                                            style="display: inline-block; margin-bottom: 10px;">Deposit:</span>
                                         {{ $item['min_deposit'] }}<br>
-                                        <span class="bg-primary text-white p-1" style="display: inline-block; margin-top: 10px;">Withdrawal:</span>
+                                        <span class="bg-primary text-white p-1"
+                                            style="display: inline-block; margin-top: 10px;">Withdrawal:</span>
                                         {{ $item['min_withdrawal'] }}
                                     </td>
 
@@ -91,81 +91,52 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                data-bs-toggle="dropdown">
-                                                <i class="icon-base ti tabler-dots-vertical"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                {{-- @if(adminAccessRoute(config('role.partners.access.delete'))) --}}
-                                                <form action="{{ route('admin.apis.delete', $item['id']) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
+                                        @if (adminAccessRoute(config('role.partner_login.access.view')))
 
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"> <i
-                                                            class="icon-base ti tabler-trash me-1"></i> Delete</button>
-                                                </form>
+                                        <a class="btn btn-sm edit_button"
+                                            href="{{ route('admin.apis.login', $item['id']) }}" target="_blank"><i
+                                                class="icon-base ti tabler-login me-1"></i> </a> <br>
+                                        @endif
+                                        @if(adminAccessRoute(config('role.partners.access.delete')))
+                                        <form action="{{ route('admin.apis.delete', $item['id']) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
 
-                                                {{-- @endif --}}
+                                            <button type="submit" class="btn btn-sm edit_button"> <i
+                                                    class="icon-base ti tabler-trash me-1"></i></button>
+                                        </form>
 
-                                                {{-- @if (adminAccessRoute(config('role.partner_login.access.view'))) --}}
-
-                                                <a class="btn btn-sm btn-icon edit_button"
-                                                    href="{{ route('admin.apis.login', $item['id']) }}"
-                                                    target="_blank"><i class="icon-base ti tabler-key me-1"></i>
-                                                    Login</a> <br>
-                                                {{-- @endif --}}
+                                        @endif
 
 
-                                                {{-- @if(adminAccessRoute(config('role.partners.access.edit'))) --}}
-                                                <button type="button" class="btn btn-sm btn-icon edit_button"
-                                                    data-bs-toggle="modal" data-bs-target="#editModal{{ $item['id'] }}">
-                                                    <i class="icon-base ti tabler-pencil me-1"></i> Edit
-                                                </button><br>
-                                                <button type="button" class="btn btn-sm btn-icon" data-bs-toggle="modal"
-                                                    data-bs-target="#newModalByParent"
-                                                    onclick="setParentID({{ $item['id'] }} , '{{$item->acc_type}}')">
-                                                    <i class="icon-base ti tabler-user me-1"></i> Add {{$item->acc_type}}
-                                                </button>
-                                                <br>
-                                                <button type="button" class="btn btn-sm btn-icon" data-bs-toggle="modal"
-                                                    data-bs-target="#newModalb"
-                                                    onclick="setBalanceItem({{ $item['id'] }})">
-                                                    <i class="icon-base ti tabler-currency me-1"></i>Add Balance
-                                                </button>
 
-                                                <br>
-                                                <form action="{{ route('admin.apis.reset', $item['id']) }}"
-                                                    method="GET">
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"> <i
-                                                            class="icon-base ti tabler-key me-1"></i> Reset QR
-                                                        Code</button>
-                                                </form>
 
-                                                <form action="{{ route('admin.apis.commission', $item['id']) }}"
-                                                    method="GET">
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"> <i
-                                                            class="icon-base ti tabler-calculator me-1"></i> Commission
-                                                        %</button>
-                                                </form>
-                                                <form action="{{ route('admin.api.commissions.detail', $item['id']) }}"
-                                                    method="GET">
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"> <i
-                                                            class="icon-base ti tabler-calculator me-1"></i> Commission
-                                                        Detail</button>
-                                                </form>
-                                                <form
-                                                    action="{{ route('admin.api.commissions.calculate', $item['id']) }}"
-                                                    method="GET">
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"> <i
-                                                            class="icon-base ti tabler-calculator me-1"></i> Calculate
-                                                        Commission</button>
-                                                </form>
-                                                {{-- @endif --}}
 
-                                            </div>
-                                        </div>
+                                        <button class="btn btn-sm edit_button" onclick="generateAndCopyPassword({{ $item['id'] }})">
+                                            <i class="icon-base ti tabler-restore me-1"></i>
+                                        </button>
+                                         <br>
+
+
+
+                                        <a class="btn btn-sm edit_button"
+   data-copy="{{ $item['username'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
+   onclick="copyToClipboard(this)">
+   <i class="icon-base ti tabler-copy-check me-1"></i>
+</a>
+ <br>
+
+
+
+
+
+                                            <a class="btn btn-sm edit_button" href="{{route('admin.api.profile.export',$item['id'])}}"> <i
+                                                    class="icon-base ti tabler-database-export me-1"></i></a>
+
+                                        <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
+                                            <button type="submit" class="btn edit_button"> <i
+                                                    class="icon-base ti tabler-qrcode me-1"></i> </button>
+                                        </form>
                                     </td>
                                 </tr>
                                 @empty
@@ -326,7 +297,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Update')</button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
+                            aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -473,7 +445,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
+                            aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -570,7 +543,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
+                            aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -668,7 +642,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">@lang('Add')</button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
+                            aria-label="Close">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -684,6 +659,46 @@
 
     @push('js')
     <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
+    <script>
+        function generateAndCopyPassword(id) {
+            const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.password) {
+                    navigator.clipboard.writeText(data.password)
+                        .then(() => alert("New password generated and copied to clipboard: " + data.password))
+                        .catch(() => alert("Failed to copy to clipboard."));
+                } else {
+                    alert("Failed to generate password.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong.");
+            });
+        }
+    </script>
+
+
+    <script>
+        function copyToClipboard(element) {
+            const text = element.getAttribute('data-copy');
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Copied to clipboard!');
+            }, function(err) {
+                alert('Failed to copy text: ', err);
+            });
+        }
+    </script>
+
     <script>
         "use strict";
         $(document).ready(function (e) {

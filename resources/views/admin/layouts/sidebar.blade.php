@@ -629,10 +629,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
               </li> --}}
                         <li>
                             <div class="d-grid px-2 pt-2 pb-1">
-                                <a class="btn btn-sm btn-danger d-flex" href="{{ route('logout') }}" target="_blank">
-                                    <small class="align-middle">Logout</small>
-                                    <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
-                                </a>
+                                <form method="POST" action="{{ route('admin.logout') }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-danger btn-block d-flex align-items-center">
+                                        <small class="align-middle">Logout</small>
+                                        <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
+                                    </button>
+                                </form>
                             </div>
                         </li>
                     </ul>
@@ -1080,6 +1083,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="card">
                 <!-- Pricing Plans -->
+<<<<<<< HEAD
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>
@@ -1090,6 +1094,15 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                         </ul>
                     </div>
                 @endif
+=======
+                @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+>>>>>>> 17fcd96136f2f4e7d032ae5a41ccdf8f3e804f86
 
                 @if (session('success'))
                     <div class="alert alert-success">

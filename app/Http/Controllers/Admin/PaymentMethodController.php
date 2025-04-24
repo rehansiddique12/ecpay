@@ -37,7 +37,7 @@ class PaymentMethodController extends Controller
         $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
         // Query for funds data
-        $fundsQuery = Fund::selectRaw('DATE(created_at) as completion_at, api_id, COUNT(*) as fund_count')
+        $fundsQuery = Payment::selectRaw('DATE(created_at) as created_at, api_id, COUNT(*) as fund_count')
             ->whereDate('created_at', '>=', $from_date)
             ->whereDate('created_at', '<=', $to_date)
             ->groupBy(DB::raw('DATE(created_at)'), 'api_id');
@@ -50,19 +50,19 @@ class PaymentMethodController extends Controller
 
         // Query for payments data
         $paymentsQuery = Payment::selectRaw(
-            'DATE(completion_at) as completion_date,
+            'DATE(created_at) as completion_date,
              api_id,
              COUNT(CASE WHEN completed_source != ? AND status = ? AND completed_source IS NOT NULL THEN 1 END) as auto_process_count,
              COUNT(CASE WHEN completed_source = ? AND status = ? AND completed_source IS NOT NULL THEN 1 END) as manual_process_count,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 10 THEN 1 END) as time_less_than_10,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 10 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 20 THEN 1 END) as time_between_10_and_20,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 20 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 30 THEN 1 END) as time_between_20_and_30,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 30 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 40 THEN 1 END) as time_between_30_and_40,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 40 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 50 THEN 1 END) as time_between_40_and_50,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 50 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 60 THEN 1 END) as time_between_50_and_60,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 60 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 300 THEN 1 END) as time_between_60_and_5_minutes,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 300 AND TIMESTAMPDIFF(SECOND, created_at, completion_at) <= 600 THEN 1 END) as time_between_5_and_10_minutes,
-             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, completion_at) > 600 THEN 1 END) as time_greater_than_10_minutes',
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 10 THEN 1 END) as time_less_than_10,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 10 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 20 THEN 1 END) as time_between_10_and_20,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 20 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 30 THEN 1 END) as time_between_20_and_30,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 30 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 40 THEN 1 END) as time_between_30_and_40,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 40 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 50 THEN 1 END) as time_between_40_and_50,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 50 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 60 THEN 1 END) as time_between_50_and_60,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 60 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 300 THEN 1 END) as time_between_60_and_5_minutes,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 300 AND TIMESTAMPDIFF(SECOND, created_at, created_at) <= 600 THEN 1 END) as time_between_5_and_10_minutes,
+             COUNT(CASE WHEN completed_source != ? AND status = ? AND TIMESTAMPDIFF(SECOND, created_at, created_at) > 600 THEN 1 END) as time_greater_than_10_minutes',
             [
                 'AdminPanel', 'Complete',
                 'AdminPanel', 'Complete',
@@ -77,11 +77,11 @@ class PaymentMethodController extends Controller
                 'AdminPanel', 'Complete'
             ]
         )
-        ->whereNotNull('completion_at')
         ->whereNotNull('created_at')
-        ->whereDate('completion_at', '>=', $from_date)
-        ->whereDate('completion_at', '<=', $to_date)
-        ->groupBy(DB::raw('DATE(completion_at)'), 'api_id');
+        ->whereNotNull('created_at')
+        ->whereDate('created_at', '>=', $from_date)
+        ->whereDate('created_at', '<=', $to_date)
+        ->groupBy(DB::raw('DATE(created_at)'), 'api_id');
 
         if (!empty($partner_id)) {
             $paymentsQuery->where('api_id', $partner_id); // Filter by partner if provided
@@ -93,7 +93,7 @@ class PaymentMethodController extends Controller
 
         // Prepare funds data by api_id and date
         foreach ($funds as $fund) {
-            $combined[$fund->completion_at][$fund->api_id]['fund_count'] = $fund->fund_count ?? 0;
+            $combined[$fund->created_at][$fund->api_id]['fund_count'] = $fund->fund_count ?? 0;
         }
 
         // Merge payments data into the combined array

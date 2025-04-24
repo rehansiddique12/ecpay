@@ -41,6 +41,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PartnerCommissionExport;
 use App\Models\AdminAccount;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 
 class PayoutRecordController extends Controller
 {
@@ -65,6 +68,74 @@ class PayoutRecordController extends Controller
         }
         $pageTitle = "All Accounts";
         return view('admin.payout.ewallet_accounts', compact('records', 'pageTitle', 'accounts'));
+    }
+
+    public function exportprofile($id)
+    {
+        $api = Api::findOrFail($id);
+
+        $data[] = [
+            'Name', 'Username', 'Email', 'Phone', 'Status', 'Website',
+            'api_endpoint_deposit', 'api_endpoint_withdrawal', 'type',
+            'api_key', 'last_login', 'balance', 'min_deposit',
+            'min_withdrawal', 'acc_type', 'sign', 'secret_key',
+            'txn_verification', 'redirect_url'
+        ];
+
+        $data[] = [
+            $api->name,
+            $api->username,
+            $api->email,
+            $api->phone,
+            $api->status,
+            $api->website,
+            $api->api_endpoint_deposit,
+            $api->api_endpoint_withdrawal,
+            $api->type,
+            $api->api_key,
+            $api->last_login,
+            $api->balance,
+            $api->min_deposit,
+            $api->min_withdrawal,
+            $api->acc_type,
+            $api->sign,
+            $api->secret_key,
+            $api->txn_verification,
+            $api->redirect_url
+        ];
+
+        $currentDateTime = date('d_F_Y_h_i_A');
+        $csvFileName = "api_profile_export_$currentDateTime.csv";
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$csvFileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function () use ($data) {
+            $file = fopen('php://output', 'w');
+            foreach ($data as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+    public function generatePassword($id)
+    {
+        $api = Api::findOrFail($id);
+        $newPassword = Str::random(12); // 12-digit alphanumeric password
+
+        $api->password = Hash::make($newPassword); // If it's hashed
+        $api->save();
+
+        return response()->json([
+            'password' => $newPassword
+        ]);
     }
 
     public function toggleStatus($id)
@@ -4662,6 +4733,14 @@ class PayoutRecordController extends Controller
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }
 
+
+    public function apisLgoin($id)
+    {
+        $api = Api::findOrFail($id);
+        Auth::guard('partner')->login($api);
+
+        return redirect()->route('partner.profile')->with('success', 'Login to Partner Dashboard.');
+    }
 
 
 }

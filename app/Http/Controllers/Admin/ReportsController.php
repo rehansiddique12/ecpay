@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Api;
-use App\Models\Fund;
 use App\Models\Payout;
 use App\Models\Payment;
 use App\Models\Settlement;
@@ -51,7 +50,7 @@ class ReportsController extends Controller
             $data[$key]['e_wallet_name'] = $account->e_wallet_name;
             $data[$key]['account_no'] = $account->account_no;
             $data[$key]['opening_balance'] = DailyEWalletSummary::where('e_wallet_id', $account->id)->whereDate('created_at', $oneDayBefore)->first()->closing_balance ?? 0.00;
-            $data[$key]['total_deposit'] = Payment::where('e_wallet_name', $account->e_wallet_name)->where('e_wallet_phone_number', $account->account_no)->where('status', 'Complete')->whereDate('completion_at', $date)->sum('amount') ?? 0.00;
+            $data[$key]['total_deposit'] = Payment::where('e_wallet_name', $account->e_wallet_name)->where('e_wallet_phone_number', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
             $data[$key]['total_withdrawal'] = Payout::where('e_wallet_name', $account->e_wallet_name)->where('e_wallet_phone_number', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
             $data[$key]['transfer_in'] = EWalletTransaction::where('to_e_wallet', $account->e_wallet_name)->where('to_account_no', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
             $data[$key]['transfer_out'] = EWalletTransaction::where('from_e_wallet', $account->e_wallet_name)->where('from_account_no', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
@@ -74,19 +73,19 @@ class ReportsController extends Controller
 
         $data['nagad_d'] = Payment::where('e_wallet_name', 'like', '%Nagad%')
             ->where('status', 'Complete')
-            ->whereDate('completion_at', $date)
+            ->whereDate('created_at', $date)
             ->selectRaw('SUM(amount) as total_amount, COUNT(*) as record_count')
             ->first();
 
         $data['bkash_d'] = Payment::where('e_wallet_name', 'like', '%bKash%')
             ->where('status', 'Complete')
-            ->whereDate('completion_at', $date)
+            ->whereDate('created_at', $date)
             ->selectRaw('SUM(amount) as total_amount, COUNT(*) as record_count')
             ->first();
 
         $data['rocket_d'] = Payment::where('e_wallet_name', 'like', '%Rocket%')
             ->where('status', 'Complete')
-            ->whereDate('completion_at', $date)
+            ->whereDate('created_at', $date)
             ->selectRaw('SUM(amount) as total_amount, COUNT(*) as record_count')
             ->first();
 
@@ -256,7 +255,7 @@ class ReportsController extends Controller
             $currentDateFormatted = date('Y-m-d', $currentDate);
 
             foreach ($partners as $key => $domain) {
-                $deposit = Payment::whereDate('completion_at', $currentDateFormatted)
+                $deposit = Payment::whereDate('created_at', $currentDateFormatted)
                     ->where('status', 'Complete')
                     ->where('api_id', $domain->id)
                     ->selectRaw('COALESCE(SUM(amount), 0) as deposit_amount, COALESCE(SUM(charge), 0) as deposit_charges')
@@ -268,7 +267,7 @@ class ReportsController extends Controller
                     ->selectRaw('COALESCE(SUM(amount), 0) as withdrawal_amount, COALESCE(SUM(charge), 0) as withdrawal_charges')
                     ->first();
 
-                    $fund = Fund::whereDate('created_at', $currentDateFormatted)
+                    $fund = Payment::whereDate('created_at', $currentDateFormatted)
                         ->where('api_id', $domain->id)
                         ->selectRaw('COUNT(*) as total_records')
                         ->selectRaw('COUNT(CASE WHEN status = 1 THEN 1 END) as status_1_count')
@@ -346,7 +345,7 @@ class ReportsController extends Controller
             $oneDayBefore = $carbonDate->subDay();
 
             foreach ($partners as $key => $domain) {
-                $deposit = Payment::whereDate('completion_at', $currentDateFormatted)
+                $deposit = Payment::whereDate('created_at', $currentDateFormatted)
                     ->where('status', 'Complete')
                     ->where('api_id', $domain->id)
                     ->selectRaw('COALESCE(SUM(amount), 0) as deposit_amount, COALESCE(SUM(charge), 0) as deposit_charges')
@@ -459,7 +458,7 @@ class ReportsController extends Controller
                 if (1==1) {
                     $data[$count]['partner'] = $domain->name;
                     $data[$count]['date'] = $currentDateFormatted;
-                    $data[$count]['opening_balance'] = DailyPartnerSummary::where('api_id', $domain->id)->whereDate('created_at', $oneDayBefore)->first()->completion_at_balance ?? 0.00;
+                    $data[$count]['opening_balance'] = DailyPartnerSummary::where('api_id', $domain->id)->whereDate('created_at', $oneDayBefore)->first()->created_at_balance ?? 0.00;
                     $data[$count]['deposit_amount'] = $deposit->deposit_amount;
                     $data[$count]['deposit_charges'] = $deposit->deposit_charges;
                     $data[$count]['withdrawal_amount'] = $withdrawal->withdrawal_amount;
@@ -471,7 +470,7 @@ class ReportsController extends Controller
                     $data[$count]['commission'] = $PartnerCommission->commission_amount;
                     $data[$count]['total_charges'] = $deposit->deposit_charges + $withdrawal->withdrawal_charges + $Settlement->settlement_charges + $adjustment->adjustment_charges;
                     $data[$count]['closing_balance'] = $data[$count]['opening_balance'] + $data[$count]['adjustment'] - $data[$count]['adjustment_charges'] + $data[$count]['commission'] + $data[$count]['deposit_amount'] - $data[$count]['deposit_charges'] - $data[$count]['withdrawal_amount'] - $data[$count]['withdrawal_charges'] - $data[$count]['settlement_amount'] - $data[$count]['settlement_charges'];
-                    $data[$count]['today_opening_balance'] = DailyPartnerSummary::where('api_id', $domain->id)->whereDate('created_at', $currentDateFormatted)->first()->completion_at_balance ?? 0.00;
+                    $data[$count]['today_opening_balance'] = DailyPartnerSummary::where('api_id', $domain->id)->whereDate('created_at', $currentDateFormatted)->first()->created_at_balance ?? 0.00;
                     $data[$count]['differance'] = $data[$count]['closing_balance'] - $data[$count]['today_opening_balance'];
                     $data[$count]['differance'] = number_format($data[$count]['differance'], 2);
                     $data[$count]['current_balance'] = $domain->balance;
@@ -511,7 +510,7 @@ class ReportsController extends Controller
         while ($currentDate <= $endDate) {
             $currentDateFormatted = date('Y-m-d', $currentDate);
 
-            $deposit = Payment::whereDate('completion_at', $currentDateFormatted)
+            $deposit = Payment::whereDate('created_at', $currentDateFormatted)
                 ->where('status', 'Complete')
                 ->selectRaw('COALESCE(SUM(charge), 0) as deposit_charges')
                 ->first();
@@ -724,7 +723,7 @@ class ReportsController extends Controller
 
                 $deposits = Payment::where('status', 'Complete')
                             ->where('api_id', $api_id)
-                            ->whereBetween(DB::raw('DATE(completion_at)'), [$from_date, $to_date])
+                            ->whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
                             ->get();
 
                     foreach ($deposits as $deposit) {
@@ -907,7 +906,7 @@ class ReportsController extends Controller
         $deposits = Payment::where('status', 'Complete')
         ->select([DB::raw('SUM(amount) AS payment_amount'), DB::raw('SUM(charge) AS payment_charge')])
         ->where('api_id', $api_id)
-        ->whereBetween(DB::raw('DATE(completion_at)'), [$from_date, $to_date])
+        ->whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
         ->first();
 
         // print_r($deposits);
@@ -971,7 +970,7 @@ class ReportsController extends Controller
         while ($currentDate <= $endDate) {
             $currentDateFormatted = date('Y-m-d', $currentDate);
 
-                $deposit = Payment::whereDate('completion_at', $currentDateFormatted)
+                $deposit = Payment::whereDate('created_at', $currentDateFormatted)
                     ->where('status', 'Complete')
                     ->selectRaw('COALESCE(SUM(amount), 0) as deposit_amount, COALESCE(SUM(charge), 0) as deposit_charges, COALESCE(SUM(e_wallet_charges), 0) as deposit_e_wallet_charges, COALESCE(SUM(commission), 0) as deposit_commission, COUNT(*) as deposit_record_count')
                     ->first();
