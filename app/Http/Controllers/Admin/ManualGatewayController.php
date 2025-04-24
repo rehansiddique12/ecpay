@@ -29,11 +29,11 @@ class ManualGatewayController extends Controller
     {
         $rules = [
             'name' => 'required',
-            'currency' => 'required',
+            // 'currency' => 'required',
             'minimum_deposit_amount' => 'required|numeric',
             'maximum_deposit_amount' => 'required|numeric',
-            'percentage_charge' => 'required|numeric',
-            'fixed_charge' => 'required|numeric',
+            // 'percentage_charge' => 'required|numeric',
+            // 'fixed_charge' => 'required|numeric',
             'convention_rate' => 'required|numeric',
         ];
 

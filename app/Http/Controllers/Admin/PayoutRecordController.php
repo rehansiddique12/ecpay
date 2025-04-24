@@ -40,7 +40,6 @@ use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PartnerCommissionExport;
 use App\Models\AdminAccount;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class PayoutRecordController extends Controller

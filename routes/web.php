@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ManualGatewayController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\TelegramGroupController;
+use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
@@ -161,6 +162,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
 
 
+        // rehan Payment type route:
+        Route::get('/type', [PaymentTypeController::class,'type'])->name('type');
+        Route::post('/type/add', [PaymentTypeController::class,'typeAdd'])->name('type.add');
+        Route::put('/type/update/{id}', [PaymentTypeController::class,'updatetype'])->name('type.update');
+
 
         Route::get('/apis', [PayoutRecordController::class,'apis'])->name('apis');
         Route::post('/apis/add', [PayoutRecordController::class,'apisAdd'])->name('apis.add');
@@ -270,8 +276,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
          Route::post('/accounts/deposit/testp', [PayoutRecordController::class,'depositTestp'])->name('deposit.testp');
          Route::post('/accounts/withdrawal/test', [PayoutRecordController::class,'withdrawalTest'])->name('withdrawal.test');
          Route::post('/accounts/withdrawal/testp', [PayoutRecordController::class,'withdrawalTestp'])->name('withdrawal.testp');
-
-
 
     });
 

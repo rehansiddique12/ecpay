@@ -11,7 +11,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    content="width=device-width, initial-scale=2.0, user-scalable=no, minimum-scale=2.0, maximum-scale=2.0" />
 
     <title>{{ $title ? 'ECPay System - ' . $title : 'ECPay System' }}</title>
 
