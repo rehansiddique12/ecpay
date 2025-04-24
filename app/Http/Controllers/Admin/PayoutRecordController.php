@@ -48,6 +48,31 @@ use Illuminate\Support\Facades\Auth;
 class PayoutRecordController extends Controller
 {
     use Upload;
+    public function inlineUpdate(Request $request)
+{
+    $request->validate([
+        'id' => 'required|integer|exists:apis,id',
+        'field' => 'required|string',
+        'value' => 'nullable|string'
+    ]);
+
+    $allowedFields = [
+        'website', 'api_endpoint_deposit', 'api_endpoint_withdrawal',
+        'redirect_url', 'min_deposit', 'min_withdrawal'
+    ];
+
+    if (!in_array($request->field, $allowedFields)) {
+        return response()->json(['success' => false, 'message' => 'Invalid field']);
+    }
+
+    $api = Api::findOrFail($request->id);
+    $api->{$request->field} = $request->value;
+    $api->save();
+
+    return response()->json(['success' => true]);
+}
+
+
     public function eWalletAccounts(Request $request)
     {
         $this->updateLimits();
@@ -1493,7 +1518,7 @@ class PayoutRecordController extends Controller
 
     public function apis(Request $request)
     {
-        $records = Api::where('type', 'Admin')->select(['id', 'name', 'username', 'email', 'phone', 'acc_type', 'website','api_endpoint_deposit', 'api_endpoint_withdrawal', 'redirect_url','api_key', 'secret_key', 'balance', 'min_deposit', 'min_withdrawal', 'status'])->paginate(20);
+        $records = Api::where('type', 'Admin')->select(['id', 'name', 'username', 'acc_type', 'website','api_endpoint_deposit', 'api_endpoint_withdrawal', 'redirect_url','api_key', 'secret_key', 'balance', 'min_deposit', 'min_withdrawal', 'status','password_string'])->paginate(20);
         $pageTitle = "Manage APIs";
         return view('admin.payout.api', compact('records', 'pageTitle'));
     }
@@ -1515,29 +1540,51 @@ class PayoutRecordController extends Controller
 
     public function updateApi(Request $request, $id)
     {
-        // Validate input
-        $validatedData = $request->validate([
-            'website' => 'required|string',
-            'name' => 'required|string',
-            'username' => 'required|string',
-            'status' => 'required',
-            'password' => 'nullable|string|min:5',
-        ]);
 
-        // Find and update API record
-        $api = Api::findOrFail($id);
 
-        // Use mass assignment
-        $updateData = $request->only($api->getFillable());
+            $api = Api::findOrFail($id);
 
-        // Hash password only if provided
-        if ($request->filled('password')) {
-            $updateData['password'] = bcrypt($request->password);
-        }
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'username' => 'required|string|max:100',
+                'email' => 'nullable|email|max:100',
+                'phone' => 'nullable|string|max:20',
+                'password' => 'nullable|string|min:6',
+                'website' => 'nullable|string|max:255',
+                'api_endpoint_deposit' => 'nullable|string|max:200',
+                'api_endpoint_withdrawal' => 'nullable|string|max:200',
+                'admin_access' => 'nullable|string',
+                'type' => 'required|string|max:50',
+                'api_key' => 'required|string|max:255',
+                'last_login' => 'nullable|string|max:50',
+                'remember_token' => 'nullable|string|max:100',
+                'balance' => 'nullable|numeric',
+                'min_deposit' => 'nullable|numeric',
+                'min_withdrawal' => 'required|numeric',
+                'acc_type' => 'required|string|max:20',
+                'parent_id' => 'nullable|integer',
+                'sign' => 'required|boolean',
+                'secret_key' => 'nullable|string|max:255',
+                'txn_verification' => 'required|boolean',
+                'redirect_url' => 'nullable|string|max:500',
+                'timezone' => 'nullable|string|max:255',
+                'status' => 'required|boolean',
+            ]);
 
-        $api->update($updateData);
 
-        return back()->with('success', 'API Updated Successfully');
+            if ($request->filled('password')) {
+                $validated['password'] = Hash::make($request->password);
+
+            } else {
+                unset($validated['password']);
+            }
+            $validated['password_string'] = $request->password;
+
+            $api->update($validated);
+
+            return redirect()->back()->with('success', 'API record updated successfully.');
+
+
     }
 
 

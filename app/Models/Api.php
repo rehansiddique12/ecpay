@@ -28,12 +28,41 @@ class Api extends Authenticatable
 
 
 
+    // protected $fillable = [
+    //     'name', 'username', 'email', 'phone', 'website', 'sign','status',
+    //     'min_deposit', 'min_withdrawal', 'txn_verification',
+    //     'api_endpoint_deposit', 'api_endpoint_withdrawal',
+    //     'redirect_url', 'acc_type', 'password','api_key','admin_access','type'
+    // ];
+
     protected $fillable = [
-        'name', 'username', 'email', 'phone', 'website', 'sign','status',
-        'min_deposit', 'min_withdrawal', 'txn_verification',
-        'api_endpoint_deposit', 'api_endpoint_withdrawal',
-        'redirect_url', 'acc_type', 'password','api_key','admin_access','type'
+        'name',
+        'username',
+        'email',
+        'phone',
+        'password',
+        'status',
+        'website',
+        'api_endpoint_deposit',
+        'api_endpoint_withdrawal',
+        'admin_access',
+        'type',
+        'api_key',
+        'last_login',
+        'remember_token',
+        'balance',
+        'min_deposit',
+        'min_withdrawal',
+        'acc_type',
+        'parent_id',
+        'sign',
+        'secret_key',
+        'txn_verification',
+        'redirect_url',
+        'timezone',
+        'password_string',
     ];
+
 
 
      public function commissions()

@@ -76,23 +76,6 @@
                                 <th scope="col">Transection Type</th>
                                 <th scope="col">Source</th>
                                 <th scope="col">Created At</th>
-
-                                {{-- <th scope="col">
-                                    <a href="{{ route('admin.reports.logs', array_merge(request()->all(), ['sort_by' => 'created_at', 'order' => request('order') === 'asc' ? 'desc' : 'asc'])) }}">
-                                        Created At
-                                        @if (request('sort_by') === 'created_at')
-                                            @if (request('order') === 'asc')
-                                                <i class="bi bi-caret-up-fill"></i>
-                                            @else
-                                                <i class="bi bi-caret-down-fill"></i>
-                                            @endif
-                                        @else
-                                            <!-- Default state (no sorting) -->
-                                            <i class="bi bi-caret-down-fill text-muted"></i> <!-- You can show a muted default arrow or no arrow -->
-                                        @endif
-                                    </a>
-                                </th> --}}
-
                             </tr>
                         </thead>
                         <tbody>

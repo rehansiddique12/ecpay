@@ -132,6 +132,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/merchant_charges_summary/search', [ReportsController::class,'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
         Route::get('reports/partner_account_balance_summary', [ReportsController::class,'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class,'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
+        Route::post('/apis/inline-update', [PayoutRecordController::class, 'inlineUpdate'])->name('apis.inlineUpdate');
 
 
 
@@ -272,6 +273,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
          Route::post('/accounts/withdrawal/test', [PayoutRecordController::class,'withdrawalTest'])->name('withdrawal.test');
          Route::post('/accounts/withdrawal/testp', [PayoutRecordController::class,'withdrawalTestp'])->name('withdrawal.testp');
 
+         Route::get('merchant-profile/{id}',[MerchantController::class,'profile'])->name('merchant.profile');
+         Route::get('merchant-logs/{id}',[MerchantController::class,'mechantlogs'])->name('merchant.logs');
 
 
     });

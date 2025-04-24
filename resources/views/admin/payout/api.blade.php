@@ -38,20 +38,22 @@
                                 @forelse($records as $key => $item)
                                 <tr>
                                     <td style="max-width: 70px;">{{ $item['id'] }}</td>
-                                    <td style="max-width: 110px;"><a href="">{{ $item['name'] }}</a></td>
+                                    <td style="max-width: 110px;"><a href="{{route('admin.merchant.profile',$item['id'])}}">{{ $item['name'] }}</a></td>
                                     <td style="max-width: 100px;">{{ $item['username'] }}</td>
-                                    <td style="max-width: 130px;">{{ $item['website'] }}</td>
+                                    <td style="max-width: 130px;">
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="website">{{ $item['website'] }}</span>
+                                    </td>
                                     <td style="max-width: 220px;">
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
-                                        {{ $item['api_endpoint_deposit'] }}<br>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="api_endpoint_deposit">{{ $item['api_endpoint_deposit'] }}</span><br>
 
-                                        <span
-                                            class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
-                                        {{ $item['api_endpoint_withdrawal'] }}<br>
+                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="api_endpoint_withdrawal">{{ $item['api_endpoint_withdrawal'] }}</span><br>
 
                                         <span class="bg-info text-white p-1 d-inline-block mt-2">Redirect URL:</span>
-                                        {{ $item['redirect_url'] }}<br>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="redirect_url">{{ $item['redirect_url'] }}</span><br>
                                     </td>
+
 
                                     <td style="max-width: 220px;">
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">API Key:</span>
@@ -64,12 +66,11 @@
 
                                     <td>{{ $item['balance'] }}</td>
                                     <td style="max-width: 300px;">
-                                        <span class="bg-success text-white p-1"
-                                            style="display: inline-block; margin-bottom: 10px;">Deposit:</span>
-                                        {{ $item['min_deposit'] }}<br>
-                                        <span class="bg-primary text-white p-1"
-                                            style="display: inline-block; margin-top: 10px;">Withdrawal:</span>
-                                        {{ $item['min_withdrawal'] }}
+                                        <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="min_deposit">{{ $item['min_deposit'] }}</span><br>
+
+                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
                                     </td>
 
                                     <td data-label="@lang('Status')" class="text-lg-center text-right">
@@ -113,7 +114,7 @@
 
 
                                         <a class="btn btn-sm edit_button"
-   data-copy="{{ $item['username'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
+   data-copy="{{ $item['username'] }} | {{ $item['password_string'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
    onclick="copyToClipboard(this)">
    <i class="icon-base ti tabler-copy-check me-1"></i>
 </a>
@@ -652,6 +653,63 @@
 
     @push('js')
     <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentlyEditing = null;
+
+            document.querySelectorAll('.editable').forEach(function (span) {
+                span.addEventListener('click', function () {
+                    if (currentlyEditing) return; // Only one field at a time
+
+                    currentlyEditing = this;
+                    const currentText = this.textContent.trim();
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = currentText;
+                    input.classList.add('form-control', 'form-control-sm');
+
+                    this.textContent = '';
+                    this.appendChild(input);
+                    input.focus();
+
+                    input.addEventListener('blur', function () {
+                        const newValue = this.value.trim();
+                        const id = span.dataset.id;
+                        const field = span.dataset.field;
+
+                        // Send AJAX update
+                        fetch(`{{ route('admin.apis.inlineUpdate') }}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                id: id,
+                                field: field,
+                                value: newValue
+                            })
+                        }).then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                span.textContent = newValue;
+                            } else {
+                                alert('Update failed');
+                                span.textContent = currentText;
+                            }
+                            currentlyEditing = null;
+                        }).catch(err => {
+                            console.error(err);
+                            alert('Something went wrong');
+                            span.textContent = currentText;
+                            currentlyEditing = null;
+                        });
+                    });
+                });
+            });
+        });
+    </script>
+
     <script>
         function generateAndCopyPassword(id) {
             const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
