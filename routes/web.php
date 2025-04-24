@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ManualGatewayController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\TelegramGroupController;
+use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
@@ -162,6 +163,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('partner/balance/search', [PayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
 
+
+        // rehan Payment type route:
+        Route::get('/type', [PaymentTypeController::class,'type'])->name('type');
+        Route::post('/type/add', [PaymentTypeController::class,'typeAdd'])->name('type.add');
+        Route::put('/type/update/{id}', [PaymentTypeController::class,'updatetype'])->name('type.update');
 
 
         Route::get('/apis', [PayoutRecordController::class,'apis'])->name('apis');

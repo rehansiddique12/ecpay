@@ -37,6 +37,8 @@
         'admin.reports.cal2',
         'admin.reports.master_report',
         'admin.payment_gateway_performance_report',
+
+        'admin.type'
     ]);
     // $isMerchantReportsActive = in_array(Route::currentRouteName(), [
     // 'partner.merchant_reports.by_date',
@@ -1003,6 +1005,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Gateway Performance Report">Gateway Performance Report </div>
                                 </a>
                             </li>
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.type' ? 'active' : '' }}">
+                                <a href="{{ route('admin.type') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Payment Type">Payment Type </div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     {{-- <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
@@ -1074,6 +1083,18 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="card">
                 <!-- Pricing Plans -->
+<<<<<<< HEAD
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                            </li>
+                        </ul>
+                    </div>
+                @endif
+=======
                 @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     {{ session('error') }}
@@ -1081,6 +1102,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                 </div>
             @endif
 
+>>>>>>> 17fcd96136f2f4e7d032ae5a41ccdf8f3e804f86
 
                 @if (session('success'))
                     <div class="alert alert-success">

@@ -1,6 +1,13 @@
 <x-admin-layout :title="$pageTitle">
+
     @push('styles')
     <script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
+    <style>
+        @media (min-width: 1400px) {
+  .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
+    max-width: 1770px;
+  }}
+    </style>
     @endpush
 
     <div class="row ">

@@ -1,4 +1,82 @@
 <x-admin-layout :title="$pageTitle">
+
+
+    <style>
+        h3{
+     color: #7367f0 !important
+   }
+
+   .dropzone-container {
+width: 100%;
+}
+
+.dropzone {
+border: 1px dashed #ccc;
+border-radius: 8px;
+padding: 2rem;
+text-align: center;
+cursor: pointer;
+position: relative;
+transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+border-color: #999;
+background-color: #f9f9f9;
+}
+
+.upload-icon {
+background-color: #f0f0f0;
+width: 48px;
+height: 48px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 1rem;
+}
+
+.upload-svg {
+color: #666;
+}
+
+.dropzone-title {
+font-size: 1.125rem;
+color: #333;
+margin-bottom: 0.5rem;
+font-weight: 500;
+}
+
+.dropzone-description {
+font-size: 0.875rem;
+color: #666;
+margin: 0;
+}
+
+.hidden-input {
+position: absolute;
+width: 0;
+height: 0;
+opacity: 0;
+}
+
+.preview-image {
+max-width: 100%;
+margin-top: 1rem;
+border-radius: 4px;
+display: none;
+}
+
+#image_preview_container:not([src="/placeholder.svg"]) {
+display: block;
+}
+
+label{
+    margin-bottom: 5px;
+}
+
+   </style>
+
     <div class="container-fluid">
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -13,6 +91,7 @@
             <div class="col-12">
                 <div class="card card-primary shadow">
                     <div class="card-body">
+                        <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                         <form method="post" action=""
                               class="needs-validation base-form" novalidate="" enctype="multipart/form-data">
                             @csrf
@@ -41,7 +120,16 @@
                                             </span>
                                     @endif
                                 </div>
+
                                 <div class="form-group col-md-4">
+                                    <label>Type</label>
+                                    <select class="form-control" name="type" required>
+                                        <option value="Bank">Bank</option>
+                                        <option value="E-Wallet">E-Wallet</option>
+                                        <option value="Crypto">Crypto</option>
+                                    </select>
+                                </div>
+                                {{-- <div class="form-group col-md-4">
                                     <label>{{trans('Convention Rate')}}</label>
                                     <div class="input-group ">
                                         <div class="input-group-prepend">
@@ -65,10 +153,10 @@
                                                 {{ trans($errors->first('currency_symbol')) }}
                                             </span>
                                     @endif
-                                </div>
+                                </div> --}}
                             </div>
                             <div class="row">
-                                <div class="form-group col-md-6 col-6">
+                                <div class="form-group col-md-4 col-4">
                                     <label>{{trans('Minimum Deposit Amount')}}</label>
                                     <div class="input-group ">
                                         <input type="text" class="form-control "
@@ -88,7 +176,7 @@
                                             </span>
                                     @endif
                                 </div>
-                                <div class="form-group col-md-6 col-6">
+                                <div class="form-group col-md-4 col-4">
                                     <label>{{trans('Maximum Deposit Amount')}}</label>
                                     <div class="input-group ">
                                         <input type="text" class="form-control "
@@ -109,7 +197,7 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="row">
+                            {{-- <div class="row">
                                 <div class="form-group col-md-6 col-6">
                                     <label>{{trans('Percentage Charge')}}</label>
                                     <div class="input-group ">
@@ -150,25 +238,64 @@
                                             </span>
                                     @endif
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <div class="row justify-content-between">
-                                <div class="col-sm-6 col-md-3">
-                                   <div class="form-group">
-                                       <label>@lang('Gateway Logo')</label>
+                                <div class="col-sm-6 col-md-4">
+                                    <div class="image-input dropzone-container mt-5">
+                                        <div class="dropzone" id="image-dropzone" onclick="document.getElementById('image').click()">
+                                            <div class="upload-icon" id="upload-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" class="upload-svg">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                </svg>
+                                            </div>
+                                            <h3 class="dropzone-title" id="dropzone-title">Drop files here or click to upload</h3>
+                                            <p class="dropzone-description" id="dropzone-description">
+                                                (This is just a demo dropzone. Selected files are not actually uploaded.)
+                                            </p>
 
-                                       <div class="image-input ">
-                                           <label for="image-upload" id="image-label"><i class="fas fa-upload"></i></label>
-                                           <input type="file" name="image" placeholder="@lang('Choose image')" id="image">
-                                           <img id="image_preview_container" class="preview-image" src="{{ getFile(config('location.gateway.path'))}}"
-                                                alt="preview image">
-                                       </div>
-                                   </div>
-                                    @error('image')
-                                    <span class="text-danger">{{ trans($message) }}</span>
-                                    @enderror
+                                            <input type="file" name="image" id="image" class="hidden-input" accept="image/*" style="display:none;" onchange="handleImageSelection(event)">
+
+                                            <!-- Preview Image -->
+                                            <img id="image_preview_container" class="preview-image"
+                                                src="" alt="Preview Image"
+                                                style="display: none; max-width: 100%; height: auto; margin-top: 10px;">
+                                        </div>
+                                        @error('image')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <script>
+                                        function handleImageSelection(event) {
+                                            const file = event.target.files[0]; // Get the selected file
+
+                                            if (file) {
+                                                const reader = new FileReader();
+
+                                                reader.onload = function(e) {
+                                                    // Set the image source to the selected file's data URL
+                                                    const imagePreview = document.getElementById('image_preview_container');
+                                                    imagePreview.src = e.target.result;
+                                                    imagePreview.style.display = 'block'; // Show the preview image
+
+                                                    // Hide the dropzone elements
+                                                    document.getElementById('upload-icon').style.display = 'none';
+                                                    document.getElementById('dropzone-title').style.display = 'none';
+                                                    document.getElementById('dropzone-description').style.display = 'none';
+                                                };
+
+                                                reader.readAsDataURL(file); // Read the file as a data URL
+                                            }
+                                        }
+                                    </script>
+
                                 </div>
-                                <div class="col-sm-12 col-md-9">
+                                {{-- <div class="col-sm-12 col-md-9">
                                     <div class="form-group ">
                                         <label>@lang('Note')</label>
                                         <textarea class="form-control summernote" name="note" id="summernote" rows="15">{{old('note')}}</textarea>
@@ -176,36 +303,33 @@
                                         <span class="text-danger">{{ trans($message) }}</span>
                                         @enderror
                                     </div>
-                                </div>
+                                </div> --}}
                             </div>
                             <div class="row mt-3 justify-content-between">
-
-                                <div class="form-group col-lg-3 col-md-6">
-                                    <label>@lang('Status')</label>
-
-                                    <div class="custom-switch-btn">
-                                        <input type='hidden' value='1' name='status'>
-                                        <input type="checkbox" name="status" class="custom-switch-checkbox" id="status" value = "0"
-                                               checked>
-                                        <label class="custom-switch-checkbox-label" for="status">
-                                            <span class="custom-switch-checkbox-inner"></span>
-                                            <span class="custom-switch-checkbox-switch"></span>
-                                        </label>
-                                    </div>
-                                </div>
                                 <div class="col-lg-3 col-md-6">
                                     <div class="form-group">
-                                        <a href="javascript:void(0)" class="btn btn-success float-right mt-3" id="generate"><i
-                                                class="fa fa-plus-circle"></i> {{trans('Add Field')}}</a>
+                                        <label>@lang('Status')</label>
+                                        <div class="form-check form-switch d-flex align-items-center">
+                                            <span id="disableText" class="me-12 text-primary">@lang('No')</span>
+                                            <input class="form-check-input" type="checkbox" id="statusSwitch"
+                                                name="status" value="1">
+                                            <span id="enableText" class="ms-2 text-secondary">@lang('Yes')</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="row addedField">
 
+
+                          <div class="d-flex gap-5">
+                            <button type="submit" class="btn btn-rounded btn-primary btn-block mt-6">@lang('Save Changes')</button>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <a href="javascript:void(0)" class="btn btn-success float-right mt-3 " id="generate"><i
+                                            class="fa fa-plus-circle"></i> {{trans('Add Field')}}</a>
+                                </div>
                             </div>
-
-                            <button type="submit" class="btn btn-rounded btn-primary btn-block mt-3">@lang('Save Changes')</button>
+                          </div>
                         </form>
                     </div>
                 </div>
