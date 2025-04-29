@@ -7,60 +7,63 @@ return [
     ],
     'admin' => [
         'path' => 'assets/uploads/admin/',
-        'size' => '400x400'
+        'size' => '400x400',
     ],
     'user' => [
         'path' => 'assets/uploads/users/',
-        'size' => '400x400'
+        'size' => '400x400',
     ],
     'category' => [
         'path' => 'assets/uploads/categories/',
-        'size' => '250x250'
+        'size' => '250x250',
     ],
     'ticket' => [
-        'path' => 'assets/uploads/ticket/'
+        'path' => 'assets/uploads/ticket/',
     ],
     'gateway' => [
         'path' => 'assets/uploads/gateway/',
-        'size' => '300x250'
+        'size' => '300x250',
     ],
     'withdraw' => [
         'path' => 'assets/uploads/withdraw/',
-        'size' => '300x250'
+        'size' => '300x250',
     ],
     'receipts' => [
-        'path' => 'assets/uploads/receipts/'
+        'path' => 'assets/uploads/receipts/',
     ],
     'withdrawLog' => [
         'path' => 'assets/uploads/withdrawLog/',
     ],
     'logo' => [
-        'path' => 'assets/uploads/logo/'
+        'path' => 'assets/uploads/logo/',
+    ],
+    'accounts' => [
+        'path' => 'assets/uploads/accounts/',
     ],
     'language' => [
         'path' => 'assets/uploads/language/',
-        'size' => '60x60'
+        'size' => '60x60',
     ],
     'content' => [
         'path' => 'assets/uploads/content/',
-        'size' => '60x60'
+        'size' => '60x60',
     ],
     'template' => [
         'path' => 'assets/uploads/content/',
-        'size' => '60x60'
+        'size' => '60x60',
     ],
     'deposit' => [
-        'path' => 'assets/uploads/deposit/'
+        'path' => 'assets/uploads/deposit/',
     ],
     'kyc' => [
-        'path' => 'assets/uploads/kyc/'
+        'path' => 'assets/uploads/kyc/',
     ],
     'team' => [
         'path' => 'assets/uploads/team/',
-        'size' => '64x64'
+        'size' => '64x64',
     ],
     'public_images' => [
         'path' => 'assets/themes/betting/images/',
-        'size' => '400x400'
+        'size' => '400x400',
     ],
 ];

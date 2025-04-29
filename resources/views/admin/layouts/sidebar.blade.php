@@ -704,6 +704,40 @@
                             <div data-i18n="Manual Gateway">Manual Gateway</div>
                         </a>
                     </li>
+
+                        <ul class="menu-sub">
+                            <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
+                                <a href="{{ route('admin.accounts.add') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Add Accounts">Add Accounts</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
+                                <a href="{{ route('admin.accounts') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="All Accounts">All Accounts</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
+                                <a href="{{ route('admin.balance.logs') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Account Balance">Account Balance</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="E-Wallet Test">E-Wallet Test </div>
+                                </a>
+                            </li>
+
+                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts.details') ? 'active' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="E-Wallet Test"> Test </div>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
 

@@ -591,7 +591,6 @@ class ReportsController extends Controller
                 $filter_data[$key]['created_at'] =  $item->created_at;
                 $filter_data[$key]['updated_at'] =  $item->updated_at;
                 $filter_data[$key]['source'] =  $item->source;
-
                 $filter_data[$key]['amount'] =  "";
                 $filter_data[$key]['charge'] =  "";
                 $filter_data[$key]['sender'] =  "";

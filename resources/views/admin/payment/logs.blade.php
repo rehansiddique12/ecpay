@@ -427,7 +427,7 @@ function submitForm(form) {
     form.submit();
 }
 </script>
-{{-- <script>
+<script>
     function refreshDateTime() {
 
 
@@ -457,7 +457,7 @@ function submitForm(form) {
     }
 
     setInterval(refreshDateTime, 5000);
-</script> --}}
+</script>
 
 <script>
 
