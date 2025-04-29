@@ -19,8 +19,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 // rehan
 use App\Http\Controllers\Admin\ReportsController;
-
-
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\PermissionController;
 /*```php
 // No code was selected, so I'll provide a general improvement suggestion.
 
@@ -105,7 +105,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:admin', 'permission']], function () {
+    Route::group(['middleware' => ['auth:admin']], function () {
+        Route::resource('roles',RoleController::class);
+        Route::resource('permissions', PermissionController::class);
+        Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
         Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -222,7 +225,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/transfer/balance/add', [PayoutRecordController::class,'transferBalanceAdd'])->name('transfer.balance.add');
 
 
-        Route::get('/profile', [AdminDashboardController::class,'profile'])->name('profile');
+        Route::get('/profile', [AdminDashboardController::class,'profile'])->name('profile')->middleware('permission:profile');
         Route::put('/profile', [AdminDashboardController::class,'profileUpdate'])->name('profileUpdate');
         Route::get('/password', [AdminDashboardController::class,'password'])->name('password');
         Route::put('/password', [AdminDashboardController::class,'passwordUpdate'])->name('passwordUpdate');
@@ -316,7 +319,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
     Route::group(['middleware' => ['auth:partner']], function () {
 
 
-        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile');
+        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile')->middleware('permission:profile');;
         Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');

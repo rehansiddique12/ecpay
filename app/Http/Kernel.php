@@ -66,5 +66,8 @@ class Kernel extends HttpKernel
         'permission' => \App\Http\Middleware\AdminAuthorizeMiddleware::class,
         'permission_partner' => \App\Http\Middleware\PartnerAuthorizeMiddleware::class,
         'alert' => \RealRashid\SweetAlert\ToSweetAlert::class,
+        'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
     ];
 }

@@ -4512,6 +4512,7 @@ class PayoutRecordController extends Controller
         }
 
     }
+
   public function convertStringToNumber($string)
     {
         if (strpos($string, '.') !== false) {
@@ -4522,11 +4523,44 @@ class PayoutRecordController extends Controller
     }
 
 
+
     public function workboard(Request $request)
     {
+        $payments = Payment::select('id', 'amount', 'status', 'created_at', DB::raw("'payment' as type"))
+            ->latest('created_at')
+            ->take(10)
+            ->get();
+
+        $payouts = Payout::select('id', 'amount', 'status', 'created_at', DB::raw("'payout' as type"))
+            ->latest('created_at')
+            ->take(10)
+            ->get();
+
+        $merged = $payments->merge($payouts);
+
+        $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
+        $EWalletAccount = EWalletAccount::where('status',1)->get();
+        $notifications = EWalletAccount::where('live_balance','<','1000')->take(5)->get();
+        $pending_list = Payout::where('created_at', '<=', Carbon::now()->subMinutes(5))->take(5)->get();
+
+        // dd($pending_list);
+        if ($request->ajax()) {
+            return response()->json([
+                'transactions' => $mergedTransactions,
+                'ewallets' => $EWalletAccount,
+                'notifications' => $notifications,
+                'pending_list' => $pending_list,
+            ]);
+        }
+
+        // Normal page load
         $pageTitle = "Workboard";
-        return view('admin.payout.workboard', compact( 'pageTitle'));
+        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions'));
     }
+
+
+
+
 
 
     // Partner Commission

@@ -101,6 +101,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
     'admin.workboard',
     'admin.deposit.manual.index'
   ]);
+  $isRoleAndPermission = Request::routeIs('admin.roles.create') ;
 
 @endphp
 
@@ -745,6 +746,43 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                     </li>
 
 
+                <!-- Roles And Permissions -->
+                <li class="menu-item {{ $isRoleAndPermission ? 'active open' : '' }}">
+                    <a href="javascript:void(0)" class="menu-link menu-toggle">
+                        <i class="menu-icon icon-base ti tabler-layout-sidebar"></i>
+                        <div data-i18n="Roles And Permission">Roles And Permission</div>
+                    </a>
+
+                    <ul class="menu-sub">
+                        <li class="menu-item {{ Request::routeIs('admin.roles.create') ? 'active' : '' }}">
+                            <a href="{{ route('admin.roles.index') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="List Roles">List Roles</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="{{ route('admin.roles.create') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Create New Roles">Create New Roles</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="{{ route('admin.permissions.create') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Create Permission">Create Permission</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="{{ route('admin.permissions.index') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="List Permissions">List Permissions</div>
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+
+
                     <!-- Apps -->
                     <li class="menu-item {{ $isPartnerActive ? 'active open' : '' }}">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
@@ -1083,7 +1121,6 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="card">
                 <!-- Pricing Plans -->
-<<<<<<< HEAD
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>
@@ -1094,15 +1131,6 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                         </ul>
                     </div>
                 @endif
-=======
-                @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
->>>>>>> 17fcd96136f2f4e7d032ae5a41ccdf8f3e804f86
 
                 @if (session('success'))
                     <div class="alert alert-success">
