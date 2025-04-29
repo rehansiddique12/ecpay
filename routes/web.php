@@ -235,7 +235,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/password', [AdminDashboardController::class, 'password'])->name('password');
         Route::put('/password', [AdminDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
 
-<<<<<<< HEAD
         // Rehan User Management
 
         // user management Routes
@@ -274,12 +273,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('rolescategory/{id}', [UsersController::class, 'updateRole'])->name('roles.update');
         Route::get('/rolescategory', [UsersController::class, 'rolesCategory'])->name('rolescategory');
 
-=======
         Route::get('payment/log', [PaymentLogController::class, 'index'])->name('payment.log');
         Route::get('payment/search', [PaymentLogController::class, 'search'])->name('payment.search');
         Route::put('payment/update_e_wallet', [PaymentLogController::class, 'update_e_wallet'])->name('payment.update_e_wallet');
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
->>>>>>> 85922afaf743b18ace4e5650923c1dfcdea0954c
 
         Route::get('/user/edit/{id}', [UsersController::class, 'userEdit'])->name('user-edit');
         Route::put('payment/action/{id}', [PaymentLogController::class, 'action'])->name('payment.action');
