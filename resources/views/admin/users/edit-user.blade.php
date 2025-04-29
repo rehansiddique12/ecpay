@@ -1,8 +1,5 @@
-@extends('admin.layouts.app')
-@section('title')
-    @lang($user->username)
-@endsection
-@section('content')
+<x-admin-layout :title="$pageTitle">
+
     <div class="m-0 m-md-4 my-4 m-md-0">
         <div class="row">
             <div class="col-md-4">
@@ -80,7 +77,8 @@
 
                             @endif
 
-                            @if(adminAccessRoute(config('role.user_management.access.edit')))
+                            <div class="d-flex gap-2 mt-5">
+                                @if(adminAccessRoute(config('role.user_management.access.edit')))
                                 <a href="{{ route('admin.send-email',$user->id) }}"
                                    class="btn btn-info btn-sm">
                                     <span class="btn-label"><i
@@ -102,6 +100,7 @@
                                             class="fas fa-history"></i></span> @lang('Betting Records')
                                 </a>
                             @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -201,7 +200,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-12 mt-5">
                                     <div class="row">
                                         <div class="col-md-3">
                                             <label>@lang('Status')</label>
@@ -262,7 +261,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="submit-btn-wrapper mt-md-3  text-center text-md-left">
+                            <div class="submit-btn-wrapper mt-md-3 justify-content-end  text-md-left">
                                 <button type="submit"
                                         class=" btn waves-effect waves-light btn-rounded btn-primary btn-block">
                                     <span>@lang('Update User')</span></button>
@@ -299,7 +298,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="submit-btn-wrapper mt-md-3 text-center text-md-left">
+                            <div class="submit-btn-wrapper mt-md-3 text-md-left">
                                 <button type="submit"
                                         class="btn waves-effect waves-light btn-rounded btn-primary btn-block">
                                     <span>@lang('Update Password')</span></button>
@@ -355,7 +354,7 @@
         </div>
     </div>
 
-@endsection
+
 
 @push('style')
     <style>
@@ -414,5 +413,4 @@
 
     </script>
 @endpush
-
-
+</x-admin-layout>

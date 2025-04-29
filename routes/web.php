@@ -153,7 +153,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class,'exportCommissions'])->name('commissions.export');
         Route::get('/api/export-profile/{id}', [PayoutRecordController::class,'exportprofile'])->name('api.profile.export');
-    Route::post('/apis/{id}/generate-password', [PayoutRecordController::class, 'generatePassword'])->name('apis.generatePassword');
+        Route::post('/apis/{id}/generate-password', [PayoutRecordController::class, 'generatePassword'])->name('apis.generatePassword');
         Route::get('/adjustments', [PayoutRecordController::class, 'adjustments'])->name('adjustments');
         Route::get('adjustments/search', [PayoutRecordController::class, 'adjustmentSearch'])->name('adjustments.search');
         Route::get('/adjustments/approve/{id}', [PayoutRecordController::class, 'approveAdjustment'])->name('adjustments.approve');
@@ -220,6 +220,44 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/transfer/balance', [PayoutRecordController::class,'transferBalance'])->name('transfer.balance');
         Route::post('/transfer/balance/add', [PayoutRecordController::class,'transferBalanceAdd'])->name('transfer.balance.add');
 
+        // Rehan User Management
+
+        // user management Routes
+        Route::get('/users', [UsersController::class, 'index'])->name('users');
+        Route::get('/users/search', [UsersController::class, 'search'])->name('users.search');
+        Route::get('/user/send-email/{id}', [UsersController::class, 'sendEmail'])->name('send-email');
+        Route::post('/user/login', [UsersController::class, 'userLogin'])->name('userLogin');
+        Route::post('/users-active', [UsersController::class, 'activeMultiple'])->name('user-multiple-active');
+        Route::post('/users-inactive', [UsersController::class, 'inactiveMultiple'])->name('user-multiple-inactive');
+        Route::get('/user/transaction/{id}', [UsersController::class, 'transaction'])->name('user.transaction');
+        Route::get('/user/fundLog/{id}', [UsersController::class, 'funds'])->name('user.fundLog');
+        Route::get('/user/payoutLog/{id}', [UsersController::class, 'payoutLog'])->name('user.withdrawal');
+        Route::get('user/{user}/kyc', [UsersController::class, 'userKycHistory'])->name('user.userKycHistory');
+        Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
+        Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
+        Route::post('/user/password/{id}', [UsersController::class, 'passwordUpdate'])->name('userPasswordUpdate');
+        Route::post('/user/balance-update/{id}', [UsersController::class, 'userBalanceUpdate'])->name('user-balance-update');
+        Route::post('/user/add', [UsersController::class,'userAdd'])->name('user.add');
+        // end user management
+
+
+        // usre location Route
+        Route::get('location', [UsersController::class, 'location'])->name('location');
+        Route::post('users/location/add', [UsersController::class, 'addUserLocation'])->name('users.location.add');
+        // Route::post('/user/update-location', [UsersController::class,'updateUserLocation'])->name('user.update-location');
+        // Route::get('users/location/{id}/edit', [UsersController::class, 'editUserLocation'])->name('users.location.edit');
+        Route::delete('users/location/{id}', [UsersController::class, 'deleteUserLocation'])->name('users.location.delete');
+        Route::put('location/update/{id}', [UsersController::class, 'updateUserLocationDetails'])->name('location.update');
+
+        // Roles and premations Route
+        Route::get('roles_and_permission', [UsersController::class, 'roles_and_permission'])->name('roles_and_permission');
+
+        // Roles Catgory Routs:
+        Route::post('roles/add', [UsersController::class, 'addRole'])->name('roles.add');
+        Route::delete('roles/{id}', [UsersController::class, 'deleteRole'])->name('roles.delete');
+        Route::put('rolescategory/{id}', [UsersController::class, 'updateRole'])->name('roles.update');
+        Route::get('/rolescategory', [UsersController::class, 'rolesCategory'])->name('rolescategory');
+
 
         Route::get('/profile', [AdminDashboardController::class,'profile'])->name('profile');
         Route::put('/profile', [AdminDashboardController::class,'profileUpdate'])->name('profileUpdate');
@@ -278,7 +316,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
          Route::post('/accounts/withdrawal/test', [PayoutRecordController::class,'withdrawalTest'])->name('withdrawal.test');
          Route::post('/accounts/withdrawal/testp', [PayoutRecordController::class,'withdrawalTestp'])->name('withdrawal.testp');
 
+
+
     });
+
+    // User Location Routes
+    // Route::get('users/location', [UsersController::class, 'location'])->name('users.location');
+
 
 });
 //partnerRoutes
