@@ -741,6 +741,13 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="E-Wallet Test">E-Wallet Test </div>
                                 </a>
                             </li>
+
+                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts.details') ? 'active' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="E-Wallet Test"> Test </div>
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
@@ -1083,7 +1090,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
         <div class="container-xxl flex-grow-1 container-p-y">
             <div class="card">
                 <!-- Pricing Plans -->
-<<<<<<< HEAD
+
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>
@@ -1094,15 +1101,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
                         </ul>
                     </div>
                 @endif
-=======
-                @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
 
->>>>>>> 17fcd96136f2f4e7d032ae5a41ccdf8f3e804f86
 
                 @if (session('success'))
                     <div class="alert alert-success">

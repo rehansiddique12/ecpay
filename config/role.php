@@ -2,7 +2,7 @@
 
 $arr = [
     'dashboard' => [
-        'label' => "Dashboard",
+        'label' => 'Dashboard',
         'access' => [
             'view' => ['admin.dashboard'],
             'add' => [],
@@ -11,7 +11,7 @@ $arr = [
         ],
     ],
     'manage_staff' => [
-        'label' => "Manage Staff",
+        'label' => 'Manage Staff',
         'access' => [
             'view' => ['admin.staff'],
             'add' => ['admin.storeStaff'],
@@ -20,22 +20,21 @@ $arr = [
         ],
     ],
 
-
     'identify_form' => [
-        'label' => "Identity Form",
+        'label' => 'Identity Form',
         'access' => [
             'view' => ['admin.identify-form'],
             'add' => [],
             'edit' => [
                 'admin.identify-form.store',
-                'admin.identify-form.action'
+                'admin.identify-form.action',
             ],
             'delete' => [],
         ],
     ],
 
     'manage_game' => [
-        'label' => "Manage Game Module",
+        'label' => 'Manage Game Module',
         'access' => [
             'view' => [
                 'admin.listCategory',
@@ -76,7 +75,7 @@ $arr = [
     ],
 
     'manage_result' => [
-        'label' => "Manage Result",
+        'label' => 'Manage Result',
         'access' => [
             'view' => [
                 'admin.resultList.pending',
@@ -88,14 +87,14 @@ $arr = [
             'add' => [],
             'edit' => [
                 'admin.makeWinner',
-                'admin.refundQuestion'
+                'admin.refundQuestion',
             ],
             'delete' => [],
         ],
     ],
 
     'commission_setting' => [
-        'label' => "Commission Setting",
+        'label' => 'Commission Setting',
         'access' => [
             'view' => [
                 'admin.referral-commission',
@@ -109,9 +108,8 @@ $arr = [
         ],
     ],
 
-
     'all_transaction' => [
-        'label' => "All Transaction",
+        'label' => 'All Transaction',
         'access' => [
             'view' => [
                 'admin.transaction',
@@ -123,15 +121,14 @@ $arr = [
             ],
             'add' => [],
             'edit' => [
-                'admin.refundBet'
+                'admin.refundBet',
             ],
             'delete' => [],
         ],
     ],
 
-
     'user_management' => [
-        'label' => "User Management",
+        'label' => 'User Management',
         'access' => [
             'view' => [
                 'admin.users',
@@ -157,27 +154,26 @@ $arr = [
         ],
     ],
 
-
     'payment_gateway' => [
-        'label' => "Payment Gateway",
+        'label' => 'Payment Gateway',
         'access' => [
             'view' => [
                 'admin.payment.methods',
                 'admin.deposit.manual.index',
             ],
             'add' => [
-                'admin.deposit.manual.create'
+                'admin.deposit.manual.create',
             ],
             'edit' => [
                 'admin.edit.payment.methods',
-                'admin.deposit.manual.edit'
+                'admin.deposit.manual.edit',
             ],
             'delete' => [],
         ],
     ],
 
     'payment_log' => [
-        'label' => "Payment Request & Log",
+        'label' => 'Payment Request & Log',
         'access' => [
             'view' => [
                 'admin.payment.pending',
@@ -186,14 +182,14 @@ $arr = [
             ],
             'add' => [],
             'edit' => [
-                'admin.payment.action'
+                'admin.payment.action',
             ],
             'delete' => [],
         ],
     ],
 
     'api_payment_log' => [
-        'label' => "API Deposit Log",
+        'label' => 'API Deposit Log',
         'access' => [
             'view' => [
                 'admin.payment.apiLog',
@@ -206,7 +202,7 @@ $arr = [
     ],
 
     'deposit_report' => [
-        'label' => "Deposit Reports",
+        'label' => 'Deposit Reports',
         'access' => [
             'view' => [
                 'admin.payment.report',
@@ -223,7 +219,7 @@ $arr = [
     ],
 
     'all_reports' => [
-        'label' => "All Reports",
+        'label' => 'All Reports',
         'access' => [
             'view' => [
                 'admin.payment.report.all',
@@ -236,7 +232,7 @@ $arr = [
     ],
 
     'payout_manage' => [
-        'label' => "Payout method & Log",
+        'label' => 'Payout method & Log',
         'access' => [
             'view' => [
                 'admin.payout-method',
@@ -249,14 +245,14 @@ $arr = [
             ],
             'edit' => [
                 'admin.payout-method.edit',
-                'admin.payout-action'
+                'admin.payout-action',
             ],
             'delete' => [],
         ],
     ],
 
     'withdrawal_reports' => [
-        'label' => "Withdrawal Reports",
+        'label' => 'Withdrawal Reports',
         'access' => [
             'view' => [
                 'admin.payout-report',
@@ -271,9 +267,8 @@ $arr = [
         ],
     ],
 
-
     'e_wallet_accounts' => [
-        'label' => "E-Wallet Accounts",
+        'label' => 'E-Wallet Accounts',
         'access' => [
             'view' => [
                 'admin.accounts',
@@ -294,12 +289,12 @@ $arr = [
         ],
     ],
 
-
     'e_wallet_accounts_test' => [
-        'label' => "E-Wallet Accounts Test",
+        'label' => 'E-Wallet Accounts Test',
         'access' => [
             'view' => [
                 'admin.ewallet.accounts',
+
             ],
             'add' => [
                 'admin.ewallet.accounts.add',
@@ -318,7 +313,7 @@ $arr = [
     ],
 
     'account_balance_logs' => [
-        'label' => "E-Wallet Account Balance Logs",
+        'label' => 'E-Wallet Account Balance Logs',
         'access' => [
             'view' => [
                 'admin.balance.logs',
@@ -331,7 +326,7 @@ $arr = [
     ],
 
     'settings' => [
-        'label' => "Personal & Merchant Timming Setting",
+        'label' => 'Personal & Merchant Timming Setting',
         'access' => [
             'view' => [
                 'admin.settings.edit',
@@ -343,7 +338,7 @@ $arr = [
     ],
 
     'partners' => [
-        'label' => "Partners (API Keys)",
+        'label' => 'Partners (API Keys)',
         'access' => [
             'view' => [
                 'admin.apis',
@@ -366,21 +361,21 @@ $arr = [
             ],
         ],
     ],
-    
+
     'partner_login' => [
-        'label' => "Admin Login Partners Access",
+        'label' => 'Admin Login Partners Access',
         'access' => [
             'view' => [
                 'admin.apis.login',
             ],
             'add' => [
-                
+
             ],
             'edit' => [
-            
+
             ],
             'delete' => [
-                
+
             ],
         ],
     ],
@@ -399,7 +394,7 @@ $arr = [
     ],
 
     'settlements' => [
-        'label' => "Partner Settlements",
+        'label' => 'Partner Settlements',
         'access' => [
             'view' => [
                 'admin.settlements',
@@ -415,7 +410,7 @@ $arr = [
     ],
 
     'commissions' => [
-        'label' => "Partner Commissions",
+        'label' => 'Partner Commissions',
         'access' => [
             'view' => [
                 'admin.api.commissions',
@@ -428,7 +423,7 @@ $arr = [
     ],
 
     'adjustments' => [
-        'label' => "Partner Adjustments",
+        'label' => 'Partner Adjustments',
         'access' => [
             'view' => [
                 'admin.adjustments',
@@ -443,7 +438,7 @@ $arr = [
     ],
 
     'partner_balance' => [
-        'label' => "Partner Balance Logs",
+        'label' => 'Partner Balance Logs',
         'access' => [
             'view' => [
                 'admin.partner.balance',
@@ -456,7 +451,7 @@ $arr = [
     ],
 
     'partner_activity_logs' => [
-        'label' => "Partner Activity Logs",
+        'label' => 'Partner Activity Logs',
         'access' => [
             'view' => [
                 'admin.partner.logs',
@@ -468,7 +463,7 @@ $arr = [
     ],
 
     'partner_transfer_logs' => [
-        'label' => "Partner Transfer Logs",
+        'label' => 'Partner Transfer Logs',
         'access' => [
             'view' => [
                 'admin.transfer-log',
@@ -482,7 +477,7 @@ $arr = [
     ],
 
     'api_logs' => [
-        'label' => "API Logs",
+        'label' => 'API Logs',
         'access' => [
             'view' => [
                 'admin.transections.apilogs',
@@ -493,17 +488,15 @@ $arr = [
         ],
     ],
 
-
-
     'support_ticket' => [
-        'label' => "Support Ticket",
+        'label' => 'Support Ticket',
         'access' => [
             'view' => [
                 'admin.ticket',
                 'admin.ticket.view',
             ],
             'add' => [
-                'admin.ticket.reply'
+                'admin.ticket.reply',
             ],
             'edit' => [],
             'delete' => [
@@ -512,7 +505,7 @@ $arr = [
         ],
     ],
     'subscriber' => [
-        'label' => "Subscriber",
+        'label' => 'Subscriber',
         'access' => [
             'view' => [
                 'admin.subscriber.index',
@@ -521,13 +514,13 @@ $arr = [
             'add' => [],
             'edit' => [],
             'delete' => [
-                'admin.subscriber.remove'
+                'admin.subscriber.remove',
             ],
         ],
     ],
 
     'website_controls' => [
-        'label' => "Website Controls",
+        'label' => 'Website Controls',
         'access' => [
             'view' => [
                 'admin.basic-controls',
@@ -557,7 +550,7 @@ $arr = [
         ],
     ],
     'language_settings' => [
-        'label' => "Language Settings",
+        'label' => 'Language Settings',
         'access' => [
             'view' => [
                 'admin.language.index',
@@ -570,12 +563,12 @@ $arr = [
                 'admin.language.keywordEdit',
             ],
             'delete' => [
-                'admin.language.delete'
+                'admin.language.delete',
             ],
         ],
     ],
     'theme_settings' => [
-        'label' => "Theme Settings",
+        'label' => 'Theme Settings',
         'access' => [
             'view' => [
                 'admin.manage.theme',
@@ -585,7 +578,7 @@ $arr = [
                 'admin.content.index',
             ],
             'add' => [
-                'admin.content.create'
+                'admin.content.create',
             ],
             'edit' => [
                 'admin.logoUpdate',
@@ -594,13 +587,13 @@ $arr = [
                 'admin.content.show',
             ],
             'delete' => [
-                'admin.content.delete'
+                'admin.content.delete',
             ],
         ],
     ],
 
     'ewallet_transfer_balance' => [
-        'label' => "E-Wallet Transfer Balance",
+        'label' => 'E-Wallet Transfer Balance',
         'access' => [
             'view' => [
                 'admin.transfer.balance',
@@ -613,7 +606,7 @@ $arr = [
         ],
     ],
     'view_partner_account' => [
-        'label' => "View Partner Account",
+        'label' => 'View Partner Account',
         'access' => [
             'view' => [
                 'can_view_partner_account',
