@@ -16,17 +16,20 @@ class ManualGatewayController extends Controller
     {
         $data['methods'] = Gateway::manual()->orderBy('sort_by', 'asc')->get();
         $data['pageTitle'] = 'Payment Methods';
+
         return view('admin.payment_methods.manual.index', $data);
     }
 
     public function create()
     {
         $data['pageTitle'] = 'Add Payment Methods';
+
         return view('admin.payment_methods.manual.create', $data);
     }
 
     public function store(Request $request)
     {
+        dd($request->all());
         $rules = [
             'name' => 'required',
             // 'currency' => 'required',
@@ -34,17 +37,16 @@ class ManualGatewayController extends Controller
             'maximum_deposit_amount' => 'required|numeric',
             // 'percentage_charge' => 'required|numeric',
             // 'fixed_charge' => 'required|numeric',
-            'convention_rate' => 'required|numeric',
-        ];
 
+        ];
 
         $this->validate($request, $rules);
 
-        $getGateway = new Gateway();
+        $getGateway = new Gateway;
         $input_form = [];
         if ($request->has('field_name')) {
             for ($a = 0; $a < count($request->field_name); $a++) {
-                $arr = array();
+                $arr = [];
                 $arr['field_name'] = clean($request->field_name[$a]);
                 $arr['field_level'] = $request->field_name[$a];
                 $arr['type'] = $request->type[$a];
@@ -75,9 +77,10 @@ class ManualGatewayController extends Controller
             $getGateway->status = $request->status;
             $getGateway->note = $request->note;
             $res = $getGateway->save();
-            if (!$res) {
+            if (! $res) {
                 throw new \Exception('Unexpected error! Please try again.');
             }
+
             return back()->with('success', 'Gateway data has been saved.');
         } catch (\Exception $exception) {
             return back()->with('error', $exception->getMessage());
@@ -89,36 +92,33 @@ class ManualGatewayController extends Controller
     {
         $data['method'] = Gateway::findOrFail($id);
         $data['pageTitle'] = 'Edit Payment Methods';
+
         return view('admin.payment_methods.manual.edit', $data);
     }
-
 
     public function update(Request $request, $id)
     {
         $rules = [
             'name' => 'required',
-            'currency' => 'required',
+            // 'currency' => 'required',
             'minimum_deposit_amount' => 'required|numeric',
             'maximum_deposit_amount' => 'required|numeric',
-            'percentage_charge' => 'required|numeric',
-            'fixed_charge' => 'required|numeric',
-            'convention_rate' => 'required|numeric'
+            // 'percentage_charge' => 'required|numeric',
+            // 'fixed_charge' => 'required|numeric',
         ];
-
 
         $getGateway = Gateway::findOrFail($id);
 
-        if(1000 > $getGateway->id){
+        if ($getGateway->id < 1000) {
             return back()->with('error', 'Invalid Gateways Request');
         }
 
         $this->validate($request, $rules);
 
-
         $input_form = [];
         if ($request->has('field_name')) {
             for ($a = 0; $a < count($request->field_name); $a++) {
-                $arr = array();
+                $arr = [];
                 $arr['field_name'] = clean($request->field_name[$a]);
                 $arr['field_level'] = $request->field_name[$a];
                 $arr['type'] = $request->type[$a];
@@ -126,9 +126,6 @@ class ManualGatewayController extends Controller
                 $input_form[$arr['field_name']] = $arr;
             }
         }
-
-
-
 
         if ($request->hasFile('image')) {
             try {
@@ -138,7 +135,6 @@ class ManualGatewayController extends Controller
                 return back()->with('error', 'Image could not be uploaded.');
             }
         }
-
 
         try {
             $getGateway->name = $request->name;
@@ -153,9 +149,10 @@ class ManualGatewayController extends Controller
             $getGateway->status = $request->status;
             $getGateway->note = $request->note;
             $res = $getGateway->save();
-            if (!$res) {
+            if (! $res) {
                 throw new \Exception('Unexpected error! Please try again.');
             }
+
             return back()->with('success', 'Gateway data has been updated.');
 
         } catch (\Exception $exception) {
@@ -163,5 +160,4 @@ class ManualGatewayController extends Controller
         }
 
     }
-
 }
