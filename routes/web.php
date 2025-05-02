@@ -122,6 +122,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
+        Route::get('/get-api-balance/{id}', function ($id) {
+            $api = \App\Models\Api::find($id);
+            return response()->json(['balance' => $api ? $api->balance : 0]);
+        });
+
 
         // accounts details
         Route::get('/categories', [CategoryController::class, 'index'])->name('ewallet.accounts.details');

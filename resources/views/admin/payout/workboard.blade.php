@@ -1,4 +1,10 @@
 <x-admin-layout :title="$pageTitle">
+    @push('styles')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+
     <style>
         .left-panel {
             width: 70%;
@@ -46,6 +52,7 @@
 
         }
     </style>
+    @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         {{-- <p>Page Title: {{ $pageTitle }}</p> --}}
@@ -185,20 +192,25 @@
 
                     <p class="pt-4">Check Balance</p>
                     <div class="d-flex">
-                        <div class="d-flex align-items-center p-2" style="background-color: #504c79">
+                        <div class="d-flex align-items-center p-2" style="background-color: #504c79;width:70%">
                             <p class="mb-0 me-2">SEARCH:</p>
-                            <input type="search" placeholder="PKLUC" class="form-control form-control-sm search-box"
-                                style="width: 70%" />
+                            <select name="search" id="api-search" class="form-control" style="width: 70%;">
+                                <option value="">Select</option>
+                                @foreach($apis as $api)
+                                    <option value="{{ $api->id }}">{{ $api->username }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <p class="mt-5 fs-tiny" style="margin-left: 10px;">1,548,200.15 TK</p>
+                        <p id="api-balance" class="mt-5 fs-tiny" style="margin-left: 10px;">1,548,200.15 TK</p>
                     </div>
+
                 </div>
             </div>
         </div>
 
     </div>
     @push('js')
-    <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 
 
@@ -282,47 +294,53 @@ setInterval(function() {
     }
 
     function renderEwallets(ewallets) {
-        // Group by ewallet name (like bKash, Nagad, Rocket)
-        let ewalletGroups = {};
+    // Group by ewallet name (like bKash, Nagad, Rocket)
+    let ewalletGroups = {};
 
-        ewallets.forEach(function(account) {
-            if (!ewalletGroups[account.e_wallet_name]) {
-                ewalletGroups[account.e_wallet_name] = [];
-            }
-            ewalletGroups[account.e_wallet_name].push(account);
-        });
+    ewallets.forEach(function(account) {
+        if (!ewalletGroups[account.e_wallet_name]) {
+            ewalletGroups[account.e_wallet_name] = [];
+        }
+        ewalletGroups[account.e_wallet_name].push(account);
+    });
 
-        let buttonsHtml = '';
-        let accountDetailsHtml = '';
+    let buttonsHtml = '';
+    let accountDetailsHtml = '';
 
-        $.each(ewalletGroups, function(walletName, accounts) {
-            buttonsHtml += `
-                <button class="px-4 btn btn-sm ewallet-btn"
-                        data-wallet="${walletName}"
-                        style="background-color: ${getRandomColor()}; color: white; border: none; cursor: pointer;">
-                    ${walletName.toUpperCase()} (${accounts.length})
-                </button>
+    $.each(ewalletGroups, function(walletName, accounts) {
+        buttonsHtml += `
+            <button class="px-4 btn btn-sm ewallet-btn"
+                    data-wallet="${walletName}"
+                    style="background-color: ${getRandomColor()}; color: white; border: none; cursor: pointer;">
+                ${walletName.toUpperCase()} (${accounts.length})
+            </button>
+        `;
+
+        accounts.forEach(function(account) {
+            accountDetailsHtml += `
+                <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
+                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK
+                </p>
             `;
-
-            accounts.forEach(function(account) {
-                accountDetailsHtml += `
-                    <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
-                        ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK
-                    </p>
-                `;
-            });
         });
+    });
 
-        $('#ewallet-buttons').html(buttonsHtml);
-        $('#ewallet-details').html(accountDetailsHtml);
+    $('#ewallet-buttons').html(buttonsHtml);
+    $('#ewallet-details').html(accountDetailsHtml);
 
-        // Click event to filter details
-        $('.ewallet-btn').click(function() {
-            let wallet = $(this).data('wallet');
-            $('.wallet-data').hide();
-            $(`.wallet-data[data-wallet="${wallet}"]`).show();
-        });
-    }
+    // Use delegated event to toggle visibility
+    $('#ewallet-buttons').off('click').on('click', '.ewallet-btn', function () {
+        let wallet = $(this).data('wallet');
+        let $walletData = $(`.wallet-data[data-wallet="${wallet}"]`);
+
+        if ($walletData.is(':visible')) {
+            $walletData.hide();
+        } else {
+            $('.wallet-data').hide(); // hide all
+            $walletData.show();       // show current
+        }
+    });
+}
 
     function getRandomColor() {
         // Optional: Generate a random color for each button
@@ -345,7 +363,7 @@ function fetchNotifications(notifications) {
         const createdAt = new Date(notification.created_at); // Assuming created_at is provided in the notification object
         const currentTime = new Date();
         const timeDiffInMs = currentTime - createdAt;
-        const timeDiffInMin = Math.floor(timeDiffInMs / 10000); // Convert ms to minutes
+        const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
 
         // Determine the display text for time difference
         let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
@@ -401,7 +419,6 @@ function fetchPendingList(pendingList) {
 </script>
 
     <script>
-        "use strict";
         $(document).ready(function (e) {
 
 
@@ -417,10 +434,34 @@ function fetchPendingList(pendingList) {
         });
 
         $(document).ready(function () {
-            $('select').select2({
-                selectOnClose: true
+    $('#api-search').select2({
+        width: '100%',
+        selectOnClose: true
+    });
+    $('#api-search').on('change', function () {
+        let apiId = $(this).val();
+
+        if (apiId) {
+            $.ajax({
+                url: 'get-api-balance/' + apiId,
+                type: 'GET',
+                success: function (response) {
+                    // Assuming response has { balance: 1234.56 }
+                    $('#api-balance').text(response.balance + ' TK');
+                },
+                error: function () {
+                    $('#api-balance').text('Error fetching balance');
+                }
             });
-        });
+        } else {
+            $('#api-balance').text('0.00 TK');
+        }
+    });
+
+});
+
+
+
 
     </script>
     @endpush

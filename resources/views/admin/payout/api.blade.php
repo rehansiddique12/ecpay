@@ -49,7 +49,6 @@
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
-<<<<<<< HEAD
                                     <tr>
                                         <td style="max-width: 70px;">{{ $item['id'] }}</td>
                                         <td style="max-width: 110px;"><a href="">{{ $item['name'] }}</a></td>
@@ -71,47 +70,12 @@
                                         <td style="max-width: 220px;">
                                             <span class="bg-success text-white p-1 d-inline-block mb-2">API Key:</span>
                                             {{ $item['api_key'] }}<br>
-=======
-                                <tr>
-                                    <td style="max-width: 70px;">{{ $item['id'] }}</td>
-                                    <td style="max-width: 110px;"><a href="{{route('admin.merchant.profile',$item['id'])}}">{{ $item['name'] }}</a></td>
-                                    <td style="max-width: 100px;">{{ $item['username'] }}</td>
-                                    <td style="max-width: 130px;">
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="website">{{ $item['website'] }}</span>
-                                    </td>
-                                    <td style="max-width: 220px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="api_endpoint_deposit">{{ $item['api_endpoint_deposit'] }}</span><br>
-
-                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="api_endpoint_withdrawal">{{ $item['api_endpoint_withdrawal'] }}</span><br>
-
-                                        <span class="bg-info text-white p-1 d-inline-block mt-2">Redirect URL:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="redirect_url">{{ $item['redirect_url'] }}</span><br>
-                                    </td>
-
-
-                                    <td style="max-width: 220px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2">API Key:</span>
-                                        {{ $item['api_key'] }}<br>
->>>>>>> 85922afaf743b18ace4e5650923c1dfcdea0954c
 
                                             <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Secret
                                                 Key:</span>
                                             {{ $item['secret_key'] }}
                                         </td>
 
-<<<<<<< HEAD
-                                        <td>{{ $item['balance'] }}</td>
-                                        <td style="max-width: 300px;">
-                                            <span class="bg-success text-white p-1"
-                                                style="display: inline-block; margin-bottom: 10px;">Deposit:</span>
-                                            {{ $item['min_deposit'] }}<br>
-                                            <span class="bg-primary text-white p-1"
-                                                style="display: inline-block; margin-top: 10px;">Withdrawal:</span>
-                                            {{ $item['min_withdrawal'] }}
-                                        </td>
-=======
                                     <td>{{ $item['balance'] }}</td>
                                     <td style="max-width: 300px;">
                                         <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
@@ -120,7 +84,6 @@
                                         <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
                                         <span class="editable" data-id="{{ $item['id'] }}" data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
                                     </td>
->>>>>>> 85922afaf743b18ace4e5650923c1dfcdea0954c
 
                                         <td data-label="@lang('Status')" class="text-lg-center text-right">
                                             @if ($item->status == 0)
@@ -147,7 +110,6 @@
                                                     @csrf
                                                     @method('DELETE')
 
-<<<<<<< HEAD
                                                     <button type="submit" class="btn btn-sm edit_button"> <i
                                                             class="icon-base ti tabler-trash me-1"></i></button>
                                                 </form>
@@ -165,46 +127,6 @@
                                             <br>
                                             <a class="btn btn-sm edit_button"
                                                 href="{{ route('admin.api.profile.export', $item['id']) }}"> <i
-=======
-                                        <a class="btn btn-sm edit_button"
-                                            href="{{ route('admin.apis.login', $item['id']) }}" target="_blank"><i
-                                                class="icon-base ti tabler-login me-1"></i> </a> <br>
-                                        @endif
-                                        @if(adminAccessRoute(config('role.partners.access.delete')))
-                                        <form action="{{ route('admin.apis.delete', $item['id']) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="btn btn-sm edit_button"> <i
-                                                    class="icon-base ti tabler-trash me-1"></i></button>
-                                        </form>
-
-                                        @endif
-
-
-
-
-
-                                        <button class="btn btn-sm edit_button" onclick="generateAndCopyPassword({{ $item['id'] }})">
-                                            <i class="icon-base ti tabler-restore me-1"></i>
-                                        </button>
-                                         <br>
-
-
-
-                                        <a class="btn btn-sm edit_button"
-   data-copy="{{ $item['username'] }} | {{ $item['password_string'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
-   onclick="copyToClipboard(this)">
-   <i class="icon-base ti tabler-copy-check me-1"></i>
-</a>
- <br>
-
-
-
-
-
-                                            <a class="btn btn-sm edit_button" href="{{route('admin.api.profile.export',$item['id'])}}"> <i
->>>>>>> 85922afaf743b18ace4e5650923c1dfcdea0954c
                                                     class="icon-base ti tabler-database-export me-1"></i></a>
 
                                             <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
@@ -743,12 +665,6 @@
 
 
     @push('js')
-<<<<<<< HEAD
-        <script src="{{ asset('public/assets/js/select2.min.js') }}"></script>
-        <script>
-            function generateAndCopyPassword(id) {
-                const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
-=======
     <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -810,7 +726,6 @@
     <script>
         function generateAndCopyPassword(id) {
             const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
->>>>>>> 85922afaf743b18ace4e5650923c1dfcdea0954c
 
                 fetch(url, {
                         method: 'POST',

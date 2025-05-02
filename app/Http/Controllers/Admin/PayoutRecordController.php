@@ -2879,43 +2879,45 @@ class PayoutRecordController extends Controller
 
 
     public function settlementSearch(Request $request)
-    {
+{
+    $partners = Api::where('type', 'Admin')->get();
 
-        $partners = Api::where('type', 'Admin')->get();
+    // Start with the query builder
+    $query = Settlement::with('api');
 
-        $records = Settlement::with('api');
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
 
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $records->whereDate('created_at', '>=', $request->from_date);
-            $records->whereDate('created_at', '<=', $request->to_date);
-        } elseif (!empty($request->from_date)) {
-            $records->whereDate('created_at', '>=', $request->from_date);
-        } elseif (!empty($request->to_date)) {
-            $records->whereDate('created_at', '<=', $request->to_date);
-        }
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
 
-        if (!empty($request->gateway)) {
-            $records->where('source_name', $request->gateway);
-        }
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
 
-        if (!empty($request->partner)) {
-            $records->where('partner_id', $request->partner);
-        }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-        if (!empty($request->status) || $request->status == '0') {
-            $records->where('status', $request->status);
-        }
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
 
-        $records = $records->orderBy('id', 'DESC')->get();
-
-
-        // $gateways = Settlement::groupBy('source_name')->get();
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
         ->groupBy('source_name')
         ->get();
-        $pageTitle = "Search Settlements History";
-        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
-    }
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
 
 
     public function approveSettlement($id)
@@ -4543,7 +4545,6 @@ class PayoutRecordController extends Controller
         $notifications = EWalletAccount::where('live_balance','<','1000')->take(5)->get();
         $pending_list = Payout::where('created_at', '<=', Carbon::now()->subMinutes(5))->take(5)->get();
 
-        // dd($pending_list);
         if ($request->ajax()) {
             return response()->json([
                 'transactions' => $mergedTransactions,
@@ -4555,7 +4556,8 @@ class PayoutRecordController extends Controller
 
         // Normal page load
         $pageTitle = "Workboard";
-        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions'));
+        $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }
 
 
@@ -4824,6 +4826,6 @@ class PayoutRecordController extends Controller
     }
 
 
-   
+
 
 }

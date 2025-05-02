@@ -89,16 +89,15 @@
         Request::routeIs('admin.ewallet.accounts') ||
         Request::routeIs('');
 
-
-  $isMainActive = in_array(Route::currentRouteName(), [
-    'admin.dashboard',
-    'admin.staff',
-    'admin.groups',
-    'admin.parant',
-    'admin.workboard',
-    'admin.deposit.manual.index'
-  ]);
-  $isRoleAndPermission = Request::routeIs('admin.roles.create') ;
+    $isMainActive = in_array(Route::currentRouteName(), [
+        'admin.dashboard',
+        'admin.staff',
+        'admin.groups',
+        'admin.parant',
+        'admin.workboard',
+        'admin.users',
+        'admin.deposit.manual.index',
+    ]);
 
 @endphp
 
@@ -732,78 +731,6 @@
                                 </a>
                             </li>
 
-
-                <!-- Roles And Permissions -->
-                <li class="menu-item {{ $isRoleAndPermission ? 'active open' : '' }}">
-                    <a href="javascript:void(0)" class="menu-link menu-toggle">
-                        <i class="menu-icon icon-base ti tabler-layout-sidebar"></i>
-                        <div data-i18n="Roles And Permission">Roles And Permission</div>
-                    </a>
-
-                    <ul class="menu-sub">
-                        <li class="menu-item {{ Request::routeIs('admin.roles.create') ? 'active' : '' }}">
-                            <a href="{{ route('admin.roles.index') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="List Roles">List Roles</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="{{ route('admin.roles.create') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Create New Roles">Create New Roles</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="{{ route('admin.permissions.create') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Create Permission">Create Permission</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="{{ route('admin.permissions.index') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="List Permissions">List Permissions</div>
-                            </a>
-                        </li>
-
-                    </ul>
-                </li>
-
-
-                    <!-- Apps -->
-                    <li class="menu-item {{ $isPartnerActive ? 'active open' : '' }}">
-                        <a href="javascript:void(0)" class="menu-link menu-toggle">
-                            <i class="menu-icon icon-base ti tabler-users"></i>
-                            <div data-i18n="Partner">Partner</div>
-                        </a>
-
-                        <ul class="menu-sub">
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
-                                <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                    <div data-i18n="Add Balance/Adjustment">Add Balance/Adjustment</div>
-                                </a>
-                            </li>
-
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
-                                <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-messages"></i>
-                                    <div data-i18n="Transfer Balance">Transfer Balance</div>
-                                </a>
-                            </li>
-
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.settlements' ? 'active' : '' }}">
-                                <a href="{{ route('admin.settlements') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-calendar"></i>
-                                    <div data-i18n="Partner Settelment">Partner Settelment</div>
-                                </a>
-                            </li>
-
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
-                                <a href="{{ route('admin.apis') }}" class="menu-link">
                             <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts.details') ? 'active' : '' }}">
                                 <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -1204,8 +1131,6 @@
                         </ul>
                     </div>
                 @endif
-<<<<<<< HEAD
-=======
                 {{-- ======= --}}
                 @if (session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -1216,7 +1141,6 @@
                 @endif
 
 
->>>>>>> 9c8eb5a1dcfe932fa39228ee3adaab14db4be317
 
                 @if (session('success'))
                     <div class="alert alert-success">
