@@ -1,4 +1,10 @@
 <x-admin-layout :title="$pageTitle">
+    @push('styles')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+
     <style>
         .left-panel {
             width: 70%;
@@ -50,6 +56,7 @@
             background-color: rgba(97, 96, 96, 0.137)
         }
     </style>
+    @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         {{-- <p>Page Title: {{ $pageTitle }}</p> --}}
@@ -63,206 +70,15 @@
                             <input type="search" placeholder="TX / Ticket Number"
                                 class="form-control form-control-sm search-box" />
                         </div>
-                        <button class="btn btn-sm text-white btn-purple">Close All</button>
+                        <button class="btn btn-sm text-white btn-purple" onclick=" $('#transactions-container').empty();">Close All</button>
                     </nav>
 
                     <!-- Cards Grid -->
-                    <div class="row row-cols-2 g-2" style="margin-top: 1px">
-                        <div class="col">
-                            <div class="custom-card p-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-4">
-                                        <p class="text-success fw-semibold mb-1">DEPOSIT</p>
-                                        <p class="text-success fw-semibold mb-1">2,000.00 TK</p>
-                                        <p class="text-white mb-1">BK33</p>
-                                    </div>
-                                    <div class="d-flex gap-3 text-white">
-                                        <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" id="closeModal" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ABCD1234</p>
-                                    <p class="mb-0 text-warning fw-semibold">STATUS: <span>PENDING</span></p>
-                                </div>
-
-                                <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: NAGAD</p>
-                                    <p class="">01810665588</p>
-                                </div>
-                                <div>
-                                    <p class="">Location: Office 1</p>
-                                    <p class="">Created At : 14/03/2025 13:48:56</p>
-                                    <p class="">Updated At : 14/03/2025 13:48:56</p>
-                                    <p class="">Input Transaction Number: CB34653AS1</p>
-                                    <p class="">Verified Transaction Number:</p>
-                                </div>
-
-                                <div class="d-flex gap-4 mt-3">
-                                    <div class="justify-content-center">
-                                        <p class="">Callback Status: Null</p>
-                                    </div>
-                                    <button class=" px-4 btn btn-sm"
-                                        style="background-color: rgb(52, 152, 235); color: white; border: none; cursor: pointer;">Resend</button>
-                                    <button class=px-4 btn btn-sm"
-                                        style="background-color: blue; color: white; border: none; cursor: pointer;">Activity</button>
-                                </div>
-                                <div class="d-flex gap-4 mt-3">
-                                    <button class=" px-4 btn btn-sm"
-                                        style="background-color: rgb(45, 199, 58); color: white; border: none; cursor: pointer;">Edit</button>
-                                    <button class=px-4 btn btn-sm"
-                                        style="background-color: rgb(226, 15, 15); color: white; border: none; cursor: pointer;">Manual
-                                        Process</button>
-                                    <button class=" px-4 btn btn-sm"
-                                        style="background-color: rgb(124, 3, 180); color: white; border: none; cursor: pointer;">Adjustment</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col">
-                            <div class="custom-card p-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-4">
-                                        <p class="text-success fw-semibold mb-1">DEPOSIT</p>
-                                        <p class="text-success fw-semibold mb-1">2,000.00 TK</p>
-                                        <p class="text-white mb-1">KU91</p>
-                                    </div>
-                                    <div class="d-flex gap-3 text-white">
-                                        <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" id="closeModal" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ABCD1234</p>
-                                    <p class="mb-0 text-warning fw-semibold">STATUS: <span>PENDING</span></p>
-                                </div>
-
-                                <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: NAGAD</p>
-                                    <p class="">01810665588</p>
-                                </div>
-                                <div>
-                                    <p class="">Location: Office 1</p>
-                                    <p class="">Created At : 14/03/2025 13:48:56</p>
-                                    <p class="">Updated At : 14/03/2025 13:48:56</p>
-                                    <p class="">Transaction Number: CB34653AS1</p>
-                                    <p class="">Remarks:</p>
-                                </div>
-                                <div class="d-flex gap-4 mt-3">
-                                    <div class="justify-content-center">
-                                        <p class="">Callback Status: Null</p>
-                                    </div>
-                                    <button class="bg-green-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(52, 152, 235); color: white; border: none; cursor: pointer;">Resend</button>
-                                    <button class="bg-red-600 px-4 btn btn-sm"
-                                        style="background-color: blue; color: white; border: none; cursor: pointer;">Activity</button>
-                                </div>
-                                <div class="d-flex gap-2 mt-3">
-                                    <button class="bg-green-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(45, 199, 58); color: white; border: none; cursor: pointer;">Manual</button>
-                                    <button class="bg-red-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(226, 15, 15); color: white; border: none; cursor: pointer; text-sm">Manual
-                                        Complete</button>
-                                    <button class="bg-purple-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(180, 109, 3); color: white; border: none; cursor: pointer;">Retry</button>
-                                    <button class="bg-purple-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(226, 15, 15); color: white; border: none; cursor: pointer;">Reject</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="custom-card p-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-4">
-                                        <p class="text-success fw-semibold mb-1">DEPOSIT</p>
-                                        <p class="text-success fw-semibold mb-1">2,000.00 TK</p>
-                                        <p class="text-white mb-1">WICKET</p>
-                                    </div>
-                                    <div class="d-flex gap-3 text-white">
-                                        <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" id="closeModal" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ABCD1234</p>
-                                    <p class="mb-0  fw-semibold" style="color: red">STATUS: <span>REJECT</span></p>
-                                </div>
-
-                                <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: NAGAD</p>
-                                    <p class="">01810665588</p>
-                                </div>
-                                <div>
-                                    <p class="">Location: Office 1</p>
-                                    <p class="">Created At : 14/03/2025 13:48:56</p>
-                                    <p class="">Updated At : 14/03/2025 13:48:56</p>
-                                    <p class="">Input Transaction Number: CB34653AS1</p>
-                                    <p class="">Remarks:</p>
-                                </div>
-                                <div class="d-flex gap-4 mt-3">
-                                    <div class="justify-content-center">
-                                        <p class="">Callback Status: Null</p>
-                                    </div>
-                                    <button class="bg-green-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(52, 152, 235); color: white; border: none; cursor: pointer;">Resend</button>
-                                    <button class="bg-red-600 px-4 btn btn-sm"
-                                        style="background-color: blue; color: white; border: none; cursor: pointer;">Activity</button>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="custom-card p-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-4">
-                                        <p class="text-success fw-semibold mb-1">DEPOSIT</p>
-                                        <p class="text-success fw-semibold mb-1">2,000.00 TK</p>
-                                        <p class="text-white mb-1">PKLUCK</p>
-                                    </div>
-                                    <div class="d-flex gap-3 text-white">
-                                        <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" id="closeModal" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ABCD1234</p>
-                                    <p class="mb-0 fw-semibold" style="color: rgb(44, 185, 44);">STATUS:
-                                        <span>COMPPLETE</span></p>
-                                </div>
-
-                                <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: NAGAD</p>
-                                    <p class="">01810665588</p>
-                                </div>
-                                <div>
-                                    <p class="">Location: Office 1</p>
-                                    <p class="">Created At : 14/03/2025 13:48:56</p>
-                                    <p class="">Updated At : 14/03/2025 13:48:56</p>
-                                    <p class="">Input Transaction Number: CB34653AS1</p>
-                                    <p class="">Verified Transaction Number:</p>
-                                </div>
-                                <div class="d-flex gap-4 mt-3">
-                                    <div class="justify-content-center">
-                                        <p class="">Callback Status: Success</p>
-                                    </div>
-                                    <button class="bg-green-600 px-4 btn btn-sm"
-                                        style="background-color: rgb(52, 152, 235); color: white; border: none; cursor: pointer;">Resend</button>
-                                    <button class="bg-red-600 px-4 btn btn-sm"
-                                        style="background-color: blue; color: white; border: none; cursor: pointer;">Activity</button>
-                                </div>
-
-                            </div>
-                        </div>
+                    <div class="row row-cols-2 g-2" id="transactions-container" style="margin-top: 1px;">
+                        <!-- Cards will be appended here by JS -->
                     </div>
+
+
                     <div class="bg-red-400 mt-4 ">
                         <p class="text-White font-semibold text-lg">GATEWAY PERFORMACE MONITORING</p>
                         <div class=" h-full w-full" style="background-color: #504c79">
@@ -363,104 +179,250 @@
                 <!-- Right Panel -->
                 <div class="right-panel">
                     <div class="bg-[#504c79] w-full py-3  px-4 justify-content-between items-center text-White"
-                        style="margin-top: 1.7rem; background-color: #504c79;">
-                        <div class="d-flex gap-4 mb-3">
-                            <button class=" px-4 btn btn-sm"
-                                style="background-color: rgb(45, 199, 58); color: white; border: none; cursor: pointer;">BKASH
-                                (5)</button>
-                            <button class=" px-4 btn btn-sm"
-                                style="background-color: rgb(226, 213, 30); color: white; border: none; cursor: pointer;">NAGAD
-                                (4)</button>
-                            <button class=" px-4 btn btn-sm"
-                                style="background-color: rgb(168, 32, 196); color: white; border: none; cursor: pointer">ROCKET
-                                (2)</button>
-                        </div>
-                        <div>
-                            <p>bKash: 0128885568 Current Balance = 5,000TK</p>
-                            <p>bKash: 0128885568 Current Balance = 5,000TK</p>
-                            <p>bKash: 0128885568 Current Balance = 5,000TK</p>
-                            <p>bKash: 0128885568 Current Balance = 5,000TK</p>
-                            <p>bKash: 0128885568 Current Balance = 5,000TK </p>
-                        </div>
+                    style="margin-top: 3.6rem; background-color: #504c79;">
+                   <div class="d-flex gap-4 mb-3" id="ewallet-buttons">
+                       <!-- Buttons will come here -->
+                   </div>
+                   <div id="ewallet-details">
+                       <!-- Wallet details will appear here -->
+                   </div>
+               </div>
 
-                    </div>
                     <p class="pt-4">NOTIFICATION CENTER</p>
-                    <div class="w-full py-2  px-2 items-center text-White d-flex justify-content-between"
-                        style="background-color: #504c79;">
-                        <p>Warning!! bKash 0128885568 <br>balance is low.</p>
-                        <div>
-                            <button type="button" id="closeModal" class="btn-close " style="margin-left: 3rem;"
-                                data-bs-dismiss="modal" aria-label="Close"></button>
-                            <p>1 mint ago</p>
-                        </div>
-                    </div>
-                    <div class="w-full py-2  px-2 items-center text-White d-flex justify-content-between mt-3"
-                        style="background-color: #504c79;">
-                        <p>Warning!! bKash 0128885568 <br>balance is low.</p>
-                        <div>
-                            <button type="button" id="closeModal" class="btn-close " style="margin-left: 3rem;"
-                                data-bs-dismiss="modal" aria-label="Close"></button>
-                            <p>1 mint ago</p>
-                        </div>
-                    </div>
+                    <div id="notifications-container"></div>
+
                     <p class="pt-4">WITHDRAWAL PENDING LIST (5 MINUTES)</p>
-                    <div class=" w-full py-2  px-4  items-center text-White d-flex justify-content-between"
-                        style="background-color: #504c79;">
-                        <div>
-                            <p>BK33 [Order Number] : 1,000TK</p>
-                            <p>Account: Nagad 01238857776</p>
-                            <p>Checking by: [Admin Name]</p>
-                        </div>
-                        <div>
-                            <button class=" px-4 btn btn-sm"
-                                style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">Check</button>
-                            <p class="mt-10">1 mint ago</p>
-                        </div>
-                    </div>
-                    <div class=" w-full py-2  px-4 mt-3 items-center text-White d-flex justify-content-between"
-                        style="background-color: #504c79;">
-                        <div>
-                            <p>BK33 [Order Number] : 1,000TK</p>
-                            <p>Account: Nagad 01238857776</p>
-                            <p>Checking by: [Admin Name]</p>
-                        </div>
-                        <div>
-                            <button class=" px-4 btn btn-sm"
-                                style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">Check</button>
-                            <p class="mt-10">1 mint ago</p>
-                        </div>
-                    </div>
-                    <div class=" w-full py-2  px-4 mt-3 items-center text-White d-flex justify-content-between"
-                        style="background-color: #504c79;">
-                        <div>
-                            <p>BK33 [Order Number] : 1,000TK</p>
-                            <p>Account: Nagad 01238857776</p>
-                            <p>Checking by: [Admin Name]</p>
-                        </div>
-                        <div>
-                            <button class=" px-4 btn btn-sm"
-                                style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">Check</button>
-                            <p class="mt-10">1 mint ago</p>
-                        </div>
-                    </div>
+                    <div id="pending-list-container"></div>
+
                     <p class="pt-4">Check Balance</p>
                     <div class="d-flex">
-                        <div class="d-flex align-items-center p-2" style="background-color: #504c79">
+                        <div class="d-flex align-items-center p-2" style="background-color: #504c79;width:70%">
                             <p class="mb-0 me-2">SEARCH:</p>
-                            <input type="search" placeholder="PKLUC" class="form-control form-control-sm search-box"
-                                style="width: 70%" />
+                            <select name="search" id="api-search" class="form-control" style="width: 70%;">
+                                <option value="">Select</option>
+                                @foreach($apis as $api)
+                                    <option value="{{ $api->id }}">{{ $api->username }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <p class="mt-5 fs-tiny" style="margin-left: 10px;">1,548,200.15 TK</p>
+                        <p id="api-balance" class="mt-5 fs-tiny" style="margin-left: 10px;">1,548,200.15 TK</p>
                     </div>
+
                 </div>
             </div>
         </div>
 
     </div>
     @push('js')
-    <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+
+$(document).ready(function() {
+    fetchTransactions();
+
+// call every 1 minute
+setInterval(function() {
+    console.log('Fetching transactions...');
+    fetchTransactions(); // fetch the transactions every 1 minute
+}, 60000); // 60000 ms = 1 minute
+
+    function fetchTransactions() {
+        $.ajax({
+            url: "{{ route('admin.workboard') }}", // your route
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                // Render Transactions
+                fetchNotifications(response.notifications);
+                fetchPendingList(response.pending_list);
+                $('#transactions-container').empty(); // clear previous if needed
+                $.each(response.transactions, function(index, transaction) {
+                    let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' : 'WITHDRAWL';
+                    let statusColor = transaction.status === 'pending' ? 'text-warning' : 'text-success';
+
+                    let card = `
+                        <div class="col">
+                            <div class="custom-card p-4">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-4">
+                                        <p class="text-success fw-semibold mb-1">${typeLabel}</p>
+                                        <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
+                                        <p class="text-white mb-1">${transaction.id}</p>
+                                    </div>
+                                    <div class="d-flex gap-3 text-white">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <button type="button" class="btn-close" aria-label="Close"></button>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-3">
+                                    <p class="mb-0">Order Number: ABCD1234</p>
+                                    <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
+                                </div>
+
+                                <div class="d-flex gap-5 mt-2">
+                                    <p class="mb-0">Account Name: NAGAD</p>
+                                    <p class="">01810665588</p>
+                                </div>
+                                <div>
+                                    <p class="">Location: Office 1</p>
+                                    <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
+                                    <p class="">Updated At: ${new Date(transaction.created_at).toLocaleString()}</p>
+                                    <p class="">Input Transaction Number: CB34653AS1</p>
+                                    <p class="">Verified Transaction Number:</p>
+                                </div>
+
+                                <div class="d-flex gap-4 mt-3">
+                                    <div class="justify-content-center">
+                                        <p class="">Callback Status: Null</p>
+                                    </div>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;">Resend</button>
+                                    <button class="px-4 btn btn-sm" style="background-color: blue; color: white;">Activity</button>
+                                </div>
+                                <div class="d-flex gap-4 mt-3">
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(45, 199, 58); color: white;">Edit</button>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(226, 15, 15); color: white;">Manual Process</button>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(124, 3, 180); color: white;">Adjustment</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('#transactions-container').append(card);
+                });
+
+                // Render Ewallets
+                renderEwallets(response.ewallets);
+            }
+        });
+    }
+
+    function renderEwallets(ewallets) {
+    // Group by ewallet name (like bKash, Nagad, Rocket)
+    let ewalletGroups = {};
+
+    ewallets.forEach(function(account) {
+        if (!ewalletGroups[account.e_wallet_name]) {
+            ewalletGroups[account.e_wallet_name] = [];
+        }
+        ewalletGroups[account.e_wallet_name].push(account);
+    });
+
+    let buttonsHtml = '';
+    let accountDetailsHtml = '';
+
+    $.each(ewalletGroups, function(walletName, accounts) {
+        buttonsHtml += `
+            <button class="px-4 btn btn-sm ewallet-btn"
+                    data-wallet="${walletName}"
+                    style="background-color: ${getRandomColor()}; color: white; border: none; cursor: pointer;">
+                ${walletName.toUpperCase()} (${accounts.length})
+            </button>
+        `;
+
+        accounts.forEach(function(account) {
+            accountDetailsHtml += `
+                <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
+                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK
+                </p>
+            `;
+        });
+    });
+
+    $('#ewallet-buttons').html(buttonsHtml);
+    $('#ewallet-details').html(accountDetailsHtml);
+
+    // Use delegated event to toggle visibility
+    $('#ewallet-buttons').off('click').on('click', '.ewallet-btn', function () {
+        let wallet = $(this).data('wallet');
+        let $walletData = $(`.wallet-data[data-wallet="${wallet}"]`);
+
+        if ($walletData.is(':visible')) {
+            $walletData.hide();
+        } else {
+            $('.wallet-data').hide(); // hide all
+            $walletData.show();       // show current
+        }
+    });
+}
+
+    function getRandomColor() {
+        // Optional: Generate a random color for each button
+        const colors = [
+            "rgb(45, 199, 58)",
+            "rgb(226, 213, 30)",
+            "rgb(168, 32, 196)",
+            "rgb(52, 152, 235)",
+            "rgb(255, 99, 71)",
+            "rgb(100, 149, 237)"
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+});
+
+function fetchNotifications(notifications) {
+    $('#notifications-container').empty(); // clear previous
+    $.each(notifications, function(index, notification) {
+        // Calculate the time difference in minutes
+        const createdAt = new Date(notification.created_at); // Assuming created_at is provided in the notification object
+        const currentTime = new Date();
+        const timeDiffInMs = currentTime - createdAt;
+        const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
+
+        // Determine the display text for time difference
+        let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
+
+        let notifHtml = `
+            <div class="w-full py-2 px-2 items-center text-white d-flex justify-content-between"
+                 style="background-color: #504c79;">
+                <p>Warning!! ${notification.e_wallet_name} ${notification.account_no} <br>balance is low.</p>
+                <div>
+                    <button type="button" class="btn-close" style="margin-left: 3rem;" aria-label="Close"></button>
+                    <p>${timeAgo}</p>
+                </div>
+            </div>
+        `;
+        $('#notifications-container').append(notifHtml);
+    });
+}
+
+
+function fetchPendingList(pendingList) {
+    $('#pending-list-container').empty(); // clear previous
+    let currentUser = "{{ Auth::user()->name }}";
+    $.each(pendingList, function(index, item) {
+        let createdAt = new Date(item.created_at);
+        let now = new Date();
+        let diffMs = now - createdAt; // time difference in milliseconds
+        let diffMins = Math.floor(diffMs / 60000); // convert to minutes
+
+        let timeAgo = diffMins > 0 ? `${diffMins} min ago` : 'Just now';
+
+        let pendingHtml = `
+            <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
+                 style="background-color: #504c79;">
+                <div>
+                    <p>${item.id} [Order Number]: ${item.amount} TK</p>
+                    <p>Account: ${item.account_name} ${item.account_number}</p>
+                    <p>Checking by: ${currentUser}</p>
+                </div>
+                <div>
+                    <button class="px-4 btn btn-sm"
+                        style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">Check</button>
+                    <p class="mt-10">${timeAgo}</p>
+                </div>
+            </div>
+        `;
+        $('#pending-list-container').append(pendingHtml);
+    });
+}
+
+
+
+
+</script>
+
     <script>
-        "use strict";
         $(document).ready(function (e) {
 
 
@@ -476,10 +438,34 @@
         });
 
         $(document).ready(function () {
-            $('select').select2({
-                selectOnClose: true
+    $('#api-search').select2({
+        width: '100%',
+        selectOnClose: true
+    });
+    $('#api-search').on('change', function () {
+        let apiId = $(this).val();
+
+        if (apiId) {
+            $.ajax({
+                url: 'get-api-balance/' + apiId,
+                type: 'GET',
+                success: function (response) {
+                    // Assuming response has { balance: 1234.56 }
+                    $('#api-balance').text(response.balance + ' TK');
+                },
+                error: function () {
+                    $('#api-balance').text('Error fetching balance');
+                }
             });
-        });
+        } else {
+            $('#api-balance').text('0.00 TK');
+        }
+    });
+
+});
+
+
+
 
     </script>
     @endpush

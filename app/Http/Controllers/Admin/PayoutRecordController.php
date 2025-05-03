@@ -2880,43 +2880,45 @@ class PayoutRecordController extends Controller
 
 
     public function settlementSearch(Request $request)
-    {
+{
+    $partners = Api::where('type', 'Admin')->get();
 
-        $partners = Api::where('type', 'Admin')->get();
+    // Start with the query builder
+    $query = Settlement::with('api');
 
-        $records = Settlement::with('api');
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
 
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $records->whereDate('created_at', '>=', $request->from_date);
-            $records->whereDate('created_at', '<=', $request->to_date);
-        } elseif (!empty($request->from_date)) {
-            $records->whereDate('created_at', '>=', $request->from_date);
-        } elseif (!empty($request->to_date)) {
-            $records->whereDate('created_at', '<=', $request->to_date);
-        }
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
 
-        if (!empty($request->gateway)) {
-            $records->where('source_name', $request->gateway);
-        }
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
 
-        if (!empty($request->partner)) {
-            $records->where('partner_id', $request->partner);
-        }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-        if (!empty($request->status) || $request->status == '0') {
-            $records->where('status', $request->status);
-        }
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
 
-        $records = $records->orderBy('id', 'DESC')->get();
-
-
-        // $gateways = Settlement::groupBy('source_name')->get();
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
         ->groupBy('source_name')
         ->get();
-        $pageTitle = "Search Settlements History";
-        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
-    }
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
 
 
     public function approveSettlement($id)
@@ -4513,6 +4515,7 @@ class PayoutRecordController extends Controller
         }
 
     }
+
   public function convertStringToNumber($string)
     {
         if (strpos($string, '.') !== false) {
@@ -4523,11 +4526,44 @@ class PayoutRecordController extends Controller
     }
 
 
+
     public function workboard(Request $request)
     {
+        $payments = Payment::select('id', 'amount', 'status', 'created_at', DB::raw("'payment' as type"))
+            ->latest('created_at')
+            ->take(10)
+            ->get();
+
+        $payouts = Payout::select('id', 'amount', 'status', 'created_at', DB::raw("'payout' as type"))
+            ->latest('created_at')
+            ->take(10)
+            ->get();
+
+        $merged = $payments->merge($payouts);
+
+        $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
+        $EWalletAccount = EWalletAccount::where('status',1)->get();
+        $notifications = EWalletAccount::where('live_balance','<','1000')->take(5)->get();
+        $pending_list = Payout::where('created_at', '<=', Carbon::now()->subMinutes(5))->take(5)->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'transactions' => $mergedTransactions,
+                'ewallets' => $EWalletAccount,
+                'notifications' => $notifications,
+                'pending_list' => $pending_list,
+            ]);
+        }
+
+        // Normal page load
         $pageTitle = "Workboard";
-        return view('admin.payout.workboard', compact( 'pageTitle'));
+        $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }
+
+
+
+
 
 
     // Partner Commission

@@ -93,13 +93,14 @@ public function profileUpdate(Request $request)
     $user->phone = $req['phone'];
     $user->address = $req['address'];
     $user->save();
+    $user->syncRoles(['Admin']);
 
     return back()->with('success', 'Profile Updated Successfully.');
 }
 
     public function dashboard()
     {
-        
+
         $pageTitle = 'Dashboard';
         return view('admin.dashboard', compact('pageTitle'));
     }

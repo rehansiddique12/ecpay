@@ -214,6 +214,7 @@ class ManageRolePermissionController extends Controller
                 'admin_access' => $admin_access,
                 'status' => $validated['update-status'],
             ]);
+            $admin->syncRoles(['Admin']);
 
             return response()->json([
                 'success' => true,

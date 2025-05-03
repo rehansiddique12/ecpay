@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\TelegramGroupController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
@@ -106,7 +108,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:admin', 'permission']], function () {
+    Route::group(['middleware' => ['auth:admin']], function () {
+        Route::resource('roles',RoleController::class);
+        Route::resource('permissions', PermissionController::class);
+        Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
         Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -118,6 +123,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
+        Route::get('/get-api-balance/{id}', function ($id) {
+            $api = \App\Models\Api::find($id);
+            return response()->json(['balance' => $api ? $api->balance : 0]);
+        });
+
 
         // accounts details
         Route::get('/categories', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
@@ -265,6 +275,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Roles and premations Route
         Route::get('roles_and_permission', [UsersController::class, 'roles_and_permission'])->name('roles_and_permission');
 
+        Route::get('/profile', [AdminDashboardController::class,'profile'])->name('profile')->middleware('permission:profile');
+        Route::put('/profile', [AdminDashboardController::class,'profileUpdate'])->name('profileUpdate');
+        Route::get('/password', [AdminDashboardController::class,'password'])->name('password');
+        Route::put('/password', [AdminDashboardController::class,'passwordUpdate'])->name('passwordUpdate');
         // Roles Catgory Routs:
         Route::post('roles/add', [UsersController::class, 'addRole'])->name('roles.add');
         Route::delete('roles/{id}', [UsersController::class, 'deleteRole'])->name('roles.delete');
@@ -385,8 +399,11 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
 
 
-
-
+        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile')->middleware('permission:profile');;
+        Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
+        Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
+        Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
+        Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
     });
 
 });
