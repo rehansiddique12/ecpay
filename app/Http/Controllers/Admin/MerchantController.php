@@ -5,6 +5,7 @@ use App\Models\Api;
 use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\Log;
+use App\Models\ApiLog;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -411,4 +412,13 @@ public function mechantlogs($id){
             return response()->json(['error' => 'An error occurred while processing the export.'], 400);
         }
     }
+
+
+public function fetchActivityLogs(Request $request)
+{
+    $logs = ApiLog::whereJsonContains('request_payload->partner_transection_id', $request->partner_transaction_id)->get();
+    return response()->json([
+        'data' => $logs
+    ]);
+}
 }

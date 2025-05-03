@@ -209,6 +209,93 @@
         </div>
 
     </div>
+    <div class="modal modal-top fade" id="newModalb" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTopTitle">@lang('Send Callback')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addBalanceForm" action="{{ route('admin.run.deposit.callback') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row justify-content-between align-items-center">
+
+
+
+                            <input type="text" hidden id="account_id" class="form-control" name="id">
+
+
+
+                            <div class="col-md-12">
+                                Callback Status
+                                <span id="spinner2" style="display: none;">
+                                    <span class="spinner-border text-primary" role="status">
+                                    </span>
+                                </span>
+                                <span id="tickMark2" style="display: none;">
+                                    <i class="fa fa-check-circle text-success"></i>
+                                </span>
+                                <span id="tickMark3" style="display: none;">
+                                    <i class="fa fa-times-circle text-danger"></i>
+                                </span>
+                                <br>
+                                <br>
+                                <p>Message: <span id="text1"></span></p>
+                                <br>
+                                <div id="apiresponse" style="display: none;">
+                                <h4>Response</h4>
+                                <p>Response Code: <span id="text2"></span></p>
+                                <p>Response Body: </p>
+                                <div style="background-color: black;color:white;padding:10px"><span id="text3"></span></div>
+                                </div>
+
+                            </div>
+
+                            <!-- <br>
+                            <br> -->
+
+                            <!-- <div class="col-md-12">
+                                <button type="button" disabled id="runWithdrawalTest" class="btn btn-primary">Run Withdrawal Test</button>
+
+                            </div> -->
+                        </div>
+
+                    </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal fade" id="activityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Activity Log</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body table-responsive">
+              <table class="table table-bordered table-sm" id="activity-table" style="table-layout: fixed;">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Method</th>
+                    <th>URL</th>
+                    <th style="width: 300px;">Request</th>
+                    <th>Response</th>
+                    <th>Created At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Filled by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
@@ -244,7 +331,7 @@ setInterval(function() {
                                     <div class="d-flex gap-4">
                                         <p class="text-success fw-semibold mb-1">${typeLabel}</p>
                                         <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
-                                        <p class="text-white mb-1">${transaction.id}</p>
+                                        <p class="text-white mb-1">${transaction.id }</p>
                                     </div>
                                     <div class="d-flex gap-3 text-white">
                                         <i class="bi bi-arrow-repeat"></i>
@@ -273,8 +360,14 @@ setInterval(function() {
                                     <div class="justify-content-center">
                                         <p class="">Callback Status: Null</p>
                                     </div>
-                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;">Resend</button>
-                                    <button class="px-4 btn btn-sm" style="background-color: blue; color: white;">Activity</button>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
+                                    <button
+        class="px-4 btn btn-sm activity-btn"
+        style="background-color: blue; color: white;"
+        data-partner-id="${transaction.partner_transection_id}">
+        Activity
+    </button>
+
                                 </div>
                                 <div class="d-flex gap-4 mt-3">
                                     <button class="px-4 btn btn-sm" style="background-color: rgb(45, 199, 58); color: white;">Edit</button>
@@ -419,6 +512,40 @@ function fetchPendingList(pendingList) {
 </script>
 
     <script>
+       jQuery(document).off('click', '.activity-btn').on('click', '.activity-btn', function () {
+    var partnerId = jQuery(this).data('partner-id');
+
+    jQuery.ajax({
+        url: '{{ route("admin.fetchActivityLogs") }}',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            partner_transaction_id: partnerId
+        },
+        success: function (response) {
+            var tbody = '';
+            jQuery.each(response.data, function (index, log) {
+                tbody += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${log.request_method}</td>
+                        <td>${log.request_url}</td>
+                        <td>${log.request_payload}</td>
+                        <td>${log.response_payload}</td>
+                        <td>${log.created_at}</td>
+                    </tr>
+                `;
+            });
+
+            jQuery('#activity-table tbody').html(tbody);
+            var modal = new bootstrap.Modal(document.getElementById('activityModal'));
+            modal.show();
+        }
+    });
+});
+
+
+
         $(document).ready(function (e) {
 
 
@@ -459,10 +586,53 @@ function fetchPendingList(pendingList) {
     });
 
 });
-
-
-
-
     </script>
+    <script>
+        function setBalanceItem(itemId) {
+            var account_id = document.getElementById("account_id");
+            account_id.value = itemId;
+
+            jQuery('#spinner2').show();
+            jQuery('#runWithdrawalTest').prop('disabled', true);
+
+            var formData = new FormData(jQuery('#addBalanceForm')[0]); // Get form data
+
+            jQuery.ajax({
+                type: "POST",
+                url: "{{ route('admin.run.deposit.callback') }}",
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                data: formData, // Use FormData object
+                processData: false, // Don't process the data
+                contentType: false, // Don't set contentType
+                success: function(response) {
+                    if (response.status === "success") {
+                        jQuery('#spinner2').hide();
+                        jQuery('#tickMark2').show();
+                        jQuery('#apiresponse').show();
+                    } else {
+                        jQuery('#spinner2').hide();
+                        jQuery('#tickMark3').show();
+                        jQuery('#apiresponse').hide();
+                    }
+
+                    document.getElementById("text1").innerText = response.message;
+                    document.getElementById("text2").innerText = response.code;
+                    document.getElementById("text3").innerText = response.response_payload;
+                },
+                error: function(xhr, status, error) {
+                    jQuery('#spinner2').hide();
+                    jQuery('#tickMark3').show();
+                    jQuery('#apiresponse').hide();
+
+                    document.getElementById("text1").innerText = 'An error occurred while processing your request. Please try again.';
+                    document.getElementById("text2").innerText = '';
+                    document.getElementById("text3").innerText = '';
+                }
+            });
+        }
+    </script>
+
     @endpush
 </x-admin-layout>
