@@ -1,4 +1,14 @@
-<x-admin-layout >
+<x-partner-layout >
+    <style>
+        .user-panel .deposit-box {
+    text-align: center;
+    border-radius: 5px;
+    background: var(--white);
+    -webkit-box-shadow: var(--shadow);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+}
+    </style>
 
 <div class="row g-3 m-4">
     @foreach($gateways as $key => $gateway)
@@ -15,17 +25,21 @@
     @endforeach
 </div>
 
-@push('loadModal')
+{{-- @push('loadModal') --}}
 <!-- Deposit Modal -->
 
-<div class="modal fade" id="makeDeposit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="makeDepositLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
 
-                <h4>@lang('Make Deposit')</h4>
-                <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+
+
+
+            <div id="makeDeposit" class="modal modal-top fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+
+                        <div class="modal-header modal-colored-header bg-primary">
+                            <h5 class="modal-title" id="modalTopTitle">@lang('Make Deposit') </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
             <div id="general-error"></div>
             <div class="modal-body">
                 <form>
@@ -39,7 +53,7 @@
                                 <div class="input-group">
                                     <input type="text" class="amount form-control" required name="amount" autocomplete="off" placeholder="@lang('Amount')" @if($totalPayment !=null) value="{{$totalPayment}}" placeholder="@lang('Amount')" readonly @endif>
                                     <div class="input-group-append">
-                                        <span class="input-group-text show-currency"></span>
+                                        <span class="input-group-text show-currency">Bangladeshi Taka</span>
                                     </div>
                                 </div>
                             </div>
@@ -72,65 +86,49 @@
 </div>
 
 
-<!--<li class="list-group-item bg-transparent">@lang('Charge'):-->
-<!--                        <strong>${data.charge}</strong>-->
-<!--                </li>-->
-<!--                <li class="list-group-item bg-transparent">-->
-<!--                    @lang('Payable'): <strong> ${data.payable}</strong>-->
-<!--                </li>-->
-<!--                <li class="list-group-item bg-transparent">-->
-<!--                    @lang('Conversion Rate'): <strong>${data.conversion_rate}</strong>-->
-<!--                </li>-->
-<!--                <li class="list-group-item bg-transparent">-->
-<!--                    <strong>${data.in}</strong>-->
-<!--                </li>-->
 
-
-@endpush
+{{-- @endpush --}}
 
 @push('script')
 
 <script>
-    $('#loading').hide();
-    "use strict";
+    jQuery('#loading').hide();
+
     var id, minAmount, maxAmount, baseSymbol, fixCharge, percentCharge, currency, amount, gateway, name, qr_image;
-    $('.addFund').on('click', function() {
-        id = $(this).data('id');
-        name = $(this).data('name');
-        gateway = $(this).data('gateway');
-        minAmount = $(this).data('min_amount');
-        maxAmount = $(this).data('max_amount');
+    jQuery('.addFund').on('click', function() {
+        id = jQuery(this).data('id');
+        name = jQuery(this).data('name');
+        gateway = jQuery(this).data('gateway');
+        minAmount = jQuery(this).data('min_amount');
+        maxAmount = jQuery(this).data('max_amount');
         baseSymbol = "{{config('basic.currency_symbol')}}";
-        fixCharge = $(this).data('fix_charge');
-        percentCharge = $(this).data('percent_charge');
-        currency = $(this).data('currency');
-        qr_image = $(this).data('qr_image');
-        $('.depositLimit').text(`@lang('Transaction Limit:') <?= $min_deposit ?> - ${maxAmount}  ${baseSymbol}`);
+        fixCharge = jQuery(this).data('fix_charge');
+        percentCharge = jQuery(this).data('percent_charge');
+        currency = jQuery(this).data('currency');
+        qr_image = jQuery(this).data('qr_image');
+        jQuery('.depositLimit').text(`@lang('Transaction Limit:') <?= $min_deposit ?> - ${maxAmount}  ${baseSymbol}`);
 
         var depositCharge = `@lang('Charge:') ${fixCharge} ${baseSymbol}  ${(0 < percentCharge) ? ' + ' + percentCharge + ' % ' : ''}`;
-        $('.depositCharge').text(depositCharge);
+        jQuery('.depositCharge').text(depositCharge);
 
-        $('.method-name').text(`@lang('Payment By') ${$(this).data('name')} - ${currency}`);
-        $('.show-currency').text("{{config('basic.currency')}}");
-        $('.gateway').val(currency);
-
-        // amount
+        jQuery('.method-name').text(`@lang('Payment By') ${jQuery(this).data('name')} - ${currency}`);
+        jQuery('.show-currency').text("{{config('basic.currency')}}");
+        jQuery('.gateway').val(currency);
     });
 
-
-    $(".checkCalc").on('click', function() {
-        const $button = $(this);
+    jQuery(".checkCalc").on('click', function() {
+        const $button = jQuery(this);
         $button.prop('disabled', true);
-        $('#general-error').html('');
-        $('.payment-form').addClass('d-none');
-        $('#loading').show();
-        $('.modal-backdrop.fade').addClass('show');
+        jQuery('#general-error').html('');
+        jQuery('.payment-form').addClass('d-none');
+        jQuery('#loading').show();
+        jQuery('.modal-backdrop.fade').addClass('show');
 
-        amount = $('.amount').val();
-        account_no = $('.account_no').val();
+        amount = jQuery('.amount').val();
+        account_no = jQuery('.account_no').val();
         var username = <?= json_encode($username); ?>;
 
-        $.ajax({
+        jQuery.ajax({
             url: "{{route('partner.addFund.request.open')}}",
             type: 'POST',
             data: {
@@ -141,13 +139,10 @@
                 username
             },
             success(data) {
-                // console.log(data);
-
-                $('.payment-form').addClass('d-none');
-                $('.checkCalc').closest('.modal-footer').addClass('d-none');
+                jQuery('.payment-form').addClass('d-none');
+                jQuery('.checkCalc').closest('.modal-footer').addClass('d-none');
 
                 var htmlData = `
-
                      <ul class="list-group text-center text-white">
                         <li class="list-group-item bg-transparent">
                             <img class="w-100"src="${data.gateway_image}"
@@ -176,32 +171,24 @@
 
                         ${qr_image ? `
                         <li class="list-group-item bg-transparent">
-
-                            <a href="${data.payment_url}" class="btn btn-success line-h22   btn-block addFund ">@lang('Next')</a>
+                            <a href="${data.payment_url}" class="btn btn-success line-h22 btn-block addFund">@lang('Next')</a>
                         </li>` : `<li class="list-group-item bg-transparent">
-                        <a href="${data.payment_url}" class="btn btn-success line-h22   btn-block addFund ">@lang('Pay Now')</a>
+                        <a href="${data.payment_url}" class="btn btn-success line-h22 btn-block addFund">@lang('Pay Now')</a>
                         </li>`}
-
-
                         </ul>
-                        `;
+                `;
 
-                $('.payment-info').html(htmlData)
+                jQuery('.payment-info').html(htmlData);
             },
             complete: function() {
-                $('#loading').hide();
+                jQuery('#loading').hide();
                 $button.prop('disabled', false);
             },
             error(err) {
-
                 const errors = err.responseJSON;
-                // Clear the general error list
-                $('#general-error').html('');
-
-                // Build a list of errors
+                jQuery('#general-error').html('');
                 let errorHtml = '<ul class="text-danger">';
 
-                // Check if 'errors' exist in the response
                 if (errors.errors) {
                     for (const key in errors.errors) {
                         errors.errors[key].forEach(message => {
@@ -210,12 +197,10 @@
                     }
                 }
 
-                // Check for general 'error' key in the response
                 if (errors.error) {
                     errorHtml += `<li>${errors.error}</li>`;
                 }
 
-                // Check for directly returned fields like 'amount' in the response
                 if (errors.amount) {
                     errors.amount.forEach(message => {
                         errorHtml += `<li>${message}</li>`;
@@ -223,41 +208,36 @@
                 }
 
                 errorHtml += '</ul>';
-
-                // Display the errors
-                $('#general-error').html(errorHtml);
-
-                $('.payment-form').removeClass('d-none');
+                jQuery('#general-error').html(errorHtml);
+                jQuery('.payment-form').removeClass('d-none');
                 $button.prop('disabled', false);
             }
         });
     });
 
-
-    $('.close').on('click', function(e) {
-        $('#loading').hide();
-        $('.payment-form').removeClass('d-none');
-        $('.checkCalc').closest('.modal-footer').removeClass('d-none');
-        $('.payment-info').html(``)
-        $('.amount').val(``);
-        $("#addFundModal").modal("hide");
+    jQuery('.close').on('click', function(e) {
+        jQuery('#loading').hide();
+        jQuery('.payment-form').removeClass('d-none');
+        jQuery('.checkCalc').closest('.modal-footer').removeClass('d-none');
+        jQuery('.payment-info').html(``);
+        jQuery('.amount').val(``);
+        jQuery("#addFundModal").modal("hide");
     });
 </script>
 
 <script>
-    $(document).ready(function() {
+    jQuery(document).ready(function() {
         var clipboard = new ClipboardJS('#copyButton', {
             target: function() {
                 return document.getElementById('accountNumber');
             }
         });
 
-
         clipboard.on('success', function(e) {
             e.clearSelection();
-            $('#copyButton').text('Copied');
-            $('#copyButton').addClass('disabled');
-            $('#copyButton').prop('disabled', true);
+            jQuery('#copyButton').text('Copied');
+            jQuery('#copyButton').addClass('disabled');
+            jQuery('#copyButton').prop('disabled', true);
         });
 
         clipboard.on('error', function(e) {
@@ -265,7 +245,8 @@
         });
     });
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
 
 @endpush
-</x-admin-layout>
+</x-partner-layout>

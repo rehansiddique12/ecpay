@@ -1,7 +1,7 @@
-<x-admin-layout >
+<x-partner-layout >
 
 <center>
-    <div class="w-full h-full" style="margin-top:10%">
+    <div class="w-full h-full" style="margin-top:10%; margin-bottom:10%">
         <div class="row ">
             <div class="col-md-6">
                 <a href="deposit">
@@ -27,4 +27,4 @@
 
 @push('script')
 @endpush
-</x-admin-layout>
+</x-partner-layout>

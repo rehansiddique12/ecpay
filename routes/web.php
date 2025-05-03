@@ -399,7 +399,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
 
 
-        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile')->middleware('permission:profile');;
+        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');

@@ -1,4 +1,14 @@
-<x-admin-layout >
+<x-partner-layout >
+    <style>
+        .user-panel .deposit-box {
+    text-align: center;
+    border-radius: 5px;
+    background: var(--white);
+    -webkit-box-shadow: var(--shadow);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+}
+    </style>
 
 <div class="row g-3 m-3">
     @foreach($gateways as $key => $gateway)
@@ -15,7 +25,7 @@
     @endforeach
 </div>
 
-@push('loadModal')
+{{-- @push('loadModal') --}}
 <div id="makeDeposit" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -41,7 +51,7 @@
                                     <input type="text" hidden value="{{$username}}" class="amount form-control" name="username">
                                     <input type="text" class="amount form-control" name="amount">
                                     <div class="input-group-append">
-                                        <span class="input-group-text show-currency"></span>
+                                        <span class="input-group-text show-currency">Bangladeshi Taka</span>
                                     </div>
                                 </div>
                                 @error('amount')
@@ -58,7 +68,7 @@
         </div>
     </div>
 </div>
-@endpush
+{{-- @endpush --}}
 
 
 @push('script')
@@ -102,4 +112,4 @@
     }
 </script>
 @endpush
-</x-admin-layout>
+</x-partner-layout>
