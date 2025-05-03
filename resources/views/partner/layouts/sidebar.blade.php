@@ -6,6 +6,7 @@ Request::routeIs('admin.balance.logs');
 
 $isMainActive = in_array(Route::currentRouteName(), [
 'partner.dashboard',
+'partner.partner.methods.get'
 ]);
 
 @endphp
@@ -164,6 +165,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
                             </li>
+                            
 
                     </li>
                 </ul>

@@ -32,7 +32,8 @@
                 </div>
 
 
-                <div class="col-md-5">
+               <div class="row">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label>Adjustment Type</label>
                         <select name="adjustment" class="form-control">
@@ -52,10 +53,10 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <br>
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="fas fa-search"></i> @lang('Search')</button>
+                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     </div>
                 </div>
+               </div>
 
             </div>
         </form>

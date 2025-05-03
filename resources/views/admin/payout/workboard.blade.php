@@ -45,6 +45,10 @@
             background-color: #504c79;
 
         }
+
+        #closeModal:hover{
+            background-color: rgba(97, 96, 96, 0.137)
+        }
     </style>
     <div class="container-xxl flex-grow-1 container-p-y">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
@@ -75,7 +79,7 @@
                                     <div class="d-flex gap-3 text-white">
                                         <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
                                         <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        <button type="button" class="btn-close" id="closeModal" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
                                 </div>
@@ -129,7 +133,7 @@
                                     <div class="d-flex gap-3 text-white">
                                         <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
                                         <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        <button type="button" class="btn-close" id="closeModal" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
                                 </div>
@@ -182,7 +186,7 @@
                                     <div class="d-flex gap-3 text-white">
                                         <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
                                         <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        <button type="button" id="closeModal" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
                                 </div>
@@ -225,7 +229,7 @@
                                     <div class="d-flex gap-3 text-white">
                                         <!-- Icons will need to be replaced with inline SVG or blade-friendly components -->
                                         <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        <button type="button" id="closeModal" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
                                 </div>
@@ -359,7 +363,7 @@
                 <!-- Right Panel -->
                 <div class="right-panel">
                     <div class="bg-[#504c79] w-full py-3  px-4 justify-content-between items-center text-White"
-                        style="margin-top: 3.6rem; background-color: #504c79;">
+                        style="margin-top: 1.7rem; background-color: #504c79;">
                         <div class="d-flex gap-4 mb-3">
                             <button class=" px-4 btn btn-sm"
                                 style="background-color: rgb(45, 199, 58); color: white; border: none; cursor: pointer;">BKASH
@@ -385,7 +389,7 @@
                         style="background-color: #504c79;">
                         <p>Warning!! bKash 0128885568 <br>balance is low.</p>
                         <div>
-                            <button type="button" class="btn-close " style="margin-left: 3rem;"
+                            <button type="button" id="closeModal" class="btn-close " style="margin-left: 3rem;"
                                 data-bs-dismiss="modal" aria-label="Close"></button>
                             <p>1 mint ago</p>
                         </div>
@@ -394,7 +398,7 @@
                         style="background-color: #504c79;">
                         <p>Warning!! bKash 0128885568 <br>balance is low.</p>
                         <div>
-                            <button type="button" class="btn-close " style="margin-left: 3rem;"
+                            <button type="button" id="closeModal" class="btn-close " style="margin-left: 3rem;"
                                 data-bs-dismiss="modal" aria-label="Close"></button>
                             <p>1 mint ago</p>
                         </div>

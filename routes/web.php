@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PayoutRecordController;
+use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\TelegramGroupController;
 use App\Http\Controllers\Admin\UsersController;
@@ -156,17 +157,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/admin/merchant-reports/exports/{from_date?}', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
 
         // Partner Commission
-<<<<<<< HEAD
         Route::get('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.commissions');
         Route::post('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class,'exportCommissions'])->name('commissions.export');
         Route::get('/api/export-profile/{id}', [PayoutRecordController::class,'exportprofile'])->name('api.profile.export');
-=======
         Route::get('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
         Route::post('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class, 'exportCommissions'])->name('commissions.export');
         Route::get('/api/export-profile/{id}', [PayoutRecordController::class, 'exportprofile'])->name('api.profile.export');
->>>>>>> 85922afaf743b18ace4e5650923c1dfcdea0954c
         Route::post('/apis/{id}/generate-password', [PayoutRecordController::class, 'generatePassword'])->name('apis.generatePassword');
         Route::get('/adjustments', [PayoutRecordController::class, 'adjustments'])->name('adjustments');
         Route::get('adjustments/search', [PayoutRecordController::class, 'adjustmentSearch'])->name('adjustments.search');
@@ -191,7 +189,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/api/commissions/detail/{id}', [PayoutRecordController::class, 'apiCommissionsDetail'])->name('api.commissions.detail');
         Route::get('/api/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
-        Route::post('/apis/balance/add', [PayoutRecordController::class, 'apis/balance/add'])->name('apis.balance.add');
+        Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
         Route::post('/apis/commission/add', [PayoutRecordController::class, 'apisCommissionAdd'])->name('apis.commission.add');
 
         Route::get('/apis/balance/add', [PayoutRecordController::class, 'apisBalanceAddGet'])->name('apis.balance.add.get');
@@ -339,6 +337,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
 
 
+
+
+
     });
 
     // User Location Routes
@@ -353,11 +354,25 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::post('/', [PartnerLoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:partner', 'permission_partner']], function () {
+    Route::group(['middleware' => ['auth:partner']], function () {
         Route::get('/dashboard', [PartnerDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/twoFA', [PartnerDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [PartnerDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
         Route::get('/twoFA/disable', [PartnerDashboardController::class, 'disableTwoFA'])->name('twoFA.disable');
+        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile');
+        Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
+        Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
+        Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
+        Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
+
+        Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
+        Route::get('/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('depositFund');
+        Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('addFund.request.open');
+
+
+
+        Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
+        Route::post('/withdraw/transection', [PayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
 
         // Route::get('merchant/report_by_date', [MerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
         // Route::get('merchant-reports/export', [MerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
@@ -368,14 +383,10 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         // Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
         // Route::get('merchant-reports/export_month', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
 
-    });
-    Route::group(['middleware' => ['auth:partner']], function () {
 
-        Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile');
-        Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
-        Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
-        Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
-        Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
+
+
+
     });
 
 });

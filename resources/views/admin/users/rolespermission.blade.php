@@ -3,6 +3,13 @@
         .fa-ellipsis-v:before {
             content: "\f142";
         }
+
+        .custom-checkbox input[type="checkbox"] {
+            filter: invert(100%)  brightness(1.7);
+      width: 20px;
+      height: 20px;
+
+    }
     </style>
     @php
         $currentRoute = Route::currentRouteName();
@@ -50,40 +57,10 @@
                         <div class="col-md-3">
                             <input type="text" class="form-control" placeholder="Enter Category">
                         </div>
-
-                        {{-- <div className="grid grid-cols-2 gap-10">
-                            <div className="mt-5">
-                              <div className="grid grid-cols-2 mr-15">
-                                <div className=" space-y-4 text-[#5C6584]">
-                                  <p>Full Name</p>
-                                  <p>Status</p>
-                                  <p>Domain</p>
-                                </div>
-                                <div className=" font-bold space-y-4 ">
-                                  <p>Salman</p>
-                                  <p>Active</p>
-                                  <p>SlamanBhaigmail.com</p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className=" mt-5">
-                              <div className="grid grid-cols-2 mr-15">
-                                <div className="space-y-4 text-[#5C6584]">
-                                  <p>Gender</p>
-                                  <p>Reason</p>
-                                </div>
-                                <div className="font-bold space-y-4 ml-2">
-                                  <p>Male</p>
-                                  <p>Accepted Email</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div> --}}
-
                           <div class="grid grid-cols-5  d-flex justify-content-between mt-10 p-8" style="background-color: rgba(124, 137, 170, 0.404)">
                             <div >
                                 <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">Permissions</label>
-                               <div class="d-flex flex-column gap-5">
+                               <div class="d-flex flex-column gap-6">
                                 <p>User Management</p>
                                 <p>Merchant Management</p>
                                 <p>Agent Management</p>
@@ -111,288 +88,288 @@
                             <div >
                                 <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">View</label>
                                 <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
 
                                 </div>
                             </div>
                             <div>
                                 <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">Add</label>
                                 <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
 
                                 </div>
                             </div>
                             <div>
                                 <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">Edit</label>
                                 <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
 
                                 </div>
                             </div>
                             <div>
                                 <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4 ">Delete</label>
                                 <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
-                                    <div class="d-flex flex-row justify-content-center items-center">
-                                        <input type="checkbox" name="view" id="view" style="width: 20px; height: 20px;" >
-                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
+                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
+                                        <input type="checkbox" name="view" id="view">
+                                      </div>
 
                                 </div>
                             </div>

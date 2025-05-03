@@ -65,13 +65,16 @@
         Request::routeIs('admin.balance.logs') ||
         Request::routeIs('');
 
-    $isMainActive = in_array(Route::currentRouteName(), [
-        'admin.dashboard',
-        'admin.staff',
-        'admin.groups',
-        'admin.parant',
-        'admin.workboard',
-    ]);
+    // $isMainActive = in_array(Route::currentRouteName(), [
+    //     'admin.dashboard',
+    //     'admin.staff',
+    //     'admin.groups',
+    //     'admin.parant',
+    //     'admin.workboard',
+    // ]);
+    // $isPartherActive = in_array(Route::currentRouteName(), [
+    //     'partner.partner.methods.get',
+    // ]);
     $isTransactionActive = in_array(Route::currentRouteName(), [
         'admin.payment.log',
         'admin.payment.apiLog',
