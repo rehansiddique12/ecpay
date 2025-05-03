@@ -124,7 +124,7 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <button type="submit" class="btn waves-effect waves-light btn-primary">
-                            <i class="fas fa-search" style="margin-right: 10px;"></i> @lang('Search')
+                            <i class="icon-base ti tabler-search me-1"></i> @lang('Search')
                         </button>
                     </div>
                 </div>

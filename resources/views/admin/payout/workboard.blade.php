@@ -51,6 +51,10 @@
             background-color: #504c79;
 
         }
+
+        #closeModal:hover{
+            background-color: rgba(97, 96, 96, 0.137)
+        }
     </style>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">

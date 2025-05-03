@@ -2821,18 +2821,19 @@ class PayoutRecordController extends Controller
 
 
     public function settlements()
-{
-    $records = Settlement::with('api')->latest('id')->paginate(10);
+    {
+        $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
 
-    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-        ->groupBy('source_name')
-        ->get();
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
 
-    $pageTitle = "Partners Settlements History";
-    $partners = Api::where('type', 'Admin')->get();
+        $pageTitle = "Partners Settlements History";
+        $partners = Api::where('type', 'Admin')->get();
 
-    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
-}
+        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+    }
+
 
 
 

@@ -74,7 +74,7 @@
             <div class="col-md-4 mt-3">
                 <div class="form-group">
                     <br>
-                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="fas fa-search" style="margin-right: 10px;"></i> @lang('Search')</button>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                 </div>
             </div>
 
@@ -217,7 +217,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label class="pr-3">Source Name</label>
                             <input type="text" class="form-control" name="source_name" required />
