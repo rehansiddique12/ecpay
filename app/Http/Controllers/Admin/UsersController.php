@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Api;
 use App\Models\User;
+use App\Models\Admin;
 use App\Models\Language;
 use App\Models\PayoutLog;
-use App\Models\UserLocation;
 use App\Models\UserRoles;
+use App\Models\UserLocation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Api;
 
 class UsersController extends Controller
 {
