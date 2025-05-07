@@ -93,7 +93,7 @@ public function profileUpdate(Request $request)
     $user->phone = $req['phone'];
     $user->address = $req['address'];
     $user->save();
-    $user->syncRoles(['Admin']);
+    // $user->syncRoles(['Admin']);
 
     return back()->with('success', 'Profile Updated Successfully.');
 }
@@ -132,4 +132,27 @@ public function profileUpdate(Request $request)
 
         return back()->with('success', 'Password has been changed.');
     }
+
+    public function forbidden()
+    {
+        $user = Auth::guard('admin')->user();
+        // Get full role config
+        $roleConfig = collect(config('role'));
+
+        // Flatten all route names under 'access' keys
+        $allAccessibleRoutes = $roleConfig->pluck('access')->flatten();
+
+        // Intersect with user's permissions
+        $userPermissions = collect($user->admin_access);
+        $accessibleRoutes = $allAccessibleRoutes->intersect($userPermissions);
+
+        // Get the first accessible route (if any)
+        $firstRouteName = $accessibleRoutes->first();
+
+        $redirectUrl = $firstRouteName ? route($firstRouteName) : url('/admin/dashboard');
+
+        $pageTitle  = 'You Don\'t have  permission to access this page';
+        return view('admin.errors.403' ,compact('pageTitle' , 'redirectUrl'));
+    }
+
 }

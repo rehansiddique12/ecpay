@@ -566,8 +566,24 @@
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                     <a class="nav-link dropdown-toggle hide-arrow p-0" href="profile" data-bs-toggle="dropdown">
                         <div class="avatar avatar-online">
-                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
-                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+
+                            @php
+                            use Illuminate\Support\Facades\File;
+
+                            $user = Auth::user();
+                            $imagePath = public_path('uploads/admin/' . $user->image);
+                        @endphp
+
+                        @auth
+                            @if (!empty($user->image) && File::exists($imagePath))
+                                <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                     alt="{{ $user->name }}" class="rounded-circle" />
+                            @else
+                                <!-- Optional: Show placeholder -->
+                                <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar" class="rounded-circle" />
+                            @endif
+                        @endauth
+
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -576,8 +592,24 @@
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-2">
                                         <div class="avatar avatar-online">
-                                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
-                                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+
+                                            @php
+                                            // use Illuminate\Support\Facades\File;
+
+                                            $user = Auth::user();
+                                            $imagePath = public_path('uploads/admin/' . $user->image);
+                                        @endphp
+
+                                        @auth
+                                            @if (!empty($user->image) && File::exists($imagePath))
+                                                <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                                     alt="{{ $user->name }}" class="rounded-circle" />
+                                            @else
+                                                <!-- Optional: Show placeholder -->
+                                                <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar" class="rounded-circle" />
+                                            @endif
+                                        @endauth
+
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">

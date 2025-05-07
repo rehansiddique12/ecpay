@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
+    Route::get('/403', [AdminDashboardController::class, 'forbidden'])->name('403');
 
     Route::middleware(['guest:admin'])->group(function () {
         Route::get('/', [LoginController::class, 'showLoginForm'])->name('loginfrom');
@@ -109,9 +110,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     });
 
     Route::group(['middleware' => ['auth:admin']], function () {
-        Route::resource('roles',RoleController::class);
-        Route::resource('permissions', PermissionController::class);
-        Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
+        // Route::resource('roles',RoleController::class);
+        // Route::resource('permissions', PermissionController::class);
+        // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
         Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -280,10 +281,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/password', [AdminDashboardController::class,'password'])->name('password');
         Route::put('/password', [AdminDashboardController::class,'passwordUpdate'])->name('passwordUpdate');
         // Roles Catgory Routs:
-        Route::post('roles/add', [UsersController::class, 'addRole'])->name('roles.add');
-        Route::delete('roles/{id}', [UsersController::class, 'deleteRole'])->name('roles.delete');
+        // Roles Catgory Routs:
+        Route::post('roles/copy', [UsersController::class, 'copyRole'])->name('roles.copy');
+        Route::delete('roles/delete', [UsersController::class, 'deleteRole'])->name('roles.delete');
         Route::put('rolescategory/{id}', [UsersController::class, 'updateRole'])->name('roles.update');
         Route::get('/rolescategory', [UsersController::class, 'rolesCategory'])->name('rolescategory');
+        Route::post('/rolescategory', [UsersController::class, 'addRole'])->name('roles.add');
+        Route::get('roles/list', [UsersController::class, 'getRoles'])->name('roles.list');
 
         Route::get('payment/log', [PaymentLogController::class, 'index'])->name('payment.log');
         Route::get('payment/search', [PaymentLogController::class, 'search'])->name('payment.search');

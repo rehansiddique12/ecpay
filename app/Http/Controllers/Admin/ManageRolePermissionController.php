@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Admin;
+use App\Models\UserRoles;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
@@ -11,102 +12,19 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ManageRolePermissionController extends Controller
 {
-    // public function staff()
-    // {
-    //     $pageTitle  = 'Manage Admin & Permission';
-    //     $admins = Admin::select('id','username','email','phone','status')->where('id','!=',auth()->guard('admin')->id()) ->paginate(10);;
-    //     // $data['admins'] = Admin::get();
-
-    //     return view('admin.staff.index', compact('admins' , 'pageTitle'));
-    // }
-    // public function staff(Request $request)
-    // {
-    //     $pageTitle = 'Manage Admin & Permission';
-
-    //     // Check if the user has the 'view' permission
-    //     if (!adminAccessRoute(config('role.manage_staff.access.view'))) {
-    //         abort(403, 'Unauthorized');
-    //     }
-
-    //     // Handle DataTables AJAX request
-    //     if ($request->ajax()) {
-    //         // Get the page length, start, and draw from DataTables request
-    //         $start = $request->input('start');
-    //         $length = $request->input('length');
-    //         $search = $request->input('search')['value'];
-
-    //         // Query with pagination, search, and sorting
-    //         $adminsQuery = Admin::select('id','name', 'username', 'email', 'phone', 'status', 'admin_access')
-    //                             ->where('id', '!=', auth()->guard('admin')->id()) // Exclude the logged-in admin
-    //                             ->when($search, function ($query, $search) {
-    //                                 return $query->where('username', 'like', "%{$search}%")
-    //                                             ->orWhere('email', 'like', "%{$search}%");
-    //                             });
-
-    //         // Get the total records for pagination
-    //         $totalRecords = $adminsQuery->count();
-
-    //         // Apply pagination
-    //         $admins = $adminsQuery->offset($start) // Set the starting point for pagination
-    //                             ->limit($length) // Set the page length
-    //                             ->get();
-
-    //         // Map the data for DataTables formatting
-    //         $data = $admins->map(function ($admin) {
-    //             // Generate the update route with the user ID
-    //             $updateRoute = route('admin.updateStaff', $admin->id); // Use the Laravel route helper
-
-    //             // Generate the action column with the edit button
-    //             return [
-    //                 'DT_RowIndex' => $admin->id,
-    //                 'username' => $admin->username,
-    //                 'email' => $admin->email,
-    //                 'phone' => $admin->phone,
-    //                 'status' => $admin->status == 1
-    //                     ? '<span class="badge bg-success">Active</span>'
-    //                     : '<span class="badge bg-danger">Deactive</span>',
-    //                 'action' => adminAccessRoute(config('role.manage_staff.access.edit'))
-    //                     ? '<button class="btn btn-primary btn-sm editAdminBtn"
-    //                                 data-id="' . $admin->id . '"
-    //                                 data-name="' . $admin->name . '"
-    //                                 data-username="' . $admin->username . '"
-    //                                 data-email="' . $admin->email . '"
-    //                                 data-phone="' . $admin->phone . '"
-    //                                 data-status="' . $admin->status . '"
-    //                                 data-admin-access=\'' . json_encode($admin->admin_access) . '\'
-    //                                 data-route="' . $updateRoute . '"
-    //                                 data-bs-toggle="modal" data-bs-target="#editUserModal">
-    //                             <i class="fa fa-edit"></i> Edit
-    //                         </button>'
-    //                     : ''
-    //             ];
-    //         });
-
-    //         // Return the formatted data
-    //         return response()->json([
-    //             'draw' => $request->input('draw'),
-    //             'recordsTotal' => $totalRecords,
-    //             'recordsFiltered' => $totalRecords, // In this case, we're showing all records after search
-    //             'data' => $data
-    //         ]);
-    //     }
-
-    //     // Normal return when not AJAX
-    //     return view('admin.staff.index', compact('pageTitle'));
-    // }
     public function staff(Request $request)
     {
         $pageTitle = 'Manage Admin & Permission';
 
         // Check if the user has the 'view' permission
-        if (!adminAccessRoute(config('role.manage_staff.access.view'))) {
-            abort(403, 'Unauthorized');
-        }
+        // if (!adminAccessRoute(config('role.manage_staff.access.view'))) {
+        //     abort(403, 'Unauthorized');
+        // }
 
         // Handle DataTables AJAX request
         if ($request->ajax()) {
             // Prepare the query for Admins
-            $admins = Admin::select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access']);
+            $admins = Admin::select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type']);
 
             // Process the DataTables response with pagination, search, etc.
             return DataTables::of($admins)
@@ -124,6 +42,7 @@ class ManageRolePermissionController extends Controller
                             data-email="' . $admin->email . '"
                             data-phone="' . $admin->phone . '"
                             data-status="' . $admin->status . '"
+                            data-role-type="' . $admin->role_type . '"
                             data-admin-access=\'' . json_encode($admin->admin_access) . '\'
                             data-route="' . $updateRoute . '"
                             data-bs-toggle="modal" data-bs-target="#editUserModal">
@@ -133,9 +52,10 @@ class ManageRolePermissionController extends Controller
                 ->rawColumns(['status', 'action'])
                 ->make(true);  // Return the paginated data as expected by DataTables
         }
+        $list_roles = UserRoles::where('used_for', 'Admin')->get();
 
         // Normal return when not AJAX
-        return view('admin.staff.index', compact('pageTitle'));
+        return view('admin.staff.index', compact('pageTitle', 'list_roles'));
     }
 
 
@@ -152,18 +72,25 @@ class ManageRolePermissionController extends Controller
             'access' => 'array',
         ]);
 
+        $find_role = UserRoles::where('id', $request->role_type)->first();
+        if (!$find_role) {
+            return response()->json(['success' => false, 'message' => 'Role not found.']);
+        }
+
         // Create new admin instance
         $admin = new Admin();
         $admin->name = $request->name;
         $admin->username = $request->username;
         $admin->email = $request->email;
         $admin->phone = $request->phone;
+        $admin->role_type = $find_role->name;
+        $admin->admin_access = $find_role->admin_access;
 
         // Hash the password
         $admin->password = Hash::make($request->password);
 
         // Handle admin access permissions if available
-        $admin->admin_access = $request->has('access') ? explode(',', implode(',', $request->access)) : [];
+        // $admin->admin_access = $request->has('access') ? explode(',', implode(',', $request->access)) : [];
 
         // Set status
         $admin->status = $request->status;
@@ -175,7 +102,7 @@ class ManageRolePermissionController extends Controller
         // session()->flash('success', 'Added Successfully');
 
         // Redirect (adjust the route as necessary)
-        return response()->json(['success' => true , 'message' => 'Admin Successfully Added.']);
+        return response()->json(['success' => true, 'message' => 'Admin Successfully Added.']);
     }
 
     public function updateStaff(Request $request, Admin $admin)
@@ -199,9 +126,10 @@ class ManageRolePermissionController extends Controller
             'update-access' => 'Access',
         ]);
 
-
-        // Prepare admin_access array
-        $admin_access = (isset($request->update_access)) ? explode(',', join(',', $request->update_access)) : [];
+        $find_role = UserRoles::where('name', $request->role_type_edit)->first();
+        if (!$find_role) {
+            return response()->json(['success' => false, 'message' => 'Role not found.']);
+        }
 
         try {
             // Update the admin record
@@ -211,10 +139,10 @@ class ManageRolePermissionController extends Controller
                 'email' => $validated['update-email'],
                 'phone' => $validated['update-phone'] ?? null,
                 'password' => $request->filled('update-password') ? Hash::make($validated['update-password']) : $admin->password,
-                'admin_access' => $admin_access,
+                'role_type' => $find_role->name,
+                'admin_access' => $find_role->admin_access,
                 'status' => $validated['update-status'],
             ]);
-            $admin->syncRoles(['Admin']);
 
             return response()->json([
                 'success' => true,
@@ -228,8 +156,4 @@ class ManageRolePermissionController extends Controller
             ], 500);
         }
     }
-
-
-
-
 }
