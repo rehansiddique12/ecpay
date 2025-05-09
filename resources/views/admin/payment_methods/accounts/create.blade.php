@@ -124,9 +124,9 @@ label{
                                 <div class="form-group col-md-4">
                                     <label>Type</label>
                                     <select class="form-control" name="type" required>
-                                        <option value="Bank">Bank</option>
-                                        <option value="E-Wallet">E-Wallet</option>
-                                        <option value="Crypto">Crypto</option>
+                                    @foreach($records as $type)
+                                        <option value="{{$type->id ?? ''}}">{{$type->name ?? ''}}</option>
+                                    @endforeach
                                     </select>
                                 </div>
                                 {{-- <div class="form-group col-md-4">
@@ -366,10 +366,7 @@ label{
                           <div class="d-flex gap-5">
                             <button type="submit" class="btn btn-rounded btn-primary btn-block mt-6">@lang('Save Changes')</button>
                             <div class="col-lg-3 col-md-6">
-                                <div class="form-group">
-                                    <a href="javascript:void(0)" class="btn btn-success float-right mt-3 " id="generate"><i
-                                            class="fa fa-plus-circle"></i> {{trans('Add Field')}}</a>
-                                </div>
+                               
                             </div>
                           </div>
                         </form>

@@ -741,12 +741,12 @@
                     </li>
 
                         <ul class="menu-sub">
-                            <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
+                            <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts.add') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Add Accounts">Add Accounts</div>
                                 </a>
-                            </li>
+                            </li> -->
                             <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -759,6 +759,7 @@
                                     <div data-i18n="Account Balance">Account Balance</div>
                                 </a>
                             </li>
+                           
                             <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -788,12 +789,13 @@
                     </a>
 
                     <ul class="menu-sub">
-                        <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
+                        <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Add Accounts">Add Accounts</div>
                             </a>
-                        </li>
+                        </li> -->
+                        
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.groups' ? 'active' : '' }}">
                             <a href="{{ route('admin.groups') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -812,6 +814,12 @@
                                 <div data-i18n="Account Balance">Account Balance</div>
                             </a>
                         </li>
+                         <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
+                                <a href="{{ route('admin.accounts.management') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Account Management">Account Management</div>
+                                </a>
+                            </li>
                         <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
