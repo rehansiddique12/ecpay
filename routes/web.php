@@ -122,10 +122,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
+        Route::get('/get-api-balance/{id}', function ($id) {
+            $api = \App\Models\Api::find($id);
+            return response()->json(['balance' => $api ? $api->balance : 0]);
+        });
+
 
         // accounts details
-        Route::get('/categories', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
-        Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
+        Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
+        Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
         Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
 
@@ -218,6 +223,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/create', [PayoutRecordController::class, 'createAccount'])->name('accounts.create');
         Route::put('/accounts/update/{id}', [PayoutRecordController::class, 'updateAccount'])->name('accounts.update');
         Route::post('/accounts/charges/add', [PayoutRecordController::class, 'accountChargesAdd'])->name('accounts.charges.add');
+        Route::get('/accounts/group', [PayoutRecordController::class, 'accountGroupList'])->name('accounts.group.add');
+
+        // Accunt groups 
+        Route::post('/accounts/addpairs', [PayoutRecordController::class, 'addAccountPairs'])->name('accounts.addpairs');
+        Route::post('/updateaccount-status', [PayoutRecordController::class, 'updateaccountStatus'])->name('update.accstatus');
 
         Route::get('/merchant', [PayoutRecordController::class, 'merchant'])->name('merchant');
         Route::post('/merchant/add', [PayoutRecordController::class, 'merchantAdd'])->name('merchant.add');
@@ -335,6 +345,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/deposit/testp', [PayoutRecordController::class, 'depositTestp'])->name('deposit.testp');
         Route::post('/accounts/withdrawal/test', [PayoutRecordController::class, 'withdrawalTest'])->name('withdrawal.test');
         Route::post('/accounts/withdrawal/testp', [PayoutRecordController::class, 'withdrawalTestp'])->name('withdrawal.testp');
+        Route::post('/accounts-management', [PayoutRecordController::class, 'eWalletAccountsAdd'])->name('accounts.management');
+
 
         Route::get('merchant-profile/{id}', [MerchantController::class, 'profile'])->name('merchant.profile');
         Route::get('merchant-logs/{id}', [MerchantController::class, 'mechantlogs'])->name('merchant.logs');

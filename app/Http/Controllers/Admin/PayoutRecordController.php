@@ -7,6 +7,7 @@ use App\Models\Log;
 use App\Models\Api;
 use App\Models\Payout;
 use App\Models\ApiHit;
+use App\Models\AccountGroup;
 use App\Models\Payment;
 use App\Models\EWalletLog;
 use App\Models\AccountLog;
@@ -2630,68 +2631,97 @@ class PayoutRecordController extends Controller
     public function addAccount()
     {
         $pageTitle = "Create Account";
-        return view('admin.payout.create_account', compact('pageTitle'));
+        $categories = Category::where('status','1')->get();
+        $accounts = AccountGateway::where('status','1')->get();
+        return view('admin.payout.create_account', compact('pageTitle','categories','accounts'));
     }
-
-
 
     public function createAccount(Request $request)
     {
+        dd($request);
 
-
-        $validator = Validator::make($request->all(), [
-            'e_wallet_name' => 'required|string',
-            'account_no' => 'required|string',
-            'type' => 'required|string',
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'account_id' => 'required',
+            'currency' => 'required|string',
             'daily_limit' => 'nullable|numeric',
             'monthly_limit' => 'nullable|numeric',
-            'status' => 'required|numeric',
+            'daily_limit_withdrawal' => 'nullable|numeric',
+            'monthly_limit_withdrawal' => 'nullable|numeric',
+            'daily_deposit_transaction' => 'nullable|numeric',
+            'daily_withdrawl_transaction' => 'nullable|numeric',
+            'monthly_deposit_transaction' => 'nullable|numeric',
+            'monthly_withdrawl_transaction' => 'nullable|numeric',
+            'cool_downtime' => 'nullable|numeric',
+            'max_amount_per' => 'nullable|numeric',
+            'min_amount_per' => 'nullable|numeric',
+            'time_slots' => 'nullable|array',
+            'time_slots.*' => 'string',
+            'deposit_daily_limit_percentage' => 'nullable|numeric|min:1|max:100',
+            'withdrawl_daily_limit_percentage' => 'nullable|numeric|min:1|max:100',
+            'deposit_monthly_limit_percentage' => 'nullable|numeric|min:1|max:100',
+            'withdrawal_monthly_limit_percentage' => 'nullable|numeric|min:1|max:100',
+            'low_balance_amount' => 'nullable|numeric|min:1',
+            'e_wallet_name' => 'required|array',
+            'device_name' => 'required|array',
+            'account_number' => 'required|array',
+            'account_group' => 'required|array',
+            'account_type' => 'required|array',
+            'in_out' => 'required|array',
+            'location' => 'required|array',
+            'image' => 'nullable|image|max:2048',
         ]);
-
-        $newAccount = new EWalletAccount;
-
-        $newAccount->e_wallet_name = $request->e_wallet_name;
-        $newAccount->account_no = $request->account_no;
-        $newAccount->type = $request->type;
-        $newAccount->daily_limit = $request->daily_limit;
-        $newAccount->monthly_limit = $request->monthly_limit;
-        $newAccount->status = $request->status;
-        $newAccount->account_type = $request->account_type;
-
-        $newAccount->daily_limit_withdrawal = $request->daily_limit_withdrawal;
-        $newAccount->monthly_limit_withdrawal = $request->monthly_limit_withdrawal;
-        $newAccount->apply_time_limit = $request->apply_time_limit;
-
-        if ($request->apply_time_limit == 1) {
-            $newAccount->from_time = $request->from_time;
-            $newAccount->to_time = $request->to_time;
-        }
-
-        $newAccount->deposit_daily_limit_percentage = $request->deposit_daily_limit_percentage;
-        $newAccount->withdrawal_daily_limit_percentage = $request->withdrawal_daily_limit_percentage;
-        $newAccount->deposit_monthly_limit_percentage = $request->deposit_monthly_limit_percentage;
-        $newAccount->withdrawal_monthly_limit_percentage = $request->withdrawal_monthly_limit_percentage;
-
-
-        if ($request->filled('max_withdrawal_amount')) {
-            $newAccount->max_withdrawal_amount = $request->max_withdrawal_amount;
-        }
-
-        if ($request->hasFile('image')) {
-
-            try {
-                $newAccount->image = $this->uploadImage($request->image, config('location.withdraw.path'), config('location.withdraw.size'));
-            } catch (\Exception $exp) {
-                return back()->with('error', 'Image could not be uploaded.');
+        if ($request->has('e_wallet_name')) {
+            foreach ($request->e_wallet_name as $index => $walletName) {
+                $newAccount = new EWalletAccount;
+                $newAccount->category_id = $request->category_id;
+                $newAccount->account_id = $request->account_id;
+                $newAccount->currency = $request->currency;
+                $newAccount->daily_limit = $request->daily_limit;
+                $newAccount->monthly_limit = $request->monthly_limit;
+                $newAccount->daily_limit_withdrawal = $request->daily_limit_withdrawal;
+                $newAccount->monthly_limit_withdrawal = $request->monthly_limit_withdrawal;
+                $newAccount->daily_deposit_transaction = $request->daily_deposit_transaction;
+                $newAccount->daily_withdrawl_transaction = $request->daily_withdrawl_transaction;
+                $newAccount->monthly_deposit_transaction = $request->monthly_deposit_transaction;
+                $newAccount->monthly_withdrawl_transaction = $request->monthly_withdrawl_transaction;
+                $newAccount->cool_downtime = $request->cool_downtime;
+                $newAccount->max_amount_per = $request->max_amount_per;
+                $newAccount->min_amount_per = $request->min_amount_per;
+                $newAccount->time_slots = json_encode($request->time_slots ?? []);
+                $newAccount->deposit_daily_limit_percentage = $request->deposit_daily_limit_percentage;
+                $newAccount->withdrawal_daily_limit_percentage = $request->withdrawl_daily_limit_percentage;
+                $newAccount->deposit_monthly_limit_percentage = $request->deposit_monthly_limit_percentage;
+                $newAccount->withdrawal_monthly_limit_percentage = $request->withdrawal_monthly_limit_percentage;
+                $newAccount->low_balance_amount = $request->low_balance_amount;
+                $newAccount->e_wallet_name = $walletName;
+                $newAccount->device_name = $request->device_name[$index] ?? null;
+                $newAccount->account_no = $request->account_number[$index] ?? null;
+                $newAccount->account_group_id = $request->account_group[$index] ?? null;
+                $newAccount->type = $request->account_type[$index] ?? null;
+                $newAccount->in_out = $request->in_out[$index] ?? null;
+                $newAccount->location = $request->location[$index] ?? null;
+    
+                if ($request->hasFile('image')) {
+                    try {
+                        $newAccount->image = $this->uploadImage(
+                            $request->image,
+                            config('location.withdraw.path'),
+                            config('location.withdraw.size')
+                        );
+                    } catch (\Exception $exp) {
+                        return back()->with('error', 'Image could not be uploaded.');
+                    }
+                }
+    
+                $newAccount->save();
             }
         }
-
-        $newAccount->save();
-
-
+    
         session()->flash('success', 'Saved Successfully');
         return back();
     }
+    
 
     public function merchant(Request $request)
     {
@@ -2879,43 +2909,45 @@ class PayoutRecordController extends Controller
 
 
     public function settlementSearch(Request $request)
-    {
+{
+    $partners = Api::where('type', 'Admin')->get();
 
-        $partners = Api::where('type', 'Admin')->get();
+    // Start with the query builder
+    $query = Settlement::with('api');
 
-        $records = Settlement::with('api');
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
 
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $records->whereDate('created_at', '>=', $request->from_date);
-            $records->whereDate('created_at', '<=', $request->to_date);
-        } elseif (!empty($request->from_date)) {
-            $records->whereDate('created_at', '>=', $request->from_date);
-        } elseif (!empty($request->to_date)) {
-            $records->whereDate('created_at', '<=', $request->to_date);
-        }
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
 
-        if (!empty($request->gateway)) {
-            $records->where('source_name', $request->gateway);
-        }
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
 
-        if (!empty($request->partner)) {
-            $records->where('partner_id', $request->partner);
-        }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
-        if (!empty($request->status) || $request->status == '0') {
-            $records->where('status', $request->status);
-        }
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
 
-        $records = $records->orderBy('id', 'DESC')->get();
-
-
-        // $gateways = Settlement::groupBy('source_name')->get();
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
         ->groupBy('source_name')
         ->get();
-        $pageTitle = "Search Settlements History";
-        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
-    }
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
 
 
     public function approveSettlement($id)
@@ -4543,7 +4575,6 @@ class PayoutRecordController extends Controller
         $notifications = EWalletAccount::where('live_balance','<','1000')->take(5)->get();
         $pending_list = Payout::where('created_at', '<=', Carbon::now()->subMinutes(5))->take(5)->get();
 
-        // dd($pending_list);
         if ($request->ajax()) {
             return response()->json([
                 'transactions' => $mergedTransactions,
@@ -4555,7 +4586,8 @@ class PayoutRecordController extends Controller
 
         // Normal page load
         $pageTitle = "Workboard";
-        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions'));
+        $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }
 
 
@@ -4824,6 +4856,82 @@ class PayoutRecordController extends Controller
     }
 
 
-   
+    public function accountGroupList()
+    {
+        $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
+        $data['categories'] = Category::where('status','1')->get();
+        $data['pageTitle'] = 'Accounts Management';
+        
+        $this->updateLimits();
 
+        $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
+            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        }])->paginate(20);
+
+        foreach ($data['records'] as $record) {
+            $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
+        }
+        return view('admin.accounts.ewallet_accounts', $data);
+    }
+
+
+    public function addAccountPairs(Request $request)
+    {
+        $request->validate([
+            'group_name' => 'required|string|max:255',
+            'pairs' => 'required|array',
+        ]);
+    
+        $group = new AccountGroup();
+        $group->group_name = $request->group_name;
+        $group->pairs = json_encode($request->pairs);
+        $group->save();
+    
+        return redirect()->back()->with('success', 'Group created successfully!');
+    }
+
+    public function updateaccountStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required',
+            'status' => 'required|boolean', // 1 = on, 0 = off
+            'type' => 'required',
+        ]);
+    
+        $wallet = EWalletAccount::find($request->id);
+        if (!$wallet) {
+            return response()->json(['success' => false, 'message' => 'Wallet not found.'], 404);
+        }
+    
+        $currentType = strtolower($wallet->account_type ?? '');
+        $newType = $request->type;
+        $status = $request->status;
+    
+        $hasDeposit = in_array($currentType, ['deposit', 'both']);
+        $hasWithdrawal = in_array($currentType, ['withdrawal', 'both']);
+    
+        if ($newType === 'deposit') {
+            $wallet->account_type = $status
+                ? ($hasWithdrawal ? 'Both' : 'Deposit')
+                : ($hasWithdrawal ? 'Withdrawal' : '');
+        } elseif ($newType === 'withdrawal') {
+            $wallet->account_type = $status
+                ? ($hasDeposit ? 'Both' : 'Withdrawal')
+                : ($hasDeposit ? 'Deposit' : '');
+        } elseif ($newType == 'status') {
+            // ✅ Only update status column
+            $wallet->status = $status;
+        }
+    
+        $wallet->save();
+    
+        return response()->json([
+            'success' => true,
+            'account_type' => $wallet->account_type,
+            'status' => $wallet->status,
+        ]);
+    }
+    
+    
 }
+

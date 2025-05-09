@@ -33,7 +33,7 @@
                                         </td>
                                         @if(adminAccessRoute(config('role.payment_gateway.access.edit')))
                                             <td data-label="@lang('Action')">
-                                                <a href="{{ route('admin.deposit.manual.edit', $method->id) }}"
+                                                <a href="{{ route('admin.deposit.maccounts.edit', $method->id) }}"
                                                    class="btn btn-primary btn-circle"
                                                    data-toggle="tooltip"
                                                    data-placement="top"
@@ -79,7 +79,7 @@
                                 <h5 class="modal-title" id="modalTopTitle">@lang('Confirmation')</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                <form action="{{ route('admin.payment.methods.deactivate') }}" method="POST">
+                <form action="{{ route('admin.accounts.payment.methods.deactivate') }}" method="POST">
                     @csrf
                     <input type="hidden" name="code">
                     <div class="modal-body">

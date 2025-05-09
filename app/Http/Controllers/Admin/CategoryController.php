@@ -7,17 +7,32 @@ namespace App\Http\Controllers\Admin;
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccountGateway;
+
+use App\Models\EWalletAccount;
 use App\Models\Category;
+use App\Models\AccountGroup;
+
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'Manage Categories';
-        $records = Category::paginate(10);
+        $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
+        $data['categories'] = Category::where('status','1')->get();
+        $data['pageTitle'] = 'Accounts Management';
+        $data['groups'] = AccountGroup::all();
+        $this->updateLimits();
 
-        return view('admin.accounts.ewallet_accounts', compact('records', 'pageTitle'));
+        $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
+            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        }])->paginate(20);
+
+        foreach ($data['records'] as $record) {
+            $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
+        }
+        return view('admin.accounts.ewallet_accounts', $data);
     }
 
     public function store(Request $request)
@@ -54,4 +69,24 @@ class CategoryController extends Controller
 
         return redirect()->back()->with('success', 'Category deleted.');
     }
+
+    public function updateLimits()
+    {
+        $todayDate = now()->toDateString();  // Use Carbon for better date handling
+        $thisMonth = now()->month;
+
+        EWalletAccount::where('last_limit_reset', '!=', $todayDate)
+            ->update([
+                'daily_received' => 0,
+                'daily_sent' => 0,
+                'last_limit_reset' => $todayDate
+            ]);
+
+        EWalletAccount::whereMonth('last_limit_reset', '!=', $thisMonth)
+            ->update([
+                'monthly_received' => 0,
+                'monthly_sent' => 0
+            ]);
+    }
+
 }

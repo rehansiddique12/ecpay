@@ -21,15 +21,25 @@ class CreateAccountGatewaysTable extends Migration
             $table->string('currency', 100)->nullable();
             $table->string('symbol', 50)->nullable();
             $table->decimal('min_amount', 18, 8)->nullable();
+            $table->decimal('withdraw_convention_rate', 18, 8)->nullable();
             $table->decimal('max_amount', 18, 8)->nullable();
             $table->decimal('percentage_charge', 18, 8)->nullable();
             $table->decimal('fixed_charge', 18, 8)->nullable();
+            $table->decimal('fixed_deposit_charge', 18, 8)->nullable();
+            $table->decimal('percentage_deposit_charge', 18, 8)->nullable();
             $table->decimal('convention_rate', 18, 8)->nullable();
             $table->decimal('minimum_withdrawal_amount', 18, 8)->nullable();
             $table->decimal('maximum_withdrawal_amount', 18, 8)->nullable();
             $table->json('parameters')->nullable();
             $table->json('extra_parameters')->nullable();
-            $table->timestamps(); // created_at, updated_at
+            $table->decimal('percentage_withdraw_charge', 18, 8)->nullable(); 
+            $table->decimal('daily_withdraw_limit', 18, 8)->nullable(); 
+            $table->decimal('monthly_withdraw_limit', 18, 8)->nullable(); 
+            $table->decimal('daily_deposit_limit', 18, 8)->nullable(); 
+            $table->decimal('monthly_deposit_limit', 18, 8)->nullable(); 
+            $table->text('note')->nullable(); 
+            $table->string('sort_by')->nullable();
+            $table->timestamps(); 
         });
     }
 

@@ -11,6 +11,7 @@ class EWalletAccount extends Model
     protected $fillable = [
         'e_wallet_name',
         'account_no',
+        'account_type',
         'type',
         'balance',
          'live_balance'
