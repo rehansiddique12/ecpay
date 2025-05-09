@@ -2823,16 +2823,26 @@ class PayoutRecordController extends Controller
     public function settlements()
     {
         $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
+    {
+        $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
 
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
         $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
             ->groupBy('source_name')
             ->get();
 
         $pageTitle = "Partners Settlements History";
         $partners = Api::where('type', 'Admin')->get();
+        $pageTitle = "Partners Settlements History";
+        $partners = Api::where('type', 'Admin')->get();
 
         return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
     }
+        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+    }
+
 
 
 
@@ -2882,10 +2892,22 @@ class PayoutRecordController extends Controller
     public function settlementSearch(Request $request)
 {
     $partners = Api::where('type', 'Admin')->get();
+{
+    $partners = Api::where('type', 'Admin')->get();
 
     // Start with the query builder
     $query = Settlement::with('api');
+    // Start with the query builder
+    $query = Settlement::with('api');
 
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
     if (!empty($request->from_date) && !empty($request->to_date)) {
         $query->whereDate('created_at', '>=', $request->from_date)
               ->whereDate('created_at', '<=', $request->to_date);
@@ -2898,7 +2920,13 @@ class PayoutRecordController extends Controller
     if (!empty($request->gateway)) {
         $query->where('source_name', $request->gateway);
     }
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
 
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
     if (!empty($request->partner)) {
         $query->where('partner_id', $request->partner);
     }
@@ -2906,7 +2934,12 @@ class PayoutRecordController extends Controller
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
     // Only call paginate AFTER applying all filters
     $records = $query->orderBy('id', 'DESC')->paginate(10);
 
@@ -2918,6 +2951,12 @@ class PayoutRecordController extends Controller
 
     return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
 }
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
 
 
 
@@ -4559,6 +4598,8 @@ class PayoutRecordController extends Controller
         $pageTitle = "Workboard";
         $apis = Api::get();
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
+        $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }
 
 
@@ -4827,6 +4868,81 @@ class PayoutRecordController extends Controller
     }
 
 
+  public function accountGroupList()
+    {
+        $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
+        $data['categories'] = Category::where('status','1')->get();
+        $data['pageTitle'] = 'Accounts Management';
+        
+        $this->updateLimits();
 
+        $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
+            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        }])->paginate(20);
+
+        foreach ($data['records'] as $record) {
+            $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
+        }
+        return view('admin.accounts.ewallet_accounts', $data);
+    }
+
+
+    public function addAccountPairs(Request $request)
+    {
+        $request->validate([
+            'group_name' => 'required|string|max:255',
+            'pairs' => 'required|array',
+        ]);
+    
+        $group = new AccountGroup();
+        $group->group_name = $request->group_name;
+        $group->pairs = json_encode($request->pairs);
+        $group->save();
+    
+        return redirect()->back()->with('success', 'Group created successfully!');
+    }
+
+    public function updateaccountStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required',
+            'status' => 'required|boolean', // 1 = on, 0 = off
+            'type' => 'required',
+        ]);
+    
+        $wallet = EWalletAccount::find($request->id);
+        if (!$wallet) {
+            return response()->json(['success' => false, 'message' => 'Wallet not found.'], 404);
+        }
+    
+        $currentType = strtolower($wallet->account_type ?? '');
+        $newType = $request->type;
+        $status = $request->status;
+    
+        $hasDeposit = in_array($currentType, ['deposit', 'both']);
+        $hasWithdrawal = in_array($currentType, ['withdrawal', 'both']);
+    
+        if ($newType === 'deposit') {
+            $wallet->account_type = $status
+                ? ($hasWithdrawal ? 'Both' : 'Deposit')
+                : ($hasWithdrawal ? 'Withdrawal' : '');
+        } elseif ($newType === 'withdrawal') {
+            $wallet->account_type = $status
+                ? ($hasDeposit ? 'Both' : 'Withdrawal')
+                : ($hasDeposit ? 'Deposit' : '');
+        } elseif ($newType == 'status') {
+            // ✅ Only update status column
+            $wallet->status = $status;
+        }
+    
+        $wallet->save();
+    
+        return response()->json([
+            'success' => true,
+            'account_type' => $wallet->account_type,
+            'status' => $wallet->status,
+        ]);
+    }
+    
 
 }

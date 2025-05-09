@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\Upload;
 use App\Models\AccountGateway; // use the new model
 use Illuminate\Http\Request;
+use App\Models\Category;
 use Illuminate\Support\Str;
 
 class AccountManagementController extends Controller
@@ -14,16 +15,17 @@ class AccountManagementController extends Controller
 
     public function index()
     {
-        $data['methods'] = AccountGateway::manual()->orderBy('sort_by', 'asc')->get();
+        $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
+        $data['types'] = Category::where('status','1')->get();
         $data['pageTitle'] = 'Payment Methods';
-
-        return view('admin.payment_methods.accounts.index', $data);
+        
+        return view('admin.accounts.ewallet_accounts', $data);
     }
 
     public function create()
     {
         $data['pageTitle'] = 'Add Payment Methods';
-
+        $data['types'] = Category::where('status','1')->get();
         return view('admin.payment_methods.accounts.create', $data);
     }
 
@@ -70,7 +72,7 @@ class AccountManagementController extends Controller
         try {
 
             $gateway->name = $request->name ?? null;
-        dd($request->all());
+       
 
             $gateway->code = $request->name ? Str::slug($request->name) : null;
             $gateway->currency = $request->currency ?? null;
@@ -83,8 +85,8 @@ class AccountManagementController extends Controller
             $gateway->maximum_withdrawal_amount = $request->maximum_withdrawal_amount ?? null;
             $gateway->fixed_deposit_charge = $request->fixed_deposit_charge ?? null;
             $gateway->percentage_deposit_charge = $request->percentage_deposit_charge ?? null;
-            $gateway->fixed_withdraw_charge = $request->fixed_withdraw_charge ?? null;
-            $gateway->percentage_withdraw_charge = $request->percentage_withdraw_charge ?? null;
+            $gateway->fixed_charge = $request->fixed_withdraw_charge ?? null;
+            $gateway->percentage_charge = $request->percentage_withdraw_charge ?? null;
             $gateway->daily_withdraw_limit = $request->daily_withdraw_limit ?? null;
             $gateway->monthly_withdraw_limit = $request->monthly_withdraw_limit ?? null;
             $gateway->daily_deposit_limit = $request->daily_deposit_limit ?? null;
@@ -99,7 +101,7 @@ class AccountManagementController extends Controller
                 throw new \Exception('Unexpected error! Please try again.');
             }
 
-            return back()->with('success', 'Payment Method has been created.');
+            return redirect()->route('admin.accounts.management')->with('success', 'Payment Method has been created.');
         } catch (\Exception $exception) {
             return back()->with('error', $exception->getMessage());
         }
@@ -107,6 +109,7 @@ class AccountManagementController extends Controller
 
     public function edit($id)
     {
+       
         $data['method'] = AccountGateway::findOrFail($id);
         $data['pageTitle'] = 'Edit Payment Method';
 
@@ -183,4 +186,21 @@ class AccountManagementController extends Controller
             return back()->with('error', $exception->getMessage());
         }
     }
+
+    public function deactivate(Request $request)
+{
+    try {
+        $record = AccountGateway::where('code', $request->code)->firstOrFail();
+        $record->status = $record->status == 1 ? 0 : 1;
+        $record->save();
+
+        return redirect()->back()->with('success', 'Gateway status updated successfully.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'An error occurred while deactivating the gateway.');
+    }
+}
+
+
+
+
 }

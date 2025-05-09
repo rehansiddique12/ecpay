@@ -145,6 +145,52 @@
                                     @endif
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="form-group col-md-6 col-6">
+                                    <label>{{trans('Minimum withdrawal  Amount')}}</label>
+                                    <div class="input-group ">
+                                        <input type="text" class="form-control "
+                                               name="minimum_withdrawal_amount"
+                                               value="{{ old('minimum_withdrawal_amount',getAmount($method->minimum_withdrawal_amount)) }}"
+                                               required="">
+                                        <div class="input-group-append">
+                                            <div class="input-group-text">
+                                                {{ $basic->currency ?? trans('USD') }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if ($errors->has('minimum_withdrawal_amount'))
+                                        <span class="invalid-text">
+                                                {{ trans($errors->first('minimum_withdrawal_amount')) }}
+                                            </span>
+                                    @endif
+                                </div>
+
+                                <div class="form-group col-md-6 col-6">
+                                    <label>{{trans('Maximum WithDrawl Amount')}}</label>
+                                    <div class="input-group ">
+                                        <input type="text" class="form-control "
+                                               name="maximum_withdrawal_amount"
+                                               value="{{ old('maximum_withdrawal_amount',getAmount($method->maximum_withdrawal_amount)) }}"
+                                               required="">
+                                        <div class="input-group-append">
+                                            <div class="input-group-text">
+                                                {{ $basic->currency ?? trans('USD') }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if ($errors->has('maximum_withdrawal_amount'))
+                                        <span class="invalid-text">
+                                                {{ trans($errors->first('maximum_withdrawal_amount')) }}
+                                            </span>
+                                    @endif
+                                </div>
+                               
+
+                               
+                            </div>
 
                             <div class="row justify-content-between">
                                 <div class="col-sm-6 col-md-3">
@@ -191,12 +237,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-6">
-                                    <div class="form-group">
-                                        <a href="javascript:void(0)" class="btn btn-success float-right mt-3"
-                                            id="generate"><i class="fa fa-plus-circle"></i> {{trans('Add Field')}}</a>
-                                    </div>
-                                </div>
+                               
                             </div>
 
                             <div class="row addedField">
