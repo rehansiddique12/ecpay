@@ -2823,16 +2823,26 @@ class PayoutRecordController extends Controller
     public function settlements()
     {
         $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
+    {
+        $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
 
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
         $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
             ->groupBy('source_name')
             ->get();
 
         $pageTitle = "Partners Settlements History";
         $partners = Api::where('type', 'Admin')->get();
+        $pageTitle = "Partners Settlements History";
+        $partners = Api::where('type', 'Admin')->get();
 
         return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
     }
+        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+    }
+
 
 
 
@@ -2882,10 +2892,22 @@ class PayoutRecordController extends Controller
     public function settlementSearch(Request $request)
 {
     $partners = Api::where('type', 'Admin')->get();
+{
+    $partners = Api::where('type', 'Admin')->get();
 
     // Start with the query builder
     $query = Settlement::with('api');
+    // Start with the query builder
+    $query = Settlement::with('api');
 
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
     if (!empty($request->from_date) && !empty($request->to_date)) {
         $query->whereDate('created_at', '>=', $request->from_date)
               ->whereDate('created_at', '<=', $request->to_date);
@@ -2898,7 +2920,13 @@ class PayoutRecordController extends Controller
     if (!empty($request->gateway)) {
         $query->where('source_name', $request->gateway);
     }
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
 
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
     if (!empty($request->partner)) {
         $query->where('partner_id', $request->partner);
     }
@@ -2906,10 +2934,16 @@ class PayoutRecordController extends Controller
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
     // Only call paginate AFTER applying all filters
     $records = $query->orderBy('id', 'DESC')->paginate(10);
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
 
+    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
     $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
         ->groupBy('source_name')
         ->get();
@@ -2918,6 +2952,12 @@ class PayoutRecordController extends Controller
 
     return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
 }
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
 
 
 
@@ -4530,10 +4570,12 @@ class PayoutRecordController extends Controller
     public function workboard(Request $request)
     {
         $payments = Payment::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payment' as type"))
+        $payments = Payment::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payment' as type"))
             ->latest('created_at')
             ->take(10)
             ->get();
 
+        $payouts = Payout::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payout' as type"))
         $payouts = Payout::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payout' as type"))
             ->latest('created_at')
             ->take(10)
@@ -4557,6 +4599,8 @@ class PayoutRecordController extends Controller
 
         // Normal page load
         $pageTitle = "Workboard";
+        $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
         $apis = Api::get();
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }

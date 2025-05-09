@@ -53,7 +53,7 @@
             <div class="col-md-4">
                   <div class="form-group">
                     <br><br>
-                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="fas fa-search"></i> @lang('Search')</button>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <a href="{{ route('admin.commissions.export', request()->all()) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">

@@ -2,6 +2,7 @@
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
     <form action="{{ route('admin.payment.search') }}" method="get">
         <div class="row justify-content-between align-items-center">
+            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
             <div class="col-md-4">
                 <div class="form-group">
                     <input type="text" name="name" value="{{@request()->name}}" class="form-control" placeholder="@lang('Username OR Email')">
@@ -26,13 +27,13 @@
             </div>
 
 
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <div class="form-group">
                     <input type="date" class="form-control" value="{{@request()->date_time}}" name="date_time" id="datepicker" />
                 </div>
             </div>
 
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <div class="form-group">
                     <!--<label>Partner</label>-->
                     <select name="website" class="form-control">
@@ -46,9 +47,9 @@
             </div>
 
 
-            <div class="col-md-2">
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+            <div class="col-md-4 ">
+                <div class="form-group d-flex gap-5">
+                    <button type="submit" class="btn btn-primary mt-2"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     <button type="submit" name="export" value="export" class="btn btn-success mt-1"><i class="icon-base ti tabler-download me-1"></i> @lang('Export Data')</button>
                 </div>
             </div>

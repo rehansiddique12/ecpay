@@ -99,7 +99,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
 
-            <div class="modal-header modal-colored-header bg-warning">
+            <div class="modal-header modal-colored-header bg-primary">
                 <h5 class="modal-title" id="modalTopTitle">@lang('Edit Record') </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -142,7 +142,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-warning">@lang('Update')</button>
+                    <button type="submit" class="btn btn-primary">@lang('Update')</button>
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal" aria-label="Close">@lang('Close')</button>
                 </div>
             </form>
