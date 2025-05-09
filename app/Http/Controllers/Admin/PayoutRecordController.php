@@ -2944,7 +2944,6 @@ class PayoutRecordController extends Controller
     $records = $query->orderBy('id', 'DESC')->paginate(10);
 
     $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
         ->groupBy('source_name')
         ->get();
 
@@ -4570,12 +4569,10 @@ class PayoutRecordController extends Controller
     public function workboard(Request $request)
     {
         $payments = Payment::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payment' as type"))
-        $payments = Payment::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payment' as type"))
             ->latest('created_at')
             ->take(10)
             ->get();
 
-        $payouts = Payout::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payout' as type"))
         $payouts = Payout::select('id', 'amount', 'status', 'created_at','partner_transection_id', DB::raw("'payout' as type"))
             ->latest('created_at')
             ->take(10)
