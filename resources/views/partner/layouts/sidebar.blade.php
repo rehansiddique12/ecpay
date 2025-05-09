@@ -5,8 +5,18 @@ Request::routeIs('admin.accounts') ||
 Request::routeIs('admin.balance.logs');
 
 $isMainActive = in_array(Route::currentRouteName(), [
-'partner.dashboard',
-'partner.partner.methods.get'
+    'partner.apis',
+    'partner.dashboard',
+    'partner.settlements',
+    'partner.reports.logs',
+    'partner.api.commissions',
+    'partner.payment.report.all',
+    'partner.settlements.search',
+    'partner.partner.methods.get',
+    'partner.merchant_reports.by_date',
+    'partner.merchant_reports.by_name',
+    'partner.merchant_reports.by_month',
+    'partner.reports.partner_account_balance_summary'
 ]);
 
 @endphp
@@ -165,7 +175,90 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
                             </li>
-                            
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.apis' ? 'active' : '' }}">
+                                <a href="{{ route('partner.apis') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Commissions Summary">Commissions Summary</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.api.commissions' ? 'active' : '' }}">
+                                <a href="{{ route('partner.api.commissions') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Commission History">Commission History</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_date' ? 'active' : '' }}">
+                                <a href="{{ route('partner.merchant_reports.by_date') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Summary By_Date">Summary By_Date</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_name' ? 'active' : '' }}">
+                                <a href="{{ route('partner.merchant_reports.by_name') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Summary By_Name">Summary By_Name</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_month' ? 'active' : '' }}">
+                                <a href="{{ route('partner.merchant_reports.by_month') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Summary By_Year">Summary By_Year</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.settlements' ? 'active' : '' }}">
+                                <a href="{{ route('partner.settlements') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Settlements">Settlements</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payment.report.all' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payment.report.all') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="All Reports">All Reports</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.settlement.report.daily' ? 'active' : '' }}">
+                                <a href="{{ route('partner.settlement.report.daily') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Daily Settlement Report">Daily Settlement Report</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.partner.balance' ? 'active' : '' }}">
+                                <a href="{{ route('partner.partner.balance') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Adjustments">Adjustments</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.reports.partner_account_summary' ? 'active' : '' }}">
+                                <a href="{{ route('partner.reports.partner_account_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Account Summary">Account Summary</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.reports.partner_account_balance_summary' ? 'active' : '' }}">
+                                <a href="{{ route('partner.reports.partner_account_balance_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Account Balance">Account Balance </div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.reports.logs' ? 'active' : '' }}">
+                                <a href="{{ route('partner.reports.logs') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Transaction Logs">Transaction Logs</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.reports.log_completions' ? 'active' : '' }}">
+                                <a href="{{ route('partner.reports.log_completions') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Transactions Completions Logs">Transactions Completions Logs</div>
+                                </a>
+                            </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payment.payment_gateway_report' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payment.payment_gateway_report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Gateway Performance Report">Gateway Performance Report</div>
+                                </a>
+                            </li>
 
                     </li>
                 </ul>

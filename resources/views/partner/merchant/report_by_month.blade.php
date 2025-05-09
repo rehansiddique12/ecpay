@@ -1,4 +1,4 @@
-<x-admin-layout :title="$pageTitle">
+<x-partner-layout :title="$pageTitle">
  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 <style>
     .year-only .ui-datepicker-month {
@@ -150,4 +150,4 @@
 </script>
 
 @endpush
-</x-admin-layout>
+</x-partner-layout>

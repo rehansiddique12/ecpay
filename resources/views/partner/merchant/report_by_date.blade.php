@@ -1,5 +1,5 @@
-<x-admin-layout :title="$pageTitle">
-<div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+<x-partner-layout :title="$pageTitle">
+    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
     <form action="{{ route('partner.merchant_reports.by_date') }}" method="get">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         <div class="row align-items-left">
@@ -79,7 +79,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 
@@ -95,4 +94,4 @@
     });
 </script>
 @endpush
-</x-admin-layout>
+</x-partner-layout>
