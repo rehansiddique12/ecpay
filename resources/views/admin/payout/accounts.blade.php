@@ -1,4 +1,3 @@
-<x-admin-layout :title="$pageTitle">
     @push('styles')
     <script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
     @endpush
@@ -6,11 +5,11 @@
     <div class="col-md-12">
         <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
             <div class="card-body">
-                <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                <h6 style="color: #7367f0">Accounts List</h6>
 
 
                 <div class="table-responsive">
-                    <table class="categories-show-table table table-hover table-striped table-bordered table-sm">
+                    <table class=" table table-hover table-striped table-bordered table-sm">
                         <thead class="thead-dark">
                             <tr>
                                 <th>QR Code</th>
@@ -369,4 +368,3 @@
 
 
 @endpush
-</x-admin-layout>

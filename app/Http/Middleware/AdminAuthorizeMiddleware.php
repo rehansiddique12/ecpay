@@ -10,15 +10,15 @@ class AdminAuthorizeMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        return $next($request);
         $user = Auth::guard('admin')->user();
-        // $list = collect(config('role'))->pluck(['access'])->flatten();
-        // $filtered = $list->intersect($user->admin_access);
+        $list = collect(config('role'))->pluck(['access'])->flatten();
+        $filtered = $list->intersect($user->admin_access);
 
-        // if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
-        //     return $next($request);
-        // }
+        // dd($request->route()->getName());
+        if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
+            return $next($request);
+        }
 
-        // return  redirect()->route('admin.403');
+        return  redirect()->route('admin.403');
     }
 }

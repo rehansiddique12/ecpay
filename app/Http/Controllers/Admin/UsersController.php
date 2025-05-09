@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Api;
 use App\Models\User;
+use App\Models\Admin;
 use App\Models\Language;
 use App\Models\PayoutLog;
-use App\Models\UserLocation;
 use App\Models\UserRoles;
+use App\Models\UserLocation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Api;
 
 class UsersController extends Controller
 {
@@ -40,21 +43,80 @@ class UsersController extends Controller
         return view('admin.users.user-location', compact('userLocations', 'pageTitle'));
     }
 
-
-    public function roles_and_permission()
+    public function roles_and_permission(Request $request)
     {
         $userLocations = UserLocation::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
         $pageTitle = 'Roles_and_Permission';
-        return view('admin.users.rolespermission', compact('userLocations', 'pageTitle'));
+
+        // Get all roles
+        $roles_list = UserRoles::where('used_for', 'Admin')->get();
+
+        // Get the selected role ID from the URL (e.g., ?role_select=1)
+        $selectedRoleId = $request->input('role_select');
+
+        // Fetch the selected role (if any)
+        $selectedRole = null;
+        $storedPermissions = [];
+
+        if ($selectedRoleId) {
+            $selectedRole = UserRoles::find($selectedRoleId);
+            if ($selectedRole) {
+                $storedPermissions = json_decode($selectedRole->admin_access, true);
+            }
+        }
+        // dd($storedPermissions);
+        return view('admin.users.rolespermission', compact(
+            'pageTitle',
+            'roles_list',
+            'selectedRoleId',
+            'selectedRole',
+            'storedPermissions'
+        ));
     }
 
+    public function updatePermissions(Request $request, $id)
+    {
+        $role = UserRoles::find($id);
 
+        if (!$role) {
+            return back()->with('error', 'Role not found!');
+        }
+
+        // Convert access to array
+        $access = (isset($request->access)) ? explode(',',join(',',$request->access)) : [];
+
+        // Update role's access
+        $role->admin_access = $access;
+        $role->save();
+
+        // Find all users with this role and update their admin_access
+        $all_users = Admin::where('role_type', $role->name)->get();
+        foreach ($all_users as $user) {
+            $user->admin_access = $access;
+            $user->save();
+        }
+
+        return back()->with('success', 'Permissions updated!');
+    }
     public function rolesCategory()
     {
-        $UserRoles =UserRoles ::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+        $roles_select_box = UserRoles::where('used_for', 'Admin')->pluck('name', 'name');
+        if (request()->ajax()) {
+            $roles = UserRoles::where('used_for', 'Admin')->select(['id', 'name']);
+
+            return DataTables::of($roles)
+                ->addIndexColumn()
+                ->addColumn('action', function ($role) {
+                    return view('admin.users.partials.role-actions', compact('role'))->render();
+                })
+                ->rawColumns(['action']) // Allow HTML for action buttons
+                ->make(true);
+        }
+
         $pageTitle = 'User Roles';
-        return view('admin.users.user-roles', compact('UserRoles', 'pageTitle'));
+        return view('admin.users.user-roles', compact('pageTitle' , 'roles_select_box'));
     }
+
 
 
     public function search(Request $request)
@@ -182,15 +244,54 @@ class UsersController extends Controller
     public function addRole(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'role' => 'required|string|unique:user_roles,roles_name'
+            'role' => 'required|string|unique:user_roles,name'
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         UserRoles::create([
-            'roles_name' => $request->role
+            'name' => $request->role,
+            'used_for' => 'Admin'
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Role added successfully'
+        ]);
+    }
+
+    public function copyRole(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'add_new_role' => 'required|string|unique:user_roles,name'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $existingRole = UserRoles::where('name', $request->copy_role_name)->first();
+        if (!$existingRole) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Role not found'
+            ], 404);
+        }
+
+
+        UserRoles::create([
+            'name' => $request->add_new_role,
+            'used_for' => 'Admin',
+            'admin_access' => $existingRole->admin_access,
         ]);
 
         session()->flash('success', 'Role added successfully');
@@ -198,30 +299,60 @@ class UsersController extends Controller
     }
 
     public function updateRole(Request $request, $id)
-{
-    $request->validate([
-        'roles_name' => 'required|string|max:255',
-    ]);
-
-    $role = UserRoles::findOrFail($id);
-    $role->roles_name = $request->roles_name;
-    $role->save();
-
-    session()->flash('success', 'Role updated successfully!');
-    return back(); // redirect wherever you want
-}
-
-
-    public function deleteRole($id)
     {
+        $validator = Validator::make($request->all(), [
+            'roles_name' => 'required|string|max:255|unique:user_roles,name,' . $id,
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         try {
             $role = UserRoles::findOrFail($id);
-            $role->delete();
-            session()->flash('success', 'Role deleted successfully');
+            $role->name = $request->roles_name;
+            $role->used_for = "Admin";
+
+            if ($role->save()) {
+                return response()->json(['status' => 'success', 'message' => 'Role updated successfully']);
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'Failed to update the role']);
+            }
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
-            session()->flash('error', 'Error deleting role: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'General error: ' . $e->getMessage()
+            ], 500);
         }
-        return back();
+    }
+
+    public function deleteRole(Request $request)
+    {
+        $id = (int)$request->input('id');
+        try {
+            $role = UserRoles::findOrFail($id);
+            if ($role->delete()) {
+                return response()->json(['status' => 'success', 'message' => 'Role deleted successfully']);
+            }
+
+        } catch (\Exception $e) {
+           return response()->json(['status' => 'error', 'message' => 'Error deleting role: ' . $e->getMessage()]);
+        }
+    }
+
+    public function getRoles()
+    {
+        $roles = UserRoles::where('used_for' , 'Admin')->get(['id', 'name']); // latest roles first
+        return response()->json(['roles' => $roles]);
     }
 
 }

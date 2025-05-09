@@ -566,8 +566,24 @@
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                     <a class="nav-link dropdown-toggle hide-arrow p-0" href="profile" data-bs-toggle="dropdown">
                         <div class="avatar avatar-online">
-                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
-                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+
+                            @php
+                            use Illuminate\Support\Facades\File;
+
+                            $user = Auth::user();
+                            $imagePath = public_path('uploads/admin/' . $user->image);
+                        @endphp
+
+                        @auth
+                            @if (!empty($user->image) && File::exists($imagePath))
+                                <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                     alt="{{ $user->name }}" class="rounded-circle" />
+                            @else
+                                <!-- Optional: Show placeholder -->
+                                <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar" class="rounded-circle" />
+                            @endif
+                        @endauth
+
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -576,8 +592,24 @@
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-2">
                                         <div class="avatar avatar-online">
-                                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
-                                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+
+                                            @php
+                                            // use Illuminate\Support\Facades\File;
+
+                                            $user = Auth::user();
+                                            $imagePath = public_path('uploads/admin/' . $user->image);
+                                        @endphp
+
+                                        @auth
+                                            @if (!empty($user->image) && File::exists($imagePath))
+                                                <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                                     alt="{{ $user->name }}" class="rounded-circle" />
+                                            @else
+                                                <!-- Optional: Show placeholder -->
+                                                <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar" class="rounded-circle" />
+                                            @endif
+                                        @endauth
+
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
@@ -709,12 +741,12 @@
                     </li>
 
                         <ul class="menu-sub">
-                            <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
+                            <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts.add') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Add Accounts">Add Accounts</div>
                                 </a>
-                            </li>
+                            </li> -->
                             <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -727,6 +759,7 @@
                                     <div data-i18n="Account Balance">Account Balance</div>
                                 </a>
                             </li>
+                           
                             <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -756,12 +789,13 @@
                     </a>
 
                     <ul class="menu-sub">
-                        <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
+                        <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Add Accounts">Add Accounts</div>
                             </a>
-                        </li>
+                        </li> -->
+                        
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.groups' ? 'active' : '' }}">
                             <a href="{{ route('admin.groups') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -780,6 +814,12 @@
                                 <div data-i18n="Account Balance">Account Balance</div>
                             </a>
                         </li>
+                         <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
+                                <a href="{{ route('admin.accounts.management') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Account Management">Account Management</div>
+                                </a>
+                            </li>
                         <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -1055,36 +1095,7 @@
                         </li>
                     </ul>
                 </li>
-                {{-- <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
-                        <a href="javascript:void(0)" class="menu-link menu-toggle">
-                            <i class="menu-icon icon-base ti tabler-users"></i>
-                            <div data-i18n="Merchant Reports">Merchant Reports</div>
-                        </a>
-                        <ul class="menu-sub">
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_date' ? 'active' : '' }}">
-                                <a href="{{ route('partner.merchant_reports.by_date') }}" class="menu-link">
-                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Summary By Date">Summary By Date</div>
-                                </a>
-                            </li>
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_name' ? 'active' : '' }}">
-                                <a href="{{ route('partner.merchant_reports.by_name') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Summary By Name">Summary By Name </div>
-                                </a>
-                            </li>
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_month' ? 'active' : '' }}">
-                                <a href="{{ route('partner.merchant_reports.by_month') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Summary By Year">Summary By Year </div>
-                                </a>
-                            </li>
 
-                        </ul>
-                    </li> --}}
                 <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
@@ -1094,7 +1105,7 @@
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_date' ? 'active' : '' }}">
                             <a href="{{ route('admin.merchant_reports.by_date') }}" class="menu-link">
-                                <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Summary By Date">Summary By Date</div>
                             </a>
                         </li>

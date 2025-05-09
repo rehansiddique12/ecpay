@@ -5,20 +5,20 @@
         }
 
         .custom-checkbox input[type="checkbox"] {
-            filter: invert(100%)  brightness(1.7);
-      width: 20px;
-      height: 20px;
+            filter: invert(100%) brightness(1.7);
+            width: 20px;
+            height: 20px;
 
-    }
+        }
     </style>
     @php
-        $currentRoute = Route::currentRouteName();
+    $currentRoute = Route::currentRouteName();
     @endphp
-    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+    <div class="page-header m-0 m-md-4 my-4 m-md-0 p-5">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-                <div class="row ">
+                <div class="row">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
@@ -51,345 +51,140 @@
                         </div>
                     </div>
                 </div>
-                <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-                    <div class="card-body">
-                        <label for="" class="mb-3">Category</label>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" placeholder="Enter Category">
+                <div class="assign-permissions-content">
+                    @php
+                    // You can pass a selected role from controller or set a default here
+
+                    $selectedRoleId = old('role_select') ?? ($selectedRoleId ?? null);
+                    // $storedPermissions = $selectedRole->admin_access ?? [];
+                    // dd($selectedRoleId);
+                    @endphp
+                    <div class="row align-items-center mb-3 mt-4">
+                        <h4 for="role_select" class="col-md-2">Role</h4>
+
+                        <div class="col-md-4">
+
+                            <select name="role_select" id="role_select" class="form-select">
+
+                                <option value="">-- Select Role --</option>
+
+                                @foreach ($roles_list as $role)
+
+                                <option value="{{ $role->id }}" {{ $selectedRoleId==$role->id ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
-                          <div class="grid grid-cols-5  d-flex justify-content-between mt-10 p-8" style="background-color: rgba(124, 137, 170, 0.404)">
-                            <div >
-                                <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">Permissions</label>
-                               <div class="d-flex flex-column gap-6">
-                                <p>User Management</p>
-                                <p>Merchant Management</p>
-                                <p>Agent Management</p>
-                                <p>Account Management</p>
-                                <p>Telegram Group</p>
-                                <p>Deposit Log</p>
-                                <p>Withdrawal Log</p>
-                                <p>Transfer Log</p>
-                                <p>Manual Transfer</p>
-                                <p>Balance Adjustment</p>
-                                <p>Live Account Balance</p>
-                                <p>Daily Account Balance</p>
-                                <p>Partner Balance Log</p>
-                                <p>Partner Account Balance</p>
-                                <p>Partner Settlement</p>
-                                <p>Cash Flow Report</p>
-                                <p>Adjustment Report</p>
-                                <p>Opening/Closing Report</p>
-                                <p>Merchant Charges Report</p>
-                                <p>Agent Commission Report</p>
-                                <p>All Report</p>
-                                <p>Gateway Performance</p>
-                               </div>
+                        @if($selectedRoleId > 0)
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between text-center">
+                                <h5 class="card-title text-center">{{trans('Accessibility')}}</h5>
                             </div>
-                            <div >
-                                <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">View</label>
-                                <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
+                            <form role="form" method="POST" class="actionRoute"
+                                action="{{route('admin.update_role_permissions' , $selectedRoleId)}}"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <div class="card-body select-all-access">
+                                    <div class="form-group">
+                                        <label><input type="checkbox" class="selectAll" name="accessAll">
+                                            {{trans('Select
+                                            All')}}</label>
+                                    </div>
+
+                                    <table class=" table table-hover table-striped table-bordered">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <th>@lang('Permissions')</th>
+                                                <th class="text-center">@lang('View')</th>
+                                                <th class="text-center">@lang('Add')</th>
+                                                <th class="text-center">@lang('Edit')</th>
+                                                <th class="text-center">@lang('Delete')</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="permissionsTableBody">
+                                            @foreach(config('role') as $key => $value)
+                                            <tr>
+                                                <td data-label="Permissions" class="text-left">{{$value['label']}}</td>
+                                                <td data-label="View">
+                                                    @if(!empty($value['access']['view']))
+                                                    <input type="checkbox"
+                                                        value="{{join(',',$value['access']['view'])}}" name="access[]"
+                                                        @if(in_array_any( $value['access']['view'],
+                                                        $storedPermissions??[] )) checked @endif />
+                                                    @endif
+                                                </td>
+                                                <td data-label="Add">
+                                                    @if(!empty($value['access']['add']))
+                                                    <input type="checkbox" value="{{join(',',$value['access']['add'])}}"
+                                                        name="access[]" @if(in_array_any($value['access']['add'],
+                                                        $storedPermissions??[] )) checked @endif />
+                                                    @endif
+                                                </td>
+                                                <td data-label="Edit">
+                                                    @if(!empty($value['access']['edit']))
+                                                    <input type="checkbox"
+                                                        value="{{join(',',$value['access']['edit'])}}" name="access[]"
+                                                        @if(in_array_any($value['access']['edit'],
+                                                        $storedPermissions??[])) checked @endif />
+                                                    @endif
+                                                </td>
+
+                                                <td data-label="Delete">
+                                                    @if(!empty($value['access']['delete']))
+                                                    <input type="checkbox"
+                                                        value="{{join(',',$value['access']['delete'])}}" name="access[]"
+                                                        @if(in_array_any( $value['access']['delete'],
+                                                        $storedPermissions??[])) checked @endif />
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                        </tbody>
+                                    </table>
 
                                 </div>
-                            </div>
-                            <div>
-                                <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">Add</label>
-                                <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-
+                                <!-- Action Buttons -->
+                                <div class="row mt-4">
+                                    <div class="col-md-12 text-end">
+                                        <button type="submit" class="btn btn-primary me-2" id="updatePermissions">
+                                            <i class="fas fa-save"></i> @lang('Update Permissions')
+                                        </button>
+                                        {{-- <button type="button" class="btn btn-success" id="createNewRole">
+                                            <i class="fas fa-plus"></i> @lang('Create New Role')
+                                        </button> --}}
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4">Edit</label>
-                                <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
+                            </form>
 
-                                </div>
-                            </div>
-                            <div>
-                                <label for="" style="font-size: 18px; font-weight: 600; color: #7367f0" class="mb-4 ">Delete</label>
-                                <div class="d-flex gap-10 flex-column">
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-                                    <div class="d-flex justify-content-center align-items-center custom-checkbox">
-                                        <input type="checkbox" name="view" id="view">
-                                      </div>
-
-                                </div>
-                            </div>
-                          </div>
-
-
-
+                        </div>
 
                     </div>
+                    @endif
+
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Add Location Modal -->
+            @push('js')
+            <script>
+                $(document).ready(function() {
+                    // Load permissions when role changes
+                    $('#role_select').change(function() {
+                        const roleId = $(this).val();
+                        if (roleId) {
+                            window.location.href = `?role_select=${roleId}`; // Reload page with selected role
+                        }
+                    });
 
-
-    <!-- Edit Location Modal -->
-
-
-    @push('js')
-    @endpush
+                    // Select All Checkbox
+                    $('.selectAll').click(function() {
+                        $('input[name="access[]"]').prop('checked', $(this).prop('checked'));
+                    });
+                });
+            </script>
+            @endpush
 </x-admin-layout>

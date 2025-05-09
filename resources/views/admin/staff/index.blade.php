@@ -1,25 +1,26 @@
 <x-admin-layout :title="$pageTitle">
-<style>
-    /* Styling for the loading overlay */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4); /* Dim the table */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;  /* Ensure overlay is above the table */
-}
+    <style>
+        /* Styling for the loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            /* Dim the table */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            /* Ensure overlay is above the table */
+        }
 
-/* Hide the loading spinner by default */
-.d-none {
-    display: none;
-}
-
-</style>
+        /* Hide the loading spinner by default */
+        .d-none {
+            display: none;
+        }
+    </style>
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="card">
             @if(adminAccessRoute(config('role.manage_staff.access.add')))
@@ -46,7 +47,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
-               <!-- Loading Overlay (hidden initially) -->
+                <!-- Loading Overlay (hidden initially) -->
                 <div id="tableLoader" class="loading-overlay d-none">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Processing...</span>
@@ -59,7 +60,7 @@
             </div> --}}
         </div>
         {{-- Add User Models --}}
-        <div class="modal modal-top fade" id="addUserModal" tabindex="-1"  data-bs-backdrop="static">
+        <div class="modal modal-top fade" id="addUserModal" tabindex="-1" data-bs-backdrop="static">
             <div class="modal-dialog modal-lg">
                 <form id="storeStaffForm" role="form" method="POST" class="modal-content"
                     action="{{ route('admin.storeStaff') }}" enctype="multipart/form-data">
@@ -121,67 +122,16 @@
                                 <!-- Error container for Status -->
                             </div>
 
-                            <!-- Accessibility Table (No changes here) -->
-                            <div class="col-md-12 mb-3">
-                                <div class="card">
-                                    <div class="card-header text-center">
-                                        <h5 class="card-title">{{ trans('Accessibility') }}</h5>
-                                    </div>
-
-                                    <div class="card-body select-all-access">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input selectAll" name="accessAll"
-                                                id="selectAll">
-                                            <label class="form-check-label" for="selectAll">{{ trans('Select All')
-                                                }}</label>
-                                        </div>
-
-                                        <table class="table table-hover table-striped table-bordered text-center">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th class="text-start">@lang('Permissions')</th>
-                                                    <th>@lang('View')</th>
-                                                    <th>@lang('Add')</th>
-                                                    <th>@lang('Edit')</th>
-                                                    <th>@lang('Delete')</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach(config('role') as $key => $value)
-                                                <tr>
-                                                    <td data-label="Permissions" class="text-start">{{ $value['label']
-                                                        }}</td>
-                                                    <td data-label="View">
-                                                        @if(!empty($value['access']['view']))
-                                                        <input type="checkbox" value="{{ join(" ,",
-                                                            $value['access']['view']) }}" name="access[]" />
-                                                        @endif
-                                                    </td>
-                                                    <td data-label="Add">
-                                                        @if(!empty($value['access']['add']))
-                                                        <input type="checkbox" value="{{ join(" ,",
-                                                            $value['access']['add']) }}" name="access[]" />
-                                                        @endif
-                                                    </td>
-                                                    <td data-label="Edit">
-                                                        @if(!empty($value['access']['edit']))
-                                                        <input type="checkbox" value="{{ join(" ,",
-                                                            $value['access']['edit']) }}" name="access[]" />
-                                                        @endif
-                                                    </td>
-                                                    <td data-label="Delete">
-                                                        @if(!empty($value['access']['delete']))
-                                                        <input type="checkbox" value="{{ join(" ,",
-                                                            $value['access']['delete']) }}" name="access[]" />
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-status" class="form-label">Select Role :</label>
+                                <select name="role_type" id="role_type" class="form-control " required>
+                                    @foreach ($list_roles as $role)
+                                    <option value="{{$role->name}}">{{ $role->name}}</option>
+                                    @endforeach
+                                </select>
+                                <span class="error-text update-status_error text-danger"></span>
                             </div>
+
                         </div>
 
                     </div>
@@ -198,130 +148,76 @@
             data-bs-keyboard="false">
 
             <div class="modal-dialog modal-lg" role="document">
-                    
-                    <form id="editForm" role="form" class="modal-content" method="POST">
-                        <div class="modal-header">
+                <form id="editForm" role="form" class="modal-content" method="POST">
+                    <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel3">Edit Manage Admin Role</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        @csrf
-                        @method('PUT')
-                        <div class="modal-body">
-                            <div class="row">  
-                                <div class="col-md-6 mb-3">
-                                    <label for="update-name" class="form-label">Name</label>
-                                    <input type="text" name="update-name" id="update-name" class="form-control"
-                                        placeholder="Enter Name">
-                                        <span class="error-text update-name_error text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="update-username" class="form-label">Username</label>
-                                    <input type="text" id="update-username" name="update-username" class="form-control"
-                                        placeholder="Enter Username">
-                                    <span class="error-text update-username_error text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="update-email" class="form-label">Email</label>
-                                    <input type="email" name="update-email" id="update-email" class="form-control"
-                                        placeholder="xxxx@xxx.xx">
-                                    <span class="error-text update-email_error text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="update-phone" class="form-label">Phone Number</label>
-                                    <input type="text" name="update-phone" id="update-phone" class="form-control"
-                                        placeholder="Enter Phone Number">
-                                        <span class="error-text update-phone_error text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="update-password" class="form-label">Password</label>
-                                    <input type="password" name="update-password" id="update-password" class="form-control"
-                                        placeholder="Enter Password">
-                                        <span class="error-text update-password_error text-danger"></span>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="update-status" class="form-label">Select Status :</label>
-                                    <select name="update-status" id="update-status" class="form-control " required>
-                                        <option value="1" @if(old('status')=='1' ) selected @endif>
-                                            {{trans('Active')}}
-                                        </option>
-                                        <option value="0" @if(old('status')=='0' ) selected @endif>
-                                            {{trans('DeActive')}}
-                                        </option>
-                                    </select>
-                                    <span class="error-text update-status_error text-danger"></span>
-                                </div>
-
-                                <div class="col-md-12 mb-3">
-                                    <div class="card">
-                                        <div class="card-header text-center">
-                                            <h5 class="card-title">{{ trans('Accessibility') }}</h5>
-                                        </div>
-                                        <div class="card-body update-select-all-access">
-                                        
-                                            <div class="form-check">
-                                                <input type="checkbox" class="form-check-input updateSelectAllCheckBox" name="updateAccessAll"
-                                                    id="updateSelectAllCheckBox">
-                                                <label class="form-check-label" for="updateAccessAll">{{ trans('Select All')
-                                                    }}</label>
-                                            </div>
-
-                                            <table class="table table-hover table-striped table-bordered text-center">
-                                                <thead class="table-dark">
-                                                    <tr>
-                                                        <th class="text-start">@lang('Permissions')</th>
-                                                        <th>@lang('View')</th>
-                                                        <th>@lang('Add')</th>
-                                                        <th>@lang('Edit')</th>
-                                                        <th>@lang('Delete')</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach(config('role') as $key => $value)
-                                                    <tr>
-                                                        <td data-label="Permissions" class="text-left">
-                                                            {{$value['label']}}</td>
-                                                        <td data-label="View">
-                                                            @if(!empty($value['access']['view']))
-                                                            <input type="checkbox" value="{{join("
-                                                                ,",$value['access']['view'])}}" name="update_access[]" />
-                                                            @endif
-                                                        </td>
-                                                        <td data-label="Add">
-                                                            @if(!empty($value['access']['add']))
-                                                            <input type="checkbox" value="{{join("
-                                                                ,",$value['access']['add'])}}" name="update_access[]" />
-                                                            @endif
-                                                        </td>
-                                                        <td data-label="Edit">
-                                                            @if(!empty($value['access']['edit']))
-                                                            <input type="checkbox" value="{{join("
-                                                                ,",$value['access']['edit'])}}" name="update_access[]" />
-                                                            @endif
-                                                        </td>
-                                                        <td data-label="Delete">
-                                                            @if(!empty($value['access']['delete']))
-                                                            <input type="checkbox" value="{{join("
-                                                                ,",$value['access']['delete'])}}" name="update_access[]" />
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-
-
-                                        </div>
-                                    </div>
-                                </div>
+                    </div>
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="update-name" class="form-label">Name</label>
+                                <input type="text" name="update-name" id="update-name" class="form-control"
+                                    placeholder="Enter Name">
+                                <span class="error-text update-name_error text-danger"></span>
                             </div>
-                        </div>
-                        <div class="modal-footer mt-3">
-                            <button type="button" class="btn btn-label-secondary"
-                                data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                        </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-username" class="form-label">Username</label>
+                                <input type="text" id="update-username" name="update-username" class="form-control"
+                                    placeholder="Enter Username">
+                                <span class="error-text update-username_error text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-email" class="form-label">Email</label>
+                                <input type="email" name="update-email" id="update-email" class="form-control"
+                                    placeholder="xxxx@xxx.xx">
+                                <span class="error-text update-email_error text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-phone" class="form-label">Phone Number</label>
+                                <input type="text" name="update-phone" id="update-phone" class="form-control"
+                                    placeholder="Enter Phone Number">
+                                <span class="error-text update-phone_error text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-password" class="form-label">Password</label>
+                                <input type="password" name="update-password" id="update-password" class="form-control"
+                                    placeholder="Enter Password">
+                                <span class="error-text update-password_error text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-status" class="form-label">Select Status :</label>
+                                <select name="update-status" id="update-status" class="form-control " required>
+                                    <option value="1" @if(old('status')=='1' ) selected @endif>
+                                        {{trans('Active')}}
+                                    </option>
+                                    <option value="0" @if(old('status')=='0' ) selected @endif>
+                                        {{trans('DeActive')}}
+                                    </option>
+                                </select>
+                                <span class="error-text update-status_error text-danger"></span>
+                            </div>
 
-                    </form>
+                            <div class="col-md-6 mb-3">
+                                <label for="update-status" class="form-label">Select Role :</label>
+                                <select name="role_type_edit" id="role_type_edit" class="form-control " required>
+                                    @foreach ($list_roles as $role)
+                                    <option value="{{$role->name}}">{{ $role->name}}</option>
+                                    @endforeach
+                                </select>
+                                <span class="error-text update-status_error text-danger"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer mt-3">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+
+                </form>
             </div>
 
         </div>
@@ -330,10 +226,12 @@
     @push('style')
     <link rel="stylesheet" href="{{asset('assets/DataTables/datatables.min.css')}}" />
     @endpush
+
     @push('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
     <script>
-       // Handle edit button click
+        // Handle edit button click
       $(document).on('click', '.editAdminBtn', function () {
 
         let id = $(this).data('id');
@@ -342,42 +240,26 @@
         let email = $(this).data('email');
         let phone = $(this).data('phone');
         let status = $(this).data('status');
-        let accessAdmin = $(this).data('admin-access');
+        // let accessAdmin = $(this).data('admin-access');
+        let roleType = $(this).data('role-type');
 
         $('#editForm #update-name').val(name);
         $('#editForm #update-username').val(username);
         $('#editForm #update-email').val(email);
         $('#editForm #update-phone').val(phone);
         $('#editForm #update-status').val(status);
+        $('#editForm #role_type_edit').val(roleType);
 
         let updateUrl = $(this).data('route').replace(':id', id);
         // Set the action attribute for the form
         $('#editForm').attr('action', updateUrl);
 
 
-        $('#editForm input[type="checkbox"]').prop('checked', false);
 
-        // Parse and check checkboxes based on stored admin access
-        if (accessAdmin) {
-        try {
-            let permissionsArray = Array.isArray(accessAdmin) ? accessAdmin : accessAdmin.split(',');
-            // console.log(permissionsArray);
-            // Iterate through checkboxes inside the modal and check the ones that match
-            $('#editForm input[type="checkbox"]').each(function () {
-                let checkboxValues = $(this).val().split(','); // Get checkbox values as an array
-                if (checkboxValues.some(value => permissionsArray.includes(value.trim()))) {
-                    $(this).prop('checked', true);
-                }
-            });
-
-        } catch (e) {
-            console.error("Error parsing accessAdmin:", e);
-        }
-        }
         });
 
         $(document).ready(function () {
-            
+
             //For Add Admin Model
             $('.selectAll').on('click', function () {
             if ($(this).is(':checked')) {
@@ -451,16 +333,16 @@
             });
 
 
-            //submit add Admin function 
+            //submit add Admin function
             $('#storeStaffForm').submit(function (e) {
                 e.preventDefault();  // Prevent default form submission
-    
+
                 // Clear previous errors
                 $('.error-text').text('');
-    
+
                 // Collect form data
                 var formData = new FormData(this);
-    
+
                 // Send AJAX request
                 $.ajax({
                     url: $(this).attr('action'),  // Form action URL
@@ -474,7 +356,7 @@
                     success: function (response) {
 
                        if (response.success) {
-                           
+
 
                             // Optionally, close the modal after success
                             $('#addUserModal').modal('hide'); // Close the modal
@@ -543,7 +425,7 @@
 
                 });
             });
-           
+
             $(document).on('submit', '#editForm', function (e) {
                 e.preventDefault();  // Prevent default form submission
 
@@ -552,7 +434,7 @@
 
                 // Get the DataTable instance
                 var table = $('#staffTable').DataTable();
-                
+
                 // Get the current page index and the search query
                 var currentPage = table.page();  // Get the current page index
                 var searchValue = table.search();  // Get the current search value
@@ -653,7 +535,7 @@
 
         });
          //submit edit admin function
-         
+
 
     </script>
     @endpush

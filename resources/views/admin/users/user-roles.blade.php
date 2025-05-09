@@ -4,10 +4,29 @@
         .fa-ellipsis-v:before {
             content: "\f142";
         }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* Hide the loading spinner by default */
+        .d-none {
+            display: none;
+        }
     </style>
 
     @php
-        $currentRoute = Route::currentRouteName();
+    $currentRoute = Route::currentRouteName();
     @endphp
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
@@ -57,64 +76,30 @@
                                 data-bs-target="#newModal">
                                 Add New Role
                             </button>
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#cloneModal">
+                            <button type="button" class="btn btn-warning" id="openCloneModal" data-bs-toggle="modal" data-bs-target="#cloneModal">
                                 Clone Role Permission
                             </button>
                         </div>
 
                         <div class="table-responsive">
-                            <table class="categories-show-table table table-hover table-striped table-bordered">
+                            <table id="rolesTables"
+                                class="text-center categories-show-table table table-hover table-striped table-bordered">
                                 <thead class="thead-dark">
                                     <tr>
                                         <th scope="col">@lang('No.')</th>
                                         <th scope="col">@lang('Roles Name')</th>
-                                        <th scope="col">@lang('Action')</th>
+                                        <th class="text-center" scope="col">@lang('Action')</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($UserRoles as $index => $role)
-                                        <tr>
-                                            <td data-label="@lang('No.')">{{ $index + 1 }}</td>
-                                            <td data-label="@lang('Roles Name')">{{ $role->roles_name }}</td>
 
-                                            <td data-label="@lang('Action')">
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                        <i class="icon-base ti tabler-dots-vertical"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu">
-                                                        <a href="#" class="dropdown-item edit-roles"
-                                                            data-bs-toggle="modal" data-bs-target="#editModal"
-                                                            data-id="{{ $role->id }}"
-                                                            data-role="{{ $role->roles_name }}">
-                                                            <i class="fa fa-edit text-warning me-2"></i>
-                                                            @lang('Edit')
-                                                        </a>
-
-                                                        <form action="{{ route('admin.roles.delete', $role->id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="dropdown-item"
-                                                                onclick="return confirm('Are you sure you want to delete this role?')">
-                                                                <i class="fa fa-trash text-danger me-2"></i>
-                                                                @lang('Delete')
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td class="text-center text-danger" colspan="3">@lang('No Roles Data')</td>
-                                        </tr>
-                                    @endforelse
                                 </tbody>
                             </table>
-
-                            {{ $UserRoles->appends(request()->query())->links('partials.pagination') }}
+                            <div id="tableLoader" class="loading-overlay d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Processing...</span>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -125,10 +110,11 @@
     </div>
 
     {{-- Add Role Modal --}}
-    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addRolesForm" action="{{ route('admin.roles.add') }}" method="POST">
+                <form id="addRolesForm">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="newModalLabel">Add Role</h5>
@@ -139,39 +125,43 @@
                             <label for="roles_name" class="form-label">Role Name</label>
                             <input type="text" class="form-control" id="roles_name" name="role"
                                 placeholder="Enter role name" required>
+                            <div class="error-text text-danger mt-1 role_error"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Role</button>
+                        <button type="submit" class="btn btn-primary" id="saveRoleBtn">Save Role</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <div class="modal fade" id="cloneModal" tabindex="-1" aria-labelledby="cloneModalLabel" aria-hidden="true">
+
+    {{-- CloneEdit--}}
+    <div class="modal fade" id="cloneModal" tabindex="-1" aria-labelledby="cloneModalLabel" >
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addRolesForm" action="{{ route('admin.roles.add') }}" method="POST">
+                <form id="addRolesFormCopy" action="{{ route('admin.roles.copy') }}" method="POST">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="cloneModalLabel">Clone Role Permission</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
 
-                        <label for="roles_name" class="form-label">Role Name</label>
-                        <input type="text" class="form-control" id="roles_name" name="role"
+                        <label for="add_new_role" class="form-label">Role Name</label>
+                        <input type="text" class="form-control" id="add_new_role" name="add_new_role"
                             placeholder="Enter role name" required>
 
                     </div>
                     <div class="modal-body">
-
-                        <label for="roles_names" class="form-labels"> Clone from</label>
-                        <input type="text" class="form-control" id="roles_names" name="roles"
-                            placeholder="Enter role name" required>
-
+                        <div class="modal-body">
+                            <label for="copy_role_name" class="form-labels">Clone from</label>
+                            <select class="form-control" id="copy_role_name" name="copy_role_name" required>
+                                <option value="">-- Select Role --</option>
+                                <!-- Options will be appended here -->
+                            </select>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -183,27 +173,28 @@
     </div>
 
     {{-- Edit Role Modal --}}
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" >
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editRolesForm" action="" method="POST">
+                <form id="editRolesForm">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" id="edit_role_id" value="">
                     <div class="modal-header">
                         <h5 class="modal-title" id="editModalLabel">Edit Role</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="edit_roles_name" class="form-label">Role Name</label>
                             <input type="text" class="form-control" id="edit_roles_name" name="roles_name"
                                 placeholder="Enter role name" required>
+                            <div class="text-danger mt-1 roles_name_error"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary" id="editSaveBtn">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -212,31 +203,186 @@
 
     {{-- JS Section --}}
     @push('js')
-        <script>
-            $(document).ready(function() {
-
-                $('.edit-roles').click(function(e) {
-                    e.preventDefault();
-                    let id = $(this).data('id');
-                    let role = $(this).data('role');
-
-                    if (!id || !role) {
-                        console.error('Role data missing');
-                        return;
-                    }
-
-                    let updateUrl = "{{ route('admin.roles.update', ['id' => ':id']) }}".replace(':id', id);
-                    $('#editRolesForm').attr('action', updateUrl);
-                    $('#edit_roles_name').val(role);
-                });
-
-                $('#editModal').on('hidden.bs.modal', function() {
-                    $('#editRolesForm')[0].reset();
-                    $('#editRolesForm').attr('action', '');
-                });
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.categories-show-table').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    stateSave: true,
+                    ajax: {
+                        url: "{{ route('admin.rolescategory') }}", // Make sure this route returns JSON for DataTable
+                        type: 'GET',
+                        beforeSend: function () {
+                            $('#tableLoader').removeClass('d-none');
+                            $('.categories-show-table').css('pointer-events', 'none');
+                        },
+                        complete: function () {
+                            $('#tableLoader').addClass('d-none');
+                            $('.categories-show-table').css('pointer-events', 'auto');
+                        },
+                        dataSrc: function (json) {
+                            if (json.error) {
+                                Swal.fire('Error', json.error, 'error');
+                                return [];
+                            }
+                            return json.data;
+                        },
+                        error: function (xhr, error, code) {
+                            Swal.fire('Failed!', 'Could not load data: ' + error, 'error');
+                        }
+                    },
+                    columns: [
+                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                        { data: 'name', name: 'name' },
+                        { data: 'action', name: 'action', orderable: false, searchable: false }
+                    ],
+                    order: [[0, 'asc']],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        ['10 rows', '25 rows', '50 rows', 'All']
+                    ],
+                    language: {
+                        search: "_INPUT_",
+                        searchPlaceholder: "Search...",
+                        // processing: "<div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Processing...</span></div>"
+                    },
+                    info: false
             });
-        </script>
+
+
+
+        });
+
+
+        $('#addRolesForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let form = $(this);
+            let btn = $('#saveRoleBtn');
+
+            // Clear previous errors
+            $('#role-error').text('');
+
+            // Disable button and show spinner
+            btn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: "{{ route('admin.roles.add') }}",
+                type: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Close modal, reset form, show success message
+                        $('#newModal').modal('hide');
+                        form[0].reset();
+                        $('.categories-show-table').DataTable().ajax.reload(null, false);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message, // Use the message from the response
+                            timer: 2000, // Auto-close after 2 seconds
+                            showConfirmButton: false
+                        });
+                    }
+                },
+                error: function(response) {
+                    var errors = response.responseJSON.errors;
+                    var firstErrorField = null; // Track the first error field
+
+                    // Loop through errors and show them
+                    $.each(errors, function (key, value) {
+                        // Show error next to each field
+                        $('.' + key + '_error').text(value[0]);
+
+                        // Find the first field with an error and focus on it
+                        var $field = $('.' + key); // Find the field by class
+
+                        // Only set firstErrorField if it hasn't been set already
+                        if (!firstErrorField && $field.length) {
+                            firstErrorField = $field; // Set the first error field
+                        }
+                    });
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('Save Role');
+                }
+            });
+        });
+
+
+        $('#editRolesForm').on('submit', function(e) {
+            e.preventDefault();
+            url= $(this).attr('action');
+            $('#edit-role-error').text('');
+            let btn = $('#editSaveBtn');
+            // Disable button
+            btn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#editModal').modal('hide');
+                        $('#editRolesForm')[0].reset();
+                        $('.categories-show-table').DataTable().ajax.reload(null, false);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message, // Use the message from the response
+                            timer: 2000, // Auto-close after 2 seconds
+                            showConfirmButton: false
+                        });
+                    }
+                },
+                error: function(response) {
+                    var errors = response.responseJSON.errors;
+                    var firstErrorField = null; // Track the first error field
+
+                    // Loop through errors and show them
+                    $.each(errors, function (key, value) {
+                        // Show error next to each field
+                        $('.' + key + '_error').text(value[0]);
+
+                        // Find the first field with an error and focus on it
+                        var $field = $('.' + key); // Find the field by class
+
+                        // Only set firstErrorField if it hasn't been set already
+                        if (!firstErrorField && $field.length) {
+                            firstErrorField = $field; // Set the first error field
+                        }
+                    });
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('Save Changes');
+                }
+            });
+        });
+
+        $('#cloneModal').on('show.bs.modal', function () {
+            $.ajax({
+                url: "{{ route('admin.roles.list') }}", // Create this route
+                type: "GET",
+                success: function(response) {
+                    const selectBox = $('#copy_role_name');
+                    selectBox.empty().append('<option value="">-- Select Role --</option>');
+
+                    $.each(response.roles, function(key, value) {
+                        selectBox.append(`<option value="${value.name}">${value.name}</option>`);
+                    });
+                },
+                error: function(xhr) {
+                    console.error("Failed to fetch roles:", xhr.responseText);
+                }
+            });
+        });
+
+
+    </script>
     @endpush
 
 </x-admin-layout>
