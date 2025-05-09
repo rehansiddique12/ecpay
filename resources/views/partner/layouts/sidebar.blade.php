@@ -165,7 +165,41 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
                             </li>
-                            
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payment.report' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payment.report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Deposit Report">Deposit Report</div>
+                                </a>
+                            </li>
+
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payment.report.daily' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payment.report.daily') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Daily Deposit Report">Daily Deposit Report</div>
+                                </a>
+                            </li>
+
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payout-request' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payout-request') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Withdrawal Request">Withdrawal Request</div>
+                                </a>
+                            </li>
+
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payout-report' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payout-report') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Withdrawal Report">Withdrawal Report</div>
+                                </a>
+                            </li>
+
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.payout.report.daily' ? 'active' : '' }}">
+                                <a href="{{ route('partner.payout.report.daily') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report </div>
+                                </a>
+                            </li>
+
 
                     </li>
                 </ul>

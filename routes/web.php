@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ManualGatewayController;
 use App\Http\Controllers\Admin\MerchantController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\PaymentLogController;
+use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PayoutRecordController;
@@ -415,6 +416,20 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
+
+        Route::get('payment/report', [PartnerPaymentLogController::class,'report'])->name('payment.report');
+        Route::get('payment/report/search', [PartnerPaymentLogController::class,'reportSearch'])->name('payment.report.search');
+
+        Route::get('payment/report/daily', [PartnerPaymentLogController::class,'dailyReport'])->name('payment.report.daily');
+        Route::get('payment/report/daily/search', [PartnerPaymentLogController::class,'dailyReportSearch'])->name('payment.report.daily.search');
+        Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
+        Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
+        Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
+        Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');
+        Route::get('/payout-report/search', [PartnerPayoutRecordController::class,'reportSearch'])->name('payout-report.search');
+        Route::get('payout/report/daily', [PartnerPayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
+        Route::get('payout/report/daily/search', [PartnerPayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
+        Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class,'reportDetail'])->name('payout.report.detail');
     });
 
 });

@@ -1087,36 +1087,7 @@
                         </li>
                     </ul>
                 </li>
-                {{-- <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
-                        <a href="javascript:void(0)" class="menu-link menu-toggle">
-                            <i class="menu-icon icon-base ti tabler-users"></i>
-                            <div data-i18n="Merchant Reports">Merchant Reports</div>
-                        </a>
-                        <ul class="menu-sub">
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_date' ? 'active' : '' }}">
-                                <a href="{{ route('partner.merchant_reports.by_date') }}" class="menu-link">
-                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Summary By Date">Summary By Date</div>
-                                </a>
-                            </li>
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_name' ? 'active' : '' }}">
-                                <a href="{{ route('partner.merchant_reports.by_name') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Summary By Name">Summary By Name </div>
-                                </a>
-                            </li>
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_month' ? 'active' : '' }}">
-                                <a href="{{ route('partner.merchant_reports.by_month') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Summary By Year">Summary By Year </div>
-                                </a>
-                            </li>
 
-                        </ul>
-                    </li> --}}
                 <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
@@ -1126,7 +1097,7 @@
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_date' ? 'active' : '' }}">
                             <a href="{{ route('admin.merchant_reports.by_date') }}" class="menu-link">
-                                <i <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Summary By Date">Summary By Date</div>
                             </a>
                         </li>
