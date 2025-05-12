@@ -365,11 +365,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('merchant-logs/{id}', [MerchantController::class, 'mechantlogs'])->name('merchant.logs');
         Route::post('/activity-logs', [MerchantController::class, 'fetchActivityLogs'])->name('fetchActivityLogs');
 
-
-
-
-
-
     });
 
     // User Location Routes
@@ -394,16 +389,18 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
-
+    //      ///////////////////////////////////////----------------------------------------
         Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
         Route::get('/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('depositFund');
         Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('addFund.request.open');
+        Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('addFund.processPayment.open');
+        Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'update_order_fund_status'])->name('update_fund_order_status.open');
 
 
 
         Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
         Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
-
+    //      ///////////////////////////////////////----------------------------------------
         Route::get('/apis', [PartnerPayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/api/commissions', [PartnerPayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
 

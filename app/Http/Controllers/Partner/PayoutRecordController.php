@@ -3243,7 +3243,7 @@ class PayoutRecordController extends Controller
 
 
 
-    public function newFundOpen(Request $request, $gate, $charge, $final_amo, $amount, $account_no, $open_user, $e_wallet_phone_number): Fund
+    public function newFundOpen(Request $request, $gate, $charge, $final_amo, $amount, $account_no, $open_user, $e_wallet_phone_number): Payment
     {
 
         $fund = new Payment();
@@ -3625,6 +3625,39 @@ public function settlementSearch(Request $request)
         $pageTitle = "Search Adjustments";
         return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
     }
+
+
+
+    public function processMyPayment(Request $request)
+    {
+        session()->put('processing_show', 1);
+        $track = session()->get('track');
+        $sender = session()->get('sender');
+
+        $username = session()->get('username');
+        $open_user = API::where('username', $username)->first();
+
+        if (!$open_user || $open_user->type != "Admin") {
+            abort(404);
+        }
+
+        if($open_user->txn_verification==1){
+            $txn_verified = 0;
+            if (session()->has('txn_verified')) {
+                $txn_verified = session()->get('txn_verified');
+            }
+            if($txn_verified==0){
+                session()->put('processing_show', 2);
+            }
+
+        }
+
+        $processing = session()->get('processing_show');
+        $order = Fund::where('transaction', $track)->where('status' , 2)->orderBy('id', 'DESC')->with(['gateway', 'user'])->first();
+        $pageTitle = "Search Adjustments";
+        return view('partner.payout.paymentProcessingOpen', compact('order', 'processing', 'pageTitle', 'username'));
+    }
+
 
 
 
