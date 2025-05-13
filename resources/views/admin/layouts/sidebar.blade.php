@@ -18,6 +18,7 @@
         'admin.partner.balance',
         'admin.partner.balance.search',
         'admin.transections.apilogs',
+        'admin.commission.categories.index',
     ]);
     $isReportsActive = in_array(Route::currentRouteName(), [
         'admin.reports.live_ewallet_balance',
@@ -838,14 +839,28 @@
                     </a>
 
                     <ul class="menu-sub">
-                        <li
+                        
+                          <li
+                            class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
+                            <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                                <div data-i18n="Manage Commision">Manage Commision</div>
+                            </a>
+                        </li>
+<li
+                            class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
+                            <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                                <div data-i18n="Commision Category">Commision Category</div>
+                            </a>
+                        </li>
+                          <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Add Balance/Adjustment">Add Balance/Adjustment</div>
                             </a>
                         </li>
-
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
