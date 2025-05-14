@@ -58,7 +58,7 @@ class PayoutRecordController extends Controller
 
     $allowedFields = [
         'website', 'api_endpoint_deposit', 'api_endpoint_withdrawal',
-        'redirect_url', 'min_deposit', 'min_withdrawal'
+        'redirect_url', 'min_deposit', 'min_withdrawal','api_key'
     ];
 
     if (!in_array($request->field, $allowedFields)) {
@@ -4873,7 +4873,7 @@ class PayoutRecordController extends Controller
         $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::where('status','1')->get();
         $data['pageTitle'] = 'Accounts Management';
-        
+
         $this->updateLimits();
 
         $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
@@ -4893,12 +4893,12 @@ class PayoutRecordController extends Controller
             'group_name' => 'required|string|max:255',
             'pairs' => 'required|array',
         ]);
-    
+
         $group = new AccountGroup();
         $group->group_name = $request->group_name;
         $group->pairs = json_encode($request->pairs);
         $group->save();
-    
+
         return redirect()->back()->with('success', 'Group created successfully!');
     }
 
@@ -4909,19 +4909,19 @@ class PayoutRecordController extends Controller
             'status' => 'required|boolean', // 1 = on, 0 = off
             'type' => 'required',
         ]);
-    
+
         $wallet = EWalletAccount::find($request->id);
         if (!$wallet) {
             return response()->json(['success' => false, 'message' => 'Wallet not found.'], 404);
         }
-    
+
         $currentType = strtolower($wallet->account_type ?? '');
         $newType = $request->type;
         $status = $request->status;
-    
+
         $hasDeposit = in_array($currentType, ['deposit', 'both']);
         $hasWithdrawal = in_array($currentType, ['withdrawal', 'both']);
-    
+
         if ($newType === 'deposit') {
             $wallet->account_type = $status
                 ? ($hasWithdrawal ? 'Both' : 'Deposit')
@@ -4934,15 +4934,15 @@ class PayoutRecordController extends Controller
             // ✅ Only update status column
             $wallet->status = $status;
         }
-    
+
         $wallet->save();
-    
+
         return response()->json([
             'success' => true,
             'account_type' => $wallet->account_type,
             'status' => $wallet->status,
         ]);
     }
-    
+
 
 }
