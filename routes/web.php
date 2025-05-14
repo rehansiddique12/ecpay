@@ -7,12 +7,16 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Admin\ManualGatewayController;
 use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\PaymentLogController;
+use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\PaymentTypeController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
+use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
+use App\Http\Controllers\Partner\SummaryReportController as PartnerSummaryReportController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
@@ -232,7 +236,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/charges/add', [PayoutRecordController::class, 'accountChargesAdd'])->name('accounts.charges.add');
         Route::get('/accounts/group', [PayoutRecordController::class, 'accountGroupList'])->name('accounts.group.add');
 
-        // Accunt groups 
+        // Accunt groups
         Route::post('/accounts/addpairs', [PayoutRecordController::class, 'addAccountPairs'])->name('accounts.addpairs');
         Route::post('/updateaccount-status', [PayoutRecordController::class, 'updateaccountStatus'])->name('update.accstatus');
 
@@ -373,6 +377,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     });
 
 
+
     });
 
     // User Location Routes
@@ -397,21 +402,56 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
-
+    //      ///////////////////////////////////////----------------------------------------
         Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
         Route::get('/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('depositFund');
         Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('addFund.request.open');
+        Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('addFund.processPayment.open');
+        Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'update_order_fund_status'])->name('update_fund_order_status.open');
 
 
 
         Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
-        Route::post('/withdraw/transection', [PayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+        Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+    //      ///////////////////////////////////////----------------------------------------
+        Route::get('/apis', [PartnerPayoutRecordController::class, 'apis'])->name('apis');
+        Route::get('/api/commissions', [PartnerPayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
 
-        // Route::get('merchant/report_by_date', [MerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
-        // Route::get('merchant-reports/export', [MerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
+        Route::get('/settlements', [PartnerPayoutRecordController::class, 'settlements'])->name('settlements');
+        Route::post('/settlements/Add', [PartnerPayoutRecordController::class, 'storeSettlement'])->name('settlements.add');
+        Route::get('settlements/search', [PartnerPayoutRecordController::class, 'settlementSearch'])->name('settlements.search');
 
-        // Route::get('merchant/report_by_name', [MerchantController::class,'report_by_name'])->name('merchant_reports.by_name');
-        // Route::get('merchant-reports/export_name', [MerchantController::class,'export_by_name'])->name('merchant_reports.export_by_name');
+        Route::get('payment/report/all', [PartnerPaymentLogController::class, 'allReport'])->name('payment.report.all');
+        Route::get('payment/report/all/search', [PartnerPaymentLogController::class, 'allReportSearch'])->name('payment.report.all.search');
+        Route::get('payment/report/detail/{date}/{gateway}/{status}', [ PartnerPaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
+        Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
+
+        Route::get('settlement/report/daily', [PartnerPayoutRecordController::class, 'dailyReportSettlement'])->name('settlement.report.daily');
+        Route::get('settlement/report/daily/search', [PartnerPayoutRecordController::class, 'dailyReportSearchSettlement'])->name('settlement.report.daily.search');
+        Route::post('settlement/report/detail', [PartnerPayoutRecordController::class, 'reportDetailSettlement'])->name('settlement.report.detail');
+
+
+        Route::get('/partner/balance', [PartnerPayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
+        Route::get('partner/balance/search', [PartnerPayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
+
+        Route::get('reports/partner_account_summary', [PartnerReportsController::class, 'partner_account_summary'])->name('reports.partner_account_summary');
+        Route::get('reports/partner_account_balance_summary', [PartnerReportsController::class, 'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
+        Route::get('reports/logs', [PartnerReportsController::class, 'logs'])->name('reports.logs');
+        Route::get('reports/export_log', [PartnerReportsController::class, 'export_excel_record'])->name('report.export_excel_record');
+        Route::get('merchant/report_by_date', [PartnerMerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
+        Route::get('merchant-reports/export', [PartnerMerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
+
+        Route::get('reports/completions/logs', [PartnerReportsController::class, 'log_completions'])->name('reports.log_completions');
+        Route::get('reports/export_log_completions', [PartnerReportsController::class, 'export_excel_record_completions'])->name('report.export_excel_record_completions');
+        Route::get('payment_gateway_performance_report', [PartnerSummaryReportController::class, 'payment_gateway_report'])->name('payment.payment_gateway_report');
+
+        Route::get('merchant/report_by_name', [PartnerMerchantController::class,'report_by_name'])->name('merchant_reports.by_name');
+        Route::get('merchant-reports/export_name', [PartnerMerchantController::class,'export_by_name'])->name('merchant_reports.export_by_name');
+
+        Route::get('merchant/report_by_month', [PartnerMerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
+        Route::get('merchant-reports/export_month', [PartnerMerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
+
+
 
         // Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
         // Route::get('merchant-reports/export_month', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
@@ -429,6 +469,20 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
+
+        Route::get('payment/report', [PartnerPaymentLogController::class,'report'])->name('payment.report');
+        Route::get('payment/report/search', [PartnerPaymentLogController::class,'reportSearch'])->name('payment.report.search');
+
+        Route::get('payment/report/daily', [PartnerPaymentLogController::class,'dailyReport'])->name('payment.report.daily');
+        Route::get('payment/report/daily/search', [PartnerPaymentLogController::class,'dailyReportSearch'])->name('payment.report.daily.search');
+        Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
+        Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
+        Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
+        Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');
+        Route::get('/payout-report/search', [PartnerPayoutRecordController::class,'reportSearch'])->name('payout-report.search');
+        Route::get('payout/report/daily', [PartnerPayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
+        Route::get('payout/report/daily/search', [PartnerPayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
+        Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class,'reportDetail'])->name('payout.report.detail');
     });
 
 });

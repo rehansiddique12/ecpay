@@ -13,7 +13,6 @@ use App\Models\Payout;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Setting;
-use App\Models\PayoutLog;
 use App\Models\Signature;
 use App\Models\Commission;
 use App\Models\PartnerLog;
@@ -276,7 +275,7 @@ class PayoutRecordController extends Controller
             //start
             $commit = 0;
             if ($fund) {
-                $order = Fund::where('id', $fund['id'])->first();
+                $order = Payment::where('id', $fund['id'])->first();
                 $payment = Payment::where('e_wallet_name', $gate->code)
                     ->where('amount', $fund['amount'])
                     ->where('sender', $fund['account_no'])
@@ -2590,6 +2589,1075 @@ class PayoutRecordController extends Controller
             'message' => $response->body(),
         ];
     }
+
+    public function request()
+    {
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_id = $main_user->id;
+
+        $log = "View Withdrawal Requests";
+        $this->addLogs($log);
+
+
+        $sum = Payout::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('api_id', $api_id)
+            ->where('status', 'Complete')
+            ->sum('amount');
+
+        $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+
+        $charge = 0;
+        $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        if ($commissions) {
+            $charge = $commissions->withdrawal_percentage * $user->balance / 100;
+        } else {
+            $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
+            if ($commissions) {
+                $charge = $commissions->withdrawal_percentage * $user->balance / 100;
+            }
+        }
+
+        $withdrawal_able_amount = $api_key->balance - $charge;
+        $withdrawal_able_amount = round($withdrawal_able_amount ?? 0, 2);
+
+        $pageTitle = "Payout Request";
+        $domains = Api::where('type', 'Admin')->get();
+        $records = Payout::where('status', 1)
+        ->orderBy('id', 'DESC')
+        ->with('user', 'gateway')
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->paginate(config('basic.paginate'));
+        return view('partner.payout.logs', compact('records', 'pageTitle', 'domains', 'withdrawal_able_amount'));
+    }
+
+    function addLogs($log)
+    {
+
+        $ipAddress = $_SERVER['REMOTE_ADDR'];
+        $user = Auth::guard('partner')->user();
+
+        $partnerlog = new PartnerLog();
+        $partnerlog->api_id = $user->id;
+        $partnerlog->log = $log;
+        $partnerlog->ip_address = $ipAddress;
+        $partnerlog->save();
+    }
+
+    public function search(Request $request)
+    {
+        $log = "Search Withdrawal Requests";
+        $this->addLogs($log);
+
+
+
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_id = $main_user->id;
+
+        $search = $request->all();
+        $domains = Api::where('type', 'Admin')->get();
+        $dateSearch = $request->date_time;
+        $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
+
+        $from_date_to_search = date('Y-m-d H:i:s', strtotime($dateSearch . ' 00:00:00'));
+        $to_date_to_search = date('Y-m-d H:i:s', strtotime($dateSearch . ' 23:59:59'));
+
+
+        $partnerTimezone = $main_user->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+
+        $records = Payout::where('status', '!=', 0)
+        ->when($search['name'], function ($query) use ($search) {
+            $query->whereHas('user', function ($subQuery) use ($search) {
+                $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
+                    ->orWhere('email', 'like', '%' . $search['name'] . '%')
+                    ->orWhere('username', 'like', '%' . $search['name'] . '%');
+            });
+        })
+        ->when($search['date_time'], function ($query) use ($search, $from_date_to_search, $to_date_to_search) {
+            $query->where('created_at', '>=', $from_date_to_search)
+                  ->where('created_at', '<=', $to_date_to_search);
+        })
+        ->when($search['partner_transection_id'], function ($query) use ($search) {
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+            });
+        })
+        ->when($search['status'] != 4, function ($query) use ($search) {
+            $query->where('status', $search['status']);
+        })
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->orderBy('id', 'DESC')
+        ->with('user', 'gateway')
+        ->paginate(config('basic.paginate'));
+
+        $sum = Payout::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('api_id', $api_id)
+            ->where('status', 'Complete')
+            ->sum('amount');
+        $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $charge = 0;
+        $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        if ($commissions) {
+            $charge = $commissions->withdrawal_percentage * $user->balance / 100;
+        } else {
+            $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
+            if ($commissions) {
+                $charge = $commissions->withdrawal_percentage * $user->balance / 100;
+            }
+        }
+        $withdrawal_able_amount = $api_key->balance - $charge;
+        $withdrawal_able_amount = round($withdrawal_able_amount ?? 0, 2);
+
+        $pageTitle = "Search Payout Logs";
+     return view('partner.payout.logs', compact('records', 'pageTitle', 'domains', 'withdrawal_able_amount'));
+    }
+
+    public function report()
+    {
+        $log = "View Withdrawal Report";
+        $this->addLogs($log);
+
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_id = $main_user->id;
+
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        // dd($gateways);
+        $pageTitle = "Payout Report";
+        $domains = Api::where('type', 'Admin')->get();
+        $records = Payout::where('status', '!=', 0)
+        ->orderBy('id', 'DESC')
+        ->with('user', 'gateway')
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->paginate(config('basic.paginate'));
+
+    $funds_t = Payout::where('status', '!=', 0)
+        ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->first();
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+        return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+    }
+
+    public function reportSearch(Request $request)
+    {
+        $log = "Search Withdrawal Report";
+        $this->addLogs($log);
+        // dd($request->all());
+
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_id = $main_user->id;
+
+        $search = $request->all();
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)->get();
+
+        $fund_count = 0;
+        $fund_sum = 0;
+
+
+
+        $partnerTimezone = $main_user->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $search['from_date'] = Carbon::parse($search['from_date'], $originalTimezone)->setTimezone($targetTimezone);
+        $search['to_date'] = Carbon::parse($search['to_date'], $originalTimezone)->setTimezone($targetTimezone);
+
+        $funds_t = Payout::when(isset($search['name']), function ($query) use ($search) {
+            return $query->where('trx_id', 'LIKE', $search['name'])
+                ->orWhereHas('user', function ($q) use ($search) {
+                    $q->where('email', 'LIKE', "%{$search['name']}%")
+                        ->orWhere('username', 'LIKE', "%{$search['name']}%");
+                });
+        })
+        ->when(isset($search['status']), function ($query) use ($search) {
+            return $query->where('status', $search['status']);
+        })
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->where('status', '!=', 0)
+        ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+            $fromDate = Carbon::parse($search['from_date']);
+            $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+            return $query->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate);
+        })
+        ->when(isset($search['partner_transection_id']), function ($query) use ($search) {
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+            });
+        })
+        ->when(isset($search['account_no']), function ($query) use ($search) {
+            return $query->where('user_account_no', 'LIKE', "%{$search['account_no']}%");
+        })
+        ->when(isset($search['gateway']), function ($query) use ($search) {
+            return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
+        })
+        ->select('*')
+        ->selectRaw('COUNT(*) as amount_count, SUM(amount) as amount_sum')
+        ->with('user', 'gateway')
+        ->paginate(config('basic.paginate'));
+
+
+        if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
+            $fund_count = $funds_t[0]->amount_count;
+            $fund_sum = round($funds_t[0]->amount_sum, 2);
+        }
+
+        if(isset($search['export'])){
+            $records = Payout::when(isset($search['name']), function ($query) use ($search) {
+                return $query->where('trx_id', 'LIKE', $search['name'])
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('email', 'LIKE', "%{$search['name']}%")
+                            ->orWhere('username', 'LIKE', "%{$search['name']}%");
+                    });
+            })
+            ->when(isset($search['status']), function ($query) use ($search) {
+                return $query->where('status', $search['status']);
+            })
+            ->when($api_id, function ($query) use ($api_id) {
+                $query->where('api_id', $api_id);
+            })
+            ->where('status', '!=', 0)
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                $fromDate = Carbon::parse($search['from_date']);
+                $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+                return $query->where('created_at', '>=', $fromDate)
+                            ->where('created_at', '<=', $toDate);
+            })
+            ->when(isset($search['partner_transection_id']), function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+            ->when(isset($search['account_no']), function ($query) use ($search) {
+                return $query->where('user_account_no', 'LIKE', "%{$search['account_no']}%");
+            })
+            ->when(isset($search['gateway']), function ($query) use ($search) {
+                return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
+            })
+            ->orderBy('id', 'DESC')
+            ->with('user', 'gateway')
+            ->get();
+
+            $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn','Username','User-Type','gateway','User-Account-No','Amount','Charges','Final-Amount','Request-Status','Transfer-Status','E-Wallet-No','Website','Completed-At'];
+            foreach($records as $item){
+                // dd($fund);
+                $user_name = "";
+                $user_type = "";
+                if(optional($item->user)->username!="dummyuser"){
+                    $user_name = optional($item->user)->username;
+                    $user_type = "User";
+                }else{
+                    $user_name = optional($item->api)->name;
+                    $user_type = optional($item->api)->acc_type;
+                }
+                $status = "Pending";
+                $status2 = "Pending";
+                if($item->status == 2){
+                    $status = "Approved";
+                }elseif($item->status == 1){
+                    $status = "Pending";
+                }elseif($item->status == 3){
+                    $status = "Rejected";
+                }
+
+                if($item->payout->status == "Complete"){
+                    $status2 = "Transfered";
+                }elseif($item->payout->status == "Pending"){
+                    $status2 = "Transfer Pending";
+                }elseif($item->payout->status == "Reject"){
+                    $status2 = "Transfer Rejected";
+                }
+
+                $data[] = [$item->created_at, $item->trx_id,optional($item->payout)->txn_id,optional($item->payout)->partner_transection_id,$user_name,$user_type,optional($item->method)->name,$item->user_account_no,getAmount($item->amount),optional($item->payout)->charge,getAmount($item->net_amount),$status,$status2,optional($item->payout)->e_wallet_phone_number,optional($item->payout)->source,optional($item->payout)->date_time];
+            }
+
+            $currentDateTime = date('d_F_Y_h_i_A');
+            $csvFileName = "withdrawal_export_csv_$currentDateTime.csv";
+            $headers = array(
+                "Content-type" => "text/csv",
+                "Content-Disposition" => "attachment; filename=$csvFileName",
+                "Pragma" => "no-cache",
+                "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+                "Expires" => "0"
+            );
+
+            $callback = function () use ($data) {
+                $file = fopen('php://output', 'w');
+                foreach ($data as $row) {
+                    fputcsv($file, $row);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+
+            }else{
+
+                $records = Payout::when(isset($search['name']), function ($query) use ($search) {
+                    return $query->where('trx_id', 'LIKE', $search['name'])
+                        ->orWhereHas('user', function ($q) use ($search) {
+                            $q->where('email', 'LIKE', "%{$search['name']}%")
+                                ->orWhere('username', 'LIKE', "%{$search['name']}%");
+                        });
+                })
+                ->when(isset($search['status']), function ($query) use ($search) {
+                    // Simplified status check - assuming payout status is now handled directly in Payout model
+                    return $query->where('status', $search['status']);
+                })
+                ->when($api_id, function ($query) use ($api_id) {
+                    $query->where('api_id', $api_id);
+                })
+                ->where('status', '!=', 0)
+                ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                    $fromDate = Carbon::parse($search['from_date']);
+                    $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+                    return $query->where('created_at', '>=', $fromDate)
+                                ->where('created_at', '<=', $toDate);
+                })
+                ->when(isset($search['partner_transection_id']), function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                    });
+                })
+                ->when(isset($search['account_no']), function ($query) use ($search) {
+                    return $query->where('user_account_no', 'LIKE', "%{$search['account_no']}%");
+                })
+                ->when(isset($search['gateway']), function ($query) use ($search) {
+                    return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
+                })
+                ->orderBy('id', 'DESC')
+                ->with('user', 'gateway')
+                ->paginate(config('basic.paginate'));
+
+            $pageTitle = "Search Payout Logs";
+            return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+
+            }
+
+    }
+
+    public function dailyReport()
+    {
+        $log = "View Day Wise Withdrawal Report";
+        $this->addLogs($log);
+
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_id = $main_user->id;
+
+
+        $from_date = date('Y-m-01');
+        $to_date = date('Y-m-d');
+
+        $from_date_to_search = date('Y-m-01 00:00:00');
+        $to_date_to_search = date('Y-m-d 23:59:59');
+
+
+        $partnerTimezone = $main_user->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+
+        $offset = Carbon::now(new CarbonTimeZone($partnerTimezone))->format('P');
+
+
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Daily Withdrawal Report";
+        $payoutsByDate = Payout::select(
+            DB::raw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset')) as payout_date"),
+            DB::raw('COUNT(*) as payout_count'),
+            DB::raw('SUM(amount) as total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
+        )
+        ->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)
+        ->where('api_id', $api_id)
+        ->groupBy(DB::raw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset'))"))
+        ->get();
+        // dd($payoutsByDate);
+
+        return view('partner.payout.daily_report', compact('payoutsByDate', 'pageTitle', 'gateways', 'from_date', 'to_date'));
+    }
+
+    public function dailyReportSearch(Request $request)
+    {
+        $log = "Search Day Wise Withdrawal Report";
+        $this->addLogs($log);
+
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_id = $main_user->id;
+
+
+
+        $from_date_to_search = date('Y-m-d H:i:s', strtotime($request->from_date . ' 00:00:00'));
+        $to_date_to_search = date('Y-m-d H:i:s', strtotime($request->to_date . ' 23:59:59'));
+
+
+        $partnerTimezone = $main_user->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+
+        $offset = Carbon::now(new CarbonTimeZone($partnerTimezone))->format('P');
+
+
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = "Daily Withdrawal Report";
+        $query = Payout::select(
+            DB::raw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset')) as payout_date"),
+            DB::raw('COUNT(*) as payout_count'),
+            DB::raw('SUM(amount) as total_amount'),
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
+        )
+        ->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)
+        ->where('api_id', $api_id)
+        ->groupBy(DB::raw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset'))"));
+
+
+        if ($request->filled('gateway')) {
+            $query->where('e_wallet_name', $request->gateway);
+        }
+
+        $payoutsByDate = $query->get();
+
+        $from_date = $request->from_date;
+        $to_date = $request->to_date;
+        return view('partner.payout.daily_report', compact('payoutsByDate', 'pageTitle', 'gateways', 'from_date', 'to_date'));
+    }
+    public function reportDetail($date, $gateway, $status)
+    {
+        $log = "View Day Wise Withdrawal Report Detail";
+        $this->addLogs($log);
+
+
+        $user = Auth::guard('partner')->user();
+        $website = $user->website;
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $partnerTimezone = $main_user->timezone;
+        $api_id = $main_user->id;
+
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        // dd($gateways);
+        $pageTitle = "Payout Report Detail";
+        $domains = Api::where('type', 'Admin')->get();
+
+        $heading['date'] = $date;
+        $heading['gateway'] = $gateway;
+        $heading['status'] = $status;
+
+        if ($gateway == "All") {
+            $gateway = "";
+        }
+
+        if ($status == "Pending") {
+            $status = 1;
+        } elseif ($status == "Approved") {
+            $status = 2;
+        } else {
+            $status = "";
+        }
+
+        // dd($status);
+
+        $from_date_to_search = date('Y-m-d H:i:s', strtotime($date . ' 00:00:00'));
+        $to_date_to_search = date('Y-m-d H:i:s', strtotime($date . ' 23:59:59'));
+
+
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+
+        $records = Payout::where('status', 'like', '%' . $status . '%')
+        ->where('status', '!=', 0)
+        ->orderBy('id', 'DESC')
+        ->with('user', 'gateway')
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->where('created_at', '>=', $from_date_to_search)
+        ->where('created_at', '<=', $to_date_to_search)
+        ->where('e_wallet_name', 'like', '%' . $gateway . '%')
+        ->get()
+        ->map(function ($fund) use ($partnerTimezone) {
+            $fund->created_at = \Carbon\Carbon::parse($fund->created_at)->timezone($partnerTimezone);
+            $fund->updated_at = \Carbon\Carbon::parse($fund->updated_at)->timezone($partnerTimezone);
+            return $fund;
+        });
+
+    $funds_t = Payout::where('status', '!=', 0)
+        ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+        ->where('status', 'like', '%' . $status . '%')
+        ->with('user', 'gateway')
+        ->when($api_id, function ($query) use ($api_id) {
+            $query->where('api_id', $api_id);
+        })
+        ->where('created_at', '>=', $from_date_to_search)
+        ->where('created_at', '<=', $to_date_to_search)
+        ->where('e_wallet_name', 'like', '%' . $gateway . '%')
+        ->first();
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+
+        return response()->json($records);
+    }
+
+
+
+
+
+    public function payoutMoneyRequestTransection(Request $request)
+    {
+        $this->validate($request, [
+            'gateway' => 'required|integer',
+            'username' => 'required',
+            'amount' => ['required', 'numeric']
+        ]);
+
+        $open_user = API::where('username', $request->username)->first();
+        if (!$open_user || $open_user->type != "Admin") {
+            abort(404);
+        }
+
+        $min_withdrawal = $open_user->min_withdrawal;
+
+
+        $basic = (object)config('basic');
+        $method = PayoutMethod::where('id', $request->gateway)->where('status', 1)->firstOrFail();
+
+        $authWallet = $open_user;
+
+        $charge = $method->fixed_charge + ($request->amount * $method->percent_charge / 100);
+
+        $finalAmo = $request->amount + $charge;
+
+        if ($request->amount < $min_withdrawal) {
+            session()->flash('error', 'Minimum payout Amount ' . round($min_withdrawal, 2) . ' ' . $basic->currency);
+            return back();
+        }
+        if ($request->amount > $method->maximum_amount) {
+            session()->flash('error', 'Maximum payout Amount ' . round($method->maximum_amount, 2) . ' ' . $basic->currency);
+            return back();
+        }
+
+
+        $pending_payout_ids = Payout::where('api_id', $open_user->id)
+                ->where('status', 'Pending')
+                ->whereNotNull('payout_log_id')
+                ->where('payout_log_id', '!=', '')
+                ->pluck('payout_log_id');
+
+            $previous_pending = PayoutLog::where('api_id', $open_user->id)
+                ->where(function ($query) use ($pending_payout_ids) {
+                    $query->whereIn('status', [0, 1])
+                        ->orWhere(function ($subQuery) use ($pending_payout_ids) {
+                            $subQuery->where('status', 2)
+                                    ->whereIn('id', $pending_payout_ids);
+                        });
+                })
+                ->sum('amount');
+
+
+
+
+        if ($finalAmo + $previous_pending > $authWallet['balance']) {
+            if($previous_pending>0){
+                session()->flash('error', 'You have already requested a withdrawal of '.round($previous_pending, 2).', which is still in process. Your remaining balance is '.round($authWallet['balance'] - $previous_pending, 2).'.');
+                return back();
+            }else{
+                session()->flash('error', 'Insufficient balance' . snake2Title(round($authWallet['balance'], 2)) . ' For Withdraw.');
+                return back();
+            }
+
+        } else {
+            $trx = strRandom();
+            $withdraw = new PayoutLog();
+            $withdraw->user_id = 0;
+            $withdraw->method_id = $method->id;
+            $withdraw->amount = getAmount($request->amount);
+            $withdraw->charge = $charge;
+            $withdraw->net_amount = $finalAmo;
+            $withdraw->trx_id = $trx;
+            $withdraw->status = 0;
+            $withdraw->api_key = $authWallet['api_key'];
+            $withdraw->api_id = $authWallet['id'];
+            $withdraw->save();
+            session()->put('wtrx', $trx);
+            session()->put('username', $request->username);
+            return redirect()->route('partner.payout.preview.transection');
+        }
+    }
+
+
+
+
+
+    public function newFundOpen(Request $request, $gate, $charge, $final_amo, $amount, $account_no, $open_user, $e_wallet_phone_number): Payment
+    {
+
+        $fund = new Payment();
+        $fund->user_id = 0;
+        $fund->gateway_id = $gate->id;
+        $fund->amount = $amount;
+        $fund->charge = $charge;
+        $fund->sender = $account_no;
+        $fund->transaction = strRandom();
+        $fund->try = 0;
+        $fund->status = 2;
+        $fund->api_id = $open_user->id;
+        $fund->e_wallet_phone_number = $e_wallet_phone_number;
+        $fund->request_source = "URL";
+        $fund->save();
+        return $fund;
+    }
+
+
+
+    public function apis(Request $request)
+    {
+
+        $user = Auth::guard('partner')->user();
+        $records = PartnerCommission::with('api')
+        ->select('api_id',
+            \DB::raw('SUM(CASE WHEN type = 1 THEN amount ELSE 0 END) AS sum_amount_type_1'),
+            \DB::raw('SUM(CASE WHEN type = 1 THEN charges ELSE 0 END) AS sum_charges_type_1'),
+            \DB::raw('SUM(CASE WHEN type = 1 THEN total_amount ELSE 0 END) AS sum_total_amount_type_1'),
+            \DB::raw('SUM(CASE WHEN type = 1 THEN profit ELSE 0 END) AS sum_profit_type_1'),
+            \DB::raw('SUM(CASE WHEN type = 2 THEN amount ELSE 0 END) AS sum_amount_type_2'),
+            \DB::raw('SUM(CASE WHEN type = 2 THEN charges ELSE 0 END) AS sum_charges_type_2'),
+            \DB::raw('SUM(CASE WHEN type = 2 THEN total_amount ELSE 0 END) AS sum_total_amount_type_2'),
+            \DB::raw('SUM(CASE WHEN type = 2 THEN profit ELSE 0 END) AS sum_profit_type_2')
+        )
+        ->where('from_id', $user->id)
+        ->where('status', 1)
+        ->groupBy('api_id')
+        ->orderBy('api_id', 'DESC')
+        ->get();
+        $pageTitle = "Commissions Summary";
+        $partners = Api::where('type', 'Admin')->get();
+        return view('partner.payout.api', compact('records', 'pageTitle', 'partners'));
+    }
+
+
+    public function apiCommissions(Request $request)
+    {
+        $user = Auth::guard('partner')->user();
+        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $partnerTimezone = $main_admin->timezone;
+        $partner_ids = PartnerCommission::where('from_id', $user->id)
+            ->distinct()
+            ->pluck('api_id')
+            ->toArray();
+
+
+        // If no partner IDs are found, set an empty collection
+        if (empty($partner_ids)) {
+            $partners = collect();
+        } else {
+            $partners = Api::whereIn('id', $partner_ids) // Filter by partner IDs in the array
+                ->get();
+        }
+
+        // Create a query builder for PartnerCommission
+        $records = PartnerCommission::query();
+
+        // Check if from_date and to_date are provided, otherwise set today's date
+        $from_date = !empty($request->from_date) ? $request->from_date : Carbon::today()->toDateString();
+        $to_date = !empty($request->to_date) ? $request->to_date : Carbon::today()->toDateString();
+
+
+        $from_date_to_search = date('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
+        $to_date_to_search = date('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
+
+
+        $partnerTimezone = $main_admin->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+
+
+        // Apply date filters
+        $records->where('created_at', '>=', $from_date_to_search);
+        $records->where('created_at', '<=', $to_date_to_search);
+
+        // Filter by partner if provided
+        if (!empty($request->partner)) {
+            $records->where('api_id', $request->partner);
+        }
+
+        // Filter by from_id (the current user's id)
+        $records->where('from_id', $user->id);
+
+        // Filter by type if provided
+        if (!empty($request->type) || $request->type == '0') {
+            $records->where('type', $request->type);
+        }
+
+        // Ensure the status is 1 (active)
+        $records->where('status', 1);
+
+        // Paginate the results
+        $records = $records->orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+
+        // Set the page title for the view
+        $pageTitle = "Commission History";
+
+        // Return the view with data
+        return view('partner.payout.commission_report', compact('records', 'pageTitle', 'partners' , 'from_date' , 'to_date'));
+    }
+
+
+    public function settlements()
+{
+    $user = Auth::guard('partner')->user();
+
+    if ($user->type !== "Admin") {
+        return back()->with('error', 'You have no permission to this page.');
+    }
+
+    $now = now();
+
+    // Calculate total settled amount for current month
+    $monthlyTotal = Settlement::whereYear('created_at', $now->year)
+        ->whereMonth('created_at', $now->month)
+        ->where('partner_id', $user->id)
+        ->where('status', 1)
+        ->sum('amount');
+
+    // Find admin API
+    $api = Api::where([
+        ['api_key', $user->api_key],
+        ['type', 'Admin']
+    ])->first();
+
+    $settlementableAmount = $user->balance;
+    $charge = 0;
+
+    if ($api) {
+        $commission = Commission::where('api_id', $api->id)
+            ->where('from_amount', '<=', $monthlyTotal)
+            ->where('to_amount', '>=', $monthlyTotal)
+            ->first();
+
+        if (!$commission) {
+            $commission = Commission::where('api_id', $api->id)
+                ->orderByDesc('to_amount')
+                ->first();
+        }
+
+        if ($commission) {
+            $charge = ($commission->settlement_percentage / 100) * $user->balance;
+            $settlementableAmount -= $charge;
+        }
+    }
+
+    // All settlements
+    $records = Settlement::where('partner_id', $user->id)
+        ->latest()
+        ->get();
+
+    // Gateway summary
+    $gateways = Settlement::where('partner_id', $user->id)
+        ->select('source_name', \DB::raw('COUNT(*) as count'), \DB::raw('SUM(amount) as total'))
+        ->groupBy('source_name')
+        ->get();
+
+    return view('partner.payout.settlement', [
+        'records' => $records,
+        'gateways' => $gateways,
+        'settlementable_amount' => $settlementableAmount,
+        'pageTitle' => 'Settlements History'
+    ]);
+}
+
+
+public function settlementSearch(Request $request)
+{
+    $user = Auth::guard('partner')->user();
+
+    if ($user->type !== "Admin") {
+        return back()->with('error', 'You have no permission to this page.');
+    }
+
+    $now = now();
+
+    // Monthly settled amount
+    $monthlyTotal = Settlement::whereYear('created_at', $now->year)
+        ->whereMonth('created_at', $now->month)
+        ->where('partner_id', $user->id)
+        ->where('status', 1)
+        ->sum('amount');
+
+    // Get API and timezone
+    $api = Api::where('api_key', $user->api_key)
+        ->where('type', 'Admin')
+        ->first();
+
+    $charge = 0;
+    if ($api) {
+        $commission = Commission::where('api_id', $api->id)
+            ->where('from_amount', '<=', $monthlyTotal)
+            ->where('to_amount', '>=', $monthlyTotal)
+            ->first();
+
+        if (!$commission) {
+            $commission = Commission::where('api_id', $api->id)
+                ->orderByDesc('to_amount')
+                ->first();
+        }
+
+        if ($commission) {
+            $charge = ($commission->settlement_percentage / 100) * $user->balance;
+        }
+    }
+
+    $settlementable_amount = $user->balance - $charge;
+
+    // Build query
+    $recordsQuery = Settlement::where('partner_id', $user->id);
+
+    // Handle date conversion
+    $originalTimezone = $api?->timezone ?? config('app.timezone');
+    $targetTimezone = config('app.timezone', 'Asia/Dhaka');
+
+    if (!empty($request->from_date)) {
+        $from = Carbon::parse($request->from_date . ' 00:00:00', $originalTimezone)
+            ->setTimezone($targetTimezone);
+        $recordsQuery->where('created_at', '>=', $from);
+    }
+
+    if (!empty($request->to_date)) {
+        $to = Carbon::parse($request->to_date . ' 23:59:59', $originalTimezone)
+            ->setTimezone($targetTimezone);
+        $recordsQuery->where('created_at', '<=', $to);
+    }
+
+    if (!empty($request->gateway)) {
+        $recordsQuery->where('source_name', $request->gateway);
+    }
+
+    if ($request->status !== "all") {
+        if ($request->status === "0" || !empty($request->status)) {
+            $recordsQuery->where('status', $request->status);
+        }
+    }
+
+    $records = $recordsQuery->latest()->get();
+
+    // Only get unique gateways with aggregation to avoid groupBy issue
+    $gateways = Settlement::where('partner_id', $user->id)
+        ->select('source_name', \DB::raw('COUNT(*) as total'))
+        ->groupBy('source_name')
+        ->get();
+
+    $pageTitle = "Search Settlements History";
+
+    return view('partner.payout.settlement', compact(
+        'records',
+        'pageTitle',
+        'gateways',
+        'settlementable_amount'
+    ));
+}
+
+
+
+
+    public function dailyReportSettlement()
+    {
+        $this->addLogs("View Day Wise Settlement Report");
+
+        $user = Auth::guard('partner')->user();
+        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $website = $user->website;
+
+        $from_date = date('Y-m-01');
+        $to_date = date('Y-m-d');
+
+        $from_datetime = Carbon::parse($from_date . ' 00:00:00', $main_admin->timezone ?? 'UTC')
+            ->setTimezone(config('app.timezone', 'Asia/Dhaka'));
+        $to_datetime = Carbon::parse($to_date . ' 23:59:59', $main_admin->timezone ?? 'UTC')
+            ->setTimezone(config('app.timezone', 'Asia/Dhaka'));
+
+        $offset = Carbon::now(new CarbonTimeZone($main_admin->timezone))->format('P');
+
+        $gateways = Settlement::where('partner_id', $user->id)
+            ->select('source_name', DB::raw('COUNT(*) as total'))
+            ->groupBy('source_name')
+            ->get();
+
+        $settlementsByDate = Settlement::select(
+                DB::raw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset')) as settlement_date"),
+                DB::raw('COUNT(*) as settlement_count'),
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('COUNT(CASE WHEN status = 0 THEN 1 END) as pending_count'),
+                DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
+                DB::raw('SUM(CASE WHEN status = 0 THEN amount ELSE 0 END) as pending_amount'),
+                DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+            )
+            ->whereBetween('created_at', [$from_datetime, $to_datetime])
+            ->where('partner_id', $user->id)
+            ->groupBy(DB::raw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset'))"))
+            ->get();
+
+        $pageTitle = "Daily Settlement Report";
+
+        return view('partner.payout.settlement_report', compact(
+            'settlementsByDate',
+            'pageTitle',
+            'gateways',
+            'from_date',
+            'to_date'
+        ));
+    }
+
+
+    public function partnerBalance(Request $request)
+    {
+            $user = Auth::guard('partner')->user();
+            $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+            $api_id = $main_admin->id;
+
+        $records = ApiTransaction::where('partner_id', $api_id)->with('api')->orderBy('id', 'DESC')->get();
+        $pageTitle = "Adjustments";
+        $partners = Api::where('type', 'Admin')->get();
+
+        return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+
+    public function partnerBalanceSearch(Request $request)
+    {
+
+        $user = Auth::guard('partner')->user();
+        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $partnerTimezone = $main_admin->timezone;
+        $api_id = $main_admin->id;
+
+
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+
+        if(!empty($request->from_date)){
+            $from_date_to_search = date('Y-m-d H:i:s', strtotime($request->from_date . ' 00:00:00'));
+            $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        }
+
+        if(!empty($request->to_date)){
+            $to_date_to_search = date('Y-m-d H:i:s', strtotime($request->to_date . ' 23:59:59'));
+            $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+        }
+
+
+        $partners = Api::where('type', 'Admin')->get();
+
+        $records = ApiTransaction::with('api');
+
+        if (!empty($request->from_date) && !empty($request->to_date)) {
+            $records->whereDate('created_at', '>=', $from_date_to_search);
+            $records->whereDate('created_at', '<=', $to_date_to_search);
+        } elseif (!empty($request->from_date)) {
+            $records->whereDate('created_at', '>=', $from_date_to_search);
+        } elseif (!empty($request->to_date)) {
+            $records->whereDate('created_at', '<=', $to_date_to_search);
+        }
+
+        $records->where('partner_id', $api_id);
+
+        if (!empty($request->adjustment) || $request->adjustment == '0') {
+            $records->where('adjustment', $request->adjustment);
+        }
+
+        $records = $records->orderBy('id', 'DESC')->get();
+
+        $pageTitle = "Search Adjustments";
+        return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+
+
+    public function processMyPayment(Request $request)
+    {
+        session()->put('processing_show', 1);
+        $track = session()->get('track');
+        $sender = session()->get('sender');
+
+        $username = session()->get('username');
+        $open_user = API::where('username', $username)->first();
+
+        if (!$open_user || $open_user->type != "Admin") {
+            abort(404);
+        }
+
+        if($open_user->txn_verification==1){
+            $txn_verified = 0;
+            if (session()->has('txn_verified')) {
+                $txn_verified = session()->get('txn_verified');
+            }
+            if($txn_verified==0){
+                session()->put('processing_show', 2);
+            }
+
+        }
+
+        $processing = session()->get('processing_show');
+        $order = Fund::where('transaction', $track)->where('status' , 2)->orderBy('id', 'DESC')->with(['gateway', 'user'])->first();
+        $pageTitle = "Search Adjustments";
+        return view('partner.payout.paymentProcessingOpen', compact('order', 'processing', 'pageTitle', 'username'));
+    }
+
 
 
 

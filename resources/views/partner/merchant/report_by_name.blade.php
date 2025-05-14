@@ -1,4 +1,4 @@
-<x-admin-layout :title="$pageTitle">
+<x-partner-layout :title="$pageTitle">
 
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
     <form action="{{ route('partner.merchant_reports.by_name') }}" method="get">
@@ -142,4 +142,4 @@
 
 @push('js')
 @endpush
-</x-admin-layout>
+</x-partner-layout>

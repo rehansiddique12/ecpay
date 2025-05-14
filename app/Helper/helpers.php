@@ -1,12 +1,23 @@
 <?php
 
 use \Illuminate\Support\Str;
+use Carbon\Carbon;
 
 function template($asset = false)
 {
     $activeTheme = config('basic.theme');
     if ($asset) return 'assets/themes/' . $activeTheme . '/';
     return 'themes.' . $activeTheme . '.';
+}
+
+function convertToUserTimezone($date, $timezone = null, $format = 'd M,Y H:i')
+{
+    if (!$date) {
+        return null;
+    }
+
+    $timezone = $timezone ?? auth()->user()->timezone ?? config('app.timezone');
+    return Carbon::parse($date)->timezone($timezone)->format($format);
 }
 
 
