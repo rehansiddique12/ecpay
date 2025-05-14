@@ -15,6 +15,49 @@
                 }
             }
         </style>
+
+<style>
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 90px;
+      height: 30px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      color: white;
+      line-height: 30px;
+      border-radius: 20px;
+      transition: 0.4s;
+    }
+
+    .slider.active {
+      background: linear-gradient(to right, #28a745, #20c997);
+    }
+
+    .slider.deactive {
+        background: linear-gradient(to right, #dc3545, #d1404f);
+    }
+
+
+    </style>
+
+
     @endpush
 
     <div class="row ">
@@ -55,53 +98,56 @@
                                         <td style="max-width: 100px;">{{ $item['username'] }}</td>
                                         <td style="max-width: 130px;">{{ $item['website'] }}</td>
                                         <td style="max-width: 220px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 8px; padding: 7px;">Deposit:</span>
                                             {{ $item['api_endpoint_deposit'] }}<br>
 
                                             <span
-                                                class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
+                                                class="bg-warning text-white  d-inline-block mt-2 mb-2" style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
                                             {{ $item['api_endpoint_withdrawal'] }}<br>
 
-                                            <span class="bg-info text-white p-1 d-inline-block mt-2">Redirect
+                                            <span class="bg-info text-white  d-inline-block mt-2" style="border-radius: 10px; padding: 7px;">Redirect
                                                 URL:</span>
                                             {{ $item['redirect_url'] }}<br>
                                         </td>
 
                                         <td style="max-width: 220px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2">API Key:</span>
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 6px; padding: 7px;">API Key:</span>
                                             {{ $item['api_key'] }}<br>
 
-                                            <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Secret
+                                            <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2" style="border-radius: 8px; padding: 7px;">Secret
                                                 Key:</span>
                                             {{ $item['secret_key'] }}
                                         </td>
 
                                     <td>{{ $item['balance'] }}</td>
                                     <td style="max-width: 300px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2">Deposit:</span>
+                                        <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 6px; padding: 7px;">Deposit:</span>
                                         <span class="editable" data-id="{{ $item['id'] }}" data-field="min_deposit">{{ $item['min_deposit'] }}</span><br>
 
-                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2">Withdrawal:</span>
+                                        <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2" style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
                                         <span class="editable" data-id="{{ $item['id'] }}" data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
                                     </td>
 
-                                        <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                            @if ($item->status == 0)
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-danger danger font-12"></i>
-                                                    @lang('Deactive')
-                                                </span>
-                                            @else
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-success success font-12"></i>
-                                                    @lang('Active')</span>
-                                            @endif
-                                        </td>
+                                    <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                        <label class="switch">
+                                            <input type="checkbox" {{ $item->status == 1 ? 'checked' : '' }} disabled>
+                                            <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
+                                                {{ $item->status == 1 ? __('Active') : __('Deactive') }}
+                                            </span>
+                                        </label>
+                                    </td>
+
                                         <td>
                                             @if (adminAccessRoute(config('role.partner_login.access.view')))
-                                                <a class="btn btn-sm edit_button"
-                                                    href="{{ route('admin.apis.login', $item['id']) }}"
-                                                    target="_blank"><i class="icon-base ti tabler-login me-1"></i> </a>
+                                            <a class="btn btn-sm edit_button"
+                                            href="{{ route('admin.apis.login', $item['id']) }}"
+                                            target="_blank"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="right"
+                                            title="Partner">
+                                             <i class="icon-base ti tabler-login me-1"></i>
+                                         </a>
+
                                                 <br>
                                             @endif
                                             @if (adminAccessRoute(config('role.partners.access.delete')))
@@ -110,28 +156,49 @@
                                                     @csrf
                                                     @method('DELETE')
 
-                                                    <button type="submit" class="btn btn-sm edit_button"> <i
-                                                            class="icon-base ti tabler-trash me-1"></i></button>
+                                                    <button type="submit" class="btn btn-sm edit_button" data-bs-toggle="tooltip" data-bs-placement="right" title="Delete">
+                                                        <i class="icon-base ti tabler-trash me-1"></i>
+                                                    </button>
+
                                                 </form>
                                             @endif
                                             <button class="btn btn-sm edit_button"
-                                                onclick="generateAndCopyPassword({{ $item['id'] }})">
-                                                <i class="icon-base ti tabler-restore me-1"></i>
-                                            </button>
+                                            onclick="generateAndCopyPassword({{ $item['id'] }})"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="right"
+                                            title="Relode">
+                                        <i class="icon-base ti tabler-restore me-1"></i>
+                                    </button>
+
                                             <br>
                                             <a class="btn btn-sm edit_button"
-                                                data-copy="{{ $item['username'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
-                                                onclick="copyToClipboard(this)">
-                                                <i class="icon-base ti tabler-copy-check me-1"></i>
+                                            data-copy="{{ $item['username'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
+                                            onclick="copyToClipboard(this)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="right"
+                                            title="Copy">
+                                            <i class="icon-base ti tabler-copy-check me-1"></i>
+                                         </a>
+
+                                            <br>
+                                            <a class="btn btn-sm edit_button"
+                                                href="{{ route('admin.api.profile.export', $item['id']) }}"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="right"
+                                                title="Download EX">
+                                                <i class="icon-base ti tabler-database-export me-1"></i>
                                             </a>
-                                            <br>
-                                            <a class="btn btn-sm edit_button"
-                                                href="{{ route('admin.api.profile.export', $item['id']) }}"> <i
-                                                    class="icon-base ti tabler-database-export me-1"></i></a>
+
 
                                             <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
-                                                <button type="submit" class="btn edit_button"> <i
-                                                        class="icon-base ti tabler-qrcode me-1"></i> </button>
+                                                <button type="submit"
+                                                        class="btn edit_button"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="right"
+                                                        title="QR Code">
+                                                    <i class="icon-base ti tabler-qrcode me-1"></i>
+                                                </button>
+
                                             </form>
                                         </td>
                                     </tr>
@@ -320,7 +387,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
 
-                <div class="modal-header">
+                <div class="modal-header bg-primary">
                     <h5 class="modal-title" id="modalTopTitle">@lang('Add New')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -825,5 +892,17 @@
                 });
             });
         </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+
+
+
     @endpush
 </x-admin-layout>
