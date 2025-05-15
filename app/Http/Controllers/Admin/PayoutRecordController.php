@@ -1869,6 +1869,9 @@ class PayoutRecordController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Status updated.']);
     }
 
+
+
+
     // Acconts
 
     public function allAccounts(Request $request)
