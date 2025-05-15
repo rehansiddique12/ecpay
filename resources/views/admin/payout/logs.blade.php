@@ -36,7 +36,8 @@
 
                 <div class="col-md-5">
                     <div class="form-group">
-                        <select name="domain" class="form-control">
+                        <select name="domain" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain">
+                            <option></option>
                             <option value="">@lang('Select Domain')</option>
                             @foreach($domains as $domain)
                             <option value="{{ $domain->id }}" @if(@request()->domain == $domain->id) selected
@@ -628,12 +629,42 @@
         });
 
     </script>
+<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+<script>
+    $(document).ready(function () {
+        $('form').on('submit', function () {
+            const $form = $(this);
+            const $submitButton = $form.find('button[type="submit"]');
 
+            // Disable button and change text (optional)
+            $submitButton.prop('disabled', true);
+            $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang("Processing...")');
 
+            // Allow form to proceed
+            return true;
+        });
+       let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
 
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
 
-
-
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
+    });
+</script>
+    @endpush
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     @endpush
 
 </x-admin-layout>
