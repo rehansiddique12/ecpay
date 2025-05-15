@@ -4684,11 +4684,6 @@ class PayoutRecordController extends Controller
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }
 
-
-
-
-
-
     // Partner Commission
 
     public function apiCommissions(Request $request)
@@ -4747,7 +4742,7 @@ class PayoutRecordController extends Controller
         }
         // dd($recordsQuery->sum('amount'));
         $pageTitle = "Partners Commission History";
-        $partners = Api::where('type', 'Admin')->get();
+        $partners = Api::select('id' , 'name')->where('type', 'Admin')->get();
 
         return view('admin.payout.commission_report', compact('records', 'pageTitle', 'partners'  ,'from_date'  ,'to_date' , 'totalAmount' , 'isLastPage' , 'totalChargesSum' , 'totalAAmountSum' , 'totalProfitSum'));
     }
@@ -4950,7 +4945,7 @@ class PayoutRecordController extends Controller
     }
 
 
-  public function accountGroupList()
+    public function accountGroupList()
     {
         $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::where('status','1')->get();

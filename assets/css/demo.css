@@ -130,3 +130,14 @@
             #dt-length-0 + label {
             display: none;
         }
+
+ .select2-container--default .select2-selection--single .select2-selection__clear {
+        font-size: 30px; /* Default is around 14px */
+        right: 8px;
+        top: 4px;
+    }
+
+.select2-selection__clear {
+    color: red !important;
+    font-weight: bold;
+}

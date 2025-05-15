@@ -30,7 +30,8 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Partner</label>
-                        <select name="partner" class="form-select">
+                        <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select a partner">
+                            <option></option>
                             <option value="">All</option>
                             @foreach($partners as $partner)
                             <option value="{{ $partner->id }}" @if(@request()->partner == $partner->id) selected
@@ -252,9 +253,12 @@
             </div>
         </div>
     </div>
-
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
     @push('js')
-    <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+
     <script>
         "use strict";
         $(document).ready(function(e) {
@@ -292,6 +296,24 @@
                         submitBtn.prop('disabled', false).text('Save');
                     }
                 });
+            });
+
+            let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
+
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
             });
         });
     </script>

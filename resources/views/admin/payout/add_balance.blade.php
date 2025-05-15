@@ -7,22 +7,11 @@
                 @csrf
                 <div class="modal-body">
                     <div class="row justify-content-between align-items-center">
-                        {{-- <div class="col-md-12">
-                            <div class="form-group">
-                                <select name="partner_id" class="form-control">
-                                    <option value="">@lang('Select Domain')</option>
-                                    @foreach($domains as $domain)
-                                        <option value="{{ $domain->id }}"
-                                        @if(@request()->domain == $domain->id) selected @endif>{{ $domain->name }} ===> ( {{ $domain->website }} )</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div> --}}
-
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <select name="partner_id" class="form-select select2">
+                                <select name="partner_id" class="form-select select2" data-allow-clear="true" data-placeholder="Select Partner">
+                                    <option></option>
                                     <option value="">@lang('Select Domain')</option>
                                     @foreach($domains as $domain)
                                         <option value="{{ $domain->id }}"
@@ -33,16 +22,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <script>
-                        $(document).ready(function() {
-                            $('.select2').select2({
-                                placeholder: "@lang('Select Domain')",
-                                allowClear: true
-                            });
-                        });
-                        </script>
-
 
                         <div class="col-md-12">
                             <div class="form-group">
@@ -142,8 +121,11 @@
 </div>
 
 
-
+ @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
 @push('js')
+<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
 <script>
     $(document).ready(function () {
         $('form').on('submit', function () {
@@ -157,6 +139,23 @@
             // Allow form to proceed
             return true;
         });
+       let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
+
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
     });
 </script>
 

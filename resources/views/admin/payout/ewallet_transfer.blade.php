@@ -22,7 +22,8 @@
                         <div class="col-md-3">
                             <div class="form-group" id="fromtransfer1">
                                 <label class="pr-3">Transfer From</label>
-                                <select class="form-select" name="transfer_from1">
+                                <select class="form-select select2" name="transfer_from1" data-allow-clear="true" data-placeholder="Select From Account" required>
+                                    <option></option>
                                     @foreach ($e_wallet_accounts as $e_wallet_account)
 
                                     <option value="{{ $e_wallet_account->id }}">{{ $e_wallet_account->account_no." (".$e_wallet_account->e_wallet_name.") " }}</option>
@@ -38,7 +39,8 @@
                         <div class="col-md-3">
                             <div class="form-group" id="totransfer1">
                                 <label class="pr-3">Transfer To</label>
-                                <select class="form-select" name="transfer_to1">
+                                <select class="form-select select2" name="transfer_to1" data-allow-clear="true" data-placeholder="Select To Account">
+                                    <option></option>
                                     @foreach ($e_wallet_accounts as $e_wallet_account)
 
                                     <option value="{{ $e_wallet_account->id }}">{{ $e_wallet_account->account_no." (".$e_wallet_account->e_wallet_name.") " }}</option>
@@ -192,9 +194,12 @@
         </div>
     </div>
     @endif
-
+ @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
 
     @push('js')
+<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
     $(document).ready(function () {
         $('#category').change(function () {
@@ -235,7 +240,23 @@
             $btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Submitting...');
             return true; // allow form to submit
         });
+           let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
 
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
     });
 
     </script>
