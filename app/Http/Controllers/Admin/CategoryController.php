@@ -20,7 +20,7 @@ class CategoryController extends Controller
     public function index()
     {
         $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
-        $data['categories'] = Category::where('status','1')->get();
+        $data['categories'] = Category::all();
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
@@ -88,5 +88,17 @@ class CategoryController extends Controller
                 'monthly_sent' => 0
             ]);
     }
+
+    public function changeStatus($id)
+{
+    $category = Category::findOrFail($id);
+    $category->status = $category->status == 1 ? 0 : 1;
+    $category->save();
+    return response()->json([
+        'success' => true,
+        'status' => $category->status,
+    ]);
+}
+
 
 }

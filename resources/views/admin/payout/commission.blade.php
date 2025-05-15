@@ -62,7 +62,7 @@
                                         <option value="personal">Personal</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-5">
                                     <label>Gateway</label>
                                     <select class="form-control select2" name="settlement_gateway[${key}][]" multiple required>
                                         @foreach($gateways as $gateway)
@@ -155,18 +155,15 @@
                                 $selectedGateways = json_decode($commission->gateway_id ?? '');
                                 @endphp
 
-                                <div class="col-md-3">
+                                <div class="col-md-5">
                                     <label>Gateway</label>
-                                    <select class="form-control select2" name="settlement_gateway[{{ $key }}][]"
-                                        multiple required>
-                                        @foreach($gateways as $gateway)
-                                        <option value="{{ $gateway->id }}"
-                                            {{ in_array($gateway->id, $selectedGateways) ? 'selected' : '' }}>
-                                            {{ $gateway->source_name }}
-                                        </option>
-                                        @endforeach
-
-                                    </select>
+                                    <select class="form-control select2" multiple name="settlement_gateway[{{ $key }}][]">
+    @foreach($gateways as $gateway)
+    <option value="{{ $gateway->id }}" {{ in_array($gateway->id, $selectedGateways) ? 'selected' : '' }}>
+        {{ $gateway->source_name }}
+    </option>
+    @endforeach
+</select>
                                 </div>
                                 @if($key > 0)
                                 <div class="col-md-1 mt-4">
@@ -331,7 +328,7 @@ $(document).on('click', '.duplicate-row', function() {
                                 <option value="personal">Personal</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-5">
                             <label>Gateway</label>
                             <select class="form-control select2" name="settlement_gateway[${key}][]" multiple required>
                                 @foreach($gateways as $gateway)
@@ -357,4 +354,13 @@ $(document).on('click', '.cancel-row', function() {
     const rowId = $(this).data('row');
     $(`#row-${rowId}`).remove();
 });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.select2').select2({
+            minimumResultsForSearch: 1,
+            width: '100%'
+        });
+    });
 </script>

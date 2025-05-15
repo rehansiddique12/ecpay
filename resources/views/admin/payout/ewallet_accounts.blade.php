@@ -64,8 +64,6 @@
                                     @else
                                     <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled text-danger me-1 text-success"></i> @lang('Inactive')</span>
                                     @endif
-
-
                                 </td>
                                 <td data-label="@lang('Action')">
                                     <div class="dropdown">

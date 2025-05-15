@@ -748,12 +748,12 @@
                                     <div data-i18n="Add Accounts">Add Accounts</div>
                                 </a>
                             </li> -->
-                            <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
+                            <!-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="All Accounts">All Accounts</div>
                                 </a>
-                            </li>
+                            </li> -->
                             <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
                                 <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -803,12 +803,12 @@
                                 <div data-i18n="TelegramGroup">TelegramGroup</div>
                             </a>
                         </li>
-                        <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
+                        <!-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="All Accounts">All Accounts</div>
                             </a>
-                        </li>
+                        </li> -->
                         <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
                             <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>

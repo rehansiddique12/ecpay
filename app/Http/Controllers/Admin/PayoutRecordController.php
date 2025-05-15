@@ -4917,6 +4917,20 @@ class PayoutRecordController extends Controller
             'status' => $wallet->status,
         ]);
     }
+
+    public function changeStatus($id)
+{
+    $account = EWalletAccount::findOrFail($id);
+    $account->status = $account->status == 1 ? 0 : 1;
+    $account->save();
+
+    return response()->json([
+        'success' => true,
+        'status' => $account->status,
+        'message' => 'Status updated successfully.'
+    ]);
+}
+
     
 
 }
