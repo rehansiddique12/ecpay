@@ -310,6 +310,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
 
         Route::get('/user/edit/{id}', [UsersController::class, 'userEdit'])->name('user-edit');
+        Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::put('payment/action/{id}', [PaymentLogController::class, 'action'])->name('payment.action');
 
         Route::get('/payout-log', [PayoutRecordController::class, 'index'])->name('payout-log');
@@ -358,7 +359,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/e-wallet/accounts', [PayoutRecordController::class, 'eWalletAccounts'])->name('ewallet.accounts');
 
         Route::get('/e_wallet_accounts/{id}/toggle-status', [PayoutRecordController::class, 'toggleStatus'])->name('e_wallet_accounts.toggle_status');
-        Route::delete('/e-wallet/admin/delete/{account}', [PayoutRecordController::class, 'adminAccountDelete'])->name('ewallet.accounts.delete');
+        Route::delete('/e-wallet/delete/{account}', [PayoutRecordController::class, 'adminAccountDelete'])->name('ewallet.accounts.delete');
         Route::post('/accounts/deposit/test', [PayoutRecordController::class, 'depositTest'])->name('deposit.test');
         Route::post('/e-wallet/admin/add', [PayoutRecordController::class, 'eWalletAccountsAdd'])->name('ewallet.accounts.add');
         Route::post('/accounts/deposit/testp', [PayoutRecordController::class, 'depositTestp'])->name('deposit.testp');

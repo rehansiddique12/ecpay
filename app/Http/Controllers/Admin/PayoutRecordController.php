@@ -176,7 +176,7 @@ class PayoutRecordController extends Controller
     {
         $account = AdminAccount::findOrFail($id);
         $account->delete();
-        return back();
+        return response()->json(['status' => 'success', 'message' => 'Account deleted successfully']);
     }
 
     public function depositTest(Request $request)
@@ -195,17 +195,12 @@ class PayoutRecordController extends Controller
         $charge = 0;
         $e_wallet_phone_number = $account->account_no;
 
-        $fund = new Fund();
+        $fund = new Payment();
         $fund->user_id = 0;
         $fund->gateway_id = $gate->id;
-        $fund->gateway_currency = strtoupper($gate->currency);
         $fund->amount = $request->amount;
         $fund->charge = $charge;
-        $fund->account_no = $request->account_no;
-        $fund->rate = $gate->convention_rate;
-        $fund->final_amount = getAmount($request->amount);
-        $fund->btc_amount = 0;
-        $fund->btc_wallet = "";
+        $fund->sender = $request->account_no;
         $fund->transaction = strRandom();
         $fund->try = 0;
         $fund->status = 2;
@@ -3034,6 +3029,34 @@ class PayoutRecordController extends Controller
     {
 
         $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->paginate(10);
+        $pageTitle = "Account Balance Logs";
+
+        return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));
+    }
+
+    public function balanceLogsSearch(Request $request)
+    {
+
+        $accountlog = AccountLog::orderBy('id', 'DESC')
+            ->with('e_wallet_account')
+            ->whereHas('e_wallet_account', function ($query) use ($request) {
+                $query->where('e_wallet_name', 'like', '%' . $request->ewallet . '%')
+                    ->where('account_no', 'like', '%' . $request->account_no . '%')
+                    ->where('type', 'like', '%' . $request->a_type . '%');
+
+                if (!empty($request->from_date) && !empty($request->to_date)) {
+                    $query->whereDate('created_at', '>=', $request->from_date);
+                    $query->whereDate('created_at', '<=', $request->to_date);
+                } elseif (!empty($request->from_date)) {
+                    $query->whereDate('created_at', '>=', $request->from_date);
+                } elseif (!empty($request->to_date)) {
+                    $query->whereDate('created_at', '<=', $request->to_date);
+                }
+            })
+            ->where('type', 'like', '%' . $request->type . '%')
+            ->paginate(10);
+
+        // $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->get();
         $pageTitle = "Account Balance Logs";
 
         return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));

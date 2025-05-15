@@ -2,11 +2,12 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
+                <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                 <div class="card card-primary shadow">
                     <div class="card-body">
                         @if(adminAccessRoute(config('role.payment_gateway.access.add')))
                         <a href="{{route('admin.deposit.manual.create')}}"
-                           class="btn btn-success btn-sm float-right mb-3"><i
+                           class="btn btn-primary btn-sm float-right mb-3"><i
                                 class="fa fa-plus-circle"></i> {{trans('Add New')}}</a>
                         @endif
 

@@ -16,48 +16,44 @@
             }
         </style>
 
-<style>
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 90px;
-      height: 30px;
-      font-size: 13px;
-      font-weight: bold;
-      text-align: center;
-      user-select: none;
-    }
+        <style>
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 90px;
+                height: 30px;
+                font-size: 13px;
+                font-weight: bold;
+                text-align: center;
+                user-select: none;
+            }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
 
-    .slider {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      color: white;
-      line-height: 30px;
-      border-radius: 20px;
-      transition: 0.4s;
-    }
+            .slider {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                color: white;
+                line-height: 30px;
+                border-radius: 20px;
+                transition: 0.4s;
+            }
 
-    .slider.active {
-      background: linear-gradient(to right, #28a745, #20c997);
-    }
+            .slider.active {
+                background: linear-gradient(to right, #28a745, #20c997);
+            }
 
-    .slider.deactive {
-        background: linear-gradient(to right, #dc3545, #d1404f);
-    }
-
-
-    </style>
-
-
+            .slider.deactive {
+                background: linear-gradient(to right, #dc3545, #d1404f);
+            }
+        </style>
     @endpush
 
     <div class="row ">
@@ -94,18 +90,22 @@
                                 @forelse($records as $key => $item)
                                     <tr>
                                         <td style="max-width: 70px;">{{ $item['id'] }}</td>
-                                        <td style="max-width: 110px;"><a href="{{route('admin.merchant.profile',$item->id)}}">{{ $item['name'] }}</a></td>
+                                        <td style="max-width: 110px;"><a
+                                                href="{{ route('admin.merchant.profile', $item->id) }}">{{ $item['name'] }}</a>
+                                        </td>
                                         <td style="max-width: 100px;">{{ $item['username'] }}</td>
                                         <td style="max-width: 130px;"><span class="editable" data-id="{{ $item['id'] }}" data-field="website">{{ $item['website'] }}</span></td>
                                         <td style="max-width: 220px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 8px; padding: 7px;">Deposit:</span>
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                                style="border-radius: 8px; padding: 7px;">Deposit:</span>
                                             {{ $item['api_endpoint_deposit'] }}<br>
 
-                                            <span
-                                                class="bg-warning text-white  d-inline-block mt-2 mb-2" style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
+                                            <span class="bg-warning text-white  d-inline-block mt-2 mb-2"
+                                                style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
                                             {{ $item['api_endpoint_withdrawal'] }}<br>
 
-                                            <span class="bg-info text-white  d-inline-block mt-2" style="border-radius: 10px; padding: 7px;">Redirect
+                                            <span class="bg-info text-white  d-inline-block mt-2"
+                                                style="border-radius: 10px; padding: 7px;">Redirect
                                                 URL:</span>
                                             {{ $item['redirect_url'] }}<br>
                                         </td>
@@ -115,39 +115,42 @@
                                             <span class="editable" data-id="{{ $item['id'] }}" data-field="api_key">{{ $item['api_key'] }}</span>
                                             <br>
 
-                                            <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2" style="border-radius: 8px; padding: 7px;">Secret
+                                            <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
+                                                style="border-radius: 8px; padding: 7px;">Secret
                                                 Key:</span>
                                             {{ $item['secret_key'] }}
                                         </td>
 
-                                    <td>{{ $item['balance'] }}</td>
-                                    <td style="max-width: 300px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 6px; padding: 7px;">Deposit:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="min_deposit">{{ $item['min_deposit'] }}</span><br>
+                                        <td>{{ $item['balance'] }}</td>
+                                        <td style="max-width: 300px;">
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                                style="border-radius: 6px; padding: 7px;">Deposit:</span>
+                                            <span class="editable" data-id="{{ $item['id'] }}"
+                                                data-field="min_deposit">{{ $item['min_deposit'] }}</span><br>
 
-                                        <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2" style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
-                                    </td>
+                                            <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2"
+                                                style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
+                                            <span class="editable" data-id="{{ $item['id'] }}"
+                                                data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
+                                        </td>
 
-                                    <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                        <label class="switch">
-                                            <input type="checkbox" {{ $item->status == 1 ? 'checked' : '' }} disabled>
-                                            <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
-                                                {{ $item->status == 1 ? __('Active') : __('Deactive') }}
-                                            </span>
-                                        </label>
-                                    </td>
+                                        <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                            <label class="switch">
+                                                <input type="checkbox" {{ $item->status == 1 ? 'checked' : '' }}
+                                                    disabled>
+                                                <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
+                                                    {{ $item->status == 1 ? __('Active') : __('Deactive') }}
+                                                </span>
+                                            </label>
+                                        </td>
 
                                         <td>
                                             @if (adminAccessRoute(config('role.partner_login.access.view')))
-                                            <a class="btn btn-sm edit_button"
-                                            href="{{ route('admin.apis.login', $item['id']) }}"
-                                            target="_blank"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-placement="right"
-                                            title="Partner">
-                                             <i class="icon-base ti tabler-login me-1"></i>
-                                         </a>
+                                                <a class="btn btn-sm edit_button"
+                                                    href="{{ route('admin.apis.login', $item['id']) }}" target="_blank"
+                                                    data-bs-toggle="tooltip" data-bs-placement="right" title="Partner">
+                                                    <i class="icon-base ti tabler-login me-1"></i>
+                                                </a>
 
                                                 <br>
                                             @endif
@@ -157,7 +160,9 @@
                                                     @csrf
                                                     @method('DELETE')
 
-                                                    <button type="submit" class="btn btn-sm edit_button" data-bs-toggle="tooltip" data-bs-placement="right" title="Delete">
+                                                    <button type="submit" class="btn btn-sm edit_button"
+                                                        data-bs-toggle="tooltip" data-bs-placement="right"
+                                                        title="Delete">
                                                         <i class="icon-base ti tabler-trash me-1"></i>
                                                     </button>
 
@@ -185,19 +190,14 @@
                                             <br>
                                             <a class="btn btn-sm edit_button"
                                                 href="{{ route('admin.api.profile.export', $item['id']) }}"
-                                                data-bs-toggle="tooltip"
-                                                data-bs-placement="right"
-                                                title="Download EX">
+                                                data-bs-toggle="tooltip" data-bs-placement="right" title="Download EX">
                                                 <i class="icon-base ti tabler-database-export me-1"></i>
                                             </a>
 
 
                                             <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
-                                                <button type="submit"
-                                                        class="btn edit_button"
-                                                        data-bs-toggle="tooltip"
-                                                        data-bs-placement="right"
-                                                        title="QR Code">
+                                                <button type="submit" class="btn edit_button" data-bs-toggle="tooltip"
+                                                    data-bs-placement="right" title="QR Code">
                                                     <i class="icon-base ti tabler-qrcode me-1"></i>
                                                 </button>
 
@@ -232,7 +232,8 @@
 
                     <div class="modal-header modal-colored-header bg-warning">
                         <h5 class="modal-title" id="modalTopTitle">@lang('Edit Record') </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
                     <form action="{{ route('admin.apis.update', $item['id']) }}" method="POST">
                         @csrf
@@ -734,67 +735,67 @@
 
 
     @push('js')
-    <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let currentlyEditing = null;
+        <script src="{{ asset('public/assets/js/select2.min.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let currentlyEditing = null;
 
-            document.querySelectorAll('.editable').forEach(function (span) {
-                span.addEventListener('click', function () {
-                    if (currentlyEditing) return; // Only one field at a time
+                document.querySelectorAll('.editable').forEach(function(span) {
+                    span.addEventListener('click', function() {
+                        if (currentlyEditing) return; // Only one field at a time
 
-                    currentlyEditing = this;
-                    const currentText = this.textContent.trim();
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = currentText;
-                    input.classList.add('form-control', 'form-control-sm');
+                        currentlyEditing = this;
+                        const currentText = this.textContent.trim();
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = currentText;
+                        input.classList.add('form-control', 'form-control-sm');
 
-                    this.textContent = '';
-                    this.appendChild(input);
-                    input.focus();
+                        this.textContent = '';
+                        this.appendChild(input);
+                        input.focus();
 
-                    input.addEventListener('blur', function () {
-                        const newValue = this.value.trim();
-                        const id = span.dataset.id;
-                        const field = span.dataset.field;
+                        input.addEventListener('blur', function() {
+                            const newValue = this.value.trim();
+                            const id = span.dataset.id;
+                            const field = span.dataset.field;
 
-                        // Send AJAX update
-                        fetch(`{{ route('admin.apis.inlineUpdate') }}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                id: id,
-                                field: field,
-                                value: newValue
-                            })
-                        }).then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                span.textContent = newValue;
-                            } else {
-                                alert('Update failed');
-                                span.textContent = currentText;
-                            }
-                            currentlyEditing = null;
-                        }).catch(err => {
-                            console.error(err);
-                            alert('Something went wrong');
-                            span.textContent = currentText;
-                            currentlyEditing = null;
+                            // Send AJAX update
+                            fetch(`{{ route('admin.apis.inlineUpdate') }}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({
+                                        id: id,
+                                        field: field,
+                                        value: newValue
+                                    })
+                                }).then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        span.textContent = newValue;
+                                    } else {
+                                        alert('Update failed');
+                                        span.textContent = currentText;
+                                    }
+                                    currentlyEditing = null;
+                                }).catch(err => {
+                                    console.error(err);
+                                    alert('Something went wrong');
+                                    span.textContent = currentText;
+                                    currentlyEditing = null;
+                                });
                         });
                     });
                 });
             });
-        });
-    </script>
+        </script>
 
-    <script>
-        function generateAndCopyPassword(id) {
-            const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
+        <script>
+            function generateAndCopyPassword(id) {
+                const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
 
                 fetch(url, {
                         method: 'POST',
@@ -895,16 +896,13 @@
             });
         </script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-</script>
-
-
-
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                    new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            });
+        </script>
     @endpush
 </x-admin-layout>
