@@ -52,6 +52,7 @@
 
     $isTransactionActive = in_array(Route::currentRouteName(), [
         'admin.payment.log',
+        'admin.payout-log',
         'admin.payment.apiLog',
         'admin.payment.apiLogunclaimed',
         'admin.payment.report',
@@ -66,26 +67,7 @@
         Request::routeIs('admin.balance.logs') ||
         Request::routeIs('');
 
-    // $isMainActive = in_array(Route::currentRouteName(), [
-    //     'admin.dashboard',
-    //     'admin.staff',
-    //     'admin.groups',
-    //     'admin.parant',
-    //     'admin.workboard',
-    // ]);
-    // $isPartherActive = in_array(Route::currentRouteName(), [
-    //     'partner.partner.methods.get',
-    // ]);
-    $isTransactionActive = in_array(Route::currentRouteName(), [
-        'admin.payment.log',
-        'admin.payment.apiLog',
-        'admin.payment.apiLogunclaimed',
-        'admin.payment.report',
-        'admin.payment.report.daily',
-        'admin.payment.report.all',
-        'admin.payout-report',
-        'admin.payout.report.daily',
-    ]);
+
     $isAccountsActive =
         Request::routeIs('admin.accounts.add') ||
         Request::routeIs('admin.accounts') ||
@@ -840,7 +822,7 @@
                     </a>
 
                     <ul class="menu-sub">
-                        
+
                           <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">

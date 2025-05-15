@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Log;
-use App\Models\CCategory;
+use App\Models\Category;
 use App\Models\Api;
 use App\Models\Payout;
 use App\Models\ApiHit;
@@ -687,7 +687,7 @@ class PayoutRecordController extends Controller
                     $subQuery->whereNotIn('status', ['Complete', 'Reject']);
                 })->orWhereDoesntHave('payout');
             })
-            ->paginate(config('basic.paginate'));
+            ->pagnate(config('basic.paginate', '10'));
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
@@ -1812,23 +1812,23 @@ class PayoutRecordController extends Controller
     }
 
 
-    public function apisCommission($id)
-    {
-        $commissions = Commission::where('category_id', $id)->get();
-        $cron_commissions = CronCommission::where('category_id', $id)->get();
-       
-            
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name')
-            ->get();
-        $pageTitle = "Manage Commissions";
-      
-        $records = "";
+ public function apisCommission($id)
+{
+    $commissions = Commission::where('category_id', $id)->get();
+    $cron_commissions = CronCommission::where('category_id', $id)->get();
 
-        return view('admin.payout.commission', compact(
-            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways'
-        ));
-    }
+    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+        ->groupBy('source_name')
+        ->get();
+
+    $pageTitle = "Manage Commission";
+    $records = ""; // or fetch some data if needed
+
+    return view('admin.payout.commission', compact(
+        'records', 'pageTitle', 'commissions', 'cron_commissions', 'id', 'gateways'
+    ));
+}
+
 
 
 
@@ -2108,58 +2108,6 @@ class PayoutRecordController extends Controller
                 //     $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
                 //     $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
                 // }
-                $cron_commission->save();
-            }
-        }
-        session()->flash('success', 'Successfully Updated');
-        return back();
-    }
-
-    public function apiCommissionsDetail($id)
-    {
-
-        $records = PartnerCommission::with('api')
-        ->select('api_id', 'from_id', \DB::raw('SUM(CASE WHEN type = 1 THEN amount ELSE 0 END) AS sum_amount_type_1'))
-        ->selectRaw('SUM(CASE WHEN type = 1 THEN charges ELSE 0 END) AS sum_charges_type_1')
-        ->selectRaw('SUM(CASE WHEN type = 1 THEN total_amount ELSE 0 END) AS sum_total_amount_type_1')
-        ->selectRaw('SUM(CASE WHEN type = 1 THEN profit ELSE 0 END) AS sum_profit_type_1')
-        ->selectRaw('SUM(CASE WHEN type = 2 THEN amount ELSE 0 END) AS sum_amount_type_2')
-        ->selectRaw('SUM(CASE WHEN type = 2 THEN charges ELSE 0 END) AS sum_charges_type_2')
-        ->selectRaw('SUM(CASE WHEN type = 2 THEN total_amount ELSE 0 END) AS sum_total_amount_type_2')
-        ->selectRaw('SUM(CASE WHEN type = 2 THEN profit ELSE 0 END) AS sum_profit_type_2')
-        ->where('from_id', $id)
-        ->where('status', 1)
-        ->groupBy('api_id', 'from_id') // Add 'from_id' here
-        ->orderByDesc('id')
-        ->get();
-
-        $pageTitle = "Partners Commission Summary";
-        $partners = Api::where('type', 'Admin')->get();
-        return view('admin.payout.commission_summary', compact('records', 'pageTitle', 'partners'));
-    }
-
-    public function apiCommissionsCalculate($id)
-    {
-        if (!Session::has('previousapiid')) {
-            Session::put('previousapiid', $id);
-            $previousapiid = $id;
-        } else {
-            $previousapiid = Session::get('previousapiid');
-        }
-
-        if ($previousapiid != $id) {
-            Session::put('fundid', 0);
-            $fundid = 0;
-            Session::put('payoutid', 0);
-            $payoutid = 0;
-            Session::put('apiid', 0);
-            $apiid = 0;
-            Session::put('fistpart', 0);
-            $fistpart = 0;
-            Session::put('fundidc', 0);
-            $fundidc = 0;
-            Session::put('payoutidc', 0);
-            $payoutidc = 0;
         }
 
         if (!Session::has('fistpart')) {
@@ -2609,10 +2557,10 @@ class PayoutRecordController extends Controller
         }
 
         return redirect()->route('admin.api.commissions.detail', ['id' => $id])->with('success', 'Operation Successful');
+      }
     }
 
 
-    //Add Accounts
 
     public function addAccount()
     {
