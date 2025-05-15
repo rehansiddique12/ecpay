@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Log;
+use App\Models\CCategory;
 use App\Models\Api;
 use App\Models\Payout;
 use App\Models\ApiHit;
@@ -58,7 +59,7 @@ class PayoutRecordController extends Controller
 
     $allowedFields = [
         'website', 'api_endpoint_deposit', 'api_endpoint_withdrawal',
-        'redirect_url', 'min_deposit', 'min_withdrawal'
+        'redirect_url', 'min_deposit', 'min_withdrawal','api_key'
     ];
 
     if (!in_array($request->field, $allowedFields)) {
@@ -1813,34 +1814,19 @@ class PayoutRecordController extends Controller
 
     public function apisCommission($id)
     {
-        $api = Api::findOrFail($id);
-        $commissions = Commission::where('api_id', $id)->get();
-        $cron_commissions = CronCommission::where('api_id', $id)->get();
-
-        // Fetch end user and parents in a single query
-        $end_user = Api::findOrFail($id);
-        // Set default values
-        $level1_parent_id = $level2_parent_id = 0;
-        $level1_parent_name = $level2_parent_name = "";
-
-        // Check and assign parent hierarchy
-        if ($end_user->parent) {
-            $level1_parent_id = $end_user->parent->id;
-            $level1_parent_name = $end_user->parent->name;
-
-            if ($end_user->parent->parent) {
-                $level2_parent_id = $end_user->parent->parent->id;
-                $level2_parent_name = $end_user->parent->parent->name;
-            }
-        }
-
+        $commissions = Commission::where('category_id', $id)->get();
+        $cron_commissions = CronCommission::where('category_id', $id)->get();
+       
+            
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
         $pageTitle = "Manage Commissions";
-        $api_id = $id;
+      
         $records = "";
 
         return view('admin.payout.commission', compact(
-            'records', 'pageTitle', 'api_id', 'commissions', 'cron_commissions',
-            'level1_parent_id', 'level2_parent_id', 'level1_parent_name', 'level2_parent_name'
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways'
         ));
     }
 
@@ -2052,14 +2038,15 @@ class PayoutRecordController extends Controller
     public function apisCommissionAdd(Request $request)
     {
 
-        $cron_commissions = CronCommission::where('api_id', $request->api_id)->get();
+
+        $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
         foreach ($cron_commissions as $cron_commission) {
             $cron_commission->delete();
 
         }
 
         $new = 0;
-        $commissions = Commission::where('api_id', $request->api_id)->get();
+        $commissions = Commission::where('category_id', $request->category_id)->get();
         foreach ($commissions as $commission) {
             $new = 1;
             // if(!in_array($commission->id, $request->id)){
@@ -2088,18 +2075,18 @@ class PayoutRecordController extends Controller
                 $new_commission->deposit_percentage = $request->deposit_percentage[$i];
                 $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
                 $new_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $new_commission->api_id = $request->api_id;
-                if (isset($request->level1_parent_id[$i])) {
-                    $new_commission->parent_id = $request->level1_parent_id[$i];
-                    $new_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                    $new_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                }
+                $new_commission->category_id = $request->category_id;
+                // if (isset($request->level1_parent_id[$i])) {
+                //     $new_commission->parent_id = $request->level1_parent_id[$i];
+                //     $new_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
+                //     $new_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
+                // }
 
-                if (isset($request->level2_parent_id[$i])) {
-                    $new_commission->parent2_id = $request->level2_parent_id[$i];
-                    $new_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                    $new_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                }
+                // if (isset($request->level2_parent_id[$i])) {
+                //     $new_commission->parent2_id = $request->level2_parent_id[$i];
+                //     $new_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
+                //     $new_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
+                // }
                 $new_commission->save();
             }else{
                 $cron_commission = new CronCommission;
@@ -2108,19 +2095,19 @@ class PayoutRecordController extends Controller
                 $cron_commission->deposit_percentage = $request->deposit_percentage[$i];
                 $cron_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
                 $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $cron_commission->api_id = $request->api_id;
+                $cron_commission->category_id = $request->category_id;
                 $cron_commission->commission_id = $commission_id;
-                if (isset($request->level1_parent_id[$i])) {
-                    $cron_commission->parent_id = $request->level1_parent_id[$i];
-                    $cron_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                    $cron_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                }
+                // if (isset($request->level1_parent_id[$i])) {
+                //     $cron_commission->parent_id = $request->level1_parent_id[$i];
+                //     $cron_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
+                //     $cron_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
+                // }
 
-                if (isset($request->level2_parent_id[$i])) {
-                    $cron_commission->parent2_id = $request->level2_parent_id[$i];
-                    $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                    $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                }
+                // if (isset($request->level2_parent_id[$i])) {
+                //     $cron_commission->parent2_id = $request->level2_parent_id[$i];
+                //     $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
+                //     $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
+                // }
                 $cron_commission->save();
             }
         }

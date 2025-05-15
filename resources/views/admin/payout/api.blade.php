@@ -94,7 +94,7 @@
                                                 href="{{ route('admin.merchant.profile', $item->id) }}">{{ $item['name'] }}</a>
                                         </td>
                                         <td style="max-width: 100px;">{{ $item['username'] }}</td>
-                                        <td style="max-width: 130px;">{{ $item['website'] }}</td>
+                                        <td style="max-width: 130px;"><span class="editable" data-id="{{ $item['id'] }}" data-field="website">{{ $item['website'] }}</span></td>
                                         <td style="max-width: 220px;">
                                             <span class="bg-success text-white p-1 d-inline-block mb-2"
                                                 style="border-radius: 8px; padding: 7px;">Deposit:</span>
@@ -111,9 +111,9 @@
                                         </td>
 
                                         <td style="max-width: 220px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                                style="border-radius: 6px; padding: 7px;">API Key:</span>
-                                            {{ $item['api_key'] }}<br>
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 6px; padding: 7px;">API Key:</span>
+                                            <span class="editable" data-id="{{ $item['id'] }}" data-field="api_key">{{ $item['api_key'] }}</span>
+                                            <br>
 
                                             <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
                                                 style="border-radius: 8px; padding: 7px;">Secret
@@ -169,18 +169,23 @@
                                                 </form>
                                             @endif
                                             <button class="btn btn-sm edit_button"
-                                                onclick="generateAndCopyPassword({{ $item['id'] }})"
-                                                data-bs-toggle="tooltip" data-bs-placement="right" title="Relode">
-                                                <i class="icon-base ti tabler-restore me-1"></i>
-                                            </button>
+                                            onclick="generateAndCopyPassword({{ $item['id'] }})"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="right"
+                                            title="Reload">
+                                        <i class="icon-base ti tabler-restore me-1"></i>
+                                    </button>
 
                                             <br>
                                             <a class="btn btn-sm edit_button"
-                                                data-copy="{{ $item['username'] }} | {{ $item['api_key'] }} | {{ $item['secret_key'] }}"
-                                                onclick="copyToClipboard(this)" data-bs-toggle="tooltip"
-                                                data-bs-placement="right" title="Copy">
-                                                <i class="icon-base ti tabler-copy-check me-1"></i>
-                                            </a>
+   data-copy="Username: {{ $item['username'] }}&#10;Password: {{ $item['password_string'] }}&#10;Api Key: {{ $item['api_key'] }}"
+   onclick="copyToClipboard(this)"
+   data-bs-toggle="tooltip"
+   data-bs-placement="right"
+   title="Copy">
+   <i class="icon-base ti tabler-copy-check me-1"></i>
+</a>
+
 
                                             <br>
                                             <a class="btn btn-sm edit_button"

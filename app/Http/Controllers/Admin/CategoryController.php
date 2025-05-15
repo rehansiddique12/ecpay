@@ -19,7 +19,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
+        $data['methods'] = AccountGateway::orderBy('id', 'asc')->get();
         $data['categories'] = Category::where('status','1')->get();
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
