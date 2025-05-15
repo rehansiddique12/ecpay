@@ -52,6 +52,7 @@
 
     $isTransactionActive = in_array(Route::currentRouteName(), [
         'admin.payment.log',
+        'admin.payout-log',
         'admin.payment.apiLog',
         'admin.payment.apiLogunclaimed',
         'admin.payment.report',
@@ -66,26 +67,7 @@
         Request::routeIs('admin.balance.logs') ||
         Request::routeIs('');
 
-    // $isMainActive = in_array(Route::currentRouteName(), [
-    //     'admin.dashboard',
-    //     'admin.staff',
-    //     'admin.groups',
-    //     'admin.parant',
-    //     'admin.workboard',
-    // ]);
-    // $isPartherActive = in_array(Route::currentRouteName(), [
-    //     'partner.partner.methods.get',
-    // ]);
-    $isTransactionActive = in_array(Route::currentRouteName(), [
-        'admin.payment.log',
-        'admin.payment.apiLog',
-        'admin.payment.apiLogunclaimed',
-        'admin.payment.report',
-        'admin.payment.report.daily',
-        'admin.payment.report.all',
-        'admin.payout-report',
-        'admin.payout.report.daily',
-    ]);
+
     $isAccountsActive =
         Request::routeIs('admin.groups') ||
         Request::routeIs('admin.accounts.add') ||

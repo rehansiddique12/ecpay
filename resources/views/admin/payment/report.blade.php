@@ -92,6 +92,7 @@
     <div class="col-4">
                 <div class="card shadow border-right">
                     <div class="card-body">
+
                         <div class="d-flex d-lg-flex d-md-block align-items-center">
                             <div>
                                 <div class="d-inline-flex align-items-center">
@@ -133,7 +134,7 @@
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
-
+            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
             <div class="table-responsive">
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
