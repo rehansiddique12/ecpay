@@ -3,11 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
-<<<<<<< HEAD
-=======
-use App\Models\Log;
-use App\Models\CCategory;
->>>>>>> 56da92c0daac89f36423525a293795cd31592808
 use App\Models\Api;
 use App\Models\Log;
 use App\Models\Fund;
