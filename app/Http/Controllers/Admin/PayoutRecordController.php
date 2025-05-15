@@ -175,7 +175,7 @@ class PayoutRecordController extends Controller
     {
         $account = AdminAccount::findOrFail($id);
         $account->delete();
-        return back();
+        return response()->json(['status' => 'success', 'message' => 'Account deleted successfully']);
     }
 
     public function depositTest(Request $request)
@@ -194,17 +194,12 @@ class PayoutRecordController extends Controller
         $charge = 0;
         $e_wallet_phone_number = $account->account_no;
 
-        $fund = new Fund();
+        $fund = new Payment();
         $fund->user_id = 0;
         $fund->gateway_id = $gate->id;
-        $fund->gateway_currency = strtoupper($gate->currency);
         $fund->amount = $request->amount;
         $fund->charge = $charge;
-        $fund->account_no = $request->account_no;
-        $fund->rate = $gate->convention_rate;
-        $fund->final_amount = getAmount($request->amount);
-        $fund->btc_amount = 0;
-        $fund->btc_wallet = "";
+        $fund->sender = $request->account_no;
         $fund->transaction = strRandom();
         $fund->try = 0;
         $fund->status = 2;

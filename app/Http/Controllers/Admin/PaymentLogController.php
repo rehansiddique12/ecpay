@@ -1271,7 +1271,7 @@ class PaymentLogController extends Controller
                     $query->where('api_id', $search['website']);
                 })
                 ->orderBy('id', 'DESC')
-                ->with('user', 'gateway', 'payment', 'api')
+                ->with('user', 'gateway',  'api')
                 ->get();
             // dd($funds);
             $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Status', 'E-Wallet-No', 'Website', 'Source', 'Completed-At'];
@@ -1362,7 +1362,7 @@ class PaymentLogController extends Controller
                 })
 
                 ->orderBy('id', 'DESC')
-                ->with('user', 'gateway', 'payment', 'api' ,'txn_record')
+                ->with('user', 'gateway',  'api' ,'txn_record')
                 ->paginate(config('basic.paginate'));
 
             $pageTitle = "Search Payment Logs";

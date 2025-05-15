@@ -352,7 +352,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/e-wallet/accounts', [PayoutRecordController::class, 'eWalletAccounts'])->name('ewallet.accounts');
 
         Route::get('/e_wallet_accounts/{id}/toggle-status', [PayoutRecordController::class, 'toggleStatus'])->name('e_wallet_accounts.toggle_status');
-        Route::delete('/e-wallet/admin/delete/{account}', [PayoutRecordController::class, 'adminAccountDelete'])->name('ewallet.accounts.delete');
+        Route::delete('/e-wallet/delete/{account}', [PayoutRecordController::class, 'adminAccountDelete'])->name('ewallet.accounts.delete');
         Route::post('/accounts/deposit/test', [PayoutRecordController::class, 'depositTest'])->name('deposit.test');
         Route::post('/e-wallet/admin/add', [PayoutRecordController::class, 'eWalletAccountsAdd'])->name('ewallet.accounts.add');
         Route::post('/accounts/deposit/testp', [PayoutRecordController::class, 'depositTestp'])->name('deposit.testp');
