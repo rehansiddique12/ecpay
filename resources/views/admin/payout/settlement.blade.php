@@ -136,7 +136,7 @@
                                             @lang('Pending')</span>
                                         @endif
                                     </td>
-                                    <td>{{ $item->api->website }}</td>
+                                    <td>{{ $item->api->website ?? '' }}</td>
                                     <td>{{ $item->created_at }}</td>
                                     <td data-label="@lang('Action')">
                                         <div class="dropdown show ">

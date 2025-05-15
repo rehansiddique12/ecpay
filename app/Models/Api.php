@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Api extends Authenticatable
 {
-    use Notifiable, HasRoles;
+    use Notifiable, HasRoles ,SoftDeletes;
+    protected $dates = ['deleted_at'];
     protected $guard_name = 'admin';
 
     protected $guarded = ['id'];

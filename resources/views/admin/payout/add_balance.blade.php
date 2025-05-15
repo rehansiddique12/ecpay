@@ -10,7 +10,7 @@
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <select name="partner_id" class="form-select select2" data-allow-clear="true" data-placeholder="Select Partner">
+                                <select name="partner_id" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain" required>
                                     <option></option>
                                     <option value="">@lang('Select Domain')</option>
                                     @foreach($domains as $domain)

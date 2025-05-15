@@ -3,47 +3,48 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
-use App\Models\Log;
-use App\Models\Category;
 use App\Models\Api;
-use App\Models\Payout;
+use App\Models\Log;
+use App\Models\Fund;
 use App\Models\ApiHit;
+use App\Models\ApiLog;
+use App\Models\Payout;
+use App\Models\SmsLog;
+use App\Models\Gateway;
 use App\Models\Payment;
-use App\Models\EWalletLog;
+use App\Models\Category;
+use App\Models\PayoutLog;
 use App\Models\AccountLog;
+use App\Models\Adjustment;
 use App\Models\Commission;
-use Illuminate\Support\Str;
+use App\Models\EWalletLog;
+use App\Models\Settlement;
+use App\Http\Traits\Upload;
 use App\Models\Transaction;
+use Illuminate\Support\Str;
+use App\Models\AdminAccount;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
+use App\Models\ApiTransaction;
+// rehan
+
 use App\Models\CronCommission;
 use App\Models\EWalletAccount;
-use App\Models\ApiTransaction;
+use App\Models\EWalletTransfer;
+use Illuminate\Validation\Rule;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use App\Models\TwoStepVerification;
 use App\Http\Controllers\Controller;
-use App\Models\DailyPartnerSummaryLog;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
-// rehan
-
-use App\Models\Fund;
-use App\Models\SmsLog;
-use App\Models\ApiLog;
-use App\Models\Gateway;
-use App\Models\PayoutLog;
-use App\Models\Settlement;
-use App\Models\Adjustment;
-use App\Http\Traits\Upload;
-use App\Models\EWalletTransfer;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\DailyPartnerSummaryLog;
+use Illuminate\Support\Facades\Session;
 use App\Exports\PartnerCommissionExport;
-use App\Models\AdminAccount;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 
 class PayoutRecordController extends Controller
@@ -1521,18 +1522,42 @@ class PayoutRecordController extends Controller
 
     // Partner controller
 
+     public function apisReset($id)
+    {
+        $api = Api::findOrFail($id);
+        $website = $api->website;
+        $TwoStepVerification = TwoStepVerification::where('user_id', $id)
+            ->first();
+        if ($TwoStepVerification) {
+            $TwoStepVerification->g_auth_status = 'No';
+            $TwoStepVerification->save();
+        }
+
+
+        return redirect()->route('admin.apis')->with('success', 'API Reset successfully.');
+    }
 
 
     public function apisDelete($id)
     {
-        $api = Api::findOrFail($id);
-        $api_key = $api->api_key;
-        Api::where('website', $api_key)->delete();
+        try {
+            $api = Api::findOrFail($id);
+            // $api_key = $api->api_key;
+            // Api::where('api_key', $api_key)->delete();
 
-        // $api->delete();
-
-        return redirect()->route('admin.apis')->with('success', 'API deleted successfully.');
+            $api->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'API deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete API. ' . $e->getMessage()
+            ], 500); // 500 Internal Server Error
+        }
     }
+
 
     public function updateApi(Request $request, $id)
     {
@@ -1662,7 +1687,11 @@ class PayoutRecordController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            // Return validation errors as JSON
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         // Permissions list
@@ -1703,8 +1732,10 @@ class PayoutRecordController extends Controller
             'type' => 'Admin',
         ]);
 
-        session()->flash('success', 'Added Successfully');
-        return back();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'API Added Successfully',
+        ]);
     }
 
     /**
@@ -1807,26 +1838,36 @@ class PayoutRecordController extends Controller
     }
 
 
- public function apisCommission($id)
-{
-    $commissions = Commission::where('category_id', $id)->get();
-    $cron_commissions = CronCommission::where('category_id', $id)->get();
+    public function apisCommission($id)
+    {
+        $commissions = Commission::where('category_id', $id)->get();
+        $cron_commissions = CronCommission::where('category_id', $id)->get();
 
-    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-        ->groupBy('source_name')
-        ->get();
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
 
-    $pageTitle = "Manage Commission";
-    $records = ""; // or fetch some data if needed
+        $pageTitle = "Manage Commission";
+        $records = ""; // or fetch some data if needed
 
-    return view('admin.payout.commission', compact(
-        'records', 'pageTitle', 'commissions', 'cron_commissions', 'id', 'gateways'
-    ));
-}
+        return view('admin.payout.commission', compact(
+            'records', 'pageTitle', 'commissions', 'cron_commissions', 'id', 'gateways'
+        ));
+    }
 
+    public function toggleStatusApi(Request $request)
+    {
+        $api = Api::find($request->id);
 
+        if (!$api) {
+            return response()->json(['status' => 'error', 'message' => 'API not found.']);
+        }
 
+        $api->status = $request->status;
+        $api->save();
 
+        return response()->json(['status' => 'success', 'message' => 'Status updated.']);
+    }
 
     // Acconts
 
