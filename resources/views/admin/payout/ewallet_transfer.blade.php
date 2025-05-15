@@ -11,7 +11,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="pr-3">Select Category</label>
-                                <select class="form-control" name="category" id="category" required>
+                                <select class="form-select" name="category" id="category" required>
                                     <option value="E-wallet to E-wallet">E-wallet to E-wallet</option>
                                     <option value="Bank to E-wallet">Bank to E-wallet</option>
                                     <option value="E-wallet to Bank">E-wallet to Bank</option>
@@ -22,7 +22,7 @@
                         <div class="col-md-3">
                             <div class="form-group" id="fromtransfer1">
                                 <label class="pr-3">Transfer From</label>
-                                <select class="form-control" name="transfer_from1">
+                                <select class="form-select" name="transfer_from1">
                                     @foreach ($e_wallet_accounts as $e_wallet_account)
 
                                     <option value="{{ $e_wallet_account->id }}">{{ $e_wallet_account->account_no." (".$e_wallet_account->e_wallet_name.") " }}</option>
@@ -38,7 +38,7 @@
                         <div class="col-md-3">
                             <div class="form-group" id="totransfer1">
                                 <label class="pr-3">Transfer To</label>
-                                <select class="form-control" name="transfer_to1">
+                                <select class="form-select" name="transfer_to1">
                                     @foreach ($e_wallet_accounts as $e_wallet_account)
 
                                     <option value="{{ $e_wallet_account->id }}">{{ $e_wallet_account->account_no." (".$e_wallet_account->e_wallet_name.") " }}</option>
@@ -96,7 +96,7 @@
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <button type="submit" class="btn waves-effect waves-light btn-primary">Submit</button>
+                                <button id="submit-btn" type="submit" class="btn waves-effect waves-light btn-primary">Submit</button>
                             </div>
                         </div>
                     </div>
@@ -112,14 +112,11 @@
         <form action="{{ route('admin.transfer.balance') }}" method="get">
             <div class="row justify-content-between align-items-center">
 
-
                 <div class="col-md-10">
                     <div class="form-group">
                         <input type="date" class="form-control" name="from_date" value="{{$from_date}}" id="datepicker" />
                     </div>
                 </div>
-
-
 
                 <div class="col-md-2">
                     <div class="form-group">
@@ -190,7 +187,7 @@
                 </table>
             </div>
             <div class="card-footer">
-                {{ $e_wallet_accounts->appends($_GET)->links('partials.pagination') }}
+                {{ $e_wallet_transections->appends($_GET)->links('partials.pagination') }}
             </div>
         </div>
     </div>
@@ -229,8 +226,18 @@
                 $('#totransfer2').hide();
             }
         });
+
+        $('form').on('submit', function () {
+            const $btn = $(this).find('button[type="submit"]');
+            // Disable the button
+            $btn.prop('disabled', true);
+            // Optional: Change button text to show loading spinner
+            $btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Submitting...');
+            return true; // allow form to submit
+        });
+
     });
 
-        </script>
+    </script>
     @endpush
     </x-admin-layout>

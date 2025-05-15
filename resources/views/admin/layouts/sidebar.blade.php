@@ -69,6 +69,7 @@
 
 
     $isAccountsActive =
+        Request::routeIs('admin.groups') ||
         Request::routeIs('admin.accounts.add') ||
         Request::routeIs('admin.accounts') ||
         Request::routeIs('admin.balance.logs') ||
@@ -78,7 +79,7 @@
     $isMainActive = in_array(Route::currentRouteName(), [
         'admin.dashboard',
         'admin.staff',
-        'admin.groups',
+        //'admin.groups',
         'admin.parant',
         'admin.workboard',
         'admin.users',
@@ -687,15 +688,6 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.staff' ? 'active' : '' }}">
-                                <a href="{{ route('admin.staff') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Roles & Permission">Roles & Permission</div>
-                                </a>
-                            </li>
-
-
-
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -716,13 +708,13 @@
                                     <div data-i18n="All Users">All Users</div>
                                 </a>
                             </li>
-                            <li
-                        class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
-                        <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
-                            <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                            <div data-i18n="Manual Gateway">Manual Gateway</div>
-                        </a>
-                    </li>
+                            {{-- <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                </a>
+                            </li> --}}
 
                         <ul class="menu-sub">
                             <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
@@ -823,13 +815,13 @@
 
                     <ul class="menu-sub">
 
-                          <li
+                          {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
-                        </li>
+                        </li> --}}
 <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
@@ -892,13 +884,13 @@
                                 <div data-i18n="API Logs ">API Logs </div>
                             </a>
                         </li>
-                        <li
+                        {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Transfer Balance">Transfer Balance</div>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </li>
 
