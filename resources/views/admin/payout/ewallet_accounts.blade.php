@@ -186,10 +186,10 @@
                     <div class="row justify-content-between align-items-center">
 
 
-                        <input type="text" id="balanceInput" class="form-control" name="gateway">
-                        <input type="text" id="account_id" class="form-control" name="account_id">
-                        <input type="text" id="orderid" class="form-control" name="orderid">
-                        <input type="text" id="wid" class="form-control" name="wid">
+                        <input type="text" hidden id="balanceInput" class="form-control" name="gateway">
+                        <input type="text" hidden id="account_id" class="form-control" name="account_id">
+                        <input type="text" hidden id="orderid" class="form-control" name="orderid">
+                        <input type="text" hidden id="wid" class="form-control" name="wid">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="pr-3">Admin Acc. No.</label>

@@ -98,37 +98,23 @@
                             <td data-label="@lang('Date')"> {{ dateTime($item->created_at,'d M,Y H:i') }}</td>
                             <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                                 {{ $item->trx_id }}<br>
-                                <span class="text text-success">{{ optional($item->payout)->txn_id }}</span>
+                                <span class="text text-success">{{ $item->txn_id }}</span>
 
                             </td>
-                            <td>{{ optional($item->payout)->partner_transection_id }}
+                            <td>{{ $item->partner_transection_id }}
                                 <br>
-                                {{ optional($item->payout)->member_id }}
+                                {{ $item->member_id }}
                             </td>
                             <td data-label="@lang('Username')">
-                                @if(optional($item->user)->username!="dummyuser")
-                                {{-- <a href="{{route('admin.user-edit',[$item->user_id])}}">
-                                <div class="d-lg-flex d-block align-items-center ">
-                                    <div class="mr-3"><img
-                                            src="{{getFile(config('location.user.path').optional($item->user)->image) }}"
-                                            alt="user" class="rounded-circle" width="45" height="45"></div>
-                                    <div class="">
-                                        <h5 class="text-dark mb-0 font-16 font-weight-medium">
-                                            {{ optional($item->user)->username }}</h5>
-                                        <span class="text-muted font-14">{{ optional($item->user)->email }}</span>
-                                    </div>
-                                </div>
-                                </a> --}}
-                                @else
+
                                 @if($item->api)
                                 {{ optional($item->api)->name }} <b>({{ optional($item->api)->acc_type }})</b>
                                 @else
                                 Partner Transection
                                 @endif
-                                @endif
 
                             </td>
-                            <td>{{ optional($item->method)->name }}</td>
+                            <td>{{ optional($item->gateway)->name }}</td>
                             <td>{{ $item->user_account_no }}</td>
                             <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($item->amount,2 ) }}
                                 {{$basic->currency_symbol}}</td>
@@ -139,13 +125,13 @@
                                 {{ getAmount($item->net_amount,2) }} {{$basic->currency_symbol}}</td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                @if($item->status == 2)
+                                @if($item->status == 'Complete')
                                 <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
                                     @lang('Request Approved')</span>
-                                @elseif($item->status == 1)
+                                @elseif($item->status == 'inititate')
                                 <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
                                     @lang('Request Pending')</span>
-                                @elseif($item->status == 3)
+                                @elseif($item->status == 'Reject')
                                 <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
                                     @lang('Request Rejected')</span>
                                 @endif
@@ -169,11 +155,11 @@
                                 {{$item->feedback}}
                             </td>
                             <td data-label="@lang('Method')">
-                                {{ optional($item->payout)->e_wallet_phone_number }}
+                                {{ $item->e_wallet_phone_number }}
                                 <br>
-                                {{ optional($item->payout)->e_wallet_type }}
+                                {{ $item->e_wallet_type }}
                             </td>
-                            <td data-label="@lang('Method')">{{ optional($item->payout)->source }}</td>
+                            <td data-label="@lang('Method')">{{ $item->request_source }}</td>
 
                             <td>
                                 <div class="dropdown">

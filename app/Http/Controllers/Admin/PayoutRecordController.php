@@ -665,7 +665,7 @@ class PayoutRecordController extends Controller
         $pageTitle = "Payout Logs";
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->first()->id;
-        $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway','api')->paginate(config('basic.paginate'));
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
@@ -1811,13 +1811,13 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-       
-            
+
+
         $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
             ->groupBy('source_name')
             ->get();
         $pageTitle = "Manage Commissions";
-      
+
         $records = "";
 
         return view('admin.payout.commission', compact(

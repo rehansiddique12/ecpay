@@ -36,11 +36,6 @@ class Payment extends Model
         return $this->belongsTo(Gateway::class, 'gateway_id');
     }
 
-    public function payment()
-    {
-        return $this->belongsTo(Payment::class, 'payment_id');
-    }
-
     public function api()
     {
         return $this->belongsTo(Api::class, 'api_id', 'id');

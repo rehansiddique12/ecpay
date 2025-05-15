@@ -104,7 +104,7 @@
                         </td>
 
                         <td data-label="@lang('Username')">
-                            @if(optional($fund->user)->username!="dummyuser")
+                            @if(optional($fund->user)->username && optional($fund->user)->username !== 'dummyuser')
                             <a href="{{route('admin.user-edit', $fund->user_id)}}" target="_blank">
                                 <div class="d-lg-flex d-block align-items-center ">
                                     <div class="mr-3"><img src="{{getFile(config('location.user.path').optional($fund->user)->image) }}" alt="user" class="rounded-circle" width="45" height="45"></div>
@@ -121,10 +121,10 @@
                             @endif
                         </td>
                         <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
-                        <td class="font-weight-bold">{{ $fund->account_no }}</td>
-                        <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($fund->amount) }} {{$fund->gateway_currency}}</td>
-                        <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }} {{$fund->gateway_currency}}</td>
-                        <td data-label="@lang('Payable')" class="font-weight-bold">{{ getAmount($fund->final_amount) }} {{$fund->gateway_currency}}</td>
+                        <td class="font-weight-bold">{{ $fund->sender }}</td>
+                        <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($fund->amount) }} {{$fund->gateway->currency}}</td>
+                        <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }} {{$fund->gateway->currency}}</td>
+                        <td data-label="@lang('Payable')" class="font-weight-bold">{{ getAmount($fund->amount) - getAmount($fund->charges) }} {{$fund->gateway->currency}}</td>
 
                         <td data-label="@lang('Status')" class="text-lg-center text-right">
                             @if($fund->status == 2)
@@ -177,8 +177,8 @@
                         <td data-label="@lang('Method')">
                             {{ optional($fund->api)->website }}
                             <br>
-                            @if(!empty($fund->source))
-                            <span class="text text-dark">({{ $fund->source }})</span>
+                            @if(!empty($fund->request_source))
+                            <span class="text text-dark">({{ $fund->request_source }})</span>
                             @endif
                         </td>
                         <td>{{ $fund->created_at }}</td>
