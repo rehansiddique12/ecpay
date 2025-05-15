@@ -93,7 +93,7 @@
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
 
-                    <h6 style="color: #7367f0">Create Account In Batch
+                    <h6>Create Account In Batch
                     </h6>
                     <form method="post" action="{{ route('admin.accounts.create') }}" enctype="multipart/form-data">
                         @csrf
@@ -141,7 +141,8 @@
                                 @enderror
                             </div>
                         </div>
-
+                        <hr style="border-top: 1px solid white;">
+                        <h6 class="mb-0">{{ trans(' CONFIGURATION') }}</h6>
                         <div class="row">
                             <div class="form-group col-md-6 col-6">
                                 <label> Daily Deposit Amount Limit</label>
@@ -189,6 +190,25 @@
 
                         <div class="row">
                             <div class="form-group col-md-6 col-6">
+                                <label> Monthly Deposit Transaction Limit</label>
+                                <input type="number" class="form-control" name="monthly_deposit_transaction"
+                                    value="{{ old('monthly_deposit_transaction') }}">
+                                @error('monthly_deposit_transaction')
+                                <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="form-group col-md-6 col-6">
+                                <label> Monthly Withdrawl Transaction Limit</label>
+                                <input type="number" class="form-control" name="monthly_withdrawl_transaction"
+                                    value="{{ old('monthly_withdrawl_transaction') }}">
+                                @error('monthly_withdrawl_transaction')
+                                <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-6 col-6">
                                 <label> Daily Deposit Transaction Limit</label>
                                 <input type="number" class="form-control" name="daily_deposit_transaction"
                                     value="{{ old('daily_deposit_transaction') }}">
@@ -209,30 +229,10 @@
 
                         <div class="row">
                             <div class="form-group col-md-6 col-6">
-                                <label> Monthly Deposit Transaction Limit</label>
-                                <input type="number" class="form-control" name="monthly_deposit_transaction"
-                                    value="{{ old('monthly_deposit_transaction') }}">
-                                @error('monthly_deposit_transaction')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group col-md-6 col-6">
-                                <label> Monthly Withdrawl Transaction Limit</label>
-                                <input type="number" class="form-control" name="monthly_withdrawl_transaction"
-                                    value="{{ old('monthly_withdrawl_transaction') }}">
-                                @error('monthly_withdrawl_transaction')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="form-group col-md-6 col-6">
-                                <label>Cool Down Time Per Transaction (seconds)</label>
-                                <input type="number" class="form-control" name="cool_downtime"
-                                    value="{{ old('cool_downtime') }}">
-                                @error('cool_downtime')
+                                <label> Max Amount Per Minute</label>
+                                <input type="number" class="form-control" name="max_amount_per"
+                                    value="{{ old('max_amount_per') }}">
+                                @error('max_amount_per')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -246,45 +246,47 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="form-group col-md-6 col-6">
 
-                            </div>
-
-                            <div class="form-group col-md-6 col-6">
-                                <label> Min Amount Per Minute</label>
-                                <input type="number" class="form-control" name="min_amount_per"
-                                    value="{{ old('min_amount_per') }}">
-                                @error('min_amount_per')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
                 </div>
+                <hr style="border-top: 1px solid white;">
+
                 <div class="row">
                     <div class="form-group col-md-12 col-12">
-                        <h5>{{ trans('Time Configuration') }}</h5>
-
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">{{ trans('Time Configuration') }}</h6>
+                            <div>
+                                <input type="checkbox" id="check_all_slots" class="form-check-input">
+                                <label for="check_all_slots" class="form-check-label text-white">Check All</label>
+                            </div>
+                        </div>
                         @php
                         $start = strtotime('00:00');
                         $end = strtotime('24:00');
-                        $i = 0; // Manual counter for ID
-                        @endphp
-                        @for ($time = $start; $time < $end; $time +=1800) @php $from=date('H:i', $time); $to=date('H:i',
-                            $time + 1800); $label="$from - $to" ; @endphp <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="time_slots[]" value="{{ $label }}"
-                                id="slot_{{ $i }}">
-                            <label class="form-check-label" for="slot_{{ $i }}">
-                                {{ $label }}
-                            </label>
+                        $i = 0;
+                        $slots = [];
+
+                        for ($time = $start; $time < $end; $time +=1800) { $from=date('H:i', $time); $to=date('H:i',
+                            $time + 1800); $label="$from - $to" ; $slots[]=$label; } $chunks=array_chunk($slots,
+                            ceil(count($slots) / 6)); // 6 columns @endphp <div class="row">
+                            @foreach ($chunks as $column)
+                            <div class="col-md-2 col-sm-4 col-6">
+                                @foreach ($column as $slot)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="time_slots[]"
+                                        value="{{ $slot }}" id="slot_{{ $i }}">
+                                    <label class="form-check-label text-white" for="slot_{{ $i }}">
+                                        {{ $slot }}
+                                    </label>
+                                </div>
+                                @php $i++; @endphp
+                                @endforeach
+                            </div>
+                            @endforeach
                     </div>
-
-                    @php $i++; @endphp
-                    @endfor
                 </div>
-
+                <hr style="border-top: 1px solid white;">
                 <div class="row">
-                    <h5>{{ trans('THRESHOLD ALERT') }}</h5>
+                    <h6>{{ trans('THRESHOLD ALERT') }}</h6>
                     <div class="form-group col-md-3 col-3">
                         <label>Daily Deposit Limit Alert (%)</label>
                         <input type="number" class="form-control" min="1" max="100"
@@ -341,7 +343,7 @@
 
                 <hr>
                 <div class="col-12 mb-3">
-                    <h5>{{ __('Add Account') }}</h5>
+                    <h6>{{ __('Add Account') }}</h6>
                 </div>
                 <div id="inputGroupContainer">
                     <div class="row input-group-row">
@@ -393,10 +395,16 @@
                             <label>Location</label>
                             <select name="location[]" class="form-control" required>
                                 <option value="">Select</option>
-                                <option value="1">Option 1</option>
-                                <option value="2">Option 2</option>
+                                <option value="Location 1">Location 1</option>
+                                <option value="Location 2">Location 2</option>
                             </select>
                         </div>
+                        <div class="form-group col-md-2 col-12">
+                            <label for="qr_file">QR</label>
+                            <input type="file" name="image" id="qr_file" class="form-control"
+                                accept="image/png, image/jpeg">
+                        </div>
+
                     </div>
                 </div>
 
@@ -475,12 +483,13 @@
                                 <span id="enableText" class="ms-2 text-secondary">@lang('Yes')</span>
                             </div>
                         </div>
+                                        <button type="submit" class="btn  btn-primary btn-block mt-3">@lang('Save Changes')</button>
+
                     </div>
                 </div>
 
 
 
-                <button type="submit" class="btn  btn-primary btn-block mt-3">@lang('Save Changes')</button>
                 </form>
             </div>
         </div>
@@ -613,4 +622,13 @@ document.getElementById('myForm').addEventListener('submit', function(event) {
     // The form will automatically include all dynamically added inputs
 });
     </script>
+    <script>
+document.getElementById('check_all_slots').addEventListener('change', function() {
+    const isChecked = this.checked;
+    const checkboxes = document.querySelectorAll('input[name="time_slots[]"]');
+    checkboxes.forEach(cb => cb.checked = isChecked);
+});
+    </script>
+
+
     @endpush

@@ -21,7 +21,8 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Partner</label>
-                        <select name="partner" class="form-control">
+                        <select id="select2Basic" name="partner" class="select2 form-select" data-allow-clear="true" data-placeholder="Select Partner">
+                            <option></option>
                             <option value="">All</option>
                             @foreach ($partners as $partner)
                                 <option value="{{ $partner->id }}" @if (@request()->partner == $partner->id) selected @endif>
@@ -36,7 +37,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Adjustment Type</label>
-                        <select name="adjustment" class="form-control">
+                        <select name="adjustment" class="form-select">
                             <option value="">@lang('All')</option>
                             <option value="4" @if (@request()->adjustment == '4') selected @endif>@lang('Top-Up')
                             </option>
@@ -69,9 +70,6 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-
-
-
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
@@ -83,7 +81,7 @@
                                     <th scope="col">Amount</th>
                                     <th scope="col">Charges</th>
                                     <th scope="col">@lang('Ajustment Type')</th>
-                                    <th scope="col">Remarks</th>
+                                    <th scope="col" style="width: 500px;">Remarks</th>
                                     <th scope="col">Created At</th>
 
                                 </tr>
@@ -100,24 +98,28 @@
 
                                             <td data-label="@lang('Status')" class="text-lg-center text-right">
                                                 @if ($item->adjustment == 2)
-                                                    <span class="badge badge-light">
+                                                    <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-warning success font-12"></i>
                                                         @lang('Deposit')</span>
                                                 @elseif($item->adjustment == 3)
-                                                    <span class="badge badge-light">
+                                                    <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-danger success font-12"></i>
                                                         @lang('Withdrawal')</span>
                                                 @elseif($item->adjustment == 4)
-                                                    <span class="badge badge-light">
+                                                    <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-primary success font-12"></i>
                                                         @lang('Top-Up')</span>
                                                 @else
-                                                    <span class="badge badge-light">
+                                                    <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-success success font-12"></i>
                                                         @lang('Balance')</span>
                                                 @endif
                                             </td>
-                                            <td>{{ $item->reason }}</td>
+                                            <td data-label="Remarks">
+                                                {{-- <div style="max-height: 80px; overflow: auto; font-size: 12px; line-height: 1.4; background: #1e1e2f; padding: 5px; border-radius: 4px;"> --}}
+                                                    {{ $item->reason }}
+                                                {{-- </div> --}}
+                                            </td>
                                             <td>{{ $item->created_at }}</td>
                                         </tr>
                                     @endif
@@ -140,28 +142,30 @@
         </div>
 
     </div>
-
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
     @push('js')
+        <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
         <script>
-            "use strict";
-            $(document).ready(function(e) {
-
-
-                $('#image').change(function() {
-                    let reader = new FileReader();
-                    reader.onload = (e) => {
-                        $('#image_preview_container').attr('src', e.target.result);
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                });
-
-
+            $(document).ready(function() {
+               let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
             });
 
-            $(document).ready(function() {
-                $('select').select2({
-                    selectOnClose: true
-                });
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
             });
         </script>
     @endpush
