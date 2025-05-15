@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Log;
-use App\Models\Category;
+use App\Models\CCategory;
 use App\Models\Api;
 use App\Models\Payout;
 use App\Models\ApiHit;
@@ -59,7 +59,7 @@ class PayoutRecordController extends Controller
 
     $allowedFields = [
         'website', 'api_endpoint_deposit', 'api_endpoint_withdrawal',
-        'redirect_url', 'min_deposit', 'min_withdrawal','api_key'
+        'redirect_url', 'min_deposit', 'min_withdrawal'
     ];
 
     if (!in_array($request->field, $allowedFields)) {
@@ -176,7 +176,7 @@ class PayoutRecordController extends Controller
     {
         $account = AdminAccount::findOrFail($id);
         $account->delete();
-        return response()->json(['status' => 'success', 'message' => 'Account deleted successfully']);
+        return back();
     }
 
     public function depositTest(Request $request)
@@ -195,12 +195,17 @@ class PayoutRecordController extends Controller
         $charge = 0;
         $e_wallet_phone_number = $account->account_no;
 
-        $fund = new Payment();
+        $fund = new Fund();
         $fund->user_id = 0;
         $fund->gateway_id = $gate->id;
+        $fund->gateway_currency = strtoupper($gate->currency);
         $fund->amount = $request->amount;
         $fund->charge = $charge;
-        $fund->sender = $request->account_no;
+        $fund->account_no = $request->account_no;
+        $fund->rate = $gate->convention_rate;
+        $fund->final_amount = getAmount($request->amount);
+        $fund->btc_amount = 0;
+        $fund->btc_wallet = "";
         $fund->transaction = strRandom();
         $fund->try = 0;
         $fund->status = 2;
@@ -682,7 +687,7 @@ class PayoutRecordController extends Controller
                     $subQuery->whereNotIn('status', ['Complete', 'Reject']);
                 })->orWhereDoesntHave('payout');
             })
-            ->pagnate(config('basic.paginate', '10'));
+            ->paginate(config('basic.paginate'));
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
@@ -1721,7 +1726,7 @@ class PayoutRecordController extends Controller
 
     public function apisBalanceAdd(Request $request)
     {
-       DB::beginTransaction();
+                DB::beginTransaction();
         try {
             // Determine the amount sign
             $amount = $this->calculateAmount($request->amount, $request->amount_type);
@@ -1807,23 +1812,23 @@ class PayoutRecordController extends Controller
     }
 
 
- public function apisCommission($id)
-{
-    $commissions = Commission::where('category_id', $id)->get();
-    $cron_commissions = CronCommission::where('category_id', $id)->get();
+    public function apisCommission($id)
+    {
+        $commissions = Commission::where('category_id', $id)->get();
+        $cron_commissions = CronCommission::where('category_id', $id)->get();
+       
+            
+        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name','id')
+            ->get();
+        $pageTitle = "Manage Commissions";
+      
+        $records = "";
 
-    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-        ->groupBy('source_name')
-        ->get();
-
-    $pageTitle = "Manage Commission";
-    $records = ""; // or fetch some data if needed
-
-    return view('admin.payout.commission', compact(
-        'records', 'pageTitle', 'commissions', 'cron_commissions', 'id', 'gateways'
-    ));
-}
-
+        return view('admin.payout.commission', compact(
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways'
+        ));
+    }
 
 
 
@@ -2030,79 +2035,118 @@ class PayoutRecordController extends Controller
     }
 
 
-    public function apisCommissionAdd(Request $request)
-    {
+ public function apisCommissionAdd(Request $request)
+{
+  
+    $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
+    foreach ($cron_commissions as $cron_commission) {
+        $cron_commission->delete();
+    }
 
+    $new = 0;
+    $commissions = Commission::where('category_id', $request->category_id)->get();
+    foreach ($commissions as $commission) {
+        $new = 1;
+    }
 
-        $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
-        foreach ($cron_commissions as $cron_commission) {
-            $cron_commission->delete();
+    $count = count($request->from_amount);
 
+    for ($i = 0; $i < $count; $i++) {
+        $new_commission = Commission::where('id', $request->id[$i])->first();
+        if ($new_commission) {
+            $commission_id = $new_commission->id;
+        } else {
+            $commission_id = 0;
         }
 
-        $new = 0;
-        $commissions = Commission::where('category_id', $request->category_id)->get();
-        foreach ($commissions as $commission) {
-            $new = 1;
-            // if(!in_array($commission->id, $request->id)){
-            //     $commission->delete();
-            // }
+        // Convert gateways to JSON (for storage) if selected
+        $gateway_ids = isset($request->settlement_gateway[$i]) ? json_encode($request->settlement_gateway[$i]) : json_encode([]);
 
-        }
+        $type = $request->type[$i] ?? null;
 
-        $count = count($request->from_amount);
-
-        for ($i = 0; $i < $count; $i++) {
-
-            $new_commission = Commission::where('id', $request->id[$i])->first();
-            if($new_commission){
-                $commission_id = $new_commission->id;
-            }else{
-                $commission_id = 0;
+        if ($new == 0) {
+            if (!$new_commission) {
+                $new_commission = new Commission;
             }
 
-            if($new==0){
-                if(!$new_commission){
-                    $new_commission = new Commission;
-                }
-                $new_commission->from_amount = $request->from_amount[$i];
-                $new_commission->to_amount = $request->to_amount[$i];
-                $new_commission->deposit_percentage = $request->deposit_percentage[$i];
-                $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
-                $new_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $new_commission->category_id = $request->category_id;
-                // if (isset($request->level1_parent_id[$i])) {
-                //     $new_commission->parent_id = $request->level1_parent_id[$i];
-                //     $new_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                //     $new_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                // }
+            $new_commission->from_amount = $request->from_amount[$i];
+            $new_commission->to_amount = $request->to_amount[$i];
+            $new_commission->deposit_percentage = $request->deposit_percentage[$i];
+            $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
+            $new_commission->settlement_percentage = $request->settlement_percentage[$i];
+            $new_commission->category_id = $request->category_id;
 
-                // if (isset($request->level2_parent_id[$i])) {
-                //     $new_commission->parent2_id = $request->level2_parent_id[$i];
-                //     $new_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                //     $new_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                // }
-                $new_commission->save();
-            }else{
-                $cron_commission = new CronCommission;
-                $cron_commission->from_amount = $request->from_amount[$i];
-                $cron_commission->to_amount = $request->to_amount[$i];
-                $cron_commission->deposit_percentage = $request->deposit_percentage[$i];
-                $cron_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
-                $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $cron_commission->category_id = $request->category_id;
-                $cron_commission->commission_id = $commission_id;
-                // if (isset($request->level1_parent_id[$i])) {
-                //     $cron_commission->parent_id = $request->level1_parent_id[$i];
-                //     $cron_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                //     $cron_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                // }
+            $new_commission->type = $type;
+            $new_commission->gateway_id = $gateway_ids; // store as JSON
 
-                // if (isset($request->level2_parent_id[$i])) {
-                //     $cron_commission->parent2_id = $request->level2_parent_id[$i];
-                //     $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                //     $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                // }
+            $new_commission->save();
+        } else {
+            $cron_commission = new CronCommission;
+
+            $cron_commission->from_amount = $request->from_amount[$i];
+            $cron_commission->to_amount = $request->to_amount[$i];
+            $cron_commission->deposit_percentage = $request->deposit_percentage[$i];
+            $cron_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
+            $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
+            $cron_commission->category_id = $request->category_id;
+            $cron_commission->commission_id = $commission_id;
+
+            $cron_commission->type = $type;
+            $cron_commission->gateway_id = $gateway_ids;
+
+            $cron_commission->save();
+        }
+    }
+
+    session()->flash('success', 'Successfully Updated');
+    return back();
+}
+
+    public function apiCommissionsDetail($id)
+    {
+
+        $records = PartnerCommission::with('api')
+        ->select('api_id', 'from_id', \DB::raw('SUM(CASE WHEN type = 1 THEN amount ELSE 0 END) AS sum_amount_type_1'))
+        ->selectRaw('SUM(CASE WHEN type = 1 THEN charges ELSE 0 END) AS sum_charges_type_1')
+        ->selectRaw('SUM(CASE WHEN type = 1 THEN total_amount ELSE 0 END) AS sum_total_amount_type_1')
+        ->selectRaw('SUM(CASE WHEN type = 1 THEN profit ELSE 0 END) AS sum_profit_type_1')
+        ->selectRaw('SUM(CASE WHEN type = 2 THEN amount ELSE 0 END) AS sum_amount_type_2')
+        ->selectRaw('SUM(CASE WHEN type = 2 THEN charges ELSE 0 END) AS sum_charges_type_2')
+        ->selectRaw('SUM(CASE WHEN type = 2 THEN total_amount ELSE 0 END) AS sum_total_amount_type_2')
+        ->selectRaw('SUM(CASE WHEN type = 2 THEN profit ELSE 0 END) AS sum_profit_type_2')
+        ->where('from_id', $id)
+        ->where('status', 1)
+        ->groupBy('api_id', 'from_id') // Add 'from_id' here
+        ->orderByDesc('id')
+        ->get();
+
+        $pageTitle = "Partners Commission Summary";
+        $partners = Api::where('type', 'Admin')->get();
+        return view('admin.payout.commission_summary', compact('records', 'pageTitle', 'partners'));
+    }
+
+    public function apiCommissionsCalculate($id)
+    {
+        if (!Session::has('previousapiid')) {
+            Session::put('previousapiid', $id);
+            $previousapiid = $id;
+        } else {
+            $previousapiid = Session::get('previousapiid');
+        }
+
+        if ($previousapiid != $id) {
+            Session::put('fundid', 0);
+            $fundid = 0;
+            Session::put('payoutid', 0);
+            $payoutid = 0;
+            Session::put('apiid', 0);
+            $apiid = 0;
+            Session::put('fistpart', 0);
+            $fistpart = 0;
+            Session::put('fundidc', 0);
+            $fundidc = 0;
+            Session::put('payoutidc', 0);
+            $payoutidc = 0;
         }
 
         if (!Session::has('fistpart')) {
@@ -2552,10 +2596,10 @@ class PayoutRecordController extends Controller
         }
 
         return redirect()->route('admin.api.commissions.detail', ['id' => $id])->with('success', 'Operation Successful');
-      }
     }
 
 
+    //Add Accounts
 
     public function addAccount()
     {
@@ -2752,150 +2796,143 @@ class PayoutRecordController extends Controller
 
     public function settlements()
     {
-        $records = Settlement::with('api')->latest('id')->paginate(50);
+        $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
+    {
+        $records = Settlement::with('api')->latest('id')->paginate(10); // ✅ correct
 
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
         $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
             ->groupBy('source_name')
             ->get();
 
         $pageTitle = "Partners Settlements History";
         $partners = Api::where('type', 'Admin')->get();
+        $pageTitle = "Partners Settlements History";
+        $partners = Api::where('type', 'Admin')->get();
+
         return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
     }
+        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+    }
+
+
+
+
 
     public function storeSettlement(Request $request)
     {
-        // Validate the request
-        $request->validate([
-            'partner' => 'required|exists:apis,id',
-            'source' => 'required|in:Bank,EWallet',
-            'source_name' => 'required|string|max:255',
-            'account_no' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0.01',
-        ]);
+        $sum = Settlement::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('partner_id', $request->partner)
+            ->where('status', '1')
+            ->sum('amount');
 
-        try {
-            $sum = Settlement::whereYear('created_at', now()->year)
-                ->whereMonth('created_at', now()->month)
-                ->where('partner_id', $request->partner)
-                ->where('status', '1')
-                ->sum('amount');
-
-            $api_key = Api::findOrFail($request->partner);
-
-            // Calculate charge
-            $charge = 0;
-            $commissions = Commission::where('api_id', $api_key->id)
-                ->where('from_amount', '<=', $sum)
-                ->where('to_amount', '>=', $sum)
-                ->first();
-
-            if (!$commissions) {
-                $commissions = Commission::where('api_id', $api_key->id)
-                    ->orderByDesc('to_amount')
-                    ->first();
-            }
-
+        $api_key = Api::where('id', $request->partner)->first();
+        $charge = 0;
+        $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        if ($commissions) {
+            $charge = $commissions->settlement_percentage * $request->amount / 100;
+        } else {
+            $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
             if ($commissions) {
                 $charge = $commissions->settlement_percentage * $request->amount / 100;
             }
+        }
 
         if ($api_key->balance < $request->amount + $charge) {
-                return response()->json([
-                    'errors' => [
-                        'amount' => ['You can only enter an amount less than your transferable settlement balance.']
-                    ]
-                ], 422);
-            }
-
-            $settlement = new Settlement();
-            $settlement->source = $request->source;
-            $settlement->source_name = $request->source_name;
-            $settlement->account_no = $request->account_no;
-            $settlement->amount = $request->amount;
-            $settlement->charges = $charge;
-            $settlement->net_amount = $request->amount + $charge;
-            $settlement->partner_id = $api_key->id;
-            $settlement->status = 0;
-            $settlement->save();
-
-            return response()->json([
-                'message' => 'Settlement saved successfully.'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'An error occurred: ' . $e->getMessage()
-            ], 500);
+            session()->flash('error', 'you can only enter amount less than to your transferable settlement balance.');
+            return back();
         }
+
+        $settlement = new Settlement();
+        $settlement->source = $request->source;
+        $settlement->source_name = $request->source_name;
+        $settlement->account_no = $request->account_no;
+        $settlement->amount = $request->amount;
+        $settlement->charges = $charge;
+        $settlement->net_amount = $request->amount + $charge;
+        $settlement->partner_id = $api_key->id;
+        $settlement->status = 0;
+        $settlement->save();
+
+        session()->flash('success', 'Saved Successfully');
+        return back();
     }
+
+
 
     public function settlementSearch(Request $request)
-    {
-        $partners = Api::where('type', 'Admin')->get();
+{
+    $partners = Api::where('type', 'Admin')->get();
+{
+    $partners = Api::where('type', 'Admin')->get();
 
-        $partners = Api::where('type', 'Admin')->get();
+    // Start with the query builder
+    $query = Settlement::with('api');
+    // Start with the query builder
+    $query = Settlement::with('api');
 
-        // Start with the query builder
-        $query = Settlement::with('api');
-        // Start with the query builder
-        $query = Settlement::with('api');
-
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $query->whereDate('created_at', '>=', $request->from_date)
-                ->whereDate('created_at', '<=', $request->to_date);
-        } elseif (!empty($request->from_date)) {
-            $query->whereDate('created_at', '>=', $request->from_date);
-        } elseif (!empty($request->to_date)) {
-            $query->whereDate('created_at', '<=', $request->to_date);
-        }
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $query->whereDate('created_at', '>=', $request->from_date)
-                ->whereDate('created_at', '<=', $request->to_date);
-        } elseif (!empty($request->from_date)) {
-            $query->whereDate('created_at', '>=', $request->from_date);
-        } elseif (!empty($request->to_date)) {
-            $query->whereDate('created_at', '<=', $request->to_date);
-        }
-
-        if (!empty($request->gateway)) {
-            $query->where('source_name', $request->gateway);
-        }
-        if (!empty($request->gateway)) {
-            $query->where('source_name', $request->gateway);
-        }
-
-        if (!empty($request->partner)) {
-            $query->where('partner_id', $request->partner);
-        }
-        if (!empty($request->partner)) {
-            $query->where('partner_id', $request->partner);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Only call paginate AFTER applying all filters
-        $records = $query->orderBy('id', 'DESC')->paginate(10);
-        // Only call paginate AFTER applying all filters
-        $records = $query->orderBy('id', 'DESC')->paginate(10);
-
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name')
-            ->get();
-
-        $pageTitle = "Search Settlements History";
-
-        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
-
-
-        $pageTitle = "Search Settlements History";
-
-        return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
     }
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date)
+              ->whereDate('created_at', '<=', $request->to_date);
+    } elseif (!empty($request->from_date)) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    } elseif (!empty($request->to_date)) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
+
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
+    if (!empty($request->gateway)) {
+        $query->where('source_name', $request->gateway);
+    }
+
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
+    if (!empty($request->partner)) {
+        $query->where('partner_id', $request->partner);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
+    // Only call paginate AFTER applying all filters
+    $records = $query->orderBy('id', 'DESC')->paginate(10);
+
+    $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+        ->groupBy('source_name')
+        ->get();
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
+    $pageTitle = "Search Settlements History";
+
+    return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
+}
+
+
+
 
     public function approveSettlement($id)
     {
@@ -2903,18 +2940,13 @@ class PayoutRecordController extends Controller
         try {
             // $Settlement = Settlement::findOrFail($id);
             $Settlement = Settlement::where('id', $id)
-            // ->where('status', '!=', 1)
+            ->where('status', '!=', 1)
             ->lockForUpdate()
-            ->first();
-
-            if ($Settlement->status == 1) {
-                 DB::rollBack();
-                throw new \Exception('Settlement already approved.');
-            }
+            ->firstOrFail();
+            // dd('hello'); ok
 
             $Settlement->status = 1;
             if (!$Settlement->save()) {
-                DB::rollBack();
                 throw new \Exception('Failed to save Settlement record.');
             }
             // dd('hello');ok
@@ -2924,7 +2956,6 @@ class PayoutRecordController extends Controller
             $api->balance -= $Settlement->net_amount;
             // dd('hello');ok
             if (!$api->save()) {
-                DB::rollBack();
                 throw new \Exception('Failed to save API balance update.');
             }
             // dd('hello1');ok
@@ -2938,7 +2969,6 @@ class PayoutRecordController extends Controller
             $Log->partner_id = $Settlement->partner_id;
             $Log->source = 'approveSettlement';
             if (!$Log->save()) {
-                DB::rollBack();
                 throw new \Exception('Failed to save Log entry.');
             }
             // dd('hello6');
@@ -2975,114 +3005,22 @@ class PayoutRecordController extends Controller
 
     }
 
+
+
     public function rejectSettlement($id)
     {
-        DB::beginTransaction();
-        try {
-            // $Settlement = Settlement::findOrFail($id);
-            $Settlement = Settlement::where('id', $id)
-                ->lockForUpdate()
-                ->firstOrFail();
+        $api = Settlement::findOrFail($id);
+        $api->status = 2;
+        $api->save();
 
-            if ($Settlement->status == 2) {
-                session()->flash('error', 'Already Rejected Settlement');
-                return back();
-            } else if ($Settlement->status == 1) {
-
-                $Settlement->status = 2;
-                $Settlement->save();
-
-                $api = Api::where('id', $Settlement->partner_id)->lockForUpdate()->firstOrFail();
-                $api->balance += $Settlement->net_amount;
-
-                if (!$api->save()) {
-                    throw new \Exception('Failed to save API balance update.');
-                }
-                // dd('hello1');ok
-
-                $Log = new Log();
-                $Log->date_time = $Settlement->created_at;
-                $Log->final_amount = $Settlement->net_amount;
-                $Log->balance = $api->balance;
-                $Log->transection_type = 8;
-                $Log->transection_id = $Settlement->id;
-                $Log->partner_id = $Settlement->partner_id;
-                $Log->source = 'rejectSettlement';
-                if (!$Log->save()) {
-                    throw new \Exception('Failed to save Log entry.');
-                }
-                // dd('hello6');
-
-                $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api->id)->whereDate('created_at', '>=', $Settlement->created_at)->get();
-                foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                    $amount_to_update = $DailyPartnerSummary_record->closing_balance + $Settlement->net_amount;
-                    $amount_to_update = round($amount_to_update, 2);
-                    // $amount_to_update = floor($amount_to_update * 100) / 100;
-                    $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                    $DailyPartnerSummary_record->save();
-
-                    $summary_log = new DailyPartnerSummaryLog();
-                    $summary_log->partner_id = $api->id;
-                    $summary_log->partner_balance = $api->balance;
-                    $summary_log->payment_id = $Settlement->id;
-                    $summary_log->total_amount = -$Settlement->net_amount;
-                    $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                    $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                    $summary_log->source = 'rejectSettlement';
-                    $summary_log->save();
-                }
-
-                DB::commit();
-                session()->flash('success', 'Successfully Rejected');
-            }
-            else
-            {
-                $Settlement->status = 2;
-                $Settlement->save();
-                session()->flash('success', 'Successfully Rejected');
-            }
-
-            return back();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            session()->flash('error', 'Failed to Approve Settlement: ' . $e->getMessage());
-            return back()->withInput();
-        }
+        session()->flash('success', 'Successfully Updated');
+        return back();
     }
-
 
     public function balanceLogs()
     {
 
         $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->paginate(10);
-        $pageTitle = "Account Balance Logs";
-
-        return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));
-    }
-
-    public function balanceLogsSearch(Request $request)
-    {
-
-        $accountlog = AccountLog::orderBy('id', 'DESC')
-            ->with('e_wallet_account')
-            ->whereHas('e_wallet_account', function ($query) use ($request) {
-                $query->where('e_wallet_name', 'like', '%' . $request->ewallet . '%')
-                    ->where('account_no', 'like', '%' . $request->account_no . '%')
-                    ->where('type', 'like', '%' . $request->a_type . '%');
-
-                if (!empty($request->from_date) && !empty($request->to_date)) {
-                    $query->whereDate('created_at', '>=', $request->from_date);
-                    $query->whereDate('created_at', '<=', $request->to_date);
-                } elseif (!empty($request->from_date)) {
-                    $query->whereDate('created_at', '>=', $request->from_date);
-                } elseif (!empty($request->to_date)) {
-                    $query->whereDate('created_at', '<=', $request->to_date);
-                }
-            })
-            ->where('type', 'like', '%' . $request->type . '%')
-            ->paginate(10);
-
-        // $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->get();
         $pageTitle = "Account Balance Logs";
 
         return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));
@@ -3096,10 +3034,10 @@ class PayoutRecordController extends Controller
             $from_date = $request->from_date;
         } else {
             $from_date = date('Y-m-d');
-        };
+        }
 
         $e_wallet_accounts = EWalletAccount::paginate(10);
-        $e_wallet_transections = EWalletTransfer::whereDate('transaction_date_time', '=', $from_date)->orderBy('created_at', 'desc')->paginate(50);
+        $e_wallet_transections = EWalletTransfer::whereDate('transaction_date_time', '=', $from_date)->orderBy('created_at', 'desc')->get();
         $pageTitle = "Transfer Logs";
         return view('admin.payout.ewallet_transfer', compact('pageTitle', 'from_date', 'e_wallet_accounts', 'e_wallet_transections'));
     }
@@ -3171,12 +3109,18 @@ class PayoutRecordController extends Controller
             }
         }
 
+
+
+
+
         $EWalletTransaction->category = $request->category;
         $EWalletTransaction->amount = $request->amount;
         $EWalletTransaction->charges = $request->charges;
         $EWalletTransaction->comission = $request->comission;
         $EWalletTransaction->txn_id = $request->txn_id;
         $EWalletTransaction->transaction_date_time = $request->transaction_date_time;
+
+
 
         if ($request->hasFile('image')) {
 
@@ -4632,6 +4576,11 @@ class PayoutRecordController extends Controller
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions','apis'));
     }
 
+
+
+
+
+
     // Partner Commission
 
     public function apiCommissions(Request $request)
@@ -4690,7 +4639,7 @@ class PayoutRecordController extends Controller
         }
         // dd($recordsQuery->sum('amount'));
         $pageTitle = "Partners Commission History";
-        $partners = Api::select('id' , 'name')->where('type', 'Admin')->get();
+        $partners = Api::where('type', 'Admin')->get();
 
         return view('admin.payout.commission_report', compact('records', 'pageTitle', 'partners'  ,'from_date'  ,'to_date' , 'totalAmount' , 'isLastPage' , 'totalChargesSum' , 'totalAAmountSum' , 'totalProfitSum'));
     }
@@ -4893,12 +4842,12 @@ class PayoutRecordController extends Controller
     }
 
 
-    public function accountGroupList()
+  public function accountGroupList()
     {
         $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::where('status','1')->get();
         $data['pageTitle'] = 'Accounts Management';
-
+        
         $this->updateLimits();
 
         $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
@@ -4918,12 +4867,12 @@ class PayoutRecordController extends Controller
             'group_name' => 'required|string|max:255',
             'pairs' => 'required|array',
         ]);
-
+    
         $group = new AccountGroup();
         $group->group_name = $request->group_name;
         $group->pairs = json_encode($request->pairs);
         $group->save();
-
+    
         return redirect()->back()->with('success', 'Group created successfully!');
     }
 
@@ -4934,19 +4883,19 @@ class PayoutRecordController extends Controller
             'status' => 'required|boolean', // 1 = on, 0 = off
             'type' => 'required',
         ]);
-
+    
         $wallet = EWalletAccount::find($request->id);
         if (!$wallet) {
             return response()->json(['success' => false, 'message' => 'Wallet not found.'], 404);
         }
-
+    
         $currentType = strtolower($wallet->account_type ?? '');
         $newType = $request->type;
         $status = $request->status;
-
+    
         $hasDeposit = in_array($currentType, ['deposit', 'both']);
         $hasWithdrawal = in_array($currentType, ['withdrawal', 'both']);
-
+    
         if ($newType === 'deposit') {
             $wallet->account_type = $status
                 ? ($hasWithdrawal ? 'Both' : 'Deposit')
@@ -4959,9 +4908,9 @@ class PayoutRecordController extends Controller
             // ✅ Only update status column
             $wallet->status = $status;
         }
-
+    
         $wallet->save();
-
+    
         return response()->json([
             'success' => true,
             'account_type' => $wallet->account_type,
@@ -4969,5 +4918,19 @@ class PayoutRecordController extends Controller
         ]);
     }
 
+    public function changeStatus($id)
+{
+    $account = EWalletAccount::findOrFail($id);
+    $account->status = $account->status == 1 ? 0 : 1;
+    $account->save();
+
+    return response()->json([
+        'success' => true,
+        'status' => $account->status,
+        'message' => 'Status updated successfully.'
+    ]);
+}
+
+    
 
 }

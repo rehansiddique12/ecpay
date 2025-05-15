@@ -2,11 +2,11 @@
     @push('styles')
     <script src="{{ asset('public/assets/css/select2.min.css') }}"></script>
     <!-- ✅ Load jQuery first -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- ✅ Then load Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- ✅ Then load Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <style>
     tr th {
@@ -112,7 +112,7 @@
                         <a href="javascript:void(0)" class="btn btn-primary" id="accountsGroupTab">
                             <div>Accounts Group </div>
                         </a>
-                        
+
                         <a href="javascript:void(0)" class="btn btn-primary" id="gatewayTab">
                             <div>Gateways</div>
                         </a>
@@ -122,24 +122,24 @@
                         </a>
                     </div>
                     <div id="listaccountsSection">
-                    @include('admin.payout.accounts')
+                        @include('admin.payout.accounts')
 
                     </div>
                     <div id="inoffSection">
-                    @include('admin.payout.inout')
+                        @include('admin.payout.inout')
 
                     </div>
                     <div id="accountsGroupSection">
-                        
-                    @include('admin.accounts.groups')
+
+                        @include('admin.accounts.groups')
 
                     </div>
                     <div id="addaccountsSection" style="display:none;">
                         @include('admin.payout.create_account')
                     </div>
                     <div id="gatewaySection" style="display:none;">
-                    <h6 style="color: #7367f0">Add Gateways
-                    </h6>
+                        <h6 style="color: #7367f0">Add Gateways
+                        </h6>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-12">
@@ -277,19 +277,19 @@
                                     <td>{{ $item['id'] }}</td>
                                     <td>{{ $item['name'] ?? '' }}</td>
                                     <td>
-                                        <label class="switch" style="pointer-events: none;">
-                                            <input type="checkbox"
-                                                class="switch-input {{ $item['status'] == 1 ? 'is-valid' : 'is-invalid' }}"
-                                                {{ $item['status'] == 1 ? 'checked' : '' }}>
+                                        <label class="switch" style="cursor: pointer;">
+                                            <input type="checkbox" class="switch-input toggle-status"
+                                                data-id="{{ $item['id'] }}" {{ $item['status'] == 1 ? 'checked' : '' }}>
                                             <span class="switch-toggle-slider">
                                                 <span class="switch-on"></span>
                                                 <span class="switch-off"></span>
                                             </span>
-                                            <span class="switch-label">
+                                            <span class="switch-label status-label-{{ $item['id'] }}">
                                                 {{ $item['status'] == 1 ? 'Active' : 'Inactive' }}
                                             </span>
                                         </label>
                                     </td>
+
                                     <td>
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -974,9 +974,9 @@
             $('#addaccountsSection').hide();
             $('#listaccountsSection').hide();
             $('#inoffSection').show();
-            
+
         });
-        
+
 
         // Rest of the JS code
         $('#image').change(function() {
@@ -1126,8 +1126,6 @@
                 const code = this.getAttribute('data-code');
                 const status = this.getAttribute('data-status');
                 const message = this.getAttribute('data-message');
-
-                // Set message and form data
                 document.querySelector('#disableModal input[name="code"]').value = code;
                 document.querySelectorAll('#disableModal .messageShow').forEach(el => el
                     .innerText = message.toLowerCase());
@@ -1137,23 +1135,48 @@
     </script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const editButtons = document.querySelectorAll('.editBtn'); // 👈 Correct class
+        const editButtons = document.querySelectorAll('.editBtn'); 
         editButtons.forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const methodId = this.getAttribute('data-method-id');
-                // Optionally update modal fields dynamically here using other data-* attributes
                 const name = this.getAttribute('data-name');
-
-                // Set modal input values (if needed dynamically)
                 document.querySelector('#editMethodModal input[name="name"]').value = name;
-
-                // Show the modal
                 const modal = new bootstrap.Modal(document.getElementById('editMethodModal'));
                 modal.show();
             });
         });
     });
     </script>
+    <script>
+    $(document).on('change', '.toggle-status', function () {
+        let checkbox = $(this);
+        let id = checkbox.data('id');
+        let isChecked = checkbox.is(':checked');
+
+        $.ajax({
+            url: '/admin/category/' + id + '/status',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    let labelText = response.status === 1 ? 'Active' : 'Inactive';
+                    $('.status-label-' + id).text(labelText);
+                    toastr.success('Status updated to ' + labelText);
+                } else {
+                    toastr.error('Failed to update status.');
+                    checkbox.prop('checked', !isChecked); // Revert toggle
+                }
+            },
+            error: function () {
+                toastr.error('Error occurred while updating status.');
+                checkbox.prop('checked', !isChecked); // Revert toggle
+            }
+        });
+    });
+</script>
+
 
 
     @endpush
