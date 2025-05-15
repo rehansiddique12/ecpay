@@ -25751,6 +25751,20 @@ li:not(:first-child) .dropdown-item, .dropdown-menu .dropdown-item:not(:first-ch
     padding-inline: 1.5rem;
   }
 }
+@media (min-width: 992px) {
+  .container,
+  .container-fluid,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-xxl {
+    width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
 
 /* Buy now section
 ******************************************************************************* */

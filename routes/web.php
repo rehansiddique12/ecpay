@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CCategoryController;
 use Illuminate\Support\Facades\Artisan;
 // rehan
 use Illuminate\Support\Facades\Route;
@@ -201,8 +202,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/apis/login/{id}', [PayoutRecordController::class, 'apisLgoin'])->name('apis.login');
         Route::get('/apis/reset/{id}', [PayoutRecordController::class, 'apisReset'])->name('apis.reset');
         Route::get('/apis/commission/{id}', [PayoutRecordController::class, 'apisCommission'])->name('apis.commission');
-        Route::get('/api/commissions/detail/{id}', [PayoutRecordController::class, 'apiCommissionsDetail'])->name('api.commissions.detail');
-        Route::get('/api/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
+        Route::get('/apis/commissions/detail/{id}', [PayoutRecordController::class, 'apiCommissionsDetail'])->name('api.commissions.detail');
+        Route::get('/apis/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
         Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
         Route::post('/apis/commission/add', [PayoutRecordController::class, 'apisCommissionAdd'])->name('apis.commission.add');
@@ -304,6 +305,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
 
         Route::get('/user/edit/{id}', [UsersController::class, 'userEdit'])->name('user-edit');
+        Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::put('payment/action/{id}', [PaymentLogController::class, 'action'])->name('payment.action');
 
         Route::get('/payout-log', [PayoutRecordController::class, 'index'])->name('payout-log');
@@ -364,6 +366,18 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('merchant-profile/{id}', [MerchantController::class, 'profile'])->name('merchant.profile');
         Route::get('merchant-logs/{id}', [MerchantController::class, 'mechantlogs'])->name('merchant.logs');
         Route::post('/activity-logs', [MerchantController::class, 'fetchActivityLogs'])->name('fetchActivityLogs');
+
+
+
+
+   Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
+    Route::get('/', [CCategoryController::class, 'index'])->name('index');
+    Route::post('/', [CCategoryController::class, 'store'])->name('store');
+    Route::put('/', [CCategoryController::class, 'update'])->name('update');
+    Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+
 
     });
 

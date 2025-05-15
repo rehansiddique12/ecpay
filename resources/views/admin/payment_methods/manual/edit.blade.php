@@ -193,7 +193,7 @@
                                 </div>
                                 <div class="col-lg-3 col-md-6">
                                     <div class="form-group">
-                                        <a href="javascript:void(0)" class="btn btn-success float-right mt-3"
+                                        <a href="javascript:void(0)" class="btn btn-primary float-right mt-3"
                                             id="generate"><i class="fa fa-plus-circle"></i> {{trans('Add Field')}}</a>
                                     </div>
                                 </div>

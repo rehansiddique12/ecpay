@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Log;
+use App\Models\CCategory;
 use App\Models\Api;
 use App\Models\Payout;
 use App\Models\ApiHit;
@@ -1808,34 +1809,19 @@ class PayoutRecordController extends Controller
 
     public function apisCommission($id)
     {
-        $api = Api::findOrFail($id);
-        $commissions = Commission::where('api_id', $id)->get();
-        $cron_commissions = CronCommission::where('api_id', $id)->get();
-
-        // Fetch end user and parents in a single query
-        $end_user = Api::findOrFail($id);
-        // Set default values
-        $level1_parent_id = $level2_parent_id = 0;
-        $level1_parent_name = $level2_parent_name = "";
-
-        // Check and assign parent hierarchy
-        if ($end_user->parent) {
-            $level1_parent_id = $end_user->parent->id;
-            $level1_parent_name = $end_user->parent->name;
-
-            if ($end_user->parent->parent) {
-                $level2_parent_id = $end_user->parent->parent->id;
-                $level2_parent_name = $end_user->parent->parent->name;
-            }
-        }
-
+        $commissions = Commission::where('category_id', $id)->get();
+        $cron_commissions = CronCommission::where('category_id', $id)->get();
+       
+            
+        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name')
+            ->get();
         $pageTitle = "Manage Commissions";
-        $api_id = $id;
+      
         $records = "";
 
         return view('admin.payout.commission', compact(
-            'records', 'pageTitle', 'api_id', 'commissions', 'cron_commissions',
-            'level1_parent_id', 'level2_parent_id', 'level1_parent_name', 'level2_parent_name'
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways'
         ));
     }
 
@@ -2047,14 +2033,15 @@ class PayoutRecordController extends Controller
     public function apisCommissionAdd(Request $request)
     {
 
-        $cron_commissions = CronCommission::where('api_id', $request->api_id)->get();
+
+        $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
         foreach ($cron_commissions as $cron_commission) {
             $cron_commission->delete();
 
         }
 
         $new = 0;
-        $commissions = Commission::where('api_id', $request->api_id)->get();
+        $commissions = Commission::where('category_id', $request->category_id)->get();
         foreach ($commissions as $commission) {
             $new = 1;
             // if(!in_array($commission->id, $request->id)){
@@ -2083,18 +2070,18 @@ class PayoutRecordController extends Controller
                 $new_commission->deposit_percentage = $request->deposit_percentage[$i];
                 $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
                 $new_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $new_commission->api_id = $request->api_id;
-                if (isset($request->level1_parent_id[$i])) {
-                    $new_commission->parent_id = $request->level1_parent_id[$i];
-                    $new_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                    $new_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                }
+                $new_commission->category_id = $request->category_id;
+                // if (isset($request->level1_parent_id[$i])) {
+                //     $new_commission->parent_id = $request->level1_parent_id[$i];
+                //     $new_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
+                //     $new_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
+                // }
 
-                if (isset($request->level2_parent_id[$i])) {
-                    $new_commission->parent2_id = $request->level2_parent_id[$i];
-                    $new_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                    $new_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                }
+                // if (isset($request->level2_parent_id[$i])) {
+                //     $new_commission->parent2_id = $request->level2_parent_id[$i];
+                //     $new_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
+                //     $new_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
+                // }
                 $new_commission->save();
             }else{
                 $cron_commission = new CronCommission;
@@ -2103,19 +2090,19 @@ class PayoutRecordController extends Controller
                 $cron_commission->deposit_percentage = $request->deposit_percentage[$i];
                 $cron_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
                 $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $cron_commission->api_id = $request->api_id;
+                $cron_commission->category_id = $request->category_id;
                 $cron_commission->commission_id = $commission_id;
-                if (isset($request->level1_parent_id[$i])) {
-                    $cron_commission->parent_id = $request->level1_parent_id[$i];
-                    $cron_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                    $cron_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                }
+                // if (isset($request->level1_parent_id[$i])) {
+                //     $cron_commission->parent_id = $request->level1_parent_id[$i];
+                //     $cron_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
+                //     $cron_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
+                // }
 
-                if (isset($request->level2_parent_id[$i])) {
-                    $cron_commission->parent2_id = $request->level2_parent_id[$i];
-                    $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                    $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                }
+                // if (isset($request->level2_parent_id[$i])) {
+                //     $cron_commission->parent2_id = $request->level2_parent_id[$i];
+                //     $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
+                //     $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
+                // }
                 $cron_commission->save();
             }
         }
@@ -3042,6 +3029,34 @@ class PayoutRecordController extends Controller
     {
 
         $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->paginate(10);
+        $pageTitle = "Account Balance Logs";
+
+        return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));
+    }
+
+    public function balanceLogsSearch(Request $request)
+    {
+
+        $accountlog = AccountLog::orderBy('id', 'DESC')
+            ->with('e_wallet_account')
+            ->whereHas('e_wallet_account', function ($query) use ($request) {
+                $query->where('e_wallet_name', 'like', '%' . $request->ewallet . '%')
+                    ->where('account_no', 'like', '%' . $request->account_no . '%')
+                    ->where('type', 'like', '%' . $request->a_type . '%');
+
+                if (!empty($request->from_date) && !empty($request->to_date)) {
+                    $query->whereDate('created_at', '>=', $request->from_date);
+                    $query->whereDate('created_at', '<=', $request->to_date);
+                } elseif (!empty($request->from_date)) {
+                    $query->whereDate('created_at', '>=', $request->from_date);
+                } elseif (!empty($request->to_date)) {
+                    $query->whereDate('created_at', '<=', $request->to_date);
+                }
+            })
+            ->where('type', 'like', '%' . $request->type . '%')
+            ->paginate(10);
+
+        // $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->get();
         $pageTitle = "Account Balance Logs";
 
         return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));
