@@ -141,7 +141,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
 
-        Route::get('/account    /groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
+        Route::get('/account/groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
         Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
         Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
@@ -213,6 +213,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/groups/add', [TelegramGroupController::class, 'groupsAdd'])->name('groups.add');
         Route::put('/groups/update/{id}', [TelegramGroupController::class, 'updateGroup'])->name('groups.update');
         Route::delete('/groups/delete/{id}', [TelegramGroupController::class, 'groupsDelete'])->name('groups.delete');
+        Route::post('/groups/toggle-status/{id}', [TelegramGroupController::class, 'toggleStatus'])->name('groups.toggleStatus');
+
+
+
 
         Route::get('/settlements', [PayoutRecordController::class, 'settlements'])->name('settlements');
         Route::post('/settlements/Add', [PayoutRecordController::class, 'storeSettlement'])->name('settlements.add');

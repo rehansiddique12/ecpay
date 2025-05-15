@@ -725,13 +725,13 @@
                                     <div data-i18n="All Users">All Users</div>
                                 </a>
                             </li>
-                            <li
-                        class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
-                        <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
-                            <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                            <div data-i18n="Manual Gateway">Manual Gateway</div>
-                        </a>
-                    </li>
+                            {{-- <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                </a>
+                            </li> --}}
 
                         <ul class="menu-sub">
                             <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">

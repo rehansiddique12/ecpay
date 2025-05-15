@@ -34,6 +34,18 @@ class TelegramGroupController extends Controller
         return view('admin.group.api', compact('records', 'pageTitle', 'title', 'partners'));
     }
 
+    public function toggleStatus($id)
+    {
+        $group = TelegramGroup::findOrFail($id);
+        $group->status = !$group->status;
+        $group->save();
+
+        return response()->json([
+            'success' => true,
+            'status' => $group->status ? 'Active' : 'Inactive'
+        ]);
+    }
+
     public function groupsAdd(Request $request)
     {
         $validated = $request->validate($this->validationRules());
