@@ -304,6 +304,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
 
         Route::get('/user/edit/{id}', [UsersController::class, 'userEdit'])->name('user-edit');
+        Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::put('payment/action/{id}', [PaymentLogController::class, 'action'])->name('payment.action');
 
         Route::get('/payout-log', [PayoutRecordController::class, 'index'])->name('payout-log');
