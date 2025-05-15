@@ -1818,8 +1818,8 @@ class PayoutRecordController extends Controller
         $cron_commissions = CronCommission::where('category_id', $id)->get();
        
             
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name')
+        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name','id')
             ->get();
         $pageTitle = "Manage Commissions";
       
@@ -2035,85 +2035,72 @@ class PayoutRecordController extends Controller
     }
 
 
-    public function apisCommissionAdd(Request $request)
-    {
-
-
-        $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
-        foreach ($cron_commissions as $cron_commission) {
-            $cron_commission->delete();
-
-        }
-
-        $new = 0;
-        $commissions = Commission::where('category_id', $request->category_id)->get();
-        foreach ($commissions as $commission) {
-            $new = 1;
-            // if(!in_array($commission->id, $request->id)){
-            //     $commission->delete();
-            // }
-
-        }
-
-        $count = count($request->from_amount);
-
-        for ($i = 0; $i < $count; $i++) {
-
-            $new_commission = Commission::where('id', $request->id[$i])->first();
-            if($new_commission){
-                $commission_id = $new_commission->id;
-            }else{
-                $commission_id = 0;
-            }
-
-            if($new==0){
-                if(!$new_commission){
-                    $new_commission = new Commission;
-                }
-                $new_commission->from_amount = $request->from_amount[$i];
-                $new_commission->to_amount = $request->to_amount[$i];
-                $new_commission->deposit_percentage = $request->deposit_percentage[$i];
-                $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
-                $new_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $new_commission->category_id = $request->category_id;
-                // if (isset($request->level1_parent_id[$i])) {
-                //     $new_commission->parent_id = $request->level1_parent_id[$i];
-                //     $new_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                //     $new_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                // }
-
-                // if (isset($request->level2_parent_id[$i])) {
-                //     $new_commission->parent2_id = $request->level2_parent_id[$i];
-                //     $new_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                //     $new_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                // }
-                $new_commission->save();
-            }else{
-                $cron_commission = new CronCommission;
-                $cron_commission->from_amount = $request->from_amount[$i];
-                $cron_commission->to_amount = $request->to_amount[$i];
-                $cron_commission->deposit_percentage = $request->deposit_percentage[$i];
-                $cron_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
-                $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
-                $cron_commission->category_id = $request->category_id;
-                $cron_commission->commission_id = $commission_id;
-                // if (isset($request->level1_parent_id[$i])) {
-                //     $cron_commission->parent_id = $request->level1_parent_id[$i];
-                //     $cron_commission->parent_deposit_percentage = $request->parent_deposit_percentage[$i];
-                //     $cron_commission->parent_withdrawal_percentage = $request->parent_withdrawal_percentage[$i];
-                // }
-
-                // if (isset($request->level2_parent_id[$i])) {
-                //     $cron_commission->parent2_id = $request->level2_parent_id[$i];
-                //     $cron_commission->parent2_deposit_percentage = $request->parent2_deposit_percentage[$i];
-                //     $cron_commission->parent2_withdrawal_percentage = $request->parent2_withdrawal_percentage[$i];
-                // }
-                $cron_commission->save();
-            }
-        }
-        session()->flash('success', 'Successfully Updated');
-        return back();
+ public function apisCommissionAdd(Request $request)
+{
+  
+    $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
+    foreach ($cron_commissions as $cron_commission) {
+        $cron_commission->delete();
     }
+
+    $new = 0;
+    $commissions = Commission::where('category_id', $request->category_id)->get();
+    foreach ($commissions as $commission) {
+        $new = 1;
+    }
+
+    $count = count($request->from_amount);
+
+    for ($i = 0; $i < $count; $i++) {
+        $new_commission = Commission::where('id', $request->id[$i])->first();
+        if ($new_commission) {
+            $commission_id = $new_commission->id;
+        } else {
+            $commission_id = 0;
+        }
+
+        // Convert gateways to JSON (for storage) if selected
+        $gateway_ids = isset($request->settlement_gateway[$i]) ? json_encode($request->settlement_gateway[$i]) : json_encode([]);
+
+        $type = $request->type[$i] ?? null;
+
+        if ($new == 0) {
+            if (!$new_commission) {
+                $new_commission = new Commission;
+            }
+
+            $new_commission->from_amount = $request->from_amount[$i];
+            $new_commission->to_amount = $request->to_amount[$i];
+            $new_commission->deposit_percentage = $request->deposit_percentage[$i];
+            $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
+            $new_commission->settlement_percentage = $request->settlement_percentage[$i];
+            $new_commission->category_id = $request->category_id;
+
+            $new_commission->type = $type;
+            $new_commission->gateway_id = $gateway_ids; // store as JSON
+
+            $new_commission->save();
+        } else {
+            $cron_commission = new CronCommission;
+
+            $cron_commission->from_amount = $request->from_amount[$i];
+            $cron_commission->to_amount = $request->to_amount[$i];
+            $cron_commission->deposit_percentage = $request->deposit_percentage[$i];
+            $cron_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
+            $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
+            $cron_commission->category_id = $request->category_id;
+            $cron_commission->commission_id = $commission_id;
+
+            $cron_commission->type = $type;
+            $cron_commission->gateway_id = $gateway_ids;
+
+            $cron_commission->save();
+        }
+    }
+
+    session()->flash('success', 'Successfully Updated');
+    return back();
+}
 
     public function apiCommissionsDetail($id)
     {
