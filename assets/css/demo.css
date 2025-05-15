@@ -103,3 +103,30 @@
   text-align: center;
   margin-top: 1rem;
 }
+
+
+
+  /* Styling for the loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            /* Dim the table */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            /* Ensure overlay is above the table */
+        }
+
+        /* Hide the loading spinner by default */
+        .d-none {
+            display: none;
+        }
+        /* Hides the "Show X entries" dropdown */
+            #dt-length-0 + label {
+            display: none;
+        }

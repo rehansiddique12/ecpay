@@ -704,15 +704,6 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.staff' ? 'active' : '' }}">
-                                <a href="{{ route('admin.staff') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Roles & Permission">Roles & Permission</div>
-                                </a>
-                            </li>
-
-
-
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -760,7 +751,7 @@
                                     <div data-i18n="Account Balance">Account Balance</div>
                                 </a>
                             </li>
-                           
+
                             <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -796,7 +787,7 @@
                                 <div data-i18n="Add Accounts">Add Accounts</div>
                             </a>
                         </li> -->
-                        
+
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.groups' ? 'active' : '' }}">
                             <a href="{{ route('admin.groups') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -839,7 +830,7 @@
                     </a>
 
                     <ul class="menu-sub">
-                        
+
                           <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">

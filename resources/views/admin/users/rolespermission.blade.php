@@ -23,7 +23,7 @@
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
-                                    <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                    <div data-i18n="Users">Users</div>
                                 </a>
                             </button>
                         </div>

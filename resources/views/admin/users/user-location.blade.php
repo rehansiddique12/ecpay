@@ -16,7 +16,7 @@
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
-                                    <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                    <div data-i18n="Users">Users</div>
                                 </a>
                             </button>
                         </div>
@@ -44,85 +44,42 @@
                         </div>
                     </div>
                 </div>
-                <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-                    <div class="card-body">
-                        <div class="card-header">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newModal">
-                                Add New Location
-                            </button>
-                        </div>
+                {{-- <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
+                    <div class="card-body"> --}}
+                        {{-- <div class="card-header"> --}}
+                        <button type="button" class="btn btn-primary  mt-5 mb-3" data-bs-toggle="modal" data-bs-target="#newModal">
+                            Add New Location
+                        </button>
+                        {{-- </div> --}}
 
-                        <div class="table-responsive">
-                            <table class="categories-show-table table table-hover table-striped table-bordered">
+                        <div class="">
+                            <table id="locationTableBody" class="categories-show-table table table-hover table-striped table-bordered">
                                 <thead class="thead-dark">
                                     <tr>
-                                        <th scope="col">@lang('No.')</th>
-                                        <th scope="col">@lang('Location')</th>
-                                        <th scope="col">@lang('Status')</th>
-                                        <th scope="col">@lang('Action')</th>
+                                        <th style="width: 50px;">@lang('No.')</th>
+                                        <th style="width: 200px;">@lang('Location')</th>
+                                        <th style="width: 120px;">@lang('Status')</th>
+                                        <th style="width: 100px;" class="text-center">@lang('Action')</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($userLocations as $location)
-                                        <tr>
-                                            <td data-label="@lang('No.')">{{ loopIndex($userLocations) + $loop->index }}</td>
-                                            <td data-label="@lang('Location')">{{ $location->location }}</td>
-                                            <td data-label="@lang('Status')">
-                                                <label class="switch" style="pointer-events: none;">
-                                                    <input type="checkbox" class="switch-input {{ $location->status ? 'is-valid' : 'is-invalid' }}"
-                                                        {{ $location->status ? 'checked' : '' }}>
-                                                    <span class="switch-toggle-slider">
-                                                        <span class="switch-on"></span>
-                                                        <span class="switch-off"></span>
-                                                    </span>
-                                                    <span class="switch-label">
-                                                        {{ $location->status ? 'Active' : 'Inactive' }}
-                                                    </span>
-                                                </label>
-                                            </td>
-                                            <td data-label="@lang('Action')">
-                                                <div class="dropdown">
-                                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                        <i class="icon-base ti tabler-dots-vertical"></i>
-                                                    </button>
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                                        <a class="dropdown-item edit-location" href="#" data-bs-toggle="modal"
-                                                           data-bs-target="#editModal"
-                                                           data-id="{{ $location->id }}"
-                                                           data-location="{{ $location->location }}"
-                                                           data-status="{{ $location->status }}">
-                                                            <i class="fa fa-edit text-warning pr-2" aria-hidden="true"></i>
-                                                            @lang('Edit')
-                                                        </a>
-                                                        <form action="{{ route('admin.users.location.delete', $location->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure you want to delete this location?')">
-                                                                <i class="fa fa-trash text-danger pr-2" aria-hidden="true"></i>
-                                                                @lang('Delete')
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td class="text-center text-danger" colspan="4">@lang('No Location Data')</td>
-                                        </tr>
-                                    @endforelse
+
                                 </tbody>
                             </table>
-                            {{ $userLocations->appends(@$search)->links('partials.pagination') }}
+                            <div id="tableLoader" class="loading-overlay d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Processing...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                {{-- </div>
+            </div> --}}
         </div>
     </div>
 
     <!-- Add Location Modal -->
-    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true">
+    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -148,14 +105,15 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="addLocationForm" class="btn btn-primary">Save Location</button>
+                    <button type="submit" form="addLocationForm" id="saveLocationBtn" class="btn btn-primary">Save Location</button>
+                    <div id="formErrors" class="text-danger mt-2"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Edit Location Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -163,7 +121,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editLocationForm" action="{{ route('admin.location.update', '') }}" method="POST">
+                    <form id="editLocationForm" action="" method="POST">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="id" id="edit_id">
@@ -183,62 +141,269 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="editLocationForm" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" form="editLocationForm" id="editLocationBtn" class="btn btn-primary">Update Location</button>
+                    <div id="formErrors1" class="text-danger mt-2"></div>
                 </div>
             </div>
         </div>
     </div>
 
     @push('js')
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
         <script>
             jQuery(document).ready(function() {
-    jQuery(document).on('click', '.edit-location', function(e) {
-        e.preventDefault();
-        try {
-            var id = jQuery(this).data('id');
-            var location = jQuery(this).data('location');
-            var status = jQuery(this).data('status');
+                // jQuery(document).on('click', '.edit-location', function(e) {
+                //     e.preventDefault();
+                //     try {
+                //         var id = jQuery(this).data('id');
+                //         var location = jQuery(this).data('location');
+                //         var status = jQuery(this).data('status');
 
-            // Validate data
-            if (!id || !location) {
-                console.error('Missing required data');
-                return;
-            }
+                //         // Validate data
+                //         if (!id || !location) {
+                //             console.error('Missing required data');
+                //             return;
+                //         }
 
-            // Populate form fields
-            jQuery('#edit_id').val(id);
-            jQuery('#edit_location').val(location).trigger('change');
-            jQuery('#edit_status').val(status).trigger('change');
+                //         // Populate form fields
+                //         jQuery('#edit_id').val(id);
+                //         jQuery('#edit_location').val(location).trigger('change');
+                //         jQuery('#edit_status').val(status).trigger('change');
 
-            // Update form action URL
-            var updateUrl = "{{ route('admin.location.update', '') }}/" + id;
-            jQuery('#editLocationForm').attr('action', updateUrl);
+                //         // Update form action URL
+                //         var updateUrl = "{{ route('admin.location.update', '') }}/" + id;
+                //         jQuery('#editLocationForm').attr('action', updateUrl);
 
-            // Debugging logs
-            console.log('Edit form populated:', {
-                id: id,
-                location: location,
-                status: status
+                //         // Debugging logs
+                //         console.log('Edit form populated:', {
+                //             id: id,
+                //             location: location,
+                //             status: status
+                //         });
+                //     } catch (error) {
+                //         console.error('Error populating edit form:', error);
+                //     }
+                // });
+
+            $('#locationTableBody').DataTable({
+                processing: false,  // We will manually control the loading spinner
+                serverSide: true,
+                stateSave: true,
+                ajax: {
+                    url: "{{ route('admin.location') }}",
+                    type: 'GET',
+                    // data: function (d) {
+                    //     d.location = $('#filterLocation').val();
+                    //     d.role_type = $('#filterRole').val();
+                    //     d.status = $('#filterStatus').val();
+                    // },
+                    beforeSend: function () {
+                        // Show the loader spinner when the DataTable starts loading
+                        $('#tableLoader').removeClass('d-none'); // Show the spinner
+                        // Disable interactions with the table (edit buttons, etc.)
+                        $('#locationTableBody').css('pointer-events', 'none');
+                    },
+                    complete: function () {
+                        // Hide the loader spinner once the DataTable has finished loading
+                        $('#tableLoader').addClass('d-none'); // Hide the spinner
+                        // Re-enable interactions with the table
+                        $('#locationTableBody').css('pointer-events', 'auto');
+                    },
+                    dataSrc: function (json) {
+                        // console.log("DataTables Response:", json);
+                        if (json.error) {
+                            Swal.fire('Error', json.error, 'error');
+                            return [];
+                        }
+                        return json.data;
+                    },
+                    error: function (xhr, error, code) {
+                        Swal.fire('Failed!', 'Could not load data: ' + error, 'error');
+                    }
+                },
+                columns: [
+                    { data: 'id', name: 'id' },
+                    { data: 'location', name: 'location' },
+                    { data: 'status', name: 'status', orderable: false },
+                    { data: 'action', name: 'action', orderable: false, searchable: false },
+                ],
+                order: [[0, 'asc']], // Default sorting by SL column
+                columnDefs: [
+                    { targets: '_all', orderable: false }, // Disable sorting for all columns
+                ],
+                pageLength: 50, // Default page length
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10 rows', '25 rows', '50 rows', 'All']
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    processing: "<div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Processing...</span></div> <!-- You can customize this text -->", // Custom processing message with spinner
+                },
+                info: false, // Hide "Showing X to Y of Z entries" text
             });
-        } catch (error) {
-            console.error('Error populating edit form:', error);
-        }
-    });
-});
 
+            //addForm
+            $('#addLocationForm').on('submit', function (e) {
+                e.preventDefault();
 
-            // $(document).ready(function() {
-                // Initialize Select2
+                let form = $(this);
+                let submitBtn = $('#saveLocationBtn');
 
-                // Handle edit button click
+                submitBtn.prop('disabled', true).text('Saving...'); // Disable button and show loading text
 
+                $('#formErrors').html(''); // Clear previous errors
 
-                // Reset form when modal is closed
-                $('#editModal').on('hidden.bs.modal', function() {
-                    $('#editLocationForm')[0].reset();
-                    $('select').trigger('change');
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Location added',
+                            text: 'The new location has been successfully added!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // Close the modal
+                        $('#newModal').modal('hide');
+
+                        // Reset the form
+                        form[0].reset();
+
+                        // Reload DataTable
+                        $('#locationTableBody').DataTable().ajax.reload(null, false); // false = retain pagination
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            let errorHtml = '<ul>';
+                            $.each(errors, function (key, value) {
+                                errorHtml += '<li>' + value[0] + '</li>';
+                            });
+                            errorHtml += '</ul>';
+                            $('#formErrors').html(errorHtml);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Something went wrong. Please try again later.',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        submitBtn.prop('disabled', false).text('Save Location'); // Re-enable button
+                    }
                 });
-            // });
+            });
+
+            $('#editLocationForm').on('submit', function (e) {
+                e.preventDefault();
+
+                let form = $(this);
+                let submitBtn = $('#editLocationBtn');
+
+                submitBtn.prop('disabled', true).text('Updating...'); // Disable button and show loading text
+
+                $('#formErrors1').html(''); // Clear previous errors
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Location Updated',
+                            text: 'The location has been Updated successfully!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // Close the modal
+                        $('#editModal').modal('hide');
+
+                        // Reset the form
+                        form[0].reset();
+
+                        // Reload DataTable
+                        $('#locationTableBody').DataTable().ajax.reload(null, false); // false = retain pagination
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            let errorHtml = '<ul>';
+                            $.each(errors, function (key, value) {
+                                errorHtml += '<li>' + value[0] + '</li>';
+                            });
+                            errorHtml += '</ul>';
+                            $('#formErrors1').html(errorHtml);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Something went wrong. Please try again later.',
+                            });
+                        }
+                    },
+                    complete: function () {
+                        submitBtn.prop('disabled', false).text('Update Location'); // Re-enable button
+                    }
+                });
+            });
+
+            //make  location  status    active/inactive
+            $(document).on('click', '.toggle-status', function () {
+                let locationId = $(this).data('id');
+                let $this = $(this);
+
+                // Preserve original size
+                const originalWidth = $this.outerWidth();
+                const originalHeight = $this.outerHeight();
+
+                // Set spinner in place of the badge
+                $this.css({
+                    width: originalWidth,
+                    height: originalHeight,
+                    padding: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }).html(`
+                    <span class="spinner-border spinner-border-sm text-secondary" role="status" aria-hidden="true"></span>
+                `);
+
+                $.ajax({
+                    url: "{{ route('admin.location.toggleStatus') }}",
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: locationId
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#locationTableBody').DataTable().ajax.reload(null, false);
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong!'
+                        });
+                    }
+                });
+            });
+
+
+            });
+
         </script>
     @endpush
 </x-admin-layout>

@@ -39,7 +39,7 @@
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
-                                    <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                    <div data-i18n="Users">Users</div>
                                 </a>
                             </button>
                         </div>
@@ -154,15 +154,13 @@
                             placeholder="Enter role name" required>
 
                     </div>
-                    <div class="modal-body">
                         <div class="modal-body">
                             <label for="copy_role_name" class="form-labels">Clone from</label>
-                            <select class="form-control" id="copy_role_name" name="copy_role_name" required>
+                            <select class="form-select" id="copy_role_name" name="copy_role_name" required>
                                 <option value="">-- Select Role --</option>
                                 <!-- Options will be appended here -->
                             </select>
                         </div>
-                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Save Role</button>
