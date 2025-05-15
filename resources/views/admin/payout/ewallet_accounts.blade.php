@@ -21,6 +21,9 @@
         border-radius: 50%;
         margin: 10px;
     }
+    #pagination{
+        margin-top: 1rem;
+    }
 </style>
 
 <div class="row">
@@ -90,6 +93,8 @@
                                     </div>
                                 </td>
                             </tr>
+
+
                             @empty
                             <tr>
                                 <td colspan="100%">
@@ -98,8 +103,11 @@
                             </tr>
 
                             @endforelse
+
                         </tbody>
+
                     </table>
+                   {{-- {{ $records->appends($_GET)->links('partials.pagination') }} --}}
                 </div>
             </div>
         </div>
@@ -112,7 +120,7 @@
             <div class="card-body">
                 <h3>Admin E-wallet Testing Accounts</h3>
                 @if(adminAccessRoute(config('role.e_wallet_accounts_test.access.add')))
-                <button type="button" class="btn btn-success btn-sm edit_button" data-bs-toggle="modal" data-bs-target="#newModalc">
+                <button type="button" class="btn btn-success btn-sm edit_button mb-3" data-bs-toggle="modal" data-bs-target="#newModalc">
                     Add Admin Account
                 </button>
                 @endif
@@ -137,13 +145,12 @@
 
                                 <td data-label="@lang('Action')">
                                     @if(adminAccessRoute(config('role.e_wallet_accounts_test.access.delete')))
-                                    <form action="{{ route('admin.ewallet.accounts.delete', $item['id']) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm edit_button text-danger"><i class="fa fa-trash"></i> Delete</button>
-                                    </form>
+                                        <a href="#" class="btn btn-sm edit_button text-danger delete-role" data-id="{{ $item['id'] }}">
+                                            <i class="icon-base ti tabler-trash me-1"></i> Delete
+                                        </a>
                                     @endif
                                 </td>
+
                             </tr>
                             @empty
                             <tr>
@@ -177,10 +184,10 @@
                     <div class="row justify-content-between align-items-center">
 
 
-                        <input type="text" hidden id="balanceInput" class="form-control" name="gateway">
-                        <input type="text" hidden id="account_id" class="form-control" name="account_id">
-                        <input type="text" hidden id="orderid" class="form-control" name="orderid">
-                        <input type="text" hidden id="wid" class="form-control" name="wid">
+                        <input type="text" id="balanceInput" class="form-control" name="gateway">
+                        <input type="text" id="account_id" class="form-control" name="account_id">
+                        <input type="text" id="orderid" class="form-control" name="orderid">
+                        <input type="text" id="wid" class="form-control" name="wid">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="pr-3">Admin Acc. No.</label>
@@ -294,6 +301,54 @@
     });
 </script>
 <script>
+
+$(document).on('click', '.delete-role', function(e) {
+        e.preventDefault();
+        var roleId = $(this).data('id');
+        var url = '{{ route("admin.ewallet.accounts.delete", ":id") }}'.replace(':id', roleId);
+
+        // SweetAlert2 confirmation dialog
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: url,
+                    method: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: roleId
+                    },
+                    success: function(response) {
+                        // Handle success
+                        Swal.fire(
+                            'Deleted!',
+                            response.message, // Success message
+                            'success'
+                        );
+
+                        // Refresh the datatable
+                        $('.categories-show-table').DataTable().ajax.reload(null, false);
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle error
+                        Swal.fire(
+                            'Error!',
+                            'There was an error deleting the role.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    });
+
     function setBalanceItem(itemId, eWallet) {
         // Find the input field in the modal
         // $('#runDepositTest').prop('disabled', false);
@@ -304,6 +359,7 @@
 
 
         var accounts = <?php echo json_encode($accounts); ?>;
+        console.log(accounts);
         var accNoSelect = $('#acc_no');
         accNoSelect.empty();
         var filteredAccounts = accounts.filter(function(account) {
@@ -318,6 +374,7 @@
 
     }
 </script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
@@ -554,6 +611,7 @@
         });
     });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endpush
 
 

@@ -8,15 +8,20 @@ use App\Models\Admin;
 use App\Models\Language;
 use App\Models\PayoutLog;
 use App\Models\UserRoles;
+use App\Http\Traits\Upload;
+use App\Http\Traits\Notify;
 use App\Models\UserLocation;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\QueryException;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
 class UsersController extends Controller
 {
+    use Upload, Notify;
 
     public function userEdit($id)
     {
@@ -26,27 +31,331 @@ class UsersController extends Controller
         return view('admin.users.edit-user', compact('user','languages', 'pageTitle'));
     }
 
-
-    public function index()
+     public function passwordUpdate(Request $request, $id)
     {
-        $users = User::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
-        $pageTitle = 'User Management';
-        return view('admin.users.list', compact('users', 'pageTitle'));
+        $request->validate([
+            'password' => 'required|min:5|same:password_confirmation',
+        ]);
+        $user = User::findOrFail($id);
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        $this->sendMailSms($user, 'PASSWORD_CHANGED', [
+            'password' => $request->password
+        ]);
+        return back()->with('success', 'Updated Successfully.');
     }
 
 
+
+  public function userUpdate(Request $request, $id)
+{
+    $languages = Language::all()->pluck('id');
+
+    $userData = Purify::clean($request->except('_token', '_method'));
+    $user = User::findOrFail($id);
+
+    $rules = [
+        'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+        'phone' => 'sometimes|required|string|max:20',
+        'image' => ['nullable', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
+        'language_id' => ['nullable', Rule::in($languages)],
+        'address' => 'nullable|string|max:255',
+    ];
+
+    $validator = Validator::make($userData, $rules);
+
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
+
+    if ($request->hasFile('image')) {
+        try {
+            $old = $user->image ?? null;
+            $user->image = $this->uploadImage(
+                $request->image,
+                config('location.user.path'),
+                config('location.user.size'),
+                $old
+            );
+        } catch (\Exception $e) {
+            return back()->with('error', 'Image could not be uploaded.');
+        }
+    }
+
+    $user->email = $userData['email'] ?? $user->email;
+    $user->phone = $userData['phone'] ?? $user->phone;
+    $user->language_id = $userData['language_id'] ?? $user->language_id;
+    $user->address = $userData['address'] ?? $user->address;
+
+    $user->status = isset($userData['status']) && $userData['status'] === 'on' ? 0 : 1;
+    $user->email_verification = isset($userData['email_verification']) && $userData['email_verification'] === 'on' ? 0 : 1;
+    $user->sms_verification = isset($userData['sms_verification']) && $userData['sms_verification'] === 'on' ? 0 : 1;
+    $user->two_fa_verify = isset($userData['two_fa_verify']) && $userData['two_fa_verify'] === 'on' ? 1 : 0;
+
+    $user->save();
+
+    return back()->with('success', 'User updated successfully.');
+}
+
+
+
+    public function index( Request $request)
+    {
+        $users = User::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+
+        $locations = UserLocation::pluck('location', 'id');
+        $userRoles = UserRoles::where('used_for', 'Admin')->pluck('name', 'id');
+
+        if ($request->ajax()) {
+            // Prepare the query for Admins
+
+
+            $query = Admin::with(['location'])
+                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id']);
+                // Apply filters
+                if ($request->filled('location')) {
+                    $query->where('location_id', $request->location);
+                }
+
+                if ($request->filled('role_type')) {
+                    $query->where('role_type', $request->role_type);
+                }
+
+                if ($request->filled('status')) {
+                    $query->where('status', $request->status);
+                }
+
+            // Process the DataTables response with pagination, search, etc.
+                // Return DataTables response
+                return DataTables::of($query)
+                    ->editColumn('status', function ($admin) {
+                        $toggleRoute = route('admin.toggleStaffStatus', $admin->id);
+
+                        return '<span class="toggle-status"
+                                    data-id="' . $admin->id . '"
+                                    data-url="' . $toggleRoute . '"
+                                    style="cursor: pointer;">
+                                    ' . ($admin->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '
+                                </span>';
+                    })
+                    ->editColumn('role_type', function ($admin) {
+                        return isset($admin->role_type) ? $admin->role_type : 'N/A';
+                    })
+                    ->addColumn('location_name', function ($admin) {
+                        return isset($admin->location_id) && $admin->location
+                            ? $admin->location->location
+                            : 'N/A';
+                    })
+                    ->addColumn('action', function ($admin) {
+                        $updateRoute = route('admin.updateStaff', ':id');
+
+                        return '<button class="btn btn-sm btn-primary editAdminBtn"
+                                data-id="' . $admin->id . '"
+                                data-name="' . $admin->name . '"
+                                data-username="' . $admin->username . '"
+                                data-email="' . $admin->email . '"
+                                data-phone="' . $admin->phone . '"
+                                data-status="' . $admin->status . '"
+                                data-role-type="' . $admin->role_type . '"
+                                data-location="' . $admin->location_id . '"
+                                data-admin-access=\'' . json_encode($admin->admin_access) . '\'
+                                data-route="' . $updateRoute . '"
+                                data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                    <i class="fa fa-edit"></i>
+                            </button>';
+                    })
+                    ->rawColumns(['status', 'location_name', 'action'])
+                    ->toJson();
+                // ->make(true);
+        }
+
+        $pageTitle = 'User Management';
+        return view('admin.users.list', compact('users', 'pageTitle' , 'locations', 'userRoles'));
+    }
+
+    public function toggleStaffStatus($id)
+    {
+        $admin = Admin::findOrFail($id);
+        $admin->status = $admin->status == 1 ? 0 : 1;
+        $admin->save();
+
+        return response()->json([
+            'success' => true,
+            'new_status' => $admin->status,
+            'message' => 'Status updated successfully.',
+        ]);
+    }
+
+
+   public function storeStaff(Request $request)
+    {
+
+        //return response()->json(['success' => false, 'message' => $request->role_type]);
+        // Validation
+        $validated = $request->validate([
+            'name' => 'required|max:191',
+            'username' => 'required|alpha_dash|unique:admins,username',
+            'email' => 'required|email|max:191|unique:admins,email',
+            'location' => 'required|exists:user_locations,id',
+            'role_type' => [
+                'required',
+                Rule::exists('user_roles', 'name')->where(function ($query) {
+                    $query->where('status', 1);
+                }),
+            ],
+            'password' => 'required|min:5',
+            'status' => 'required|in:0,1',
+            // 'access' => 'array',
+        ]);
+        //return response()->json(['success' => false, 'message' => $validated['role_type']]);
+        $find_role = UserRoles::where('name', $validated['role_type'])->first();
+
+        // Create new admin instance
+        $admin = new Admin();
+        $admin->name = $validated['name'];
+        $admin->username = $validated['username'];
+        $admin->email = $validated['email'];
+        $admin->phone = $request->phone;
+        $admin->role_type = $find_role->name;
+        $admin->location_id = $validated['location'];
+        $admin->admin_access =  json_decode((string) $find_role->admin_access, true);
+        // Hash the password
+        $admin->password = Hash::make($request->password);
+
+        // Set status
+        $admin->status = $request->status;
+
+        // Save the admin
+        $admin->save();
+
+        // Flash success message
+        // session()->flash('success', 'Added Successfully');
+
+        // Redirect (adjust the route as necessary)
+        return response()->json(['success' => true, 'message' => 'Admin Successfully Added.']);
+    }
+
+    public function updateStaff(Request $request, Admin $admin)
+    {
+        // Validation
+        $validated = $request->validate([
+            'update-name' => 'required|string|max:191',
+            'update-username' => [
+                'required',
+                'alpha_dash',
+                Rule::unique('admins', 'username')->ignore($admin->id),
+            ],
+            'update-email' => [
+                'required',
+                'email',
+                'max:191',
+                Rule::unique('admins', 'email')->ignore($admin->id),
+            ],
+            'update-password' => 'nullable|min:5',
+            'update-status' => 'required|in:0,1',
+            'update-phone' => 'nullable|string|max:20',
+            'edit_location' => [
+                'required',
+                Rule::exists('user_locations', 'id'),
+            ],
+            'role_type_edit' => [
+                'required',
+                Rule::exists('user_roles', 'name')->where(function ($query) {
+                    $query->where('status', 1);
+                }),
+            ],
+        ], [], [
+            'update-name' => 'Name',
+            'update-username' => 'Username',
+            'update-email' => 'Email',
+            'update-password' => 'Password',
+            'update-status' => 'Status',
+            'update-phone' => 'Phone',
+            'edit_location' => 'Location',
+            'role_type_edit' => 'Role',
+        ]);
+
+        $find_role = UserRoles::where('name', $request->role_type_edit)->first();
+
+        try {
+            // Update the admin record
+            $admin->update([
+                'name' => $validated['update-name'],
+                'username' => $validated['update-username'],
+                'email' => $validated['update-email'],
+                'phone' => $validated['update-phone'] ?? null,
+                'password' => $request->filled('update-password') ? Hash::make($validated['update-password']) : $admin->password,
+                'role_type' => $find_role->name,
+                'location_id' => $validated['edit_location'],
+                'admin_access' => json_decode((string) $find_role->admin_access, true),
+                'status' => $validated['update-status'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Admin updated successfully!',
+            ], 200);
+        } catch (\Exception $e) {
+            // Return a generic error if something goes wrong
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function location()
     {
-        $userLocations = UserLocation::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+        // $userLocations = UserLocation::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+        // $pageTitle = 'User Locations';
+        // return view('admin.users.user-location', compact('userLocations', 'pageTitle'));
+
+        if (request()->ajax()) {
+            $locations = UserLocation::orderBy('id', 'DESC');
+
+            return DataTables::of($locations)
+                ->addIndexColumn()
+                ->addColumn('location', function ($location) {
+                    return $location->location;
+                })
+               ->addColumn('status', function ($location) {
+                    $statusClass = $location->status == 1 ? 'bg-success' : 'bg-danger';
+                    $statusText = $location->status == 1 ? 'Active' : 'Deactive';
+
+                    return '<span class="toggle-status" data-id="'.$location->id.'" style="cursor:pointer;">'.($location->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>').'</span>';
+                })
+                ->addColumn('action', function ($location) {
+                    return view('admin.users.partials.location-actions', compact('location'))->render();
+                })
+                ->rawColumns(['action' , 'location' ,'status'])
+                ->make(true);
+        }
+
         $pageTitle = 'User Locations';
-        return view('admin.users.user-location', compact('userLocations', 'pageTitle'));
+        return view('admin.users.user-location', compact('pageTitle'));
+
+
     }
+
+    public function toggleLocationStatus(Request $request)
+    {
+        $location = UserLocation::findOrFail($request->id);
+        $location->status = $location->status == 1 ? 0 : 1;
+        $location->save();
+
+        return response()->json([
+            'success' => true,
+            'status' => $location->status,
+            'message' => 'Location status updated successfully.',
+        ]);
+    }
+
 
     public function roles_and_permission(Request $request)
     {
         $userLocations = UserLocation::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
-        $pageTitle = 'Roles_and_Permission';
+        $pageTitle = 'Roles And Permission';
 
         // Get all roles
         $roles_list = UserRoles::where('used_for', 'Admin')->get();
@@ -113,7 +422,7 @@ class UsersController extends Controller
                 ->make(true);
         }
 
-        $pageTitle = 'User Roles';
+        $pageTitle = 'Role Categories';
         return view('admin.users.user-roles', compact('pageTitle' , 'roles_select_box'));
     }
 
@@ -140,27 +449,6 @@ class UsersController extends Controller
     }
 
 
-    // public function userAdd(Request $request)
-    // {
-    //     // Validate request
-    //     $validator = Validator::make($request->all(), [
-    //         'username' => 'required|string',
-    //         'status' => 'required',
-    //         'password' => 'required|string|min:5',
-    //     ]);
-
-    //     // Create and save API entry
-    //     Api::create([
-    //         'username' => $request->username,
-    //         'location' => $request->location,
-    //         'roles' => $request->roles,
-    //         'password' => bcrypt($request->password), // Secure password hashing
-    //         'status' => $request->status,
-    //     ]);
-
-    //     session()->flash('success', 'Added Successfully');
-    //     return back();
-    // }
 
     public function updateUserLocation(Request $request)
     {
@@ -186,27 +474,24 @@ class UsersController extends Controller
     }
 
     public function addUserLocation(Request $request)
-{
-    if ($request->isMethod('GET')) {
-        $pageTitle = 'Add User Location';
-        $userLocation = null; // Important!
-        return view('admin.users.add-location', compact('pageTitle', 'userLocation'));
+    {
+        $request->validate([
+            'location' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('user_locations', 'location'),
+            ],
+            'status' => 'required|boolean',
+        ]);
+
+        UserLocation::create([
+            'location' => $request->location,
+            'status' => $request->status,
+        ]);
+
+        return response()->json(['success' => true]);
     }
-
-    $validator = Validator::make($request->all(), [
-        'location' => 'required|string',
-        'status' => 'required|boolean',
-    ]);
-
-    if ($validator->fails()) {
-        return back()->withErrors($validator)->withInput();
-    }
-
-    UserLocation::create($request->only('location', 'status'));
-
-    session()->flash('success', 'User location added successfully');
-    return redirect()->route('admin.location');
-}
 
 
     public function editUserLocation($id)
@@ -217,28 +502,33 @@ class UsersController extends Controller
     }
 
     public function updateUserLocationDetails(Request $request, $id)
-{
-    // dd($request->all());
-    $validated = $request->validate([
-        'location' => 'required|string',
-        'status' => 'required|boolean',
-    ]);
-
-    $userLocation = UserLocation::findOrFail($id);
-    $userLocation->update($validated);
-
-    session()->flash('success', 'User location updated successfully');
-    return redirect()->route('admin.location');
-}
-
-
-    public function deleteUserLocation($id)
     {
-        $userLocation = UserLocation::findOrFail($id);
-        $userLocation->delete();
+        // dd($request->all());
+        $validated = $request->validate([
+            'location' => 'required|string',
+            'status' => 'required|boolean',
+        ]);
 
-        session()->flash('success', 'User location deleted successfully');
-        return back();
+        $userLocation = UserLocation::findOrFail($id);
+        $userLocation->update($validated);
+
+        session()->flash('success', 'User location updated successfully');
+        return redirect()->route('admin.location');
+    }
+
+
+    public function deleteUserLocation(Request $request)
+    {
+       $id = (int)$request->input('id');
+        try {
+            $role = UserLocation::findOrFail($id);
+            if ($role->delete()) {
+                return response()->json(['status' => 'success', 'message' => 'Location deleted successfully']);
+            }
+
+        } catch (\Exception $e) {
+           return response()->json(['status' => 'error', 'message' => 'Error deleting role: ' . $e->getMessage()]);
+        }
     }
 
     public function addRole(Request $request)

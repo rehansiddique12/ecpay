@@ -122,8 +122,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
         Route::get('/staff', [ManageRolePermissionController::class, 'staff'])->name('staff');
-        Route::post('/staff', [ManageRolePermissionController::class, 'storeStaff'])->name('storeStaff');
-        Route::put('/staff/{admin}', [ManageRolePermissionController::class, 'updateStaff'])->name('updateStaff');
+
+
 
         // Parant Routs
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
@@ -142,7 +142,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
 
-        Route::get('/account    /groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
+        Route::get('/account/groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
         Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
         Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
@@ -214,6 +214,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/groups/add', [TelegramGroupController::class, 'groupsAdd'])->name('groups.add');
         Route::put('/groups/update/{id}', [TelegramGroupController::class, 'updateGroup'])->name('groups.update');
         Route::delete('/groups/delete/{id}', [TelegramGroupController::class, 'groupsDelete'])->name('groups.delete');
+        Route::post('/groups/toggle-status/{id}', [TelegramGroupController::class, 'toggleStatus'])->name('groups.toggleStatus');
+
+
+
 
         Route::get('/settlements', [PayoutRecordController::class, 'settlements'])->name('settlements');
         Route::post('/settlements/Add', [PayoutRecordController::class, 'storeSettlement'])->name('settlements.add');
@@ -260,6 +264,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         // user management Routes
         Route::get('/users', [UsersController::class, 'index'])->name('users');
+        Route::post('/staff', [UsersController::class, 'storeStaff'])->name('storeStaff');
+        Route::put('/staff/{admin}', [UsersController::class, 'updateStaff'])->name('updateStaff');
+
         Route::get('/users/search', [UsersController::class, 'search'])->name('users.search');
         Route::get('/user/send-email/{id}', [UsersController::class, 'sendEmail'])->name('send-email');
         Route::post('/user/login', [UsersController::class, 'userLogin'])->name('userLogin');
@@ -280,13 +287,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // usre location Route
         Route::get('location', [UsersController::class, 'location'])->name('location');
         Route::post('users/location/add', [UsersController::class, 'addUserLocation'])->name('users.location.add');
-        // Route::post('/user/update-location', [UsersController::class,'updateUserLocation'])->name('user.update-location');
-        // Route::get('users/location/{id}/edit', [UsersController::class, 'editUserLocation'])->name('users.location.edit');
-        Route::delete('users/location/{id}', [UsersController::class, 'deleteUserLocation'])->name('users.location.delete');
+        Route::delete('users/location', [UsersController::class, 'deleteUserLocation'])->name('users.location.delete');
         Route::put('location/update/{id}', [UsersController::class, 'updateUserLocationDetails'])->name('location.update');
+        Route::post('/location/toggle-status', [UsersController::class, 'toggleLocationStatus'])->name('location.toggleStatus');
+        Route::post('/toggle-status/{id}', [UsersController::class, 'toggleStaffStatus'])->name('toggleStaffStatus');
 
         // Roles and premations Route
         Route::get('roles_and_permission', [UsersController::class, 'roles_and_permission'])->name('roles_and_permission');
+        Route::post('update_role_permissions/{id}', [UsersController::class, 'updatePermissions'])->name('update_role_permissions');
+
 
         Route::get('/profile', [AdminDashboardController::class,'profile'])->name('profile')->middleware('permission:profile');
         Route::put('/profile', [AdminDashboardController::class,'profileUpdate'])->name('profileUpdate');
@@ -307,6 +316,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
 
         Route::get('/user/edit/{id}', [UsersController::class, 'userEdit'])->name('user-edit');
+        Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::put('payment/action/{id}', [PaymentLogController::class, 'action'])->name('payment.action');
 
         Route::get('/payout-log', [PayoutRecordController::class, 'index'])->name('payout-log');
@@ -355,7 +365,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/e-wallet/accounts', [PayoutRecordController::class, 'eWalletAccounts'])->name('ewallet.accounts');
 
         Route::get('/e_wallet_accounts/{id}/toggle-status', [PayoutRecordController::class, 'toggleStatus'])->name('e_wallet_accounts.toggle_status');
-        Route::delete('/e-wallet/admin/delete/{account}', [PayoutRecordController::class, 'adminAccountDelete'])->name('ewallet.accounts.delete');
+        Route::delete('/e-wallet/delete/{account}', [PayoutRecordController::class, 'adminAccountDelete'])->name('ewallet.accounts.delete');
         Route::post('/accounts/deposit/test', [PayoutRecordController::class, 'depositTest'])->name('deposit.test');
         Route::post('/e-wallet/admin/add', [PayoutRecordController::class, 'eWalletAccountsAdd'])->name('ewallet.accounts.add');
         Route::post('/accounts/deposit/testp', [PayoutRecordController::class, 'depositTestp'])->name('deposit.testp');

@@ -18,7 +18,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Type</label>
-                    <select name="type" class="form-control">
+                    <select name="type" class="form-select">
                         <option value="">@lang('All')</option>
                         <option value="1" @if(@request()->type == '1') selected @endif>@lang('Deposit')</option>
                         <option value="2" @if(@request()->type == '2') selected @endif>@lang('Withdrawal')</option>
@@ -28,7 +28,8 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Partner</label>
-                    <select name="partner" class="form-control">
+                    <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select Partner">
+                        <option></option>
                         <option value="">All</option>
                         @foreach($partners as $partner)
                         <option value="{{ $partner->id }}" @if(@request()->partner == $partner->id) selected @endif>{{ $partner->name }}</option>
@@ -38,21 +39,21 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>Parent</label>
-                    <select name="parent" class="form-control">
-                        <option value="">All</option>
+                   <label>Parent</label>
+                   <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select Partner">
+                        <option disabled selected></option>
+                        <option value="" @if(request()->partner === '') selected @endif>All</option>
                         @foreach($partners as $partner)
-                        <option value="{{ $partner->id }}" @if(@request()->parent == $partner->id) selected @endif>{{ $partner->name }}</option>
+                            <option value="{{ $partner->id }}" @selected(request()->partner == $partner->id)>{{ $partner->name }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
 
 
-
             <div class="col-md-4">
                   <div class="form-group">
-                    <br><br>
+                    <br>
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <a href="{{ route('admin.commissions.export', request()->all()) }}"
@@ -94,12 +95,12 @@
                                 <td>{{ $item->api->name }}</td>
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
                                     @if ($item->type == 2)
-                                    <span class="badge badge-light">
-                                        <i class="fa fa-circle text-danger danger font-12"></i> @lang('Withdrawal')
+                                    <span class="badge bg-danger">
+                                        <i class="fa fa-circle  text-white danger font-12"></i> @lang('Withdrawal')
                                     </span>
                                     @elseif($item->type == 1)
-                                    <span class="badge badge-light">
-                                        <i class="fa fa-circle text-success success font-12"></i> @lang('Deposit')
+                                    <span class="badge bg-success">
+                                        <i class="fa fa-circle text-white success font-12"></i> @lang('Deposit')
                                     </span>
                                     @endif
                                 </td>
@@ -133,7 +134,7 @@
                 </div>
 
                 <!-- Pagination links -->
-                <div class="d-flex justify-content-left mt-3">
+               <div class="card-footer">
                     {{ $records->appends($_GET)->links('partials.pagination') }}
                 </div>
 
@@ -141,30 +142,36 @@
         </div>
     </div>
 
-</div
-@push('js')
-<script>
-    "use strict";
-    $(document).ready(function(e) {
+</div>
 
+ @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
+    @push('js')
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
 
-        $('#image').change(function() {
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                $('#image_preview_container').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(this.files[0]);
+    <script>
+        "use strict";
+        $(document).ready(function(e) {
+           let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
+
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
         });
+    </script>
 
-
-    });
-
-    $(document).ready(function() {
-        $('select').select2({
-            selectOnClose: true
-        });
-    });
-</script>
-
-@endpush
+    @endpush
 </x-admin-layout>

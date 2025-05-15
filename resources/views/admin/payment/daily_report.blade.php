@@ -63,7 +63,7 @@ $gateway = @request()->gateway;
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
-
+            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
             <div class="table-responsive">
                 <table class="categories-show-table table table-striped table-bordered">
                     <thead class="thead-dark">

@@ -52,6 +52,7 @@
 
     $isTransactionActive = in_array(Route::currentRouteName(), [
         'admin.payment.log',
+        'admin.payout-log',
         'admin.payment.apiLog',
         'admin.payment.apiLogunclaimed',
         'admin.payment.report',
@@ -66,27 +67,9 @@
         Request::routeIs('admin.balance.logs') ||
         Request::routeIs('');
 
-    // $isMainActive = in_array(Route::currentRouteName(), [
-    //     'admin.dashboard',
-    //     'admin.staff',
-    //     'admin.groups',
-    //     'admin.parant',
-    //     'admin.workboard',
-    // ]);
-    // $isPartherActive = in_array(Route::currentRouteName(), [
-    //     'partner.partner.methods.get',
-    // ]);
-    $isTransactionActive = in_array(Route::currentRouteName(), [
-        'admin.payment.log',
-        'admin.payment.apiLog',
-        'admin.payment.apiLogunclaimed',
-        'admin.payment.report',
-        'admin.payment.report.daily',
-        'admin.payment.report.all',
-        'admin.payout-report',
-        'admin.payout.report.daily',
-    ]);
+
     $isAccountsActive =
+        Request::routeIs('admin.groups') ||
         Request::routeIs('admin.accounts.add') ||
         Request::routeIs('admin.accounts') ||
         Request::routeIs('admin.balance.logs') ||
@@ -96,7 +79,7 @@
     $isMainActive = in_array(Route::currentRouteName(), [
         'admin.dashboard',
         'admin.staff',
-        'admin.groups',
+        //'admin.groups',
         'admin.parant',
         'admin.workboard',
         'admin.users',
@@ -113,7 +96,7 @@
             <a href="index.html" class="app-brand-link">
                 <span class="app-brand-logo demo">
                     <span class="text-primary">
-                        <svg width="32" height="22" viewBox="0 0 32 22" fill="none"
+                        {{-- <svg width="32" height="22" viewBox="0 0 32 22" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd"
                                 d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z"
@@ -125,10 +108,11 @@
                             <path fill-rule="evenodd" clip-rule="evenodd"
                                 d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z"
                                 fill="currentColor" />
-                        </svg>
+                        </svg> --}}
+                        <img src="http://localhost/subecpaypast/assets/uploads/logo/logo.png" class=" width="32" height="32" viewBox="0 0 32 22" fill="none" alt="ECPay logo">
                     </span>
                 </span>
-                <span class="app-brand-text demo menu-text fw-bold text-heading">Vuexy</span>
+                {{-- <span class="app-brand-text demo menu-text fw-bold text-heading">Vuexy</span> --}}
             </a>
 
             <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-xl-none">
@@ -704,15 +688,6 @@
                                 </a>
                             </li>
 
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.staff' ? 'active' : '' }}">
-                                <a href="{{ route('admin.staff') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Roles & Permission">Roles & Permission</div>
-                                </a>
-                            </li>
-
-
-
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -733,13 +708,13 @@
                                     <div data-i18n="All Users">All Users</div>
                                 </a>
                             </li>
-                            <li
-                        class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
-                        <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
-                            <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                            <div data-i18n="Manual Gateway">Manual Gateway</div>
-                        </a>
-                    </li>
+                            {{-- <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Manual Gateway">Manual Gateway</div>
+                                </a>
+                            </li> --}}
 
                         <ul class="menu-sub">
                             <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
@@ -760,7 +735,7 @@
                                     <div data-i18n="Account Balance">Account Balance</div>
                                 </a>
                             </li>
-                           
+
                             <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -796,7 +771,7 @@
                                 <div data-i18n="Add Accounts">Add Accounts</div>
                             </a>
                         </li> -->
-                        
+
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.groups' ? 'active' : '' }}">
                             <a href="{{ route('admin.groups') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -839,14 +814,14 @@
                     </a>
 
                     <ul class="menu-sub">
-                        
-                          <li
+
+                          {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
-                        </li>
+                        </li> --}}
 <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
@@ -909,13 +884,13 @@
                                 <div data-i18n="API Logs ">API Logs </div>
                             </a>
                         </li>
-                        <li
+                        {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Transfer Balance">Transfer Balance</div>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </li>
 

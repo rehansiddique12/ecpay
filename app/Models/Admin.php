@@ -29,4 +29,10 @@ class Admin extends Authenticatable
             'message' => '<a href="'.url('admin/password/reset',$token).'?email='.$this->email.'" target="_blank">Click To Reset Password</a>'
         ]);
     }
+
+    public function location()
+    {
+        return $this->hasOne(UserLocation::class, 'id', 'location_id');
+    }
 }
+

@@ -54,10 +54,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Pagination links -->
-            {{-- <div class="card-footer">
-                {{ $admins->appends($_GET)->links('partials.pagination') }}
-            </div> --}}
+
         </div>
         {{-- Add User Models --}}
         <div class="modal modal-top fade" id="addUserModal" tabindex="-1" data-bs-backdrop="static">

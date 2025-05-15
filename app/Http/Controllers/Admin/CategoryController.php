@@ -21,6 +21,7 @@ class CategoryController extends Controller
     {
         $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::all();
+
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
