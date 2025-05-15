@@ -278,11 +278,8 @@
     </div>
 </x-admin-layout>
 <script>
-let key = {
-    {
-        count($commissions)
-    }
-}; // Start key count from existing commissions
+ let key = {{ count($commissions) > 0 ? count($commissions) : 1 }};
+// Start key count from existing commissions
 
 // Initialize Select2 on page load
 $(document).ready(function() {
