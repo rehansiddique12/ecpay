@@ -32,4 +32,9 @@ class Payout extends Model
     {
         return $this->belongsTo(Gateway::class, 'gateway_id');
     }
+
+    public function api()
+    {
+        return $this->belongsTo(Api::class, 'api_id', 'id');
+    }
 }
