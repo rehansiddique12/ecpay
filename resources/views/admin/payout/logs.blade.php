@@ -135,21 +135,6 @@
                                 <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
                                     @lang('Request Rejected')</span>
                                 @endif
-                                <br>
-                                @if($item->payout)
-                                @if($item->payout->status == "Complete")
-                                <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
-                                    @lang('Transfered')</span>
-                                @elseif($item->payout->status == "Pending")
-                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
-                                    @lang('Transfer Pending')</span>
-                                @elseif($item->payout->status == "Reject")
-                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
-                                    @lang('Transfer Rejected')</span>
-                                @else
-                                {{$item->payout->status}}
-                                @endif
-                                @endif
                             </td>
                             <td>
                                 {{$item->feedback}}
