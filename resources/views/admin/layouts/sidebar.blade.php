@@ -109,7 +109,7 @@
                                 d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z"
                                 fill="currentColor" />
                         </svg> --}}
-                        <img src="http://localhost/subecpaypast/assets/uploads/logo/logo.png" class=" width="32" height="32" viewBox="0 0 32 22" fill="none" alt="ECPay logo">
+                            <img src="{{asset('assets/uploads/logo/logo.png')}}" height="50" viewBox="0 0 128 128" fill="none" alt="ECPay logo">
                     </span>
                 </span>
                 {{-- <span class="app-brand-text demo menu-text fw-bold text-heading">Vuexy</span> --}}

@@ -1,6 +1,6 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-    <script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     <style>
         tr th {
             color: white !important
@@ -185,7 +185,7 @@
 
 
     {{-- Add Settlement Mode     --}}
-    <div class="modal modal-top fade" id="newModal" tabindex="-1">
+    <div class="modal modal-top fade" id="newModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
 
@@ -253,9 +253,7 @@
             </div>
         </div>
     </div>
-    @push('styles')
-    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
-    @endpush
+
     @push('js')
     <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
 
