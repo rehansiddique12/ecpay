@@ -1848,17 +1848,19 @@ class PayoutRecordController extends Controller
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
 
-        $gateways = Settlement::select('source_name', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name')
-            ->get();
 
-        $pageTitle = "Manage Commission";
-        $records = ""; // or fetch some data if needed
+        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name','id')
+            ->get();
+        $pageTitle = "Manage Commissions";
+
+        $records = "";
 
         return view('admin.payout.commission', compact(
-            'records', 'pageTitle', 'commissions', 'cron_commissions', 'id', 'gateways'
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways'
         ));
     }
+
 
     public function toggleStatusApi(Request $request)
     {
@@ -5014,7 +5016,5 @@ class PayoutRecordController extends Controller
             'message' => 'Status updated successfully.'
         ]);
     }
-
-
 
 }

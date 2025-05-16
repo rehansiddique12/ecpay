@@ -33,6 +33,7 @@ class CategoryController extends Controller
         foreach ($data['records'] as $record) {
             $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
         }
+
         return view('admin.accounts.ewallet_accounts', $data);
     }
 
@@ -91,15 +92,13 @@ class CategoryController extends Controller
     }
 
     public function changeStatus($id)
-{
-    $category = Category::findOrFail($id);
-    $category->status = $category->status == 1 ? 0 : 1;
-    $category->save();
-    return response()->json([
-        'success' => true,
-        'status' => $category->status,
-    ]);
-}
-
-
+    {
+        $category = Category::findOrFail($id);
+        $category->status = $category->status == 1 ? 0 : 1;
+        $category->save();
+        return response()->json([
+            'success' => true,
+            'status' => $category->status,
+        ]);
+    }
 }

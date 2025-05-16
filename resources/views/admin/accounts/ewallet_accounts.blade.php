@@ -1,13 +1,6 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-    <script src="{{ asset('public/assets/css/select2.min.css') }}"></script>
-    <!-- ✅ Load jQuery first -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- ✅ Then load Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     <style>
     tr th {
         color: white !important
@@ -153,7 +146,7 @@
 
                                             @endif
 
-                                            <table class="table ">
+                                            <table class="table">
                                                 <thead class="thead-dark">
                                                     <tr>
                                                         <th scope="col">@lang('Name')</th>
@@ -906,6 +899,7 @@
 
 
     @push('js')
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
     $(document).ready(function() {
         // Show table when Category tab is clicked
@@ -1135,7 +1129,7 @@
     </script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const editButtons = document.querySelectorAll('.editBtn'); 
+        const editButtons = document.querySelectorAll('.editBtn');
         editButtons.forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const methodId = this.getAttribute('data-method-id');
