@@ -1,4 +1,13 @@
 <x-admin-layout :title="$pageTitle">
+
+    @push('style')
+    <style>
+        .slider_completed {
+            background: linear-gradient(to right, #28a745, #20c997);
+
+        }
+    </style>
+    @endpush
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
     <form action="{{ route('admin.payment.search') }}" method="get">
         <div class="row justify-content-between align-items-center">
@@ -137,8 +146,8 @@
                                 @endphp
 
                                 @if($diffInMinutes > 10 && @request()->status != 2)
-                                    <span class="badge badge-light">
-                                        <i class="fa fa-circle text-warning warning font-12"></i>
+                                    <span class="badge badge-light p-2 bg-danger" style="border-radius: 5px;">
+                                        <i class="fa fa-circle   font-12"></i>
                                         @lang('Member did not complete')
                                     </span>
                                 @else
@@ -166,7 +175,7 @@
                                 @endphp
 
 
-                            <span class="badge badge-light"><i class="fa fa-circle {{ $classColor }} font-12"></i> @lang('Completed')</span>
+                            <span class="bg-success  text-white p-2  slider_completed" style=" border-radius: 5px;"><i class="fa fa-circle {{ $classColor }} font-12"></i> @lang('Completed')</span>
                             <br>
                             <span class="{{ $classColor }}">{{ optional($fund->payment)->e_wallet_phone_number }}</span>
                             @elseif($fund->status == 3)

@@ -63,9 +63,9 @@
                                 </td>
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
                                     @if($item->status == 1)
-                                    <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled me-1 text-success"></i> @lang('Active')</span>
+                                    <span class="badge badge-light" > <i class="icon-base ti tabler-IconCircleFilled me-1 text-success" style="border-radius: 40px;"></i> @lang('Active')</span>
                                     @else
-                                    <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled text-danger me-1 text-success"></i> @lang('Inactive')</span>
+                                    <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled text-danger me-1 text-success" style="border-radius: 40px;"></i> @lang('Inactive')</span>
                                     @endif
                                 </td>
                                 <td data-label="@lang('Action')">
