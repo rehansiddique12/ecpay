@@ -1,5 +1,5 @@
     @push('styles')
-    <script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
+    {{-- <script src="{{ asset('public/assets/css/select2.min.css')}}"></script> --}}
     @endpush
     <div class="row">
         <div class="col-md-12">
@@ -65,7 +65,7 @@
                                     <td>
                                        {{$item['withdrawal_daily_limit_percentage']}}
                                     </td>
-   
+
                                      <td>
                                        {{$item['send']}}
                                     </td>
@@ -254,9 +254,9 @@ $(document).ready(function(e) {
 });
 
 $(document).ready(function() {
-    $('select').select2({
-        selectOnClose: true
-    });
+    // $('select').select2({
+    //     selectOnClose: true
+    // });
 });
     </script>
     <script>
@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function() {
     $(document).on('change', '.toggle-status', function () {
         let accountId = $(this).data('id');
         let isChecked = $(this).is(':checked');
-        
+
         $.ajax({
             url: '/admin/accounts/' + accountId + '/status',
             type: 'POST',

@@ -10,8 +10,7 @@
         display: none;
         /* Initially hidden */
     }
-    </style>
-    <style>
+
     h3 {
         color: #7367f0 !important
     }
@@ -345,7 +344,7 @@
                         </div>
                         <div class="form-group mt-3">
                             <label class="pr-3">Status</label>
-                            <select class="form-control" name="status" required>
+                            <select class="form-select" name="status" required>
                                 <option value="1" {{ $item['status'] == 1 ? 'selected' : '' }}>Active</option>
                                 <option value="0" {{ $item['status'] == 0 ? 'selected' : '' }}>InActive</option>
                             </select>
@@ -379,7 +378,7 @@
                         </div>
                         <div class="form-group mt-3">
                             <label class="pr-3">Status</label>
-                            <select class="form-control" name="status" required>
+                            <select class="form-select" z-index="99999" name="status" required>
                                 <option value="1">Active</option>
                                 <option value="0">InActive</option>
                             </select>
@@ -434,7 +433,7 @@
 
                             <div class="form-group col-md-4 mt-3">
                                 <label>Type</label>
-                                <select class="form-control" name="type" required>
+                                <select class="form-select" name="type" required>
                                     @foreach($categories as $type)
                                     <option value="{{$type->id ?? ''}}">{{$type->name ?? ''}}</option>
                                     @endforeach
@@ -860,7 +859,7 @@
                                     <input name="field_name[]" class="form-control" type="text"
                                         value="{{ $v->field_level }}" required placeholder="{{ trans('Field Name') }}">
 
-                                    <select name="type[]" class="form-control">
+                                    <select name="type[]" class="form-select">
                                         <option value="text" {{ $v->type == 'text' ? 'selected' : '' }}>
                                             {{ trans('Input Text') }}</option>
                                         <option value="textarea" {{ $v->type == 'textarea' ? 'selected' : '' }}>
@@ -869,7 +868,7 @@
                                             {{ trans('File Upload') }}</option>
                                     </select>
 
-                                    <select name="validation[]" class="form-control">
+                                    <select name="validation[]" class="form-select">
                                         <option value="required" {{ $v->validation == 'required' ? 'selected' : '' }}>
                                             {{ trans('Required') }}</option>
                                         <option value="nullable" {{ $v->validation == 'nullable' ? 'selected' : '' }}>
@@ -981,9 +980,9 @@
             reader.readAsDataURL(this.files[0]);
         });
 
-        $('select').select2({
-            selectOnClose: true
-        });
+        // $('select').select2({
+        //     selectOnClose: true
+        // });
 
         $('#adjustment').change(function() {
             var selectedValue = $(this).val();
@@ -1002,12 +1001,29 @@
         });
     });
     </script>
-    @endpush
-    @push('js')
+
     <script>
     "use strict";
 
     $(document).ready(function() {
+
+        let $select = $('.select2').select2({
+            // placeholder: "Select Partner",
+            // allowClear: true,
+            selectOnClose: true,
+        });
+
+        // Prevent dropdown from opening on clear
+        $select.on('select2:unselecting', function (e) {
+            $(this).data('unselecting', true);
+        });
+
+        $select.on('select2:opening', function (e) {
+            if ($(this).data('unselecting')) {
+                $(this).removeData('unselecting');
+                e.preventDefault();
+            }
+        });
         setCurrency();
         $(document).on('change', 'input[name="currency"]', function() {
             setCurrency();
@@ -1033,8 +1049,6 @@
         });
     })
 
-
-
     $(document).ready(function(e) {
 
         $("#generate").on('click', function() {
@@ -1043,13 +1057,13 @@
                                     <div class="input-group">
                                         <input name="field_name[]" class="form-control " type="text" value="" required placeholder="{{trans('Field Name')}}">
 
-                                        <select name="type[]"  class="form-control  ">
+                                        <select name="type[]"  class="form-select  ">
                                             <option value="text">{{trans('Input Text')}}</option>
                                             <option value="textarea">{{trans('Textarea')}}</option>
                                             <option value="file">{{trans('File upload')}}</option>
                                         </select>
 
-                                        <select name="validation[]"  class="form-control  ">
+                                        <select name="validation[]"  class="form-select  ">
                                             <option value="required">{{trans('Required')}}</option>
                                             <option value="nullable">{{trans('Optional')}}</option>
                                         </select>
@@ -1105,9 +1119,9 @@
         });
 
 
-        $('select').select2({
-            selectOnClose: true
-        });
+        // $('select').select2({
+        //     selectOnClose: true
+        // });
 
     });
     </script>
@@ -1169,9 +1183,6 @@
             }
         });
     });
-</script>
-
-
-
+    </script>
     @endpush
 </x-admin-layout>

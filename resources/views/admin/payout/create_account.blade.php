@@ -100,7 +100,7 @@
                         <div class="row">
                             <div class="form-group col-md-6 col-6">
                                 <label>{{ trans('Category Name') }}</label>
-                                <select class="form-control" name="category_id">
+                                <select class="form-select" name="category_id">
                                     <option value="">Select Category</option>
                                     @foreach($categories as $category)
                                     <option value="{{ $category->id ?? '' }}">{{ $category->name ?? '' }}</option>
@@ -116,7 +116,7 @@
 
                             <div class="form-group col-md-4 col-4">
                                 <label>{{ trans('Select Account Name') }}</label>
-                                <select class="form-control" name="account_id">
+                                <select class="form-select" name="account_id">
                                     <option value="">Select Account Name</option>
                                     @foreach($methods as $account)
                                     <option value="{{ $account->id ?? '' }}">{{ $account->name ?? '' }}</option>
@@ -132,7 +132,7 @@
                         <div class="row">
                             <div class="form-group col-md-6 col-6">
                                 <label>{{ trans('Currency') }}</label>
-                                <select class="form-control" name="currency">
+                                <select class="form-select" name="currency">
                                     <option value="">Select Currency</option>
                                     <option value="INR">INR</option>
                                 </select>
@@ -364,7 +364,7 @@
 
                         <div class="form-group col-md-2 col-12">
                             <label>Account Group</label>
-                            <select name="account_group[]" class="form-control" required>
+                            <select name="account_group[]" class="form-select" required>
                                 <option value="">Select</option>
                                 @foreach($groups as $group)
                                 <option value="{{$group->id}}">{{$group->group_name}}</option>
@@ -374,7 +374,7 @@
 
                         <div class="form-group col-md-1 col-12">
                             <label> Type</label>
-                            <select name="account_type[]" class="form-control" required>
+                            <select name="account_type[]" class="form-select" required>
                                 <option value="">Select</option>
                                 <option value="Agent">Agent</option>
                                 <option value="Personal">Personal</option>
@@ -383,7 +383,7 @@
 
                         <div class="form-group col-md-1 col-12">
                             <label>In/Out</label>
-                            <select name="in_out[]" class="form-control" required>
+                            <select name="in_out[]" class="form-select" required>
                                 <option value="">Select</option>
                                 <option value="deposit">Deposit</option>
                                 <option value="withdrawal">Withdrawal</option>
@@ -393,7 +393,7 @@
 
                         <div class="form-group col-md-2 col-12">
                             <label>Location</label>
-                            <select name="location[]" class="form-control" required>
+                            <select name="location[]" class="form-select" required>
                                 <option value="">Select</option>
                                 <option value="Location 1">Location 1</option>
                                 <option value="Location 2">Location 2</option>
@@ -515,9 +515,9 @@ $(document).ready(function(e) {
 });
 
 $(document).ready(function() {
-    $('select').select2({
-        selectOnClose: true
-    });
+    // $('select').select2({
+    //     selectOnClose: true
+    // });
 });
     </script>
     <script>

@@ -1,5 +1,5 @@
 @push('styles')
-<script src="{{ asset('public/assets/css/select2.min.css')}}"></script>
+{{-- <script src="{{ asset('public/assets/css/select2.min.css')}}"></script> --}}
 <style>
 .switch {
     position: relative;
@@ -264,9 +264,9 @@ $(document).ready(function(e) {
 });
 
 $(document).ready(function() {
-    $('select').select2({
-        selectOnClose: true
-    });
+    // $('select').select2({
+    //     selectOnClose: true
+    // });
 });
 </script>
 <script>
