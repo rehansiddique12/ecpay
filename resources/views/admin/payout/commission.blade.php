@@ -1,92 +1,14 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-    <link href="{{ asset('assets/css/select2.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     <style>
-    tr th {
-        color: white !important;
-    }
+        tr th {
+            color: white !important;
+        }
     </style>
     @endpush
 
-    @push('scripts')
-    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
-    <script>
-    let key = {
-        {
-            count($commissions)
-        }
-    };
-    $('.select2').select2();
 
-    $(document).on('click', '.duplicate-row', function() {
-        let html = `
-                    <div id="row-p${key}">
-                        <br>
-                        <div style='border:1px solid;padding:20px'>
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <label>From Amount</label>
-                                    <input type="hidden" name="id[]" />
-                                    <input type="number" readonly value="0" class="form-control" name="from_amount[]" required />
-                                </div>
-                                <div class="col-md-2">
-                                    <label>To Amount</label>
-                                    <input type="number" class="form-control" name="to_amount[]" required />
-                                </div>
-                                <div class="col-md-2">
-                                    <label>Deposit %</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" class="form-control" name="deposit_percentage[]" required />
-                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <label>Withdrawal %</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]" required />
-                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <label>Settlement %</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" class="form-control" name="settlement_percentage[]" required />
-                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <label>Type</label>
-                                    <select class="form-control" name="type[${key}]" required>
-                                        <option value="">Select Type</option>
-                                        <option value="agent">Agent</option>
-                                        <option value="personal">Personal</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-5">
-                                    <label>Gateway</label>
-                                    <select class="form-control select2" name="settlement_gateway[${key}][]" multiple required>
-                                        @foreach($gateways as $gateway)
-                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-1 mt-4">
-                                    <button type="button" class="btn btn-danger cancel-row" data-row="p${key}">Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-        $('#add-row').append(html);
-        $('.select2').select2();
-        key++;
-    });
-
-    $(document).on('click', '.cancel-row', function() {
-        const rowId = $(this).data('row');
-        $(`#row-${rowId}`).remove();
-    });
-    </script>
-    @endpush
 
     <div class="row">
         <div class="col-md-12">
@@ -143,12 +65,12 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label>Type</label>
-                                    <select class="form-control" name="type[{{ $key }}]" required>
+                                    <select class="form-select" name="type[{{ $key }}]" required>
                                         <option value="">Select Type</option>
                                         <option value="agent" {{ $commission->type == 'agent' ? 'selected' : '' }}>Agent
                                         </option>
-                                        <option value="personal"
-                                            {{ $commission->type == 'personal' ? 'selected' : '' }}>Personal</option>
+                                        <option value="personal" {{ $commission->type == 'personal' ? 'selected' : ''
+                                            }}>Personal</option>
                                     </select>
                                 </div>
                                 @php
@@ -157,13 +79,14 @@
 
                                 <div class="col-md-5">
                                     <label>Gateway</label>
-                                    <select class="form-control select2" multiple name="settlement_gateway[{{ $key }}][]">
-    @foreach($gateways as $gateway)
-    <option value="{{ $gateway->id }}" {{ in_array($gateway->id, $selectedGateways) ? 'selected' : '' }}>
-        {{ $gateway->source_name }}
-    </option>
-    @endforeach
-</select>
+                                    <select class="form-select select2" multiple name="settlement_gateway[{{ $key }}][]">
+                                        @foreach($gateways as $gateway)
+                                        <option value="{{ $gateway->id }}" {{ in_array($gateway->id, $selectedGateways)
+                                            ? 'selected' : '' }}>
+                                            {{ $gateway->source_name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 @if($key > 0)
                                 <div class="col-md-1 mt-4">
@@ -216,7 +139,7 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label>Type</label>
-                                    <select class="form-control" name="type[0]" required>
+                                    <select class="form-select" name="type[0]" required>
                                         <option value="">Select Type</option>
                                         <option value="agent">Agent</option>
                                         <option value="personal">Personal</option>
@@ -224,7 +147,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label>Gateway</label>
-                                    <select class="form-control select2" name="settlement_gateway[0][]" multiple
+                                    <select class="form-select select2" name="settlement_gateway[0][]" multiple
                                         required>
                                         @foreach($gateways as $gateway)
                                         <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
@@ -273,94 +196,175 @@
             </div>
         </div>
     </div>
-</x-admin-layout>
-<script>
- let key = {{ count($commissions) > 0 ? count($commissions) : 1 }};
-// Start key count from existing commissions
 
-// Initialize Select2 on page load
-$(document).ready(function() {
-    $('.select2').select2();
-});
+    @push('js')
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script>
+        let key = {{ count($commissions) }};
+        let $select = $('.select2').select2({
+            // placeholder: "Select Partner",
+            // allowClear: true,
+            selectOnClose: true,
+        });
 
-// Add new row on clicking Add More button
-$(document).on('click', '.duplicate-row', function() {
-    let html = `
-            <div id="row-p${key}">
-                <br>
-                <div style='border:1px solid;padding:20px'>
-                    <div class="row">
-                        <div class="col-md-2">
-                            <label>From Amount</label>
-                            <input type="hidden" name="id[]" />
-                            <input type="number" readonly value="0" class="form-control" name="from_amount[]" required />
-                        </div>
-                        <div class="col-md-2">
-                            <label>To Amount</label>
-                            <input type="number" class="form-control" name="to_amount[]" required />
-                        </div>
-                        <div class="col-md-2">
-                            <label>Deposit %</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" class="form-control" name="deposit_percentage[]" required />
-                                <div class="input-group-append"><span class="input-group-text">%</span></div>
+        // Prevent dropdown from opening on clear
+        $select.on('select2:unselecting', function (e) {
+            $(this).data('unselecting', true);
+        });
+
+        $select.on('select2:opening', function (e) {
+            if ($(this).data('unselecting')) {
+                $(this).removeData('unselecting');
+                e.preventDefault();
+            }
+        });
+
+    $(document).on('click', '.duplicate-row', function() {
+        let html = `
+                    <div id="row-p${key}">
+                        <br>
+                        <div style='border:1px solid;padding:20px'>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label>From Amount</label>
+                                    <input type="hidden" name="id[]" />
+                                    <input type="number" readonly value="0" class="form-control" name="from_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>To Amount</label>
+                                    <input type="number" class="form-control" name="to_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Deposit %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="deposit_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Withdrawal %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Settlement %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="settlement_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Type</label>
+                                    <select class="form-select" name="type[${key}]" required>
+                                        <option value="">Select Type</option>
+                                        <option value="agent">Agent</option>
+                                        <option value="personal">Personal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
+                                        @foreach($gateways as $gateway)
+                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-1 mt-4">
+                                    <button type="button" class="btn btn-danger cancel-row" data-row="p${key}">Cancel</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <label>Withdrawal %</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]" required />
-                                <div class="input-group-append"><span class="input-group-text">%</span></div>
+                    </div>`;
+        $('#add-row').append(html);
+        $('.select2').select2();
+        key++;
+    });
+
+    $(document).on('click', '.cancel-row', function() {
+        const rowId = $(this).data('row');
+        $(`#row-${rowId}`).remove();
+    });
+    </script>
+    <script>
+        let key = {{ count($commissions) > 0 ? count($commissions) : 1 }};
+        // Start key count from existing commissions
+
+        // Add new row on clicking Add More button
+        $(document).on('click', '.duplicate-row', function() {
+            let html = `
+                    <div id="row-p${key}">
+                        <br>
+                        <div style='border:1px solid;padding:20px'>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label>From Amount</label>
+                                    <input type="hidden" name="id[]" />
+                                    <input type="number" readonly value="0" class="form-control" name="from_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>To Amount</label>
+                                    <input type="number" class="form-control" name="to_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Deposit %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="deposit_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Withdrawal %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Settlement %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="settlement_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Type</label>
+                                    <select class="form-select" name="type[${key}]" required>
+                                        <option value="">Select Type</option>
+                                        <option value="agent">Agent</option>
+                                        <option value="personal">Personal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
+                                        @foreach($gateways as $gateway)
+                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-1 mt-4">
+                                    <button type="button" class="btn btn-danger cancel-row" data-row="p${key}">Cancel</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Settlement %</label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" class="form-control" name="settlement_percentage[]" required />
-                                <div class="input-group-append"><span class="input-group-text">%</span></div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Type</label>
-                            <select class="form-control" name="type[${key}]" required>
-                                <option value="">Select Type</option>
-                                <option value="agent">Agent</option>
-                                <option value="personal">Personal</option>
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label>Gateway</label>
-                            <select class="form-control select2" name="settlement_gateway[${key}][]" multiple required>
-                                @foreach($gateways as $gateway)
-                                    <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-1 mt-4">
-                            <button type="button" class="btn btn-danger cancel-row" data-row="p${key}">Cancel</button>
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
-    $('#add-row').append(html);
-    // Reinitialize select2 for new elements
-    $('.select2').select2();
-    key++;
-});
-
-// Remove row on clicking Cancel button
-$(document).on('click', '.cancel-row', function() {
-    const rowId = $(this).data('row');
-    $(`#row-${rowId}`).remove();
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('.select2').select2({
-            minimumResultsForSearch: 1,
-            width: '100%'
+                `;
+            $('#add-row').append(html);
+            // Reinitialize select2 for new elements
+            $('.select2').select2();
+            key++;
         });
-    });
-</script>
+
+        // Remove row on clicking Cancel button
+        $(document).on('click', '.cancel-row', function() {
+            const rowId = $(this).data('row');
+            $(`#row-${rowId}`).remove();
+        });
+    </script>
+    @endpush
+</x-admin-layout>
+
+
+
