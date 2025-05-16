@@ -8,33 +8,33 @@
         'partner.apis',
         'partner.dashboard',
         'partner.settlements',
-        'partner.reports.logs',
+        'partner.reports.log_completions',
+        'partner.payment.payment_gateway_report',
         'partner.api.commissions',
-        'partner.payment.report.all',
         'partner.settlements.search',
         'partner.partner.methods.get',
-        'partner.merchant_reports.by_date',
-        'partner.merchant_reports.by_name',
-        'partner.merchant_reports.by_month',
+
         'partner.reports.partner_account_balance_summary',
     ]);
 
 
       $isReportsActive = in_array(Route::currentRouteName(), [
-        'partner.reports.logs',
+
         'partner.payment.report.all',
-        'partner.merchant_reports.by_date',
-        'partner.merchant_reports.by_name',
-        'partner.merchant_reports.by_month',
+        'partner.reports.partner_account_summary',
         'partner.reports.partner_account_balance_summary',
     ]);
       $isTransactionActive = in_array(Route::currentRouteName(), [
         'partner.reports.logs',
-        'partner.payment.report.all',
+        'partner.payout-report',
+        'partner.payment.report',
+        'partner.payout.report.daily',
+        'partner.payment.report.daily',
+    ]);
+      $isMerchantReportsActive = in_array(Route::currentRouteName(), [
         'partner.merchant_reports.by_date',
         'partner.merchant_reports.by_name',
         'partner.merchant_reports.by_month',
-        'partner.reports.partner_account_balance_summary',
     ]);
 
 @endphp
@@ -357,7 +357,7 @@
                             </li>
                         </ul>
                     </li>
-                <li class="menu-item {{ $isReportsActive ? 'active open' : '' }}">
+                <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
 
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>

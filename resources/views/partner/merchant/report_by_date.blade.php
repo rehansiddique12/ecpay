@@ -16,7 +16,7 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button>
+                    {{-- <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button> --}}
                     <a href="{{ route('partner.merchant_reports.export_by_date', ['from_date' => $from_date]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
                         <i class="fas fa-share"></i> @lang('Export')
