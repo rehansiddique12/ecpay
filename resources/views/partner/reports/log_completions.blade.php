@@ -28,11 +28,11 @@
                     <button type="submit" value="submit" class="btn waves-effect waves-light btn-primary"><i
                                 class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     <a href="{{ route('partner.report.export_excel_record_completions', ['from_date' => $from_date, 'to_date' => $to_date , 'order' => request('order') === 'asc' ? 'asc' : 'desc']) }}" class="btn waves-effect waves-light btn-success">
-                        <i class="fas fa-file-export"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
                     </a>
                 </div>
             </div>
-         
+
         </div>
     </form>
 </div>

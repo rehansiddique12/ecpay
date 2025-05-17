@@ -41,7 +41,7 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <a href="{{ route('partner.merchant_reports.export_by_month', ['from_date' => $from_date ,'merchant' => @request()->merchant]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="fas fa-share"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
                      </a>
                 </div>
             </div>

@@ -9,13 +9,13 @@
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
     <form action="{{ route('partner.reports.logs') }}" method="get">
         <div class="row justify-content-between align-items-center">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group">
                     <label>From Date</label>
                     <input type="text" class="form-control datetimepicker" value="{{$from_date}}" name="from_date"/>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group">
                     <label>To Date</label>
                     <input type="text" class="form-control datetimepicker" value="{{$to_date}}" name="to_date" />
@@ -23,13 +23,13 @@
             </div>
 
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group mt-2">
                     <br>
                     <button type="submit" value="submit" class="btn waves-effect waves-light btn-primary"><i
                         class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     <a href="{{ route('partner.report.export_excel_record', ['from_date' => $from_date, 'to_date' => $to_date , 'order' => request('order') === 'asc' ? 'asc' : 'desc']) }}" class="btn waves-effect waves-light btn-success">
-                        <i class="fas fa-file-export"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
                     </a>
                 </div>
             </div>

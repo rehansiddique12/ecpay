@@ -37,7 +37,7 @@
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <a href="{{ route('admin.merchant_reports.export_by_name', ['from_date' => $from_date]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="fas fa-share"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
                      </a>
                 </div>
             </div>
