@@ -2,26 +2,31 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Api;
 use App\Models\Log;
+use App\Models\Txn;
 use App\Models\Payout;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Signature;
-use App\Models\EWalletAccount;
-use Illuminate\Support\Facades\Log as LaravelLog;
 use App\Models\Commission;
-use App\Models\DailyPartnerSummaryLog;
-use App\Models\DailyPartnerSummary;
-use App\ModelsPartnerCommission;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Txn;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use App\Models\EWalletLog;
+use Illuminate\Http\Request;
+use App\Models\EWalletCharge;
+use App\Models\EWalletAccount;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use App\ModelsPartnerCommission;
+use App\Models\PartnerCommission;
+use Illuminate\Support\Facades\DB;
+use App\Models\DailyPartnerSummary;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
+use App\Models\DailyPartnerSummaryLog;
+use App\Models\PendingPayment;
 use Stevebauman\Purify\Facades\Purify;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log as LaravelLog;
 
 class PaymentLogController extends Controller
 {
@@ -482,21 +487,18 @@ class PaymentLogController extends Controller
         return view('admin.payment.all_report', compact('data', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
     }
 
-
-
-
     public function action(Request $request, $id)
     {
         $this->validate($request, [
             'id' => 'required',
-            'status' => ['required', Rule::in(['1', '3'])],
+            'status' => ['required', Rule::in(['Complete', 'Reject'])],
         ]);
-
+        dd($request->all());
         DB::beginTransaction();
         try {
-            $data = Payment::where('id', $request->id)->whereIn('status', ['Complete'])->lockForUpdate()->with('user', 'gateway')->firstOrFail();
+            $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             if (!empty($request->sender)) {
-                $data->account_no = $request->sender;
+                $data->sender = $request->sender;
                 $data->save();
             }
 
@@ -504,11 +506,11 @@ class PaymentLogController extends Controller
             $req = Purify::clean($request->all());
             $commit = 0;
 
-            if ($request->status == '1') {
+            if ($request->status == 'Complete') {
 
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
-                    ->where('status', 'Pending')
+                    ->where('status', 1)
                     ->first();
                 if (!$account) {
                     throw new \Exception("E-Wallet Account Disable or not Exist.");
@@ -521,22 +523,21 @@ class PaymentLogController extends Controller
                 $new = 0;
                 if (empty($request->txn_id)) {
                     $request->txn_id = "none";
-                    $payment = Payment::where('e_wallet_name', $data->gateway->code)
+                    $payment = PendingPayment::where('e_wallet_name', $data->gateway->code)
                         ->where('amount', $data->amount)
                         ->where('sender', $data->account_no)
                         ->whereDate('date', '=', $formattedDate)
-                        ->where('status', 'Pending')
                         ->orderBy('id', 'DESC')
                         ->first();
                 } else {
-                    $check_payment = Payment::where('txn_id', $request->txn_id)
-                        ->where('status', 'Complete')
-                        ->first();
-                    if ($check_payment) {
+                    // $check_payment = Payment::where('txn_id', $request->txn_id)
+                    //     ->where('status', 'Complete')
+                    //     ->first();
+                    if ($data->status == "Complete") {
                         throw new \Exception("By This Txn no, Payment Already Completed.");
                     }
 
-                    $payment = Payment::where('txn_id', $request->txn_id)->where('status', 'Pending')->orderBy('id', 'DESC')->first();
+                    $payment = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
                     if ($payment) {
                         if ($payment->amount != $data->amount) {
                             throw new \Exception("Wrong TXN.");
@@ -545,14 +546,19 @@ class PaymentLogController extends Controller
                 }
 
                 if (!$payment) {
-                    $payment = new Payment();
+                    // $payment = new Payment();
                     $new = 1;
                 }
+                else
+                {
+                    $payment->delete();
+                }
+                $payment=$data;
 
                 if ($new == 1) {
-                    $payment->date = $formattedDate;
-                    $payment->time = $formattedTime;
-                    $payment->date_time = $formattedDateTime;
+                    // $payment->date = $formattedDate;
+                    // $payment->time = $formattedTime;
+                    $data->date_time = $formattedDateTime;
                 }
 
 
@@ -573,15 +579,17 @@ class PaymentLogController extends Controller
                             ->where('status', 'Complete')
                             ->sum('amount');
 
-                        $commissions = Commission::where('api_id', $partner_api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+
+                        $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                         if ($commissions) {
-                            $charge = $commissions->deposit_percentage * $data->amount / 100;
+                            $charge = $commissions->deposit_percentage * $amount / 100;
                         } else {
-                            $commissions = Commission::where('api_id', $partner_api_key->id)->orderBy('to_amount', 'desc')->first();
+                            $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                             if ($commissions) {
-                                $charge = $commissions->deposit_percentage * $data->amount / 100;
+                                $charge = $commissions->deposit_percentage * $amount / 100;
                             }
                         }
+
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
@@ -598,24 +606,24 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                $payment->e_wallet_name = $data->gateway->code;
-                $payment->amount = $data->amount;
-                $payment->sender = $data->account_no;
-                $payment->txn_id = $request->txn_id;
-                $payment->transaction_type = 'Received Money';
-                $payment->e_wallet_phone_number = $request->e_wallet_phone_number;
-                $payment->e_wallet_type = $request->e_wallet_type;
-                $payment->source = $source;
-                $payment->api_id = $api_id;
-                $payment->charge = $charge;
-                $payment->status = 'Complete';
-                $payment->completed_source = 'AdminPanel';
-                $payment->created_at = $data->created_at;
-                $payment->trans_complete_date = Carbon::now();
-                $payment->transaction_id = $data->id;
-                $payment->partner_transection_id = $data->partner_transection_id;
-                $payment->member_id = $data->member_id;
-                $payment->save();
+                $data->e_wallet_name = $data->gateway->code;
+                //$data->amount = $data->amount;
+                //$data->sender = $data->account_no;
+                $data->txn_id = $request->txn_id;
+                $data->transaction_type = 'Received Money';
+                $data->e_wallet_phone_number = $request->e_wallet_phone_number;
+                $data->e_wallet_type = $request->e_wallet_type;
+                //$payment->source = $source;
+                //$payment->api_id = $api_id;
+                $data->charge = $charge;
+                $data->status = 'Complete';
+                $data->completed_source = 'AdminPanel';
+                //$payment->created_at = $data->created_at;
+                $data->trans_complete_date = Carbon::now();
+                //$payment->transaction_id = $data->id;
+                //$payment->partner_transection_id = $data->partner_transection_id;
+                //$payment->member_id = $data->member_id;
+                $data->save();
 
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $data->api_id)->whereDate('created_at', '>=', $data->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -705,12 +713,12 @@ class PaymentLogController extends Controller
                     $e_wallet_log_save->save();
                 }
 
-                $data->status = 1;
+                //$data->status = 1;
                 $data->feedback = @$req['feedback'];
-                $data->payment_id = $payment->id;
-                $data->created_at = $data->created_at;
-                $data->trans_completed_date = Carbon::now();
-                $data->update();
+                //$data->payment_id = $payment->id;
+                //$data->created_at = $data->created_at;
+                //$data->trans_completed_date = Carbon::now();
+                $data->save();
 
                 $PartnerCommissions = PartnerCommission::where('transaction_id', $data->id)->where('type', 1)->where('status', 0)->get();
                 foreach ($PartnerCommissions as $PartnerCommission) {
@@ -750,9 +758,9 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                $user = $data->user;
-                $user->balance += $data->amount;
-                $user->save();
+                // $user = $data->user;
+                // $user->balance += $data->amount;
+                // $user->save();
 
                 $commit = 1;
                 DB::commit();
@@ -785,8 +793,8 @@ class PaymentLogController extends Controller
                             'e_wallet_type' => $payment->e_wallet_type,
                             'charges' => $this->convertStringToNumber($payment->charge),
                             'status' => $payment->status,
-                            'completion_date' => $payment->date,
-                            'completion_time' => $payment->time,
+                            // 'completion_date' => $payment->date,
+                            // 'completion_time' => $payment->time,
                             'created_at' => $payment->created_at,
                             'updated_at' => $payment->updated_at,
                             'sign' => $sign,
@@ -831,29 +839,28 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                $remarks = getAmount($data->amount) . ' ' . $basic->currency . ' payment amount has been approved';
-                BasicService::makeTransaction($user, getAmount($data->amount), getAmount($data->charge),  '+', $data->transaction, $remarks);
+                // $remarks = getAmount($data->amount) . ' ' . $basic->currency . ' payment amount has been approved';
+                // BasicService::makeTransaction($user, getAmount($data->amount), getAmount($data->charge),  '+', $data->transaction, $remarks);
 
-                if ($basic->deposit_commission == 1) {
-                    BasicService::setBonus($user, getAmount($data->amount), 'deposit');
-                }
-
-                $msg = [
-                    'amount' => getAmount($data->amount),
-                    'currency' => $basic->currency,
-                ];
-                $action = [
-                    "link" => '#',
-                    "icon" => "fas fa-money-bill-alt text-white"
-                ];
+                // if ($basic->deposit_commission == 1) {
+                //     BasicService::setBonus($user, getAmount($data->amount), 'deposit');
+                // }
+                // $msg = [
+                //     'amount' => getAmount($data->amount),
+                //     'currency' => $basic->currency,
+                // ];
+                // $action = [
+                //     "link" => '#',
+                //     "icon" => "fas fa-money-bill-alt text-white"
+                // ];
                 // $this->userPushNotification($user, 'PAYMENT_APPROVED', $msg, $action);
                 session()->flash('success', 'Approve Successfully');
-            } elseif ($request->status == '3') {
+            } elseif ($request->status == 'Reject') {
 
                 $data->status = 3;
                 $data->feedback = $request->feedback;
                 $data->update();
-                $user = $data->user;
+                //$user = $data->user;
 
                 $commit = 1;
                 DB::commit();
@@ -935,15 +942,15 @@ class PaymentLogController extends Controller
                 }
 
 
-                $msg = [
-                    'amount' => getAmount($data->amount),
-                    'currency' => $basic->currency,
-                    'feedback' => $data->feedback,
-                ];
-                $action = [
-                    "link" => '#',
-                    "icon" => "fas fa-money-bill-alt text-white"
-                ];
+                // $msg = [
+                //     'amount' => getAmount($data->amount),
+                //     'currency' => $basic->currency,
+                //     'feedback' => $data->feedback,
+                // ];
+                // $action = [
+                //     "link" => '#',
+                //     "icon" => "fas fa-money-bill-alt text-white"
+                // ];
                 // $this->userPushNotification($user, 'PAYMENT_REJECTED', $msg, $action);
                 session()->flash('success', 'Reject Successfully');
 
@@ -951,7 +958,6 @@ class PaymentLogController extends Controller
             if($commit==0){
                 DB::commit();
             }
-            dd('hello');
             return back();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1226,6 +1232,7 @@ class PaymentLogController extends Controller
     {
         $domains = Api::where('type', 'Admin')->get();
         $search = $request->all();
+
         // dd($search['status']);
         $dateSearch = $request->date_time;
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
@@ -1321,7 +1328,7 @@ class PaymentLogController extends Controller
             return response()->stream($callback, 200, $headers);
         } else {
 
-            $funds = Payment::where('status', '!=', 0)
+            $funds = Payment::where('status', '!=', 'initiate')
                 ->when($search['name'], function ($query) use ($search) {
                     $query->whereHas('user', function ($subQuery) use ($search) {
                         $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
@@ -1336,31 +1343,27 @@ class PaymentLogController extends Controller
                     $query->where(function ($subQuery) use ($search) {
                         $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
                             ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-                    })->orWhereHas('payment', function ($subQuery) use ($search) {
-                        $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                     });
                 })
-                  ->when($search['status'] != 4, function ($query) use ($search) {
+                  ->when($search['status'] != 'All', function ($query) use ($search) {
                     if ($search['status'] == 99) {
                         // Get records where status is 2 (pending) and created more than 10 minutes ago
-                        $query->where('status', 2)
+                        $query->where('status', "Pending")
                               ->where('created_at', '<', Carbon::now()->subMinutes(10));
-                    } else if ($search['status'] == 2) {
+                    } else if ($search['status'] == "Pending") {
                         // Get records where status is 2 (pending) and created within the last 10 minutes
-                        $query->where('status', 2)
+                        $query->where('status', "Pending")
                               ->where('created_at', '>=', Carbon::now()->subMinutes(10));
                     } else {
                         // For other statuses, just match the status provided in $search
                         $query->where('status', $search['status']);
                     }
                 })
-
-
                 ->when($search['website'], function ($query) use ($search) {
                     $query->where('api_id', $search['website']);
                 })
-
                 ->orderBy('id', 'DESC')
                 ->with('user', 'gateway',  'api' ,'txn_record')
                 ->paginate(config('basic.paginate'));
