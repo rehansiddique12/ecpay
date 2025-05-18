@@ -26,6 +26,7 @@ use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
+use App\Http\Controllers\Controller;
 
 class PaymentLogController extends Controller
 {
