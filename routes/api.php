@@ -34,3 +34,6 @@ Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
 Route::post('/rejectPayoutInfo', [PayoutRecordController::class, 'rejectPayoutInfo']);
 
 Route::post('/verifyPayment', [PaymentLogController::class, 'verifyPayment']);
+
+
+Route::post('/addPaymentInfo', [PaymentLogController::class, 'addPaymentInfo']);

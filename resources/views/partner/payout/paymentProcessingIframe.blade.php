@@ -214,7 +214,7 @@ service for assistance.
 
         function checkStatus() {
             $.ajax({
-                url: "{{ route('partner.update_fund_order_status.iframe', ['id' => $id]) }}",
+                url: "{{ route('update_fund_order_status.iframe', ['id' => $id]) }}",
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
