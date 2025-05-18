@@ -40,7 +40,7 @@ class PaymentLogController extends Controller
 
         $pageTitle = "Payment Report";
         $domains = Api::where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 0)->where('api_id', $api_id)->orderBy('id', 'DESC')->with('user', 'gateway', 'payment')
+        $funds = Payment::where('status', '!=', 0)->where('api_id', $api_id)->orderBy('id', 'DESC')->with('user', 'gateway')
         ->paginate(config('basic.paginate'));
 
         $funds_t = Payment::where('status', '!=', 0)->where('api_id', $api_id)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();

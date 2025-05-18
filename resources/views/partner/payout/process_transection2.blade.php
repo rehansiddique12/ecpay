@@ -466,7 +466,7 @@ h1, h2, h3, h4, h5 {
                         </div>
 
 
-                        <form action="{{ route('partner.iframe.payment2') }}" method="POST" id="payment-form">
+                        <form action="{{ route('iframe.payment2') }}" method="POST" id="payment-form">
                             @csrf
                         <div class="input-container" style="position: relative;">
                             <input type="text" name="txn" class="form-control" id="txn_verification"
@@ -770,7 +770,7 @@ $('#complete-button').on('click', function(event) {
 
 
             $.ajax({
-                url: "{{ route('partner.iframe.getaccount') }}", // Define the route for POST request
+                url: "{{ route('iframe.getaccount') }}", // Define the route for POST request
                 type: 'POST',
                 dataType: 'json',
                 data: {

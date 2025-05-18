@@ -30,4 +30,5 @@ public function partner()
 {
     return $this->belongsTo(Api::class, 'parent_id');
 }
+
 }

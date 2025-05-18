@@ -320,7 +320,7 @@ service for assistance.
 
         <hr style="background-color:black">
         <p style="text-align:center;color:black">Transaction ID enter | লেনদেন আইডি লিখুন</p>
-        <form action="{{ route('partner.iframe.payment3') }}" method="POST" id="payment-form">
+        <form action="{{ route('iframe.payment3') }}" method="POST" id="payment-form">
             @csrf
         <div class="input-container" style="position: relative;">
             <input type="text" name="txn" class="form-control" id="txn_verification"
@@ -409,7 +409,7 @@ service for assistance.
 
         function checkStatus() {
             $.ajax({
-                url: "{{ route('partner.update_fund_order_status.iframe', ['id' => $id]) }}",
+                url: "{{ route('update_fund_order_status.iframe', ['id' => $id]) }}",
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {

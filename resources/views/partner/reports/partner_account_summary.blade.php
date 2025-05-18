@@ -17,7 +17,7 @@
             </div>
 
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group mt-2">
                     <br>
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i

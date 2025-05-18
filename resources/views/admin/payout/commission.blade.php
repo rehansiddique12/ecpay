@@ -219,8 +219,8 @@
             }
         });
 
-    $(document).on('click', '.duplicate-row', function() {
-        let html = `
+        $(document).on('click', '.duplicate-row', function() {
+            let html = `
                     <div id="row-p${key}">
                         <br>
                         <div style='border:1px solid;padding:20px'>

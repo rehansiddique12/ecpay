@@ -328,7 +328,7 @@ h1, h2, h3, h4, h5 {
                 </div>
 
                 <div class=" col-md-5 text-center mx-auto">
-                    <a href="{{ route('partner.iframe.payment', ['id' => $data['id'],'txn'=>'','time'=>time()]) }}" class="{{ $button_style }}" id="complete-button">SUBMIT |
+                    <a href="{{ route('iframe.payment', ['id' => $data['id'],'txn'=>'','time'=>time()]) }}" class="{{ $button_style }}" id="complete-button">SUBMIT |
                         সম্পূর্ণ</a>
                 </div>
 

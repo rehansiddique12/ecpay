@@ -753,7 +753,7 @@
                 }
             });
         });
-    
+
         $(document).on('change', '.toggle-status', function () {
             const checkbox = $(this);
             const apiId = checkbox.data('id');
