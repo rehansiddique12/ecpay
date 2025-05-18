@@ -11,7 +11,9 @@ use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Signature;
 use App\Models\Commission;
+use App\Models\EWalletLog;
 use Illuminate\Http\Request;
+use App\Models\EWalletCharge;
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use Illuminate\Validation\Rule;
@@ -489,7 +491,7 @@ class PaymentLogController extends Controller
             'id' => 'required',
             'status' => ['required', Rule::in(['Complete', 'Reject'])],
         ]);
-        dd($request->all());
+        // dd($request->all());
         DB::beginTransaction();
         try {
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
@@ -1932,21 +1934,6 @@ class PaymentLogController extends Controller
                     }
 
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             $e_wallet_charge = 0;
