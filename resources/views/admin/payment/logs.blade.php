@@ -153,9 +153,15 @@
                                     $diffInMinutes = $createdAt->diffInMinutes($currentTime);
                                     @endphp
 
+<<<<<<< HEAD
                                     @if($diffInMinutes > 10 && @request()->status != 'Pending')
                                     <span class="badge bg-warning">
                                         <i class="fa fa-circle text-white warning font-12"></i>
+=======
+                                @if($diffInMinutes > 10 && @request()->status != 2)
+                                    <span class="badge badge-light p-2 bg-danger" style="border-radius: 5px;">
+                                        <i class="fa fa-circle   font-12"></i>
+>>>>>>> f804df9506e57ad7c9f43fffbac65d9d89402526
                                         @lang('Member did not complete')
                                     </span>
                                     @else

@@ -20,9 +20,9 @@
                             id="datepicker" />
                     </div>
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="4">@lang('All Payment')</option>
                             <option value="1" @if(@request()->status == '1') selected @endif>@lang('Pending Payment')
                             </option>
@@ -34,7 +34,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <div class="form-group">
                         <select name="domain" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain">
                             <option></option>
@@ -47,9 +47,9 @@
                     </div>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-4 d-flex gap-5">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i>
+                        <button type="submit" class="btn btn-primary mt-3 mr-5"><i class="icon-base ti tabler-search me-1"></i>
                             @lang('Search')</button>
                         <button type="submit" name="export" value="export" class="btn btn-success mt-2"><i
                                 class="icon-base ti tabler-download me-1"></i> @lang('Export Data')</button>
@@ -506,11 +506,6 @@
 
         })(jQuery);
 
-        jQuery(document).ready(function () {
-            jQuery('select').select2({
-                selectOnClose: true
-            });
-        });
 
     </script>
 
