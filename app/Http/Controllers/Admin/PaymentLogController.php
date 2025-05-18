@@ -10,18 +10,19 @@ use App\Models\Payout;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Signature;
-use App\Models\EWalletAccount;
-use Illuminate\Support\Facades\Log as LaravelLog;
 use App\Models\Commission;
-use App\Models\DailyPartnerSummaryLog;
-use App\Models\DailyPartnerSummary;
-use App\ModelsPartnerCommission;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Txn;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
+use App\Models\EWalletAccount;
+use App\Models\PendingPayment;
 use Illuminate\Validation\Rule;
+use App\Models\PartnerCommission;
+use Illuminate\Support\Facades\DB;
+use App\Models\DailyPartnerSummary;
+use Illuminate\Support\Facades\Http;
+use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log as LaravelLog;
 
 class PaymentLogController extends Controller
 {
@@ -482,7 +483,7 @@ class PaymentLogController extends Controller
         return view('admin.payment.all_report', compact('data', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
     }
 
-    public function action(Request $request, $id)
+   public function action(Request $request, $id)
     {
         $this->validate($request, [
             'id' => 'required',
@@ -574,11 +575,12 @@ class PaymentLogController extends Controller
                             ->where('status', 'Complete')
                             ->sum('amount');
 
-                        $commissions = Commission::where('api_id', $partner_api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+
+                        $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                         if ($commissions) {
                             $charge = $commissions->deposit_percentage * $amount / 100;
                         } else {
-                            $commissions = Commission::where('api_id', $partner_api_key->id)->orderBy('to_amount', 'desc')->first();
+                            $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                             if ($commissions) {
                                 $charge = $commissions->deposit_percentage * $amount / 100;
                             }
@@ -959,6 +961,7 @@ class PaymentLogController extends Controller
             return back();
         }
     }
+
 
     public function update_e_wallet(Request $request)
     {
