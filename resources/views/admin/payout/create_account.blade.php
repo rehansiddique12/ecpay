@@ -374,7 +374,7 @@
 
                         <div class="form-group col-md-1 col-12">
                             <label> Type</label>
-                            <select name="type[]" class="form-select" required>
+                            <select name="account_type[]" class="form-select" required>
                                 <option value="">Select</option>
                                 <option value="Agent">Agent</option>
                                 <option value="Personal">Personal</option>
@@ -383,7 +383,7 @@
 
                         <div class="form-group col-md-1 col-12">
                             <label>In/Out</label>
-                            <select name="account_type[]" class="form-select" required>
+                            <select name="in_out[]" class="form-select" required>
                                 <option value="">Select</option>
                                 <option value="deposit">Deposit</option>
                                 <option value="withdrawal">Withdrawal</option>

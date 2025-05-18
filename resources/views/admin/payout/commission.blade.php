@@ -81,7 +81,7 @@
                                     <label>Gateway</label>
                                     <select class="form-select select2" multiple name="settlement_gateway[{{ $key }}][]">
                                         @foreach($gateways as $gateway)
-                                        <option value="{{ $gateway->id }}" {{ in_array($gateway->id, $selectedGateways)
+                                        <option value="{{ $gateway->source_name }}" {{ in_array($gateway->source_name, $selectedGateways)
                                             ? 'selected' : '' }}>
                                             {{ $gateway->source_name }}
                                         </option>
@@ -150,7 +150,7 @@
                                     <select class="form-select select2" name="settlement_gateway[0][]" multiple
                                         required>
                                         @foreach($gateways as $gateway)
-                                        <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                        <option value="{{ $gateway->source_name }}">{{ $gateway->source_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -267,7 +267,7 @@
                                     <label>Gateway</label>
                                     <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
                                         @foreach($gateways as $gateway)
-                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                            <option value="{{ $gateway->source_name }}">{{ $gateway->source_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -340,7 +340,7 @@
                                     <label>Gateway</label>
                                     <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
                                         @foreach($gateways as $gateway)
-                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                            <option value="{{ $gateway->source_name }}">{{ $gateway->source_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
