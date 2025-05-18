@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Carbon\Carbon;
+use App\Models\Api;
+use App\Models\ApiHit;
 use App\Models\Gateway;
 use App\Models\Payment;
-use App\Models\Api;
-use App\Models\TransactionSetting;
-use Carbon\Carbon;
-use App\Models\EWalletAccount;
-use App\Models\Commission;
-use Illuminate\Support\Facades\Validator;
-use App\Models\ApiHit;
+use App\Models\Setting;
 use App\Models\Signature;
+use App\Models\Commission;
+use Illuminate\Http\Request;
+use App\Models\EWalletAccount;
+use App\Models\ParentCommission;
+use App\Models\PartnerCommission;
+use App\Models\TransactionSetting;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
@@ -165,59 +169,35 @@ class PaymentController extends Controller
 
         $current_time = Carbon::now('Asia/Dhaka');
 
-            $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                ->where('type', 'Agent')
-                ->where('monthly_limit', '>', 'monthly_received')
-                ->whereRaw('daily_limit - daily_received > ?', [$request->amount])
-                ->where('status', 1)
-                ->whereIn('account_type', ['Deposit', 'Both'])
-                ->where(function ($query) use ($current_time) {
-                        $query->where('apply_time_limit', 0)
-                            ->orWhere(function ($query) use ($current_time) {
-                                $query->where('apply_time_limit', 1)
-                                        ->where('from_time', '<=', $current_time)
-                                        ->where('to_time', '>=', $current_time);
-                            });
-                    })
-                    ->orderBy('daily_received', 'asc')
-                ->first();
-            if (!$account) {
-                    $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                    ->where('type', 'Merchant')
-                    ->where('monthly_limit', '>', 'monthly_received')
-                    ->whereRaw('daily_limit - daily_received > ?', [$request->amount])
-                    ->where('status', 1)
-                    ->whereIn('account_type', ['Deposit', 'Both'])
-                    ->where(function ($query) use ($current_time) {
-                            $query->where('apply_time_limit', 0)
-                                ->orWhere(function ($query) use ($current_time) {
-                                    $query->where('apply_time_limit', 1)
-                                            ->where('from_time', '<=', $current_time)
-                                            ->where('to_time', '>=', $current_time);
-                                });
-                        })
-                        ->orderBy('daily_received', 'asc')
-                    ->first();
-                if (!$account) {
-                    $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                        ->where('type', 'Personal')
-                        ->where('monthly_limit', '>', 'monthly_received')
-                        ->whereRaw('daily_limit - daily_received > ?', [$request->amount])
-                        ->where('status', 1)
-                        ->whereIn('account_type', ['Deposit', 'Both'])
-                        ->where(function ($query) use ($current_time) {
-                            $query->where('apply_time_limit', 0)
-                                ->orWhere(function ($query) use ($current_time) {
-                                    $query->where('apply_time_limit', 1)
-                                            ->where('from_time', '<=', $current_time)
-                                            ->where('to_time', '>=', $current_time);
-                                });
-                        })
-                        ->orderBy('daily_received', 'asc')
-                        ->first();
+        $gate = Gateway::where('code', $request->e_wallet_name)->where('status', 1)->first();
+        
+        $Setting = Setting::where('name', 'last_account_active')->first();
 
-                }
-            }
+        $recordcounts = Payment::where('gateway_id', $gate->id)
+            ->where('created_at', '>=', $Setting->value)
+            ->select('e_wallet_phone_number', DB::raw('count(*) as total'))
+            ->groupBy('e_wallet_phone_number')
+            ->pluck('total', 'e_wallet_phone_number')
+            ->toArray();
+
+        $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+            ->where('monthly_limit', '>', 'monthly_received')
+            ->whereRaw('daily_limit - daily_received > ?', [$request->amount])
+            ->where('status', 1)
+            ->whereIn('account_type', ['Deposit', 'Both'])
+            ->where(function ($query) use ($current_time) {
+                $query->where('apply_time_limit', 0)
+                    ->orWhere(function ($query) use ($current_time) {
+                        $query->where('apply_time_limit', 1)
+                            ->where('from_time', '<=', $current_time)
+                            ->where('to_time', '>=', $current_time);
+                    });
+            })
+            ->get()
+            ->sortBy(function ($single_account) use ($recordcounts) {
+                return $recordcounts[$single_account->account_no] ?? 0;
+            })
+            ->values()->first();
 
         if (!$account) {
             return response()->json(['error' => 'You Can not Proceed With this E-wallet account'], 422);
@@ -234,11 +214,11 @@ class PaymentController extends Controller
             ->sum('amount');
 
         $charge = 0;
-        $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
         if ($commissions) {
             $charge = $commissions->deposit_percentage * $request->amount / 100;
         } else {
-            $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
+            $commissions = Commission::where('category_id', $api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
             if ($commissions) {
                 $charge = $commissions->deposit_percentage * $request->amount / 100;
             }
@@ -275,56 +255,53 @@ class PaymentController extends Controller
         $fund->transaction = strRandom();
         $fund->try = 0;
         // $fund->sign = $user_sign;
-        $fund->status = 2;
+        $fund->status = "Pending";
         // $fund->api_key = $request->api_key;
         $fund->api_id = $api_id;
         $fund->e_wallet_phone_number = $e_wallet_phone_number;
         $fund->request_source  = "API";
         $fund->save();
 
+        $parentIds = ParentCommission::where('user_id', $api_key->id)
+                ->pluck('parent_id')
+                ->unique()
+                ->values();           
+            foreach($parentIds as  $parentId){
 
-        if ($charge > 0 && $api_key->parent_id > 0) {
-            // $parent_commissions = Commission::where('id', $commissions->parent_id)->first();
-            if($commissions->parent_id>0 && $commissions->parent_deposit_percentage>0){
-                $PartnerCommission = new PartnerCommission();
-                $PartnerCommission->api_id = $api_key->id;
-                $PartnerCommission->from_id = $api_key->parent_id;
-                $PartnerCommission->type = 1;
-                $PartnerCommission->amount = $request->amount;
-                $PartnerCommission->charges = $charge;
-                $PartnerCommission->total_amount = $request->amount - $charge;
-                $PartnerCommission->charges_p = $commissions->deposit_percentage;
-                $profit_p = $commissions->parent_deposit_percentage;
-                $profit = $profit_p * $request->amount / 100;
-                $PartnerCommission->profit = $profit;
-                $PartnerCommission->profit_p = $profit_p;
-                $PartnerCommission->transaction_id = $fund['id'];
-                $PartnerCommission->status = 0;
-                $PartnerCommission->save();
+                $parent_charge = 0;
 
-                // $main_parent_commissions = Commission::where('id', $parent_commissions->parent_id)->first();
+                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                if ($parent_commission) {
+                    $parent_charge = $parent_commission->deposit_percentage * $request->amount / 100;
+                } else {
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    if ($parent_commission) {
+                        $parent_charge = $parent_commission->deposit_percentage * $request->amount / 100;
+                    }
+                }
+
+                if($parent_charge>0){
+                    $PartnerCommission = new PartnerCommission();
+                    $PartnerCommission->api_id = $api_key->id;
+                    $PartnerCommission->from_id = $parentId;
+                    $PartnerCommission->type = 1;
+                    $PartnerCommission->amount = $request->amount;
+                    $PartnerCommission->charges = $charge;
+                    $PartnerCommission->total_amount = $request->amount - $charge;
+                    $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
+                    $profit_p = $parent_commission->deposit_percentage;
+                    $profit = $profit_p * $request->amount / 100;
+                    $PartnerCommission->profit = $profit;
+                    $PartnerCommission->profit_p = $profit_p;
+                    $PartnerCommission->transaction_id = $fund['id'];
+                    $PartnerCommission->status = 0;
+                    $PartnerCommission->save();
+                }
+
+
+                    
 
             }
-
-            if($commissions->parent2_id>0 && $commissions->parent2_deposit_percentage>0){
-                $PartnerCommission = new PartnerCommission();
-                $PartnerCommission->api_id = $api_key->id;
-                $PartnerCommission->from_id = $commissions->parent2_id;
-                $PartnerCommission->type = 1;
-                $PartnerCommission->amount = $request->amount;
-                $PartnerCommission->charges = $charge;
-                $PartnerCommission->total_amount = $request->amount - $charge;
-                $PartnerCommission->charges_p = $commissions->deposit_percentage;
-                $profit_p = $commissions->parent2_deposit_percentage;
-                $profit = $profit_p * $request->amount / 100;
-                $PartnerCommission->profit = $profit;
-                $PartnerCommission->profit_p = $profit_p;
-                $PartnerCommission->transaction_id = $fund['id'];
-                $PartnerCommission->status = 0;
-                $PartnerCommission->save();
-            }
-
-        }
 
         // env('APP_URL') . config('location.gateway.path')
 
