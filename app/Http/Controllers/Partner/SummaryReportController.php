@@ -34,7 +34,7 @@ class SummaryReportController extends Controller
         $offset = Carbon::now(new CarbonTimeZone($partnerTimezone))->format('P');
 
         // Query for funds data
-        $fundsQuery = Fund::selectRaw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset')) as created_at, api_id, COUNT(*) as fund_count")
+        $fundsQuery = Payment::selectRaw("DATE(CONVERT_TZ(created_at, '+06:00', '$offset')) as created_at, api_id, COUNT(*) as fund_count")
             ->where('api_id', $user->id)
             ->where('created_at', '>=', $from_date_to_search)
             ->where('created_at', '<=', $to_date_to_search)

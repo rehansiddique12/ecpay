@@ -4,19 +4,19 @@
     <form action="{{ route('admin.reports.master_report') }}" method="get">
         <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
         <div class="row justify-content-between align-items-center">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group">
                     <label>From Date</label>
                     <input type="date" class="form-control" value="{{$from_date}}" name="from_date" id="datepicker" />
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group">
                     <label>To Date</label>
                     <input type="date" class="form-control" value="{{$to_date}}" name="to_date" id="datepicker" />
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group mt-2">
                     <br>
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>

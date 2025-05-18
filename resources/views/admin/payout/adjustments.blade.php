@@ -20,7 +20,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Partner</label>
-                    <select name="partner" class="form-control">
+                    <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select Partner">
                         <option value="">All</option>
                         @foreach($partners as $partner)
                         <option value="{{ $partner->id }}" @if(@request()->partner == $partner->id) selected @endif>{{ $partner->website }}</option>
@@ -34,7 +34,7 @@
             <div class="col-md-5">
                 <div class="form-group">
                     <label>Status</label>
-                    <select name="status" class="form-control">
+                    <select name="status" class="form-select">
                         <option value="">@lang('All')</option>
                         <option value="1" @if(@request()->status == '1') selected @endif>@lang('Completed')</option>
                         <option value="0" @if(@request()->status == '0') selected @endif>@lang('Pending')</option>
@@ -155,12 +155,43 @@
 
     });
 
-    $(document).ready(function() {
-        $('select').select2({
-            selectOnClose: true
+</script>
+<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+<script>
+    $(document).ready(function () {
+        $('form').on('submit', function () {
+            const $form = $(this);
+            const $submitButton = $form.find('button[type="submit"]');
+
+            // Disable button and change text (optional)
+            $submitButton.prop('disabled', true);
+            $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang("Processing...")');
+
+            // Allow form to proceed
+            return true;
         });
+       let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
+
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
     });
 </script>
 
 @endpush
+@push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
 </x-admin-layout>

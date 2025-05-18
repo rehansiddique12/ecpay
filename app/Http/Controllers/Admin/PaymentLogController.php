@@ -36,7 +36,7 @@ class PaymentLogController extends Controller
     {
         $pageTitle = "Payment Logs";
         $domains = Api::where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway', 'payment' ,'txn_record')->paginate(config('basic.paginate'));
+        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway','txn_record')->paginate(config('basic.paginate'));
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
     }
 

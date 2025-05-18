@@ -1,13 +1,6 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-    <script src="{{ asset('public/assets/css/select2.min.css') }}"></script>
-    <!-- ✅ Load jQuery first -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- ✅ Then load Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     <style>
     tr th {
         color: white !important
@@ -17,8 +10,7 @@
         display: none;
         /* Initially hidden */
     }
-    </style>
-    <style>
+
     h3 {
         color: #7367f0 !important
     }
@@ -112,7 +104,7 @@
                         <a href="javascript:void(0)" class="btn btn-primary" id="accountsGroupTab">
                             <div>Accounts Group </div>
                         </a>
-                        
+
                         <a href="javascript:void(0)" class="btn btn-primary" id="gatewayTab">
                             <div>Gateways</div>
                         </a>
@@ -122,24 +114,24 @@
                         </a>
                     </div>
                     <div id="listaccountsSection">
-                    @include('admin.payout.accounts')
+                        @include('admin.payout.accounts')
 
                     </div>
                     <div id="inoffSection">
-                    @include('admin.payout.inout')
+                        @include('admin.payout.inout')
 
                     </div>
                     <div id="accountsGroupSection">
-                        
-                    @include('admin.accounts.groups')
+
+                        @include('admin.accounts.groups')
 
                     </div>
                     <div id="addaccountsSection" style="display:none;">
                         @include('admin.payout.create_account')
                     </div>
                     <div id="gatewaySection" style="display:none;">
-                    <h6 style="color: #7367f0">Add Gateways
-                    </h6>
+                        <h6 style="color: #7367f0">Add Gateways
+                        </h6>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-12">
@@ -153,7 +145,7 @@
 
                                             @endif
 
-                                            <table class="table ">
+                                            <table class="table">
                                                 <thead class="thead-dark">
                                                     <tr>
                                                         <th scope="col">@lang('Name')</th>
@@ -277,19 +269,19 @@
                                     <td>{{ $item['id'] }}</td>
                                     <td>{{ $item['name'] ?? '' }}</td>
                                     <td>
-                                        <label class="switch" style="pointer-events: none;">
-                                            <input type="checkbox"
-                                                class="switch-input {{ $item['status'] == 1 ? 'is-valid' : 'is-invalid' }}"
-                                                {{ $item['status'] == 1 ? 'checked' : '' }}>
+                                        <label class="switch" style="cursor: pointer;">
+                                            <input type="checkbox" class="switch-input toggle-status"
+                                                data-id="{{ $item['id'] }}" {{ $item['status'] == 1 ? 'checked' : '' }}>
                                             <span class="switch-toggle-slider">
                                                 <span class="switch-on"></span>
                                                 <span class="switch-off"></span>
                                             </span>
-                                            <span class="switch-label">
+                                            <span class="switch-label status-label-{{ $item['id'] }}">
                                                 {{ $item['status'] == 1 ? 'Active' : 'Inactive' }}
                                             </span>
                                         </label>
                                     </td>
+
                                     <td>
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -352,7 +344,7 @@
                         </div>
                         <div class="form-group mt-3">
                             <label class="pr-3">Status</label>
-                            <select class="form-control" name="status" required>
+                            <select class="form-select" name="status" required>
                                 <option value="1" {{ $item['status'] == 1 ? 'selected' : '' }}>Active</option>
                                 <option value="0" {{ $item['status'] == 0 ? 'selected' : '' }}>InActive</option>
                             </select>
@@ -386,7 +378,7 @@
                         </div>
                         <div class="form-group mt-3">
                             <label class="pr-3">Status</label>
-                            <select class="form-control" name="status" required>
+                            <select class="form-select" z-index="99999" name="status" required>
                                 <option value="1">Active</option>
                                 <option value="0">InActive</option>
                             </select>
@@ -441,7 +433,7 @@
 
                             <div class="form-group col-md-4 mt-3">
                                 <label>Type</label>
-                                <select class="form-control" name="type" required>
+                                <select class="form-select" name="type" required>
                                     @foreach($categories as $type)
                                     <option value="{{$type->id ?? ''}}">{{$type->name ?? ''}}</option>
                                     @endforeach
@@ -867,7 +859,7 @@
                                     <input name="field_name[]" class="form-control" type="text"
                                         value="{{ $v->field_level }}" required placeholder="{{ trans('Field Name') }}">
 
-                                    <select name="type[]" class="form-control">
+                                    <select name="type[]" class="form-select">
                                         <option value="text" {{ $v->type == 'text' ? 'selected' : '' }}>
                                             {{ trans('Input Text') }}</option>
                                         <option value="textarea" {{ $v->type == 'textarea' ? 'selected' : '' }}>
@@ -876,7 +868,7 @@
                                             {{ trans('File Upload') }}</option>
                                     </select>
 
-                                    <select name="validation[]" class="form-control">
+                                    <select name="validation[]" class="form-select">
                                         <option value="required" {{ $v->validation == 'required' ? 'selected' : '' }}>
                                             {{ trans('Required') }}</option>
                                         <option value="nullable" {{ $v->validation == 'nullable' ? 'selected' : '' }}>
@@ -906,6 +898,7 @@
 
 
     @push('js')
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
     $(document).ready(function() {
         // Show table when Category tab is clicked
@@ -974,9 +967,9 @@
             $('#addaccountsSection').hide();
             $('#listaccountsSection').hide();
             $('#inoffSection').show();
-            
+
         });
-        
+
 
         // Rest of the JS code
         $('#image').change(function() {
@@ -987,9 +980,9 @@
             reader.readAsDataURL(this.files[0]);
         });
 
-        $('select').select2({
-            selectOnClose: true
-        });
+        // $('select').select2({
+        //     selectOnClose: true
+        // });
 
         $('#adjustment').change(function() {
             var selectedValue = $(this).val();
@@ -1008,12 +1001,29 @@
         });
     });
     </script>
-    @endpush
-    @push('js')
+
     <script>
     "use strict";
 
     $(document).ready(function() {
+
+        let $select = $('.select2').select2({
+            // placeholder: "Select Partner",
+            // allowClear: true,
+            selectOnClose: true,
+        });
+
+        // Prevent dropdown from opening on clear
+        $select.on('select2:unselecting', function (e) {
+            $(this).data('unselecting', true);
+        });
+
+        $select.on('select2:opening', function (e) {
+            if ($(this).data('unselecting')) {
+                $(this).removeData('unselecting');
+                e.preventDefault();
+            }
+        });
         setCurrency();
         $(document).on('change', 'input[name="currency"]', function() {
             setCurrency();
@@ -1039,8 +1049,6 @@
         });
     })
 
-
-
     $(document).ready(function(e) {
 
         $("#generate").on('click', function() {
@@ -1049,13 +1057,13 @@
                                     <div class="input-group">
                                         <input name="field_name[]" class="form-control " type="text" value="" required placeholder="{{trans('Field Name')}}">
 
-                                        <select name="type[]"  class="form-control  ">
+                                        <select name="type[]"  class="form-select  ">
                                             <option value="text">{{trans('Input Text')}}</option>
                                             <option value="textarea">{{trans('Textarea')}}</option>
                                             <option value="file">{{trans('File upload')}}</option>
                                         </select>
 
-                                        <select name="validation[]"  class="form-control  ">
+                                        <select name="validation[]"  class="form-select  ">
                                             <option value="required">{{trans('Required')}}</option>
                                             <option value="nullable">{{trans('Optional')}}</option>
                                         </select>
@@ -1111,9 +1119,9 @@
         });
 
 
-        $('select').select2({
-            selectOnClose: true
-        });
+        // $('select').select2({
+        //     selectOnClose: true
+        // });
 
     });
     </script>
@@ -1126,8 +1134,6 @@
                 const code = this.getAttribute('data-code');
                 const status = this.getAttribute('data-status');
                 const message = this.getAttribute('data-message');
-
-                // Set message and form data
                 document.querySelector('#disableModal input[name="code"]').value = code;
                 document.querySelectorAll('#disableModal .messageShow').forEach(el => el
                     .innerText = message.toLowerCase());
@@ -1137,24 +1143,46 @@
     </script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const editButtons = document.querySelectorAll('.editBtn'); // 👈 Correct class
+        const editButtons = document.querySelectorAll('.editBtn');
         editButtons.forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const methodId = this.getAttribute('data-method-id');
-                // Optionally update modal fields dynamically here using other data-* attributes
                 const name = this.getAttribute('data-name');
-
-                // Set modal input values (if needed dynamically)
                 document.querySelector('#editMethodModal input[name="name"]').value = name;
-
-                // Show the modal
                 const modal = new bootstrap.Modal(document.getElementById('editMethodModal'));
                 modal.show();
             });
         });
     });
     </script>
+    <script>
+    $(document).on('change', '.toggle-status', function () {
+        let checkbox = $(this);
+        let id = checkbox.data('id');
+        let isChecked = checkbox.is(':checked');
 
-
+        $.ajax({
+            url: '/admin/category/' + id + '/status',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    let labelText = response.status === 1 ? 'Active' : 'Inactive';
+                    $('.status-label-' + id).text(labelText);
+                    toastr.success('Status updated to ' + labelText);
+                } else {
+                    toastr.error('Failed to update status.');
+                    checkbox.prop('checked', !isChecked); // Revert toggle
+                }
+            },
+            error: function () {
+                toastr.error('Error occurred while updating status.');
+                checkbox.prop('checked', !isChecked); // Revert toggle
+            }
+        });
+    });
+    </script>
     @endpush
 </x-admin-layout>

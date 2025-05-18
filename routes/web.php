@@ -139,9 +139,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
         Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
+        Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
 
-        Route::get('/account    /groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
+        Route::get('/account/groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
         Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
         Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
@@ -196,6 +197,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('/type/update/{id}', [PaymentTypeController::class, 'updatetype'])->name('type.update');
 
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
+        Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
+
         Route::post('/apis/add', [PayoutRecordController::class, 'apisAdd'])->name('apis.add');
         Route::post('/apis/add-by-parent', [PayoutRecordController::class, 'apisAddByParent'])->name('apis.addByParent');
         Route::delete('/apis/delete/{id}', [PayoutRecordController::class, 'apisDelete'])->name('apis.delete');
@@ -213,6 +216,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/groups/add', [TelegramGroupController::class, 'groupsAdd'])->name('groups.add');
         Route::put('/groups/update/{id}', [TelegramGroupController::class, 'updateGroup'])->name('groups.update');
         Route::delete('/groups/delete/{id}', [TelegramGroupController::class, 'groupsDelete'])->name('groups.delete');
+        Route::post('/groups/toggle-status/{id}', [TelegramGroupController::class, 'toggleStatus'])->name('groups.toggleStatus');
+
+
+
 
         Route::get('/settlements', [PayoutRecordController::class, 'settlements'])->name('settlements');
         Route::post('/settlements/Add', [PayoutRecordController::class, 'storeSettlement'])->name('settlements.add');
@@ -232,6 +239,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Add Accounts
         Route::get('/accounts/add', [PayoutRecordController::class, 'addAccount'])->name('accounts.add');
         Route::post('/accounts/create', [PayoutRecordController::class, 'createAccount'])->name('accounts.create');
+        Route::post('/accounts/{id}/status', [PayoutRecordController::class, 'changeStatus'])->name('accounts.status');
         Route::put('/accounts/update/{id}', [PayoutRecordController::class, 'updateAccount'])->name('accounts.update');
         Route::post('/accounts/charges/add', [PayoutRecordController::class, 'accountChargesAdd'])->name('accounts.charges.add');
         Route::get('/accounts/group', [PayoutRecordController::class, 'accountGroupList'])->name('accounts.group.add');

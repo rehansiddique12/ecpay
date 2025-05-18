@@ -63,12 +63,10 @@
                                 </td>
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
                                     @if($item->status == 1)
-                                    <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled me-1 text-success"></i> @lang('Active')</span>
+                                    <span class="badge badge-light" > <i class="icon-base ti tabler-IconCircleFilled me-1 text-success" style="border-radius: 40px;"></i> @lang('Active')</span>
                                     @else
-                                    <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled text-danger me-1 text-success"></i> @lang('Inactive')</span>
+                                    <span class="badge badge-light"> <i class="icon-base ti tabler-IconCircleFilled text-danger me-1 text-success" style="border-radius: 40px;"></i> @lang('Inactive')</span>
                                     @endif
-
-
                                 </td>
                                 <td data-label="@lang('Action')">
                                     <div class="dropdown">
@@ -186,10 +184,10 @@
                     <div class="row justify-content-between align-items-center">
 
 
-                        <input type="text" id="balanceInput" class="form-control" name="gateway">
-                        <input type="text" id="account_id" class="form-control" name="account_id">
-                        <input type="text" id="orderid" class="form-control" name="orderid">
-                        <input type="text" id="wid" class="form-control" name="wid">
+                        <input type="text" hidden id="balanceInput" class="form-control" name="gateway">
+                        <input type="text" hidden id="account_id" class="form-control" name="account_id">
+                        <input type="text" hidden id="orderid" class="form-control" name="orderid">
+                        <input type="text" hidden id="wid" class="form-control" name="wid">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="pr-3">Admin Acc. No.</label>

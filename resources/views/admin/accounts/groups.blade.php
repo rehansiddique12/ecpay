@@ -1,24 +1,7 @@
 <style>
-.dot {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background-color: green;
-    border-radius: 50%;
-    margin: 10px;
-    opacity: 0;
-    /* Initially hidden */
-    transition: opacity 0.5s ease;
-    /* Smooth transition for visibility */
-}
 
-.reddot {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background-color: red;
-    border-radius: 50%;
-    margin: 10px;
+.select2-container {
+    z-index: 999999 !important;
 }
 </style>
 <!-- In <head> -->
@@ -78,8 +61,8 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="groupPairs" class="form-label">Select Pairs</label>
-                                <select id="groupPairs" name="pairs[]" class="form-control" multiple>
+                                <label for="" class="form-label" >Select Pairs</label>
+                                <select id="" name="pairs[]" class="form-select select2" multiple z-index="1000">
                                     @foreach($records as $accounts)
                                     <option value="{{$accounts->account_no}}"> {{$accounts->account_no}}</option>
                                     @endforeach
@@ -103,14 +86,20 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#groupModal').on('shown.bs.modal', function() {
-        $('#groupPairs').select2({
-            dropdownParent: $('#groupModal'), // important for modals
-            placeholder: "Search & select pairs",
-            width: '100%'
-        });
-    });
+$(document).ready(function () {
+    // let initialized = false;
+
+    // $('#groupModal').on('shown.bs.modal', function () {
+    //     if (!initialized) {
+    //         $('#groupPairs').select2({
+    //             dropdownParent: $('#groupModal'),
+    //             placeholder: "Search & select pairs",
+    //             width: '100%'
+    //         });
+    //         initialized = true;
+    //     }
+    // });
+
 
 });
 </script>

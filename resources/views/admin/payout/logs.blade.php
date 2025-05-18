@@ -20,9 +20,9 @@
                             id="datepicker" />
                     </div>
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="4">@lang('All Payment')</option>
                             <option value="1" @if(@request()->status == '1') selected @endif>@lang('Pending Payment')
                             </option>
@@ -34,9 +34,10 @@
                     </div>
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <select name="domain" class="form-control">
+                        <select name="domain" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain">
+                            <option></option>
                             <option value="">@lang('Select Domain')</option>
                             @foreach($domains as $domain)
                             <option value="{{ $domain->id }}" @if(@request()->domain == $domain->id) selected
@@ -46,9 +47,9 @@
                     </div>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-4 d-flex gap-5">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i>
+                        <button type="submit" class="btn btn-primary mt-3 mr-5"><i class="icon-base ti tabler-search me-1"></i>
                             @lang('Search')</button>
                         <button type="submit" name="export" value="export" class="btn btn-success mt-2"><i
                                 class="icon-base ti tabler-download me-1"></i> @lang('Export Data')</button>
@@ -98,37 +99,23 @@
                             <td data-label="@lang('Date')"> {{ dateTime($item->created_at,'d M,Y H:i') }}</td>
                             <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                                 {{ $item->trx_id }}<br>
-                                <span class="text text-success">{{ optional($item->payout)->txn_id }}</span>
+                                <span class="text text-success">{{ $item->txn_id }}</span>
 
                             </td>
-                            <td>{{ optional($item->payout)->partner_transection_id }}
+                            <td>{{ $item->partner_transection_id }}
                                 <br>
-                                {{ optional($item->payout)->member_id }}
+                                {{ $item->member_id }}
                             </td>
                             <td data-label="@lang('Username')">
-                                @if(optional($item->user)->username!="dummyuser")
-                                {{-- <a href="{{route('admin.user-edit',[$item->user_id])}}">
-                                <div class="d-lg-flex d-block align-items-center ">
-                                    <div class="mr-3"><img
-                                            src="{{getFile(config('location.user.path').optional($item->user)->image) }}"
-                                            alt="user" class="rounded-circle" width="45" height="45"></div>
-                                    <div class="">
-                                        <h5 class="text-dark mb-0 font-16 font-weight-medium">
-                                            {{ optional($item->user)->username }}</h5>
-                                        <span class="text-muted font-14">{{ optional($item->user)->email }}</span>
-                                    </div>
-                                </div>
-                                </a> --}}
-                                @else
+
                                 @if($item->api)
                                 {{ optional($item->api)->name }} <b>({{ optional($item->api)->acc_type }})</b>
                                 @else
                                 Partner Transection
                                 @endif
-                                @endif
 
                             </td>
-                            <td>{{ optional($item->method)->name }}</td>
+                            <td>{{ optional($item->gateway)->name }}</td>
                             <td>{{ $item->user_account_no }}</td>
                             <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($item->amount,2 ) }}
                                 {{$basic->currency_symbol}}</td>
@@ -139,41 +126,26 @@
                                 {{ getAmount($item->net_amount,2) }} {{$basic->currency_symbol}}</td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                @if($item->status == 2)
+                                @if($item->status == 'Complete')
                                 <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
                                     @lang('Request Approved')</span>
-                                @elseif($item->status == 1)
+                                @elseif($item->status == 'inititate')
                                 <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
                                     @lang('Request Pending')</span>
-                                @elseif($item->status == 3)
+                                @elseif($item->status == 'Reject')
                                 <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
                                     @lang('Request Rejected')</span>
-                                @endif
-                                <br>
-                                @if($item->payout)
-                                @if($item->payout->status == "Complete")
-                                <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
-                                    @lang('Transfered')</span>
-                                @elseif($item->payout->status == "Pending")
-                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
-                                    @lang('Transfer Pending')</span>
-                                @elseif($item->payout->status == "Reject")
-                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
-                                    @lang('Transfer Rejected')</span>
-                                @else
-                                {{$item->payout->status}}
-                                @endif
                                 @endif
                             </td>
                             <td>
                                 {{$item->feedback}}
                             </td>
                             <td data-label="@lang('Method')">
-                                {{ optional($item->payout)->e_wallet_phone_number }}
+                                {{ $item->e_wallet_phone_number }}
                                 <br>
-                                {{ optional($item->payout)->e_wallet_type }}
+                                {{ $item->e_wallet_type }}
                             </td>
-                            <td data-label="@lang('Method')">{{ optional($item->payout)->source }}</td>
+                            <td data-label="@lang('Method')">{{ $item->request_source }}</td>
 
                             <td>
                                 <div class="dropdown">
@@ -534,11 +506,6 @@
 
         })(jQuery);
 
-        jQuery(document).ready(function () {
-            jQuery('select').select2({
-                selectOnClose: true
-            });
-        });
 
     </script>
 
@@ -657,12 +624,42 @@
         });
 
     </script>
+<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+<script>
+    $(document).ready(function () {
+        $('form').on('submit', function () {
+            const $form = $(this);
+            const $submitButton = $form.find('button[type="submit"]');
 
+            // Disable button and change text (optional)
+            $submitButton.prop('disabled', true);
+            $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang("Processing...")');
 
+            // Allow form to proceed
+            return true;
+        });
+       let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
 
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
 
-
-
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
+    });
+</script>
+    @endpush
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     @endpush
 
 </x-admin-layout>

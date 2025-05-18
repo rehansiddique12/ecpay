@@ -1,59 +1,45 @@
 <x-admin-layout :title="$pageTitle">
 
     @push('styles')
-        <script src="{{ asset('public/assets/css/select2.min.css') }}"></script>
-        <style>
-            @media (min-width: 1400px) {
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 90px;
+            height: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
 
-                .container-xxl,
-                .container-xl,
-                .container-lg,
-                .container-md,
-                .container-sm,
-                .container {
-                    max-width: 1770px;
-                }
-            }
-        </style>
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-        <style>
-            .switch {
-                position: relative;
-                display: inline-block;
-                width: 90px;
-                height: 30px;
-                font-size: 13px;
-                font-weight: bold;
-                text-align: center;
-                user-select: none;
-            }
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            color: white;
+            line-height: 30px;
+            border-radius: 20px;
+            transition: 0.4s;
+        }
 
-            .switch input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
+        .slider.active {
+            background: linear-gradient(to right, #28a745, #20c997);
+        }
 
-            .slider {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                color: white;
-                line-height: 30px;
-                border-radius: 20px;
-                transition: 0.4s;
-            }
-
-            .slider.active {
-                background: linear-gradient(to right, #28a745, #20c997);
-            }
-
-            .slider.deactive {
-                background: linear-gradient(to right, #dc3545, #d1404f);
-            }
-        </style>
+        .slider.deactive {
+            background: linear-gradient(to right, #dc3545, #d1404f);
+        }
+    </style>
     @endpush
 
     <div class="row ">
@@ -62,12 +48,12 @@
                 <div class="card-body">
                     <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                     {{-- @if (adminAccessRoute(config('role.partners.access.add'))) --}}
-                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
+                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal"
+                        data-bs-target="#newModal">
                         Add New
                     </button>
 
                     {{-- @endif --}}
-
 
                     <div class="table-responsive ">
                         <table
@@ -88,128 +74,134 @@
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
-                                    <tr>
-                                        <td style="max-width: 70px;">{{ $item['id'] }}</td>
-                                        <td style="max-width: 110px;"><a
-                                                href="{{ route('admin.merchant.profile', $item->id) }}">{{ $item['name'] }}</a>
-                                        </td>
-                                        <td style="max-width: 100px;">{{ $item['username'] }}</td>
-                                        <td style="max-width: 130px;"><span class="editable" data-id="{{ $item['id'] }}" data-field="website">{{ $item['website'] }}</span></td>
-                                        <td style="max-width: 220px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                                style="border-radius: 8px; padding: 7px;">Deposit:</span>
-                                            {{ $item['api_endpoint_deposit'] }}<br>
+                                <tr>
+                                    <td style="max-width: 70px;">{{ $item['id'] }}</td>
+                                    <td style="max-width: 110px;"><a
+                                            href="{{ route('admin.merchant.profile', $item->id) }}">{{ $item['name']
+                                            }}</a>
+                                    </td>
+                                    <td style="max-width: 100px;">{{ $item['username'] }}</td>
+                                    <td style="max-width: 130px;"><span class="editable" data-id="{{ $item['id'] }}"
+                                            data-field="website">{{ $item['website'] }}</span></td>
+                                    <td style="max-width: 220px;">
+                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                            style="border-radius: 8px; padding: 7px;">Deposit:</span>
+                                        {{ $item['api_endpoint_deposit'] }}<br>
 
-                                            <span class="bg-warning text-white  d-inline-block mt-2 mb-2"
-                                                style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
-                                            {{ $item['api_endpoint_withdrawal'] }}<br>
+                                        <span class="bg-warning text-white  d-inline-block mt-2 mb-2"
+                                            style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
+                                        {{ $item['api_endpoint_withdrawal'] }}<br>
 
-                                            <span class="bg-info text-white  d-inline-block mt-2"
-                                                style="border-radius: 10px; padding: 7px;">Redirect
-                                                URL:</span>
-                                            {{ $item['redirect_url'] }}<br>
-                                        </td>
+                                        <span class="bg-info text-white  d-inline-block mt-2"
+                                            style="border-radius: 10px; padding: 7px;">Redirect
+                                            URL:</span>
+                                        {{ $item['redirect_url'] }}<br>
+                                    </td>
 
-                                        <td style="max-width: 220px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2" style="border-radius: 6px; padding: 7px;">API Key:</span>
-                                            <span class="editable" data-id="{{ $item['id'] }}" data-field="api_key">{{ $item['api_key'] }}</span>
-                                            <br>
+                                    <td style="max-width: 220px;">
+                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                            style="border-radius: 6px; padding: 7px;">API Key:</span>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="api_key">{{
+                                            $item['api_key'] }}</span>
+                                        <br>
 
-                                            <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
-                                                style="border-radius: 8px; padding: 7px;">Secret
-                                                Key:</span>
-                                            {{ $item['secret_key'] }}
-                                        </td>
+                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
+                                            style="border-radius: 8px; padding: 7px;">Secret
+                                            Key:</span>
+                                        {{ $item['secret_key'] }}
+                                    </td>
 
-                                        <td>{{ $item['balance'] }}</td>
-                                        <td style="max-width: 300px;">
-                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                                style="border-radius: 6px; padding: 7px;">Deposit:</span>
-                                            <span class="editable" data-id="{{ $item['id'] }}"
-                                                data-field="min_deposit">{{ $item['min_deposit'] }}</span><br>
+                                    <td>{{ $item['balance'] }}</td>
+                                    <td style="max-width: 300px;">
+                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                            style="border-radius: 6px; padding: 7px;">Deposit:</span>
+                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="min_deposit">{{
+                                            $item['min_deposit'] }}</span><br>
 
-                                            <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2"
-                                                style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
-                                            <span class="editable" data-id="{{ $item['id'] }}"
-                                                data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
-                                        </td>
+                                        <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2"
+                                            style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
+                                        <span class="editable" data-id="{{ $item['id'] }}"
+                                            data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
+                                    </td>
 
-                                        <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                            <label class="switch">
-                                                <input type="checkbox" {{ $item->status == 1 ? 'checked' : '' }}
-                                                    disabled>
-                                                <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
-                                                    {{ $item->status == 1 ? __('Active') : __('Deactive') }}
-                                                </span>
-                                            </label>
-                                        </td>
+                                   <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                        <label class="switch">
+                                            <input type="checkbox" class="toggle-status"
+                                                data-id="{{ $item->id }}"
+                                                {{ $item->status == 1 ? 'checked' : '' }}>
+                                            <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
+                                                {{ $item->status == 1 ? __('Active') : __('Deactive') }}
+                                            </span>
+                                        </label>
+                                    </td>
 
-                                        <td>
-                                            @if (adminAccessRoute(config('role.partner_login.access.view')))
-                                                <a class="btn btn-sm edit_button"
-                                                    href="{{ route('admin.apis.login', $item['id']) }}" target="_blank"
-                                                    data-bs-toggle="tooltip" data-bs-placement="right" title="Partner">
-                                                    <i class="icon-base ti tabler-login me-1"></i>
-                                                </a>
 
-                                                <br>
-                                            @endif
-                                            @if (adminAccessRoute(config('role.partners.access.delete')))
-                                                <form action="{{ route('admin.apis.delete', $item['id']) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
+                                    <td>
+                                        @if (adminAccessRoute(config('role.partner_login.access.view')))
+                                        <a class="btn btn-sm edit_button"
+                                            href="{{ route('admin.apis.login', $item['id']) }}" target="_blank"
+                                            data-bs-toggle="tooltip" data-bs-placement="right" title="Partner">
+                                            <i class="icon-base ti tabler-login me-1"></i>
+                                        </a>
 
-                                                    <button type="submit" class="btn btn-sm edit_button"
-                                                        data-bs-toggle="tooltip" data-bs-placement="right"
-                                                        title="Delete">
-                                                        <i class="icon-base ti tabler-trash me-1"></i>
-                                                    </button>
+                                        <br>
+                                        @endif
+                                        @if (adminAccessRoute(config('role.partners.access.delete')))
 
-                                                </form>
-                                            @endif
-                                            <button class="btn btn-sm edit_button"
-                                            onclick="generateAndCopyPassword({{ $item['id'] }})"
+                                        <button type="button"
+                                            class="btn btn-sm delete_api_button edit_button delete-api"
+                                            data-id="{{ $item['id'] }}"
+                                            data-url="{{ route('admin.apis.delete', $item['id']) }}"
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="right"
-                                            title="Reload">
-                                        <i class="icon-base ti tabler-restore me-1"></i>
-                                    </button>
+                                            title="Delete">
+                                            <i class="icon-base ti tabler-trash me-1"></i>
+                                        </button>
+                                                                                @endif
+                                        <br>
+                                        <button class="btn btn-sm edit_button"
+                                            onclick="generateAndCopyPassword({{ $item['id'] }})"
+                                            data-bs-toggle="tooltip" data-bs-placement="right" title="Reload">
+                                            <i class="icon-base ti tabler-restore me-1"></i>
+                                        </button>
 
-                                            <br>
-                                            <a class="btn btn-sm edit_button"
-   data-copy="Username: {{ $item['username'] }}&#10;Password: {{ $item['password_string'] }}&#10;Api Key: {{ $item['api_key'] }}"
-   onclick="copyToClipboard(this)"
-   data-bs-toggle="tooltip"
-   data-bs-placement="right"
-   title="Copy">
-   <i class="icon-base ti tabler-copy-check me-1"></i>
-</a>
-
-
-                                            <br>
-                                            <a class="btn btn-sm edit_button"
-                                                href="{{ route('admin.api.profile.export', $item['id']) }}"
-                                                data-bs-toggle="tooltip" data-bs-placement="right" title="Download EX">
-                                                <i class="icon-base ti tabler-database-export me-1"></i>
-                                            </a>
+                                        <br>
+                                        <a class="btn btn-sm edit_button"
+                                            data-copy="Username: {{ $item['username'] }}&#10;Password: {{ $item['password_string'] }}&#10;Api Key: {{ $item['api_key'] }}"
+                                            onclick="copyToClipboard(this)" data-bs-toggle="tooltip"
+                                            data-bs-placement="right" title="Copy">
+                                            <i class="icon-base ti tabler-copy-check me-1"></i>
+                                        </a>
 
 
-                                            <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
-                                                <button type="submit" class="btn edit_button" data-bs-toggle="tooltip"
-                                                    data-bs-placement="right" title="QR Code">
-                                                    <i class="icon-base ti tabler-qrcode me-1"></i>
-                                                </button>
+                                        <br>
+                                        <a class="btn btn-sm edit_button"
+                                            href="{{ route('admin.api.profile.export', $item['id']) }}"
+                                            data-bs-toggle="tooltip" data-bs-placement="right" title="Download EX">
+                                            <i class="icon-base ti tabler-database-export me-1"></i>
+                                        </a>
 
-                                            </form>
-                                        </td>
-                                    </tr>
+                                        <br>
+
+                                        <a class="btn btn-sm"
+                                            href="{{ route('admin.apis.reset', $item['id']) }}"
+                                            data-bs-toggle="tooltip" data-bs-placement="right" title="QR Code">
+                                            <i class="icon-base ti tabler-qrcode me-1"></i>
+                                        </a>
+                                        {{-- <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
+                                            <button type="submit" class="btn"
+                                                data-bs-placement="right" title="QR Code">
+                                                <i class="icon-base ti tabler-qrcode me-1"></i>
+                                            </button>
+                                        </form> --}}
+                                    </td>
+                                </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="100%">
+                                        <p class="text-dark">@lang('No Data Found')</p>
+                                    </td>
+                                </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -223,184 +215,170 @@
 
     </div>
 
-    {{-- ye awaly  --}}
+    {{-- ye awaly --}}
     @foreach ($records as $item)
-        <!-- Edit Modal -->
-        <div id="editModal{{ $item['id'] }}" class="modal modal-top fade" tabindex="-1" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-
-                    <div class="modal-header modal-colored-header bg-warning">
-                        <h5 class="modal-title" id="modalTopTitle">@lang('Edit Record') </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-                    <form action="{{ route('admin.apis.update', $item['id']) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="modal-body">
-                            <div class="row justify-content-between align-items-center">
-                                <!-- Input fields for editing the record -->
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Name</label>
-                                        <input type="text" class="form-control" name="name"
-                                            value="{{ $item['name'] }}" required />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Username</label>
-                                        <input type="text" class="form-control" name="username"
-                                            value="{{ $item['username'] }}" required />
-                                    </div>
-                                </div>
-                                <!-- Add other input fields for editing here -->
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Email</label>
-                                        <input type="text" class="form-control" name="email"
-                                            value="{{ $item['email'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Phone</label>
-                                        <input type="text" class="form-control" name="phone"
-                                            value="{{ $item['phone'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Min Deposit</label>
-                                        <input type="number" class="form-control" name="min_deposit"
-                                            value="{{ $item['min_deposit'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Min Withdrawal</label>
-                                        <input type="number" class="form-control" name="min_withdrawal"
-                                            value="{{ $item['min_withdrawal'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Account Type</label>
-                                        <select class="form-control" name="acc_type" required>
-                                            <option value="Partner"
-                                                {{ $item['acc_type'] == 'Partner' ? 'selected' : '' }}>
-                                                Partner</option>
-                                            <option value="Agent"
-                                                {{ $item['acc_type'] == 'Agent' ? 'selected' : '' }}>Agent
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Status</label>
-                                        <select class="form-control" name="status" required>
-                                            <option value="1" {{ $item['status'] == 1 ? 'selected' : '' }}>Active
-                                            </option>
-                                            <option value="0" {{ $item['status'] == 0 ? 'selected' : '' }}>
-                                                Inactive</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Signature</label>
-                                        <select class="form-control" name="sign" required>
-                                            <option value="0" {{ $item['sign'] == 0 ? 'selected' : '' }}>Inactive
-                                            </option>
-                                            <option value="1" {{ $item['sign'] == 1 ? 'selected' : '' }}>Active
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Txn Verification</label>
-                                        <select class="form-control" name="txn_verification" required>
-                                            <option value="0"
-                                                {{ $item['txn_verification'] == 0 ? 'selected' : '' }}>
-                                                Optional</option>
-                                            <option value="1"
-                                                {{ $item['txn_verification'] == 1 ? 'selected' : '' }}>
-                                                Required</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Password</label>
-                                        <input type="text" class="form-control" name="password" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Website</label>
-                                        <input type="text" class="form-control" placeholder="http://ecwin.asia"
-                                            name="website" value="{{ $item['website'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">API End-Point Deposit</label>
-                                        <input type="text" class="form-control" name="api_endpoint_deposit"
-                                            placeholder="http://ecwin.asia/api"
-                                            value="{{ $item['api_endpoint_deposit'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">API End-Point Withdrawal</label>
-                                        <input type="text" class="form-control" name="api_endpoint_withdrawal"
-                                            placeholder="http://ecwin.asia/api"
-                                            value="{{ $item['api_endpoint_withdrawal'] }}" />
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="pr-3">Redirect URL</label>
-                                        <input type="text" class="form-control" name="redirect_url"
-                                            placeholder="http://ecwin.asia" value="{{ $item['redirect_url'] }}" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">@lang('Update')</button>
-                            <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
-                                aria-label="Close">@lang('Close')</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endforeach
-
-
-
-
-
-    {{-- New MODAL --}}
-    <div class="modal modal-top fade" id="newModal" tabindex="-1">
+    <!-- Edit Modal -->
+    <div id="editModal{{ $item['id'] }}" class="modal modal-top fade" tabindex="-1" role="dialog">
         <div class="modal-dialog">
             <div class="modal-content">
 
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Add New')</h5>
+                <div class="modal-header modal-colored-header bg-warning">
+                    <h5 class="modal-title" id="modalTopTitle">@lang('Edit Record') </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('admin.apis.update', $item['id']) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="row justify-content-between align-items-center">
+                            <!-- Input fields for editing the record -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Name</label>
+                                    <input type="text" class="form-control" name="name" value="{{ $item['name'] }}"
+                                        required />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Username</label>
+                                    <input type="text" class="form-control" name="username"
+                                        value="{{ $item['username'] }}" required />
+                                </div>
+                            </div>
+                            <!-- Add other input fields for editing here -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Email</label>
+                                    <input type="text" class="form-control" name="email" value="{{ $item['email'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Phone</label>
+                                    <input type="text" class="form-control" name="phone" value="{{ $item['phone'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Min Deposit</label>
+                                    <input type="number" class="form-control" name="min_deposit"
+                                        value="{{ $item['min_deposit'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Min Withdrawal</label>
+                                    <input type="number" class="form-control" name="min_withdrawal"
+                                        value="{{ $item['min_withdrawal'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Account Type</label>
+                                    <select class="form-control" name="acc_type" required>
+                                        <option value="Partner" {{ $item['acc_type']=='Partner' ? 'selected' : '' }}>
+                                            Partner</option>
+                                        <option value="Agent" {{ $item['acc_type']=='Agent' ? 'selected' : '' }}>Agent
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Status</label>
+                                    <select class="form-control" name="status" required>
+                                        <option value="1" {{ $item['status']==1 ? 'selected' : '' }}>Active
+                                        </option>
+                                        <option value="0" {{ $item['status']==0 ? 'selected' : '' }}>
+                                            Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Signature</label>
+                                    <select class="form-control" name="sign" required>
+                                        <option value="0" {{ $item['sign']==0 ? 'selected' : '' }}>Inactive
+                                        </option>
+                                        <option value="1" {{ $item['sign']==1 ? 'selected' : '' }}>Active
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Txn Verification</label>
+                                    <select class="form-control" name="txn_verification" required>
+                                        <option value="0" {{ $item['txn_verification']==0 ? 'selected' : '' }}>
+                                            Optional</option>
+                                        <option value="1" {{ $item['txn_verification']==1 ? 'selected' : '' }}>
+                                            Required</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Password</label>
+                                    <input type="text" class="form-control" name="password" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Website</label>
+                                    <input type="text" class="form-control" placeholder="http://ecwin.asia"
+                                        name="website" value="{{ $item['website'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">API End-Point Deposit</label>
+                                    <input type="text" class="form-control" name="api_endpoint_deposit"
+                                        placeholder="http://ecwin.asia/api"
+                                        value="{{ $item['api_endpoint_deposit'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">API End-Point Withdrawal</label>
+                                    <input type="text" class="form-control" name="api_endpoint_withdrawal"
+                                        placeholder="http://ecwin.asia/api"
+                                        value="{{ $item['api_endpoint_withdrawal'] }}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3">Redirect URL</label>
+                                    <input type="text" class="form-control" name="redirect_url"
+                                        placeholder="http://ecwin.asia" value="{{ $item['redirect_url'] }}" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">@lang('Update')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
+                            aria-label="Close">@lang('Close')</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- New MODAL --}}
+    <div class="modal modal-top fade" id="newModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTopTitle">@lang('Add New API')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.apis.add') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
-
-
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Name</label>
@@ -446,6 +424,8 @@
                                 <div class="form-group">
                                     <label class="pr-3">Password</label>
                                     <input type="text" class="form-control" name="password" required />
+                                    <span class="text-danger error-text password_error"></span>
+
                                 </div>
                             </div>
 
@@ -519,7 +499,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">@lang('Save')</button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary">@lang('Save')</button>
                         <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
                             aria-label="Close">@lang('Close')</button>
                     </div>
@@ -625,13 +605,7 @@
             </div>
         </div>
     </div>
-
     {{-- New Partner End here --}}
-
-
-
-
-
 
 
     <div class="modal modal-top fade" id="newModalb" tabindex="-1">
@@ -651,8 +625,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Balance</label>
-                                    <input type="number" step="0.01" class="form-control" name="amount"
-                                        required />
+                                    <input type="number" step="0.01" class="form-control" name="amount" required />
                                 </div>
                             </div>
 
@@ -682,8 +655,7 @@
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <input value="1" type="radio" name="amount_type" id="amount_type1"
-                                        checked>
+                                    <input value="1" type="radio" name="amount_type" id="amount_type1" checked>
                                     <label class="pr-3">(+) Add</label>
                                     <input value="2" type="radio" name="amount_type" id="amount_type2">
                                     <label class="pr-3">(-) Deduct</label>
@@ -728,16 +700,97 @@
     </div>
 
 
-
-
-
-
-
-
     @push('js')
-        <script src="{{ asset('public/assets/js/select2.min.js') }}"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+
+        $(document).on('click', '.delete_api_button', function(e) {
+            e.preventDefault();
+            var roleId = $(this).data('id');
+            var url = $(this).data('url');
+            // SweetAlert2 confirmation dialog
+            Swal.fire({
+                 title: `Are you sure you want to delete ID: ${roleId}?`,
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: url, // Your delete route
+                        method: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: roleId
+                        },
+                        success: function(response) {
+                            // Handle success
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: response.message || `ID ${roleId} was deleted successfully.`,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true,
+                                willClose: () => {
+                                    window.location.reload();
+                                }
+                            });
+
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle error
+                            Swal.fire(
+                                'Error!',
+                                'There was an error deleting the role.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('change', '.toggle-status', function () {
+            const checkbox = $(this);
+            const apiId = checkbox.data('id');
+            const status = checkbox.is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: "{{ route('admin.apis.toggleStatus') }}",  // Laravel route name used here
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    id: apiId,
+                    status: status
+                },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Updated!',
+                            text: response.message || 'Status updated successfully.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        Swal.fire('Error!', response.message || 'Update failed.', 'error');
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error!', 'Something went wrong.', 'error');
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
                 let currentlyEditing = null;
 
                 document.querySelectorAll('.editable').forEach(function(span) {
@@ -791,10 +844,8 @@
                     });
                 });
             });
-        </script>
 
-        <script>
-            function generateAndCopyPassword(id) {
+        function generateAndCopyPassword(id) {
                 const url = `{{ route('admin.apis.generatePassword', ':id') }}`.replace(':id', id);
 
                 fetch(url, {
@@ -819,11 +870,8 @@
                         alert("Something went wrong.");
                     });
             }
-        </script>
 
-
-        <script>
-            function copyToClipboard(element) {
+        function copyToClipboard(element) {
                 const text = element.getAttribute('data-copy');
                 navigator.clipboard.writeText(text).then(function() {
                     alert('Copied to clipboard!');
@@ -831,31 +879,7 @@
                     alert('Failed to copy text: ', err);
                 });
             }
-        </script>
 
-        <script>
-            "use strict";
-            $(document).ready(function(e) {
-
-
-                $('#image').change(function() {
-                    let reader = new FileReader();
-                    reader.onload = (e) => {
-                        $('#image_preview_container').attr('src', e.target.result);
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                });
-
-
-            });
-
-            $(document).ready(function() {
-                $('select').select2({
-                    selectOnClose: true
-                });
-            });
-        </script>
-        <script>
             function setBalanceItem(itemId) {
                 // Find the input field in the modal
                 var balanceInput = document.getElementById("balanceInput");
@@ -873,11 +897,60 @@
                 parentidInput.value = parentidd;
                 acc_idInput.value = acc_idd;
             }
-        </script>
 
-        <script>
+         document.addEventListener('DOMContentLoaded', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                    new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            });
+    </script>
+
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script>
+        "use strict";
             $(document).ready(function() {
-                // Attach change event listener to the select element
+
+                $('form').on('submit', function (e) {
+                    e.preventDefault();
+
+                    let $form = $(this);
+                    let submitBtn = $('#submitBtn');
+
+                    // Disable the button
+                    submitBtn.prop('disabled', true).text('Saving...');
+
+                    // Clear previous errors
+                    $form.find('span.error-text').text('');
+
+                    $.ajax({
+                        url: $form.attr('action'),
+                        method: $form.attr('method'),
+                        data: $form.serialize(),
+                        success: function (response) {
+                            if (response.status === 'success') {
+                                $('#newModal').modal('hide');
+                                $form[0].reset();
+
+                            }
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                $.each(errors, function (key, value) {
+                                    $form.find('span.' + key + '_error').text(value[0]);
+                                });
+                            } else {
+                                alert('Something went wrong.');
+                            }
+                        },
+                        complete: function () {
+                            // Enable the button again
+                            submitBtn.prop('disabled', false).text('@lang("Save")');
+                        }
+                    });
+                });
+
                 $('#adjustment').change(function() {
                     // Get the selected value
                     var selectedValue = $(this).val();
@@ -893,16 +966,25 @@
                         $('#amount_type1').prop('checked', false);
                     }
                 });
-            });
-        </script>
+                 let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    selectOnClose: true,
+                });
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                tooltipTriggerList.forEach(function(tooltipTriggerEl) {
-                    new bootstrap.Tooltip(tooltipTriggerEl);
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function (e) {
+                    $(this).data('unselecting', true);
+                });
+
+                $select.on('select2:opening', function (e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
+                    }
                 });
             });
-        </script>
+    </script>
+
     @endpush
 </x-admin-layout>

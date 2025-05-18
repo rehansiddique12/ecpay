@@ -15,6 +15,8 @@ class Commission extends Model
         'withdrawal_percentage',
         'settlement_percentage',
         'api_id',
+        'gateway_id',
+        'type'
     ];
 
     public function parent()

@@ -196,7 +196,7 @@
 
                                         @if ($diffInMinutes > 10)
                                             <span class="badge badge-light">
-                                                <i class="fa fa-circle text-warning warning font-12"></i>
+                                                <i class="fa fa-circle text-danger danger font-12"></i>
                                                 @lang('Member did not complete')
                                             </span>
                                         @else

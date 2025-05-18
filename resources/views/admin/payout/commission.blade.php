@@ -1,442 +1,370 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-    <script src="{{ asset('assets/css/select2.min.css')}}"></script>
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
     <style>
-    tr th {
-        color: white !important
-    }
+        tr th {
+            color: white !important;
+        }
     </style>
     @endpush
-    @php
-    $key = 0;
-    @endphp
+
+
+
     <div class="row">
         <div class="col-md-12">
             <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-                <h3 style="color: #7367f0">{{$pageTitle}}</h3>
-                <form action="{{ route('admin.apis.commission.add') }}" method="post">
+                <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+
+                <form action="{{ route('admin.apis.commission.add') }}" method="POST">
                     @csrf
-                    <div class="">
+                    <input type="hidden" value="{{ $id }}" name="category_id" />
 
-                        @if(count($commissions)>0)
-                        @foreach($commissions as $key => $commission)
-                        <div id="row-p{{$key}}">
-                            <br>
-                            <div style='border:1px solid;padding:20px'>
-                                <div class="row">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="pr-3">From Amount</label>
-                                            <input type="text" hidden value="{{$commission->id}}" class="form-control"
-                                                name="id[]" />
-                                            <input type="text" hidden value="{{$id}}" class="form-control"
-                                                name="category_id" />
-
-                                            <input type="number" readonly value="{{$commission->from_amount}}"
-                                                class="form-control" name="from_amount[]" required />
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="pr-3">To Amount</label>
-                                            <input type="number" value="{{$commission->to_amount}}" class="form-control"
-                                                id="to_amount_{{$key}}" name="to_amount[]" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="pr-3">Deposit Percentage</label>
-                                            <div class="input-group">
-                                                <input type="number" step="0.01"
-                                                    value="{{$commission->deposit_percentage}}" class="form-control"
-                                                    name="deposit_percentage[]" required />
-                                                <div class="input-group-append">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="pr-3">Withdrawal Percentage</label>
-                                            <div class="input-group">
-                                                <input type="number" step="0.01"
-                                                    value="{{$commission->withdrawal_percentage}}" class="form-control"
-                                                    name="withdrawal_percentage[]" required />
-                                                <div class="input-group-append">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="pr-3">Settlement Percentage</label>
-                                            <div class="input-group">
-                                                <input type="number" step="0.01"
-                                                    value="{{$commission->settlement_percentage}}" class="form-control"
-                                                    name="settlement_percentage[]" required />
-                                                <div class="input-group-append">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mt-4">
-                                        @if($key>0)
-                                        <div class="row">
-                                            <div class='col-1' style='padding-left:13px;'>
-                                                <button type='button' class='cancel-row btn btn-danger mt-1'
-                                                    data-row='p{{$key}}'>Cancel</button>
-                                            </div>
-                                        </div>
-                                        @endif
-                                    </div>
-
-
-
-
-
+                    @if(count($commissions) > 0)
+                    @foreach($commissions as $key => $commission)
+                    <div id="row-p{{ $key }}">
+                        <br>
+                        <div style="border:1px solid;padding:20px">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label>From Amount</label>
+                                    <input type="hidden" name="id[]" value="{{ $commission->id }}">
+                                    <input type="number" class="form-control" name="from_amount[]"
+                                        value="{{ $commission->from_amount }}" readonly required>
                                 </div>
+                                <div class="col-md-2">
+                                    <label>To Amount</label>
+                                    <input type="number" class="form-control" name="to_amount[]"
+                                        value="{{ $commission->to_amount }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Deposit %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control"
+                                            name="deposit_percentage[]" value="{{ $commission->deposit_percentage }}"
+                                            required>
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Withdrawal %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control"
+                                            name="withdrawal_percentage[]"
+                                            value="{{ $commission->withdrawal_percentage }}" required>
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Settlement %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control"
+                                            name="settlement_percentage[]"
+                                            value="{{ $commission->settlement_percentage }}" required>
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Type</label>
+                                    <select class="form-select" name="type[{{ $key }}]" required>
+                                        <option value="">Select Type</option>
+                                        <option value="agent" {{ $commission->type == 'agent' ? 'selected' : '' }}>Agent
+                                        </option>
+                                        <option value="personal" {{ $commission->type == 'personal' ? 'selected' : ''
+                                            }}>Personal</option>
+                                    </select>
+                                </div>
+                                @php
+                                $selectedGateways = json_decode($commission->gateway_id ?? '');
+                                @endphp
 
+                                <div class="col-md-5">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" multiple name="settlement_gateway[{{ $key }}][]">
+                                        @foreach($gateways as $gateway)
+                                        <option value="{{ $gateway->id }}" {{ in_array($gateway->id, $selectedGateways)
+                                            ? 'selected' : '' }}>
+                                            {{ $gateway->source_name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @if($key > 0)
+                                <div class="col-md-1 mt-4">
+                                    <button type="button" class="btn btn-danger cancel-row"
+                                        data-row="p{{ $key }}">Cancel</button>
+                                </div>
+                                @endif
                             </div>
                         </div>
-
-                        @endforeach
-                        @else
+                    </div>
+                    @endforeach
+                    @else
+                    <div id="row-p0">
+                        <br>
                         <div style='border:1px solid;padding:20px'>
                             <div class="row">
                                 <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">From Amount</label>
-                                        <input type="text" hidden class="form-control" name="id[]" />
-                                        <input type="number" readonly value="0" class="form-control"
-                                            name="from_amount[]" / required>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">To Amount</label>
-                                        <input type="number" class="form-control" id="to_amount_0" name="to_amount[]" /
-                                            required>
-                                    </div>
+                                    <label>From Amount</label>
+                                    <input type="hidden" name="id[]" />
+                                    <input type="number" readonly value="0" class="form-control" name="from_amount[]"
+                                        required />
                                 </div>
                                 <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">Deposit Percentage</label>
-                                        <div class="input-group">
-                                            <input type="number" step="0.01" class="form-control"
-                                                name="deposit_percentage[]" / required>
-                                            <div class="input-group-append">
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                        </div>
+                                    <label>To Amount</label>
+                                    <input type="number" class="form-control" name="to_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Deposit %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control"
+                                            name="deposit_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">Withdrawal Percentage</label>
-                                        <div class="input-group">
-                                            <input type="number" step="0.01" class="form-control"
-                                                name="withdrawal_percentage[]" / required>
-                                            <div class="input-group-append">
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                        </div>
+                                    <label>Withdrawal %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control"
+                                            name="withdrawal_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">Settlement Percentage</label>
-                                        <div class="input-group">
-                                            <input type="number" step="0.01" class="form-control"
-                                                name="settlement_percentage[]" / required>
-                                            <div class="input-group-append">
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                        </div>
+                                    <label>Settlement %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control"
+                                            name="settlement_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
                                     </div>
                                 </div>
-                                <!-- Type Dropdown -->
                                 <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">Type</label>
-                                        <div class="input-group">
-                                            <select class="form-control " name="type" required>
-                                                <option value="">Select Type</option>
-                                                <option value="agent">Agent</option>
-                                                <option value="personal">Personal</option>
-
-                                            </select>
-                                        </div>
-                                    </div>
+                                    <label>Type</label>
+                                    <select class="form-select" name="type[0]" required>
+                                        <option value="">Select Type</option>
+                                        <option value="agent">Agent</option>
+                                        <option value="personal">Personal</option>
+                                    </select>
                                 </div>
-
-                                <!-- Gateway Dropdown -->
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label class="pr-3">Gateway</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2" name="settlement_gateway[]" required>
-                                                <option value="">Select Gateway</option>
-                                                @foreach($gateways as $gateway)
-                                                <option value="{{ $gateway->id}}">{{ $gateway->source_name}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
+                                <div class="col-md-3">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" name="settlement_gateway[0][]" multiple
+                                        required>
+                                        @foreach($gateways as $gateway)
+                                        <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-
                             </div>
                         </div>
-                        @endif
+                    </div>
+                    @endif
 
+                    <div id="add-row"></div>
 
-                        <div id="add-row"></div>
+                    <div class="col-md-12 mb-4 mt-2">
+                        <button type="button" class="duplicate-row btn btn-success">Add More</button>
+                    </div>
 
-                        <div class="col-md-12 mb-5 mt-2">
-                            <button type="button" class="duplicate-row btn btn-success add-more">Add More</button>
-                        </div>
-
-
-
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <button type="submit" class="btn waves-effect waves-light btn-primary">Submit</button>
-                            </div>
-                        </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
 
-
-
+                @if(count($cron_commissions) > 0)
                 <hr>
-                @if(count($cron_commissions)>0)
                 <h3 style="color: #7367f0">Pending to Update</h3>
-                @foreach($cron_commissions as $key => $commission)
-                <div id="row-p{{$key}}">
-                    <br>
-                    <div style='border:1px solid;padding:20px'>
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="pr-3">From Amount</label>
-                                    <input type="text" hidden value="{{$commission->id}}" class="form-control"
-                                        name="id[]" />
-                                    <input type="number" readonly value="{{$commission->from_amount}}"
-                                        class="form-control" required />
-                                </div>
-                            </div>
 
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="pr-3">To Amount</label>
-                                    <input type="number" value="{{$commission->to_amount}}" class="form-control"
-                                        required />
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="pr-3">Deposit Percentage</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" value="{{$commission->deposit_percentage}}"
-                                            class="form-control" required />
-                                        <div class="input-group-append">
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="pr-3">Withdrawal Percentage</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" value="{{$commission->withdrawal_percentage}}"
-                                            class="form-control" required />
-                                        <div class="input-group-append">
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="pr-3">Settlement Percentage</label>
-                                    <div class="input-group">
-                                        <input type="number" step="0.01" value="{{$commission->settlement_percentage}}"
-                                            class="form-control" required />
-                                        <div class="input-group-append">
-                                            <span class="input-group-text">%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2 mt-4">
-                            </div>
-
-
-
-
-
-                        </div>
-
+                @foreach($cron_commissions as $commission)
+                <div style="border:1px solid; padding:20px;" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-2"><label>From</label><input type="number" class="form-control"
+                                value="{{ $commission->from_amount }}" readonly /></div>
+                        <div class="col-md-2"><label>To</label><input type="number" class="form-control"
+                                value="{{ $commission->to_amount }}" readonly /></div>
+                        <div class="col-md-2"><label>Deposit %</label><input type="number" class="form-control"
+                                value="{{ $commission->deposit_percentage }}" readonly /></div>
+                        <div class="col-md-2"><label>Withdrawal %</label><input type="number" class="form-control"
+                                value="{{ $commission->withdrawal_percentage }}" readonly /></div>
+                        <div class="col-md-2"><label>Settlement %</label><input type="number" class="form-control"
+                                value="{{ $commission->settlement_percentage }}" readonly /></div>
+                        <div class="col-md-2"><label>Type</label><input type="text" class="form-control"
+                                value="{{ ucfirst($commission->type) }}" readonly /></div>
                     </div>
                 </div>
-
                 @endforeach
                 @endif
-
-
             </div>
         </div>
     </div>
 
     @push('js')
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
-    $(document).ready(function() {
-        var rowCounter = '<?php echo $key?>';
-
-        $('.duplicate-row').click(function() {
-
-
-
-            var fromAmountValue = $("[id=to_amount_" + rowCounter + "]").val();
-
-
-
-            rowCounter++;
-
-
-
-            // Create the new row HTML
-            var newRow = `
-      <div id="row-${rowCounter}">
-      <br>
-      <div style='border:1px solid;padding:20px'>
-      <div class="row">
-        <div class="col-md-2">
-            <div class="form-group">
-                <label class="pr-3">From Amount</label>
-                    <input type="text" hidden class="form-control" name="id[]" />
-                    <input type="number" readonly value="${fromAmountValue}" class="form-control" name="from_amount[]"/ required>
-            </div>
-        </div>
-
-         <div class="col-md-2">
-            <div class="form-group">
-                <label class="pr-3">To Amount</label>
-                    <input type="number" class="form-control" id="to_amount_${rowCounter}" name="to_amount[]"/ required>
-            </div>
-        </div>
-       <div class="col-md-2">
-                    <div class="form-group">
-                     <label class="pr-3">Deposit Percentage</label>
-                    <div class="input-group">
-                        <input type="number" step="0.01" class="form-control" name="deposit_percentage[]"/ required>
-                        <div class="input-group-append">
-                          <span class="input-group-text">%</span>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                     <label class="pr-3">Withdrawal Percentage</label>
-                    <div class="input-group">
-                        <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]"/ required>
-                        <div class="input-group-append">
-                          <span class="input-group-text">%</span>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                     <label class="pr-3">Settlement Percentage</label>
-                    <div class="input-group">
-                        <input type="number" step="0.01" class="form-control" name="settlement_percentage[]"/ required>
-                        <div class="input-group-append">
-                          <span class="input-group-text">%</span>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-                 <div class="col-md-2">
-                    <div class="form-group">
-                     <label class="pr-3">Type</label>
-                    <div class="input-group">
-                       <select class="form-control " name="type" required>
-                <option value="">Select Type</option>
-                    <option value="agent">Agent</option>
-                    <option value="personal">Personal</option>
-
-            </select>
-                      </div>
-                    </div>
-                </div>
-                 <div class="col-md-2">
-                    <div class="form-group">
-                     <label class="pr-3">Gateway</label>
-                    <div class="input-group">
-                        <select class="form-control select2" name="settlement_gateway[]" required>
-                <option value="">Select Gateway</option>
-                @foreach($gateways as $gateway)
-                    <option value="{{ $gateway->id}}">{{ $gateway->source_name}}</option>
-                @endforeach
-            </select>
-                      </div>
-                    </div>
-                </div>
-                <div class="col-md-2 mt-4">
-                <div class="row">
-        <div class='col-1' style='padding-left:13px;'>
-          <button type='button' class='cancel-row btn btn-danger mt-1' data-row='${rowCounter}'>Cancel</button>
-        </div>
-        </div>
-                </div>
-
-
-               
-
-                   
-
-
-</div>
-
-
-        <div style='clear:both;'></div>
-      </div>
-      </div>
-    `;
-
-
-
-            // Append the new row to the add-row container
-            $('#add-row').append(newRow);
+        let key = {{ count($commissions) }};
+        let $select = $('.select2').select2({
+            // placeholder: "Select Partner",
+            // allowClear: true,
+            selectOnClose: true,
         });
 
-        // Cancel Row button click event
+        // Prevent dropdown from opening on clear
+        $select.on('select2:unselecting', function (e) {
+            $(this).data('unselecting', true);
+        });
+
+        $select.on('select2:opening', function (e) {
+            if ($(this).data('unselecting')) {
+                $(this).removeData('unselecting');
+                e.preventDefault();
+            }
+        });
+
+    $(document).on('click', '.duplicate-row', function() {
+        let html = `
+                    <div id="row-p${key}">
+                        <br>
+                        <div style='border:1px solid;padding:20px'>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label>From Amount</label>
+                                    <input type="hidden" name="id[]" />
+                                    <input type="number" readonly value="0" class="form-control" name="from_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>To Amount</label>
+                                    <input type="number" class="form-control" name="to_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Deposit %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="deposit_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Withdrawal %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Settlement %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="settlement_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Type</label>
+                                    <select class="form-select" name="type[${key}]" required>
+                                        <option value="">Select Type</option>
+                                        <option value="agent">Agent</option>
+                                        <option value="personal">Personal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
+                                        @foreach($gateways as $gateway)
+                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-1 mt-4">
+                                    <button type="button" class="btn btn-danger cancel-row" data-row="p${key}">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+        $('#add-row').append(html);
+        $('.select2').select2();
+        key++;
+    });
+
+    $(document).on('click', '.cancel-row', function() {
+        const rowId = $(this).data('row');
+        $(`#row-${rowId}`).remove();
+    });
+    </script>
+    <script>
+        let key = {{ count($commissions) > 0 ? count($commissions) : 1 }};
+        // Start key count from existing commissions
+
+        // Add new row on clicking Add More button
+        $(document).on('click', '.duplicate-row', function() {
+            let html = `
+                    <div id="row-p${key}">
+                        <br>
+                        <div style='border:1px solid;padding:20px'>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label>From Amount</label>
+                                    <input type="hidden" name="id[]" />
+                                    <input type="number" readonly value="0" class="form-control" name="from_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>To Amount</label>
+                                    <input type="number" class="form-control" name="to_amount[]" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Deposit %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="deposit_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Withdrawal %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="withdrawal_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Settlement %</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" name="settlement_percentage[]" required />
+                                        <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Type</label>
+                                    <select class="form-select" name="type[${key}]" required>
+                                        <option value="">Select Type</option>
+                                        <option value="agent">Agent</option>
+                                        <option value="personal">Personal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
+                                        @foreach($gateways as $gateway)
+                                            <option value="{{ $gateway->id }}">{{ $gateway->source_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-1 mt-4">
+                                    <button type="button" class="btn btn-danger cancel-row" data-row="p${key}">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            $('#add-row').append(html);
+            // Reinitialize select2 for new elements
+            $('.select2').select2();
+            key++;
+        });
+
+        // Remove row on clicking Cancel button
         $(document).on('click', '.cancel-row', function() {
-            var row = $(this).data('row');
-
-            // Remove the corresponding row
-            $('#row-' + row).remove();
+            const rowId = $(this).data('row');
+            $(`#row-${rowId}`).remove();
         });
-    });
     </script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- <script src="{{ asset('assets/js/select2.min.js')}}"></script> -->
-    <script>
-    $(document).ready(function() {
-            $('.select').select2();
-
-    });
-    </script>
-
     @endpush
 </x-admin-layout>
+
+
+
