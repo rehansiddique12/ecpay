@@ -66,6 +66,7 @@ class Api extends Authenticatable
         'redirect_url',
         'timezone',
         'password_string',
+        'category_id'
     ];
 
 

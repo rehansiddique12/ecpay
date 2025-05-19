@@ -18,7 +18,7 @@
             <div class="col-md-3">
                 <div class="form-group">
                     <label>E-Wallet</label>
-                    <select name="gateway" class="form-control">
+                    <select name="gateway" class="form-select">
                         <option value="">All</option>
                         @foreach($gateways as $gateway)
                         <option value="{{ $gateway->name }}" @if(@request()->gateway == $gateway->name) selected @endif>{{ $gateway->name }}</option>
@@ -102,15 +102,15 @@ $gateway = @request()->gateway;
 
                         <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Pending']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_pending_count']) ? $value['payment_pending_count'] : '' }}</td>
                         <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Pending']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_pending_amount']) ? getAmount($value['payment_pending_amount'],2) : '' }}</td>
-                        <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Approved']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_complete_count']) ? $value['payment_complete_count'] : '' }}</td>
-                        <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Approved']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_complete_amount']) ? getAmount($value['payment_complete_amount'],2) : '' }}</td>
+                        <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Complete']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_complete_count']) ? $value['payment_complete_count'] : '' }}</td>
+                        <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Complete']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_complete_amount']) ? getAmount($value['payment_complete_amount'],2) : '' }}</td>
                         <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'All']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_count']) ? $value['payment_count'] : '' }}</td>
                         <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'All']) }}';" class="bg bg-primary text-white"> {{ isset($value['payment_total_amount']) ? getAmount($value['payment_total_amount'],2) : '' }}</td>
 
                         <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Pending']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_pending_count']) ? $value['payout_pending_count'] : '' }}</td>
                         <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Pending']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_pending_amount']) ? getAmount($value['payout_pending_amount'],2) : '' }}</td>
-                        <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Approved']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_complete_count']) ? $value['payout_complete_count'] : '' }}</td>
-                        <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Approved']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_complete_amount']) ? getAmount($value['payout_complete_amount'],2) : '' }}</td>
+                        <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Complete']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_complete_count']) ? $value['payout_complete_count'] : '' }}</td>
+                        <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'Complete']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_complete_amount']) ? getAmount($value['payout_complete_amount'],2) : '' }}</td>
                         <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'All']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_count']) ? $value['payout_count'] : '' }}</td>
                         <td onclick="window.location='{{ route('admin.payout.report.detail', ['date' => $value['date'],'gateway' => $gateway,'status' => 'All']) }}';" class="bg bg-success text-white"> {{ isset($value['payout_total_amount']) ? getAmount($value['payout_total_amount'],2) : '' }}</td>
                     </tr>

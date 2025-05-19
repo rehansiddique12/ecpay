@@ -18,7 +18,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>E-Wallet</label>
-                        <select name="gateway" class="form-control">
+                        <select name="gateway" class="form-select">
                             <option value="">All</option>
                             @foreach($gateways as $gateway)
                                 <option value="{{ $gateway->name }}"
@@ -85,8 +85,8 @@ $gateway = @request()->gateway;
                             <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'All']) }}';"> {{ $payment->payment_count }}</td>
                             <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'Pending']) }}';"> {{ $payment->pending_count }}</td>
                             <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'Pending']) }}';"> {{ getAmount($payment->pending_amount,2) }}</td>
-                            <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'Approved']) }}';"> {{ $payment->complete_count }}</td>
-                            <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'Approved']) }}';"> {{ getAmount($payment->complete_amount,2) }}</td>
+                            <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'Complete']) }}';"> {{ $payment->complete_count }}</td>
+                            <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'Complete']) }}';"> {{ getAmount($payment->complete_amount,2) }}</td>
                             <td onclick="window.location='{{ route('admin.payment.report.detail', ['date' => $payment->payment_date,'gateway' => $gateway,'status' => 'All']) }}';"> {{ getAmount($payment->total_amount,2) }}</td>
                         </tr>
                     @empty
