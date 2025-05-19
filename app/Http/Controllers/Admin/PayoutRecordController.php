@@ -28,7 +28,7 @@ use App\Models\AdminAccount;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
 // rehan
-
+use App\Models\ParentCommission;
 use App\Models\AccountGateway;
 use App\Models\ApiTransaction;
 use App\Models\CronCommission;
@@ -1553,7 +1553,6 @@ class PayoutRecordController extends Controller
     public function updateApi(Request $request, $id)
     {
 
-
             $api = Api::findOrFail($id);
 
             $validated = $request->validate([
@@ -1581,6 +1580,7 @@ class PayoutRecordController extends Controller
                 'redirect_url' => 'nullable|string|max:500',
                 'timezone' => 'nullable|string|max:255',
                 'status' => 'required|boolean',
+                'category_id' => 'nullable',
             ]);
 
 
@@ -1591,7 +1591,6 @@ class PayoutRecordController extends Controller
                 unset($validated['password']);
             }
             $validated['password_string'] = $request->password;
-
             $api->update($validated);
 
             return redirect()->back()->with('success', 'API record updated successfully.');
@@ -1847,6 +1846,45 @@ class PayoutRecordController extends Controller
         ));
     }
 
+     public function partnerCommission($id)
+    {
+        $api = Api::where('id',$id)->first();
+        $partners = Api::where('id', '!=', $id)->get();
+        $cron_commissions = CronCommission::where('category_id', $id)->get();
+
+        $commissions = Commission::where('category_id', $api->category_id)->get();
+        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
+            ->groupBy('source_name','id')
+            ->get();
+        $pageTitle = "Partner Commissions";
+
+        $records = "";
+
+        return view('admin.payout.partner_commission', compact(
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways','partners'
+        ));
+    }
+   
+    public function addpartnerCommission(Request $request){
+      $api = Api::findOrFail($request->user_id);
+$commissions = Commission::where('category_id', $api->category_id)->get();
+
+foreach ($commissions as $commission) {
+    ParentCommission::create([
+        'from_amount' => $commission->from_amount,
+        'to_amount' => $commission->to_amount,
+        'deposit_percentage' => $request->deposit_percentage,
+        'withdrawal_percentage' => $request->withdrawal_percentage,
+        'parent_id' => $request->partner_id,
+        'user_id' => $request->user_id,
+        'type' => $commission->type,
+        'gateway_id' => $request->gateway_id,
+    ]);
+}
+
+return redirect()->back()->with('success', 'Partner commissions added successfully.');
+
+    }
 
     public function toggleStatusApi(Request $request)
     {
@@ -2636,63 +2674,98 @@ class PayoutRecordController extends Controller
         return view('admin.payout.create_account', compact('pageTitle'));
     }
 
-    public function createAccount(Request $request)
-    {
+  public function createAccount(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'e_wallet_name' => 'required|array',
+        'e_wallet_name.*' => 'string',
 
+        'account_number' => 'required|array',
+        'account_number.*' => 'string',
 
-        $validator = Validator::make($request->all(), [
-            'e_wallet_name' => 'required|string',
-            'account_no' => 'required|string',
-            'type' => 'required|string',
-            'daily_limit' => 'nullable|numeric',
-            'monthly_limit' => 'nullable|numeric',
-            'status' => 'required|numeric',
-        ]);
+        'device_name' => 'nullable|array',
+        'device_name.*' => 'string',
 
+        'account_group' => 'nullable|array',
+        'account_group.*' => 'string',
+
+        'account_type' => 'nullable|array',
+        'account_type.*' => 'string',
+
+        'in_out' => 'nullable|array',
+        'in_out.*' => 'string',
+
+        'location' => 'nullable|array',
+        'location.*' => 'string',
+
+        'daily_limit' => 'nullable|numeric',
+        'monthly_limit' => 'nullable|numeric',
+
+        'daily_limit_withdrawal' => 'nullable|numeric',
+        'monthly_limit_withdrawal' => 'nullable|numeric',
+
+        'apply_time_limit' => 'nullable|numeric',
+        'from_time' => 'nullable',
+        'to_time' => 'nullable',
+
+        'deposit_daily_limit_percentage' => 'nullable|numeric',
+        'withdrawal_daily_limit_percentage' => 'nullable|numeric',
+        'deposit_monthly_limit_percentage' => 'nullable|numeric',
+        'withdrawal_monthly_limit_percentage' => 'nullable|numeric',
+
+        'max_withdrawal_amount' => 'nullable|numeric',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
+
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
+
+    $e_wallet_names = $request->e_wallet_name;
+    foreach ($e_wallet_names as $index => $walletName) {
         $newAccount = new EWalletAccount;
 
-        $newAccount->e_wallet_name = $request->e_wallet_name;
-        $newAccount->account_no = $request->account_no;
-        $newAccount->type = $request->type;
+        $newAccount->e_wallet_name = $walletName;
+        $newAccount->account_no = $request->account_number[$index] ?? null;
+        $newAccount->type = $request->account_type[$index] ?? null;
         $newAccount->daily_limit = $request->daily_limit;
         $newAccount->monthly_limit = $request->monthly_limit;
-        $newAccount->status = $request->status;
-        $newAccount->account_type = $request->account_type;
-
+        $newAccount->status = $request->status ?? 1;
+        $newAccount->account_type = $request->in_out[$index] ?? null;
         $newAccount->daily_limit_withdrawal = $request->daily_limit_withdrawal;
         $newAccount->monthly_limit_withdrawal = $request->monthly_limit_withdrawal;
-        $newAccount->apply_time_limit = $request->apply_time_limit;
-
-        if ($request->apply_time_limit == 1) {
-            $newAccount->from_time = $request->from_time;
-            $newAccount->to_time = $request->to_time;
-        }
-
+        $newAccount->apply_time_limit = $request->apply_time_limit ?? 1;
+        $newAccount->from_time = $request->from_time;
+        $newAccount->to_time = $request->to_time;
         $newAccount->deposit_daily_limit_percentage = $request->deposit_daily_limit_percentage;
-        $newAccount->withdrawal_daily_limit_percentage = $request->withdrawal_daily_limit_percentage;
+        $newAccount->withdrawal_daily_limit_percentage = $request->withdrawl_daily_limit_percentage;
         $newAccount->deposit_monthly_limit_percentage = $request->deposit_monthly_limit_percentage;
         $newAccount->withdrawal_monthly_limit_percentage = $request->withdrawal_monthly_limit_percentage;
 
-
-        if ($request->filled('max_withdrawal_amount')) {
-            $newAccount->max_withdrawal_amount = $request->max_withdrawal_amount;
+        if ($request->filled('max_amount_per')) {
+            $newAccount->max_withdrawal_amount = $request->max_amount_per;
         }
 
-        if ($request->hasFile('image')) {
-
+        // Sirf pehle record ke liye image upload karein
+        if ($index == 0 && $request->hasFile('image')) {
             try {
-                $newAccount->image = $this->uploadImage($request->image, config('location.withdraw.path'), config('location.withdraw.size'));
+                $newAccount->image = $this->uploadImage(
+                    $request->image,
+                    config('location.withdraw.path'),
+                    config('location.withdraw.size')
+                );
             } catch (\Exception $exp) {
                 return back()->with('error', 'Image could not be uploaded.');
             }
         }
 
         $newAccount->save();
-
-
-        session()->flash('success', 'Saved Successfully');
-        return back();
     }
+
+    session()->flash('success', 'All Accounts Saved Successfully');
+    return back();
+}
+
 
     public function merchant(Request $request)
     {

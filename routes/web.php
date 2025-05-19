@@ -206,10 +206,16 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/apis/reset/{id}', [PayoutRecordController::class, 'apisReset'])->name('apis.reset');
         Route::get('/apis/commission/{id}', [PayoutRecordController::class, 'apisCommission'])->name('apis.commission');
         Route::get('/apis/commissions/detail/{id}', [PayoutRecordController::class, 'apiCommissionsDetail'])->name('api.commissions.detail');
+      
         Route::get('/apis/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
         Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
         Route::post('/apis/commission/add', [PayoutRecordController::class, 'apisCommissionAdd'])->name('apis.commission.add');
+        // partner commission
+        Route::get('/partner/commission/{id}', [PayoutRecordController::class, 'partnerCommission'])->name('partner.commision.form');
+        Route::post('/add-partner/commission', [PayoutRecordController::class, 'addpartnerCommission'])->name('add.partner.commission');
+
+
 
         Route::get('/apis/balance/add', [PayoutRecordController::class, 'apisBalanceAddGet'])->name('apis.balance.add.get');
         Route::get('/groups', [TelegramGroupController::class, 'groups'])->name('groups');
