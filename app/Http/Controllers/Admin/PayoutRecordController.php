@@ -522,9 +522,6 @@ class PayoutRecordController extends Controller
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
 
 
-
-
-
         if (isset($search['export'])) {
             $records = Payout::where('status', '!=', 'Initiate')
                 ->when($search['name'], function ($query) use ($search) {
@@ -547,7 +544,7 @@ class PayoutRecordController extends Controller
                     });
                 })
                 ->when($search['status'] != 4, function ($query) use ($search) {
-                    $query->where('status', $search['status']);
+                    $query->where('transfer_status', $search['status']);
                 })
                 ->when($search['domain'], function ($query) use ($search) {
                     $query->where(function ($subQuery) use ($search) {
@@ -574,11 +571,11 @@ class PayoutRecordController extends Controller
                 }
                 $status = "Pending";
                 $status2 = "Pending";
-                if ($item->status == 2) {
+                if ($item->transfer_status == 2) {
                     $status = "Approved";
-                } elseif ($item->status == 1) {
+                } elseif ($item->transfer_status == 1) {
                     $status = "Pending";
-                } elseif ($item->status == 3) {
+                } elseif ($item->transfer_status == 3) {
                     $status = "Rejected";
                 }
 
@@ -651,7 +648,7 @@ class PayoutRecordController extends Controller
                     });
                 })
                 ->when($search['status'] != 4, function ($query) use ($search) {
-                    $query->where('status', $search['status']);
+                    $query->where('transfer_status', $search['status']);
                 })
                 ->when($search['domain'], function ($query) use ($search) {
                     $query->where('api_id', $search['domain']);
@@ -700,31 +697,11 @@ class PayoutRecordController extends Controller
             'status' => ['required', Rule::in(['2', '3', '4'])],
         ]);
 
-
         DB::beginTransaction();
-
-
         try {
             $data = Payout::where('id', $request->id)->whereIn('transfer_status', [1, 2])->with('user', 'gateway')->lockForUpdate()->first();
             // 1 in pending // 2 success
             $basic = (object) config('basic');
-
-            if ($request->status == '2') {
-                // $pre_payout = $data;
-                // if (!$pre_payout) {
-                //     $pre_payout = new Payout();
-                // }
-            }
-            else
-            {
-                // $payout = $data;
-                // if(!$payout && $request->status != '3')
-                // {
-                //     DB::rollBack();
-                //     throw new \Exception("This transaction not found.");
-                // }
-            }
-
 
             $commit = 0;
 
@@ -737,13 +714,26 @@ class PayoutRecordController extends Controller
                     $this->updateEWallets();
 
                     $current_time = Carbon::now('Asia/Dhaka');
-
-
-
-
-
+                    $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
+                        ->where('type', 'Agent')
+                        ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                        ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
+                        ->where('status', 1)
+                        ->where('max_withdrawal_amount', '>=', $data->amount)
+                        ->whereIn('account_type', ['Withdrawal', 'Both'])
+                        ->where(function ($query) use ($current_time) {
+                            $query->where('apply_time_limit', 0)
+                                ->orWhere(function ($query) use ($current_time) {
+                                    $query->where('apply_time_limit', 1)
+                                        ->where('from_time', '<=', $current_time)
+                                        ->where('to_time', '>=', $current_time);
+                                });
+                        })
+                        ->orderBy('daily_sent', 'asc')
+                        ->first();
+                    if (!$account) {
                         $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
-                            ->where('type', 'Agent')
+                            ->where('type', 'Merchant')
                             ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
                             ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
                             ->where('status', 1)
@@ -761,7 +751,7 @@ class PayoutRecordController extends Controller
                             ->first();
                         if (!$account) {
                             $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
-                                ->where('type', 'Merchant')
+                                ->where('type', 'Personal')
                                 ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
                                 ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
                                 ->where('status', 1)
@@ -777,26 +767,8 @@ class PayoutRecordController extends Controller
                                 })
                                 ->orderBy('daily_sent', 'asc')
                                 ->first();
-                            if (!$account) {
-                                $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
-                                    ->where('type', 'Personal')
-                                    ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
-                                    ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
-                                    ->where('status', 1)
-                                    ->where('max_withdrawal_amount', '>=', $data->amount)
-                                    ->whereIn('account_type', ['Withdrawal', 'Both'])
-                                    ->where(function ($query) use ($current_time) {
-                                        $query->where('apply_time_limit', 0)
-                                            ->orWhere(function ($query) use ($current_time) {
-                                                $query->where('apply_time_limit', 1)
-                                                    ->where('from_time', '<=', $current_time)
-                                                    ->where('to_time', '>=', $current_time);
-                                            });
-                                    })
-                                    ->orderBy('daily_sent', 'asc')
-                                    ->first();
-                            }
                         }
+                    }
 
                     if (!$account) {
                         DB::rollBack();
@@ -809,23 +781,19 @@ class PayoutRecordController extends Controller
                         $user_account_no =  $data->user_account_no;
                     }
 
-                    $pre_payout->api_id = $data->api_id;
-                    $pre_payout->payout_log_id = $data->id;
-                    $pre_payout->e_wallet_name = $data->gateway->name;
-                    $pre_payout->amount = $data->amount;
-                    $pre_payout->user_account_no = $user_account_no;
-                    $pre_payout->e_wallet_phone_number = $account->account_no;
-                    $pre_payout->e_wallet_type = $account->type;
-                    $pre_payout->status = 'Pending';
-                    $pre_payout->save();
-
-                    $data->payout_id = $pre_payout->id;
+                    $data->api_id = $data->api_id;
+                    $data->e_wallet_name = $data->gateway->name;
+                    $data->amount = $data->amount;
+                    $data->user_account_no = $user_account_no;
+                    $data->e_wallet_phone_number = $account->account_no;
+                    $data->e_wallet_type = $account->type;
+                    $data->status = 'Pending';
                     $data->feedback = $request->feedback;
                     $data->save();
 
                 }
 
-                $data->status = 'Complete';
+                $data->transfer_status = 2;
                 $data->feedback = $request->feedback;
                 $data->save();
 
@@ -854,7 +822,7 @@ class PayoutRecordController extends Controller
 
                     $Log = new Log();
                     $Log->date_time = $data->updated_at;
-                    $Log->final_amount = ($payout->amount + $data->charge);
+                    $Log->final_amount = ($data->amount + $data->charge);
                     $Log->balance = $partner_api_key->balance;
                     $Log->transection_type = 7;
                     $Log->transection_id = $data->id;
@@ -955,11 +923,6 @@ class PayoutRecordController extends Controller
                     $data->save();
                 }
 
-                // $user = $data->user;
-                // $user->balance += $data->net_amount;
-                // $user->save();
-
-
 
                 $commit = 1;
                 DB::commit();
@@ -985,25 +948,28 @@ class PayoutRecordController extends Controller
                         $combined = $hmac . $timestamp;
                         $sign = base64_encode($combined);
 
-
+                        $datetime = Carbon::parse($data->date_time);
+                        $api_date = $datetime->toDateString();   // '2025-05-19'
+                        $api_time = $datetime->toTimeString();   // '15:43:00'
+                        
                         $array_data = [
-                                    'id' => $data->id,
-                                    'partner_transection_id' => $data->partner_transection_id,
-                                    'transaction_type' => 'Withdrawal',
-                                    'e_wallet_name' => $data->e_wallet_name,
-                                    'amount' => $this->convertStringToNumber($data->amount),
-                                    'user_account_no' => $data->user_account_no,
-                                    'txn_id' => $data->txn_id,
-                                    'e_wallet_phone_number' => $data->e_wallet_phone_number,
-                                    'e_wallet_type' => $data->e_wallet_type,
-                                    'charges' => $this->convertStringToNumber($data->charge),
-                                    'status' => $data->status,
-                                    // 'completion_date' => $payout->date,
-                                    // 'completion_time' => $payout->time,
-                                    'created_at' => $data->created_at,
-                                    'updated_at' => $data->updated_at,
-                                    'sign' => $sign,
-                                    'remarks' => $request->feedback,
+                                'id' => $data->id,
+                                'partner_transection_id' => $data->partner_transection_id,
+                                'transaction_type' => 'Withdrawal',
+                                'e_wallet_name' => $data->e_wallet_name,
+                                'amount' => $this->convertStringToNumber($data->amount),
+                                'user_account_no' => $data->user_account_no,
+                                'txn_id' => $data->txn_id,
+                                'e_wallet_phone_number' => $data->e_wallet_phone_number,
+                                'e_wallet_type' => $data->e_wallet_type,
+                                'charges' => $this->convertStringToNumber($data->charge),
+                                'status' => $data->status,
+                                'completion_date' => $api_date,
+                                'completion_time' => $api_time,
+                                'created_at' => $data->created_at,
+                                'updated_at' => $data->updated_at,
+                                'sign' => $sign,
+                                'remarks' => $request->feedback,
                         ];
 
                         if(!empty($data->member_id)){
@@ -1047,7 +1013,7 @@ class PayoutRecordController extends Controller
                     }
                 }
                 session()->flash('success', 'Reject Successfully');
-            } elseif ($request->status == '4') {
+            } elseif ($request->status == 4) {
                 $this->updateLimits();
 
                 if ($data->status == "Complete") {
@@ -1139,9 +1105,16 @@ class PayoutRecordController extends Controller
                             }
                         }
 
+                       
                         $account = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
                             ->where('account_no', $data->e_wallet_phone_number)
-                            ->lockForUpdate()->firstOrFail();
+                            ->lockForUpdate()->first();
+                        
+                        if (!$account) {
+                            DB::rollBack();
+                            throw new \Exception("No E-wallet account Available at this time to proceed this request.");
+                        }
+
                         if ($account) {
                             //E-Wallet Account Log Save
                             $previous_account_balance = number_format($account->balance, 2, '.', '');
@@ -1167,7 +1140,7 @@ class PayoutRecordController extends Controller
 
 
                             $e_wallet_charge = 0;
-                            $count_payouts = Payout::where('e_wallet_name', $data->e_wallet_name)->where('e_wallet_phone_number', $data->e_wallet_phone_number)->where('status', 'Complete')->whereDate('date', $data->date)->count();
+                            $count_payouts = Payout::where('e_wallet_name', $data->e_wallet_name)->where('e_wallet_phone_number', $data->e_wallet_phone_number)->where('status', 'Complete')->whereDate('date_time', $data->date)->count();
                             if ($count_payouts >= $account->free_transections_day) {
                                 $e_wallet_charges = EWalletCharge::where('account_id', $account->id)->where('from_amount', '<=', $data->amount)->where('to_amount', '>=', $data->amount)->first();
                                 if ($e_wallet_charges) {
@@ -1188,8 +1161,6 @@ class PayoutRecordController extends Controller
 
                             $data->e_wallet_charges = $e_wallet_charge;
                             $data->save();
-
-
                         }
 
                         $commit = 1;
@@ -1212,6 +1183,11 @@ class PayoutRecordController extends Controller
                             $combined = $hmac . $timestamp;
                             $sign = base64_encode($combined);
 
+                            $datetime = Carbon::parse($data->date_time);
+
+                            $api_date = $datetime->toDateString();   // '2025-05-19'
+                            $api_time = $datetime->toTimeString();   // '15:43:00'
+
                             $array_data = [
                                         'id' => $data->id,
                                         'partner_transection_id' => $data->partner_transection_id,
@@ -1224,8 +1200,8 @@ class PayoutRecordController extends Controller
                                         'e_wallet_type' => $data->e_wallet_type,
                                         'charges' => $this->convertStringToNumber($data->charge),
                                         'status' => $data->status,
-                                        'completion_date' => $data->date,
-                                        'completion_time' => $data->time,
+                                        'completion_date' => $api_date,
+                                        'completion_time' => $api_time,
                                         'created_at' => $data->created_at,
                                         'updated_at' => $data->updated_at,
                                         'sign' => $sign,
@@ -1317,7 +1293,7 @@ class PayoutRecordController extends Controller
         try {
 
             $pre_payout = Payout::where('id', $request->id)->lockForUpdate()->firstOrFail();
-
+         
             $pre_payout->e_wallet_phone_number = $request->e_wallet_phone_number;
             if ($pre_payout->status == "Reject" || $pre_payout->status == "Rejected") {
                 $pre_payout->status = "Pending";
@@ -1326,8 +1302,8 @@ class PayoutRecordController extends Controller
 
             // $pre_payout = PayoutLog::where('payout_id', $pre_payout->id)->lockForUpdate()->first();
             if ($pre_payout) {
-                if ($pre_payout->status == 3) {
-                    $pre_payout->status = 1;
+                if ($pre_payout->transfer_status == 3) {
+                    $pre_payout->transfer_status = 1;
                 }
             }
 
@@ -1434,6 +1410,11 @@ class PayoutRecordController extends Controller
             $combined = $hmac . $timestamp;
             $sign = base64_encode($combined);
 
+            $datetime = Carbon::parse($payout->date_time);
+
+            $api_date = $datetime->toDateString();   // '2025-05-19'
+            $api_time = $datetime->toTimeString();   // '15:43:00'
+
             $array_data = [
                         'id' => $payout->id,
                         'partner_transection_id' => $payout->partner_transection_id,
@@ -1446,8 +1427,8 @@ class PayoutRecordController extends Controller
                         'e_wallet_type' => $payout->e_wallet_type,
                         'charges' => $this->convertStringToNumber($payout->charge),
                         'status' => $payout->status,
-                        // 'completion_date' => $payout->date,
-                        // 'completion_time' => $payout->time,
+                        'completion_date' => $api_date,
+                        'completion_time' => $api_time,
                         'created_at' => $payout->created_at,
                         'updated_at' => $payout->updated_at,
                         'sign' => $sign,

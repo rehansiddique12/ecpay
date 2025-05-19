@@ -49,9 +49,9 @@
 
                 <div class="col-md-4 d-flex gap-5">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary mt-3 mr-5"><i class="icon-base ti tabler-search me-1"></i>
+                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i>
                             @lang('Search')</button>
-                        <button type="submit" name="export" value="export" class="btn btn-success mt-2"><i
+                        <button type="submit" name="export" value="export" class="btn btn-success"><i
                                 class="icon-base ti tabler-download me-1"></i> @lang('Export Data')</button>
                     </div>
                 </div>
@@ -120,23 +120,44 @@
                             <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($item->amount,2 ) }}
                                 {{$basic->currency_symbol}}</td>
                             <td data-label="@lang('Charge')" class="text-success">
-                                {{ getAmount(optional($item->payout)->charge,2) }} {{$basic->currency_symbol}}</td>
+                                {{ getAmount($item->charge,2 ) }} {{$basic->currency_symbol}}</td>
 
                             <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                {{ getAmount($item->net_amount,2) }} {{$basic->currency_symbol}}</td>
+                                {{ getAmount($item->amount +$item->charge ,2) }} {{$basic->currency_symbol}}</td>
 
-                            <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                @if($item->status == 'Complete')
-                                <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
-                                    @lang('Request Approved')</span>
-                                @elseif($item->status == 'inititate')
-                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
-                                    @lang('Request Pending')</span>
-                                @elseif($item->status == 'Reject')
-                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
-                                    @lang('Request Rejected')</span>
+                           <td data-label="@lang('Status')" class="text-center">
+                            <div class="d-flex flex-column align-items-center">
+                                @if($item->transfer_status == 2)
+                                    <span class="badge bg-success mb-1">
+                                        <i class="fa fa-circle text-white font-12"></i> @lang('Request Approved')
+                                    </span>
+                                @elseif($item->transfer_status == 1)
+                                    <span class="badge bg-warning mb-1">
+                                        <i class="fa fa-circle text-white font-12"></i> @lang('Request Pending')
+                                    </span>
+                                @elseif($item->transfer_status == 3)
+                                    <span class="badge bg-danger mb-1">
+                                        <i class="fa fa-circle text-white font-12"></i> @lang('Request Rejected')
+                                    </span>
                                 @endif
-                            </td>
+
+                                @if($item->status == 'Complete')
+                                    <span class="badge bg-success mt-1">
+                                        <i class="fa fa-circle text-white font-12"></i> @lang('Transferred')
+                                    </span>
+                                @elseif($item->status == 'inititate' || $item->status == 'Pending')
+                                    <span class="badge bg-warning mt-1">
+                                        <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Pending')
+                                    </span>
+                                @elseif($item->status == 'Reject')
+                                    <span class="badge bg-danger mt-1">
+                                        <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Rejected')
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
+
+
                             <td>
                                 {{$item->feedback}}
                             </td>
@@ -156,17 +177,17 @@
                                     <div class="dropdown-menu">
                                         <!-- active / deactive button here -->
                                         @if(adminAccessRoute(config('role.payout_manage.access.edit')))
-                                        <button type="button" class="btn btn-sm edit_button" data-bs-toggle="modal"
-                                            data-bs-target="#newModalb" onclick="setBalanceItem({{ $item->id }})">
-                                            <i class="icon-base ti tabler-report-money me-1"></i> Send Callback
-                                        </button><br>
-                                        @if(isset($item))
-                                        <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#myModalc" data-title="Edit" data-id="{{ $item->id }}"
-                                            data-e_wallet_phone_number="{{$item->e_wallet_phone_number}}">
-                                            <i class="icon-base ti tabler-device-mobile  me-1"></i> Change E-Wallet No
-                                        </button><br>
-                                        @endif
+                                            <button type="button" class="btn btn-sm edit_button" data-bs-toggle="modal"
+                                                data-bs-target="#newModalb" onclick="setBalanceItem({{ $item->id }})">
+                                                <i class="icon-base ti tabler-report-money me-1"></i> Send Callback
+                                            </button><br>
+                                            @if(isset($item))
+                                            <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#myModalc" data-title="Edit" data-id="{{ $item->id }}"
+                                                data-e_wallet_phone_number="{{$item->e_wallet_phone_number}}">
+                                                <i class="icon-base ti tabler-device-mobile  me-1"></i> Change E-Wallet No
+                                            </button><br>
+                                            @endif
                                         @php
 
                                         $details = ($item->information != null) ? json_encode($item->information) :
@@ -176,7 +197,8 @@
                                             data-bs-target="#myModal"
                                             data-route="{{route('admin.payout-action',$item->id)}}"
                                             data-feedback="{{$item->feedback}}" data-info="{{$details}}"
-                                            data-id="{{$item->id}}" data-status="{{$item->status}}"
+                                            data-id="{{$item->id}}" data-status="{{$item->transfer_status}}"
+                                            
                                             data-statusb="{{$item->status ? $item->status:''}}">
                                             @if(Request::routeIs('admin.payout-request'))
                                             <i class="icon-base ti tabler-pencil me-1"></i> Edit
@@ -201,7 +223,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="mt-5">
                 {{ $records->appends($_GET)->links('partials.pagination') }}
+                </div>
             </div>
         </div>
     </div>
@@ -215,9 +239,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <?php
-            date_default_timezone_set('Asia/Kuala_Lumpur');
-
-            ?>
+                date_default_timezone_set('Asia/Kuala_Lumpur');
+                ?>
                 <form role="form" method="POST" action="{{ route('admin.payout.update_e_wallet') }}">
                     @csrf
                     @method('put')
@@ -509,8 +532,33 @@
 
     </script>
 
-
     <script>
+        $(document).ready(function () {
+            var intervalId; // To store the interval id
+            var orderid = document.getElementById("orderid");
+            var wid = document.getElementById("wid");
+            var acc_no = document.getElementById("acc_no");
+
+
+
+            $('#runWithdrawalTest').click(function () {
+                if (acc_no.value === "") {
+                    alert("Please select an Admin Account");
+                    return;
+                }
+
+            });
+
+            // Function to perform the AJAX call
+
+
+            $('.modal-header .close').click(function () {
+                $('#runWithdrawalTest').prop('disabled', false);
+                $('#spinner2').hide();
+                $('#tickMark2').hide();
+            });
+        });
+
         function setBalanceItem(itemId) {
             var account_id = jQuery("#account_id");
             account_id.val(itemId);
@@ -562,35 +610,6 @@
 
     <script>
         $(document).ready(function () {
-            var intervalId; // To store the interval id
-            var orderid = document.getElementById("orderid");
-            var wid = document.getElementById("wid");
-            var acc_no = document.getElementById("acc_no");
-
-
-
-            $('#runWithdrawalTest').click(function () {
-                if (acc_no.value === "") {
-                    alert("Please select an Admin Account");
-                    return;
-                }
-
-            });
-
-            // Function to perform the AJAX call
-
-
-            $('.modal-header .close').click(function () {
-                $('#runWithdrawalTest').prop('disabled', false);
-                $('#spinner2').hide();
-                $('#tickMark2').hide();
-            });
-        });
-
-    </script>
-
-    <script>
-        $(document).ready(function () {
 
             function fetchNotification() {
                 var letest_record = document.getElementById("letest_record").value;
@@ -624,21 +643,21 @@
         });
 
     </script>
-<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
-<script>
-    $(document).ready(function () {
-        $('form').on('submit', function () {
-            const $form = $(this);
-            const $submitButton = $form.find('button[type="submit"]');
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function () {
+                const $form = $(this);
+                const $submitButton = $form.find('button[type="submit"]');
 
-            // Disable button and change text (optional)
-            $submitButton.prop('disabled', true);
-            $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang("Processing...")');
+                // Disable button and change text (optional)
+                $submitButton.prop('disabled', true);
+                $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang("Processing...")');
 
-            // Allow form to proceed
-            return true;
-        });
-       let $select = $('.select2').select2({
+                // Allow form to proceed
+                return true;
+            });
+            let $select = $('.select2').select2({
                 // placeholder: "Select Partner",
                 allowClear: true,
                 selectOnClose: true,
@@ -655,8 +674,8 @@
                     e.preventDefault();
                 }
             });
-    });
-</script>
+        });
+    </script>
     @endpush
     @push('styles')
     <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
