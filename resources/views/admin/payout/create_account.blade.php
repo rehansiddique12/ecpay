@@ -354,7 +354,7 @@
 
                         <div class="form-group col-md-2 col-12">
                             <label>Device Name</label>
-                            <input type="number" name="device_name[]" class="form-control" required>
+                            <input type="text" name="device_name[]" class="form-control" required>
                         </div>
 
                         <div class="form-group col-md-2 col-12">

@@ -206,10 +206,16 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/apis/reset/{id}', [PayoutRecordController::class, 'apisReset'])->name('apis.reset');
         Route::get('/apis/commission/{id}', [PayoutRecordController::class, 'apisCommission'])->name('apis.commission');
         Route::get('/apis/commissions/detail/{id}', [PayoutRecordController::class, 'apiCommissionsDetail'])->name('api.commissions.detail');
+      
         Route::get('/apis/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
         Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
         Route::post('/apis/commission/add', [PayoutRecordController::class, 'apisCommissionAdd'])->name('apis.commission.add');
+        // partner commission
+        Route::get('/partner/commission/{id}', [PayoutRecordController::class, 'partnerCommission'])->name('partner.commision.form');
+        Route::post('/add-partner/commission', [PayoutRecordController::class, 'addpartnerCommission'])->name('add.partner.commission');
+
+
 
         Route::get('/apis/balance/add', [PayoutRecordController::class, 'apisBalanceAddGet'])->name('apis.balance.add.get');
         Route::get('/groups', [TelegramGroupController::class, 'groups'])->name('groups');
@@ -417,7 +423,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
         //      ///////////////////////////////////////----------------------------------------
-        
+
         //      ///////////////////////////////////////----------------------------------------
         Route::get('/apis', [PartnerPayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/api/commissions', [PartnerPayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
@@ -460,7 +466,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
         // Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
         // Route::get('merchant-reports/export_month', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
-        
+
 
         Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
@@ -481,10 +487,25 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payout/report/daily', [PartnerPayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PartnerPayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class,'reportDetail'])->name('payout.report.detail');
+
+
+        Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
+        Route::get('/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('depositFund');
+        Route::post('/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('addFund.request.open');
+        Route::get('/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('addFund.processPayment.open');
+        Route::get('/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'update_order_fund_status'])->name('update_fund_order_status.open');
+
+
+        Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
+        Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+
+
+
+
     });
 
 
-    
+
 
 });
 
@@ -503,9 +524,13 @@ Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class,'
     Route::get('partner/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('partner.depositFund');
     Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('partner.addFund.request.open');
     Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('partner.addFund.processPayment.open');
-    Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'partner.update_order_fund_status'])->name('update_fund_order_status.open');
+
+
+Route::post('partner/verify/txn', [PartnerPayoutRecordController::class,'verifytxn'])->name('partner.verify.txn');
+Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class,'update_order_fund_status'])->name('partner.update_fund_order_status.open');
 
 
 
     Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
-    Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+    Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('partner.payout.moneyRequest.transection');
+    Route::get('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class,'payoutPreviewTransection'])->name('partner.payout.preview.transection');

@@ -1,20 +1,13 @@
-<x-partner-layout >
-    <style>
-        .user-panel .deposit-box {
-    text-align: center;
-    border-radius: 5px;
-    background: var(--white);
-    -webkit-box-shadow: var(--shadow);
-    box-shadow: var(--shadow);
-    cursor: pointer;
-}
-    </style>
+@extends('partner.layouts.open')
+@section('title', trans($title))
+
+@section('content')
 
 <div class="row g-3 m-3">
     @foreach($gateways as $key => $gateway)
     <div class="col-lg-2 col-6 col-sm-4 col-md-3">
         <div class="user-panel">
-            <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($min_withdrawal, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->maximum_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
+            <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($min_withdrawal, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->max_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
                 <div class="img-box">
                     <img class="img-fluid gateway" src="{{ getFile(config('location.withdraw.path').$gateway->image)}}" alt="{{$gateway->name}}">
                 </div>
@@ -25,7 +18,7 @@
     @endforeach
 </div>
 
-{{-- @push('loadModal') --}}
+@push('loadModal')
 <div id="makeDeposit" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -51,7 +44,7 @@
                                     <input type="text" hidden value="{{$username}}" class="amount form-control" name="username">
                                     <input type="text" class="amount form-control" name="amount">
                                     <div class="input-group-append">
-                                        <span class="input-group-text show-currency">Bangladeshi Taka</span>
+                                        <span class="input-group-text show-currency"></span>
                                     </div>
                                 </div>
                                 @error('amount')
@@ -68,13 +61,15 @@
         </div>
     </div>
 </div>
-{{-- @endpush --}}
+@endpush
 
-
+@endsection
 @push('script')
 
 @if(count($errors) > 0 )
+<script>
 
+</script>
 @endif
 
 <script>
@@ -112,4 +107,3 @@
     }
 </script>
 @endpush
-</x-partner-layout>

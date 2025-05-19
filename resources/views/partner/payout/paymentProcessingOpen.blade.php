@@ -1,4 +1,9 @@
-<x-partner-layout :title="$pageTitle">
+@extends('partner.layouts.open')
+@section('title')
+@lang('Add Fund')
+@endsection
+@section('content')
+
 <center>
     <div class="">
         <br>
@@ -64,6 +69,8 @@
     </div>
 </center>
 
+@endsection
+
 @push('script')
 <script>
     "use strict";
@@ -126,4 +133,3 @@
     }
 </script>
 @endpush
-</x-partner-layout>
