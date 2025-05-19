@@ -19,16 +19,15 @@ use App\Models\EWalletCharge;
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use Illuminate\Validation\Rule;
-use App\ModelsPartnerCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
 use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
+use App\Http\Controllers\Controller;
 
 class PaymentLogController extends Controller
 {
@@ -489,21 +488,18 @@ class PaymentLogController extends Controller
         return view('admin.payment.all_report', compact('data', 'pageTitle', 'gateways', 'from_date', 'to_date', 'domains'));
     }
 
-
-
-
-    public function action(Request $request, $id)
+   public function action(Request $request, $id)
     {
         $this->validate($request, [
             'id' => 'required',
-            'status' => ['required', Rule::in(['1', '3'])],
+            'status' => ['required', Rule::in(['Complete', 'Reject'])],
         ]);
-
+        // dd($request->all());
         DB::beginTransaction();
         try {
-            $data = Payment::where('id', $request->id)->whereIn('status', ['Complete'])->lockForUpdate()->with('user', 'gateway')->firstOrFail();
+            $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             if (!empty($request->sender)) {
-                $data->account_no = $request->sender;
+                $data->sender = $request->sender;
                 $data->save();
             }
 
@@ -511,11 +507,11 @@ class PaymentLogController extends Controller
             $req = Purify::clean($request->all());
             $commit = 0;
 
-            if ($request->status == '1') {
+            if ($request->status == 'Complete') {
 
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
-                    ->where('status', 'Pending')
+                    ->where('status', 1)
                     ->first();
                 if (!$account) {
                     throw new \Exception("E-Wallet Account Disable or not Exist.");
@@ -528,22 +524,21 @@ class PaymentLogController extends Controller
                 $new = 0;
                 if (empty($request->txn_id)) {
                     $request->txn_id = "none";
-                    $payment = Payment::where('e_wallet_name', $data->gateway->code)
+                    $payment = PendingPayment::where('e_wallet_name', $data->gateway->code)
                         ->where('amount', $data->amount)
                         ->where('sender', $data->account_no)
                         ->whereDate('date', '=', $formattedDate)
-                        ->where('status', 'Pending')
                         ->orderBy('id', 'DESC')
                         ->first();
                 } else {
-                    $check_payment = Payment::where('txn_id', $request->txn_id)
-                        ->where('status', 'Complete')
-                        ->first();
-                    if ($check_payment) {
+                    // $check_payment = Payment::where('txn_id', $request->txn_id)
+                    //     ->where('status', 'Complete')
+                    //     ->first();
+                    if ($data->status == "Complete") {
                         throw new \Exception("By This Txn no, Payment Already Completed.");
                     }
 
-                    $payment = Payment::where('txn_id', $request->txn_id)->where('status', 'Pending')->orderBy('id', 'DESC')->first();
+                    $payment = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
                     if ($payment) {
                         if ($payment->amount != $data->amount) {
                             throw new \Exception("Wrong TXN.");
@@ -552,14 +547,19 @@ class PaymentLogController extends Controller
                 }
 
                 if (!$payment) {
-                    $payment = new Payment();
+                    // $payment = new Payment();
                     $new = 1;
                 }
+                else
+                {
+                    $payment->delete();
+                }
+                $payment=$data;
 
                 if ($new == 1) {
-                    $payment->date = $formattedDate;
-                    $payment->time = $formattedTime;
-                    $payment->date_time = $formattedDateTime;
+                    // $payment->date = $formattedDate;
+                    // $payment->time = $formattedTime;
+                    $data->date_time = $formattedDateTime;
                 }
 
 
@@ -580,15 +580,17 @@ class PaymentLogController extends Controller
                             ->where('status', 'Complete')
                             ->sum('amount');
 
+
                         $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                         if ($commissions) {
-                            $charge = $commissions->deposit_percentage * $data->amount / 100;
+                            $charge = $commissions->deposit_percentage * $amount / 100;
                         } else {
                             $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                             if ($commissions) {
-                                $charge = $commissions->deposit_percentage * $data->amount / 100;
+                                $charge = $commissions->deposit_percentage * $amount / 100;
                             }
                         }
+
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
@@ -605,24 +607,24 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                $payment->e_wallet_name = $data->gateway->code;
-                $payment->amount = $data->amount;
-                $payment->sender = $data->account_no;
-                $payment->txn_id = $request->txn_id;
-                $payment->transaction_type = 'Received Money';
-                $payment->e_wallet_phone_number = $request->e_wallet_phone_number;
-                $payment->e_wallet_type = $request->e_wallet_type;
-                $payment->source = $source;
-                $payment->api_id = $api_id;
-                $payment->charge = $charge;
-                $payment->status = 'Complete';
-                $payment->completed_source = 'AdminPanel';
-                $payment->created_at = $data->created_at;
-                $payment->trans_complete_date = Carbon::now();
-                $payment->transaction_id = $data->id;
-                $payment->partner_transection_id = $data->partner_transection_id;
-                $payment->member_id = $data->member_id;
-                $payment->save();
+                $data->e_wallet_name = $data->gateway->code;
+                //$data->amount = $data->amount;
+                //$data->sender = $data->account_no;
+                $data->txn_id = $request->txn_id;
+                $data->transaction_type = 'Received Money';
+                $data->e_wallet_phone_number = $request->e_wallet_phone_number;
+                $data->e_wallet_type = $request->e_wallet_type;
+                //$payment->source = $source;
+                //$payment->api_id = $api_id;
+                $data->charge = $charge;
+                $data->status = 'Complete';
+                $data->completed_source = 'AdminPanel';
+                //$payment->created_at = $data->created_at;
+                $data->trans_complete_date = Carbon::now();
+                //$payment->transaction_id = $data->id;
+                //$payment->partner_transection_id = $data->partner_transection_id;
+                //$payment->member_id = $data->member_id;
+                $data->save();
 
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $data->api_id)->whereDate('created_at', '>=', $data->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -712,12 +714,12 @@ class PaymentLogController extends Controller
                     $e_wallet_log_save->save();
                 }
 
-                $data->status = 1;
+                //$data->status = 1;
                 $data->feedback = @$req['feedback'];
-                $data->payment_id = $payment->id;
-                $data->created_at = $data->created_at;
-                $data->trans_completed_date = Carbon::now();
-                $data->update();
+                //$data->payment_id = $payment->id;
+                //$data->created_at = $data->created_at;
+                //$data->trans_completed_date = Carbon::now();
+                $data->save();
 
                 $PartnerCommissions = PartnerCommission::where('transaction_id', $data->id)->where('type', 1)->where('status', 0)->get();
                 foreach ($PartnerCommissions as $PartnerCommission) {
@@ -757,9 +759,9 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                $user = $data->user;
-                $user->balance += $data->amount;
-                $user->save();
+                // $user = $data->user;
+                // $user->balance += $data->amount;
+                // $user->save();
 
                 $commit = 1;
                 DB::commit();
@@ -792,8 +794,8 @@ class PaymentLogController extends Controller
                             'e_wallet_type' => $payment->e_wallet_type,
                             'charges' => $this->convertStringToNumber($payment->charge),
                             'status' => $payment->status,
-                            'completion_date' => $payment->date,
-                            'completion_time' => $payment->time,
+                            // 'completion_date' => $payment->date,
+                            // 'completion_time' => $payment->time,
                             'created_at' => $payment->created_at,
                             'updated_at' => $payment->updated_at,
                             'sign' => $sign,
@@ -838,29 +840,28 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                $remarks = getAmount($data->amount) . ' ' . $basic->currency . ' payment amount has been approved';
-                BasicService::makeTransaction($user, getAmount($data->amount), getAmount($data->charge),  '+', $data->transaction, $remarks);
+                // $remarks = getAmount($data->amount) . ' ' . $basic->currency . ' payment amount has been approved';
+                // BasicService::makeTransaction($user, getAmount($data->amount), getAmount($data->charge),  '+', $data->transaction, $remarks);
 
-                if ($basic->deposit_commission == 1) {
-                    BasicService::setBonus($user, getAmount($data->amount), 'deposit');
-                }
-
-                $msg = [
-                    'amount' => getAmount($data->amount),
-                    'currency' => $basic->currency,
-                ];
-                $action = [
-                    "link" => '#',
-                    "icon" => "fas fa-money-bill-alt text-white"
-                ];
+                // if ($basic->deposit_commission == 1) {
+                //     BasicService::setBonus($user, getAmount($data->amount), 'deposit');
+                // }
+                // $msg = [
+                //     'amount' => getAmount($data->amount),
+                //     'currency' => $basic->currency,
+                // ];
+                // $action = [
+                //     "link" => '#',
+                //     "icon" => "fas fa-money-bill-alt text-white"
+                // ];
                 // $this->userPushNotification($user, 'PAYMENT_APPROVED', $msg, $action);
                 session()->flash('success', 'Approve Successfully');
-            } elseif ($request->status == '3') {
+            } elseif ($request->status == 'Reject') {
 
                 $data->status = 3;
                 $data->feedback = $request->feedback;
                 $data->update();
-                $user = $data->user;
+                //$user = $data->user;
 
                 $commit = 1;
                 DB::commit();
@@ -942,15 +943,15 @@ class PaymentLogController extends Controller
                 }
 
 
-                $msg = [
-                    'amount' => getAmount($data->amount),
-                    'currency' => $basic->currency,
-                    'feedback' => $data->feedback,
-                ];
-                $action = [
-                    "link" => '#',
-                    "icon" => "fas fa-money-bill-alt text-white"
-                ];
+                // $msg = [
+                //     'amount' => getAmount($data->amount),
+                //     'currency' => $basic->currency,
+                //     'feedback' => $data->feedback,
+                // ];
+                // $action = [
+                //     "link" => '#',
+                //     "icon" => "fas fa-money-bill-alt text-white"
+                // ];
                 // $this->userPushNotification($user, 'PAYMENT_REJECTED', $msg, $action);
                 session()->flash('success', 'Reject Successfully');
 
@@ -958,7 +959,6 @@ class PaymentLogController extends Controller
             if($commit==0){
                 DB::commit();
             }
-            dd('hello');
             return back();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -966,6 +966,7 @@ class PaymentLogController extends Controller
             return back();
         }
     }
+
 
     public function update_e_wallet(Request $request)
     {
@@ -1233,6 +1234,7 @@ class PaymentLogController extends Controller
     {
         $domains = Api::where('type', 'Admin')->get();
         $search = $request->all();
+
         // dd($search['status']);
         $dateSearch = $request->date_time;
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
@@ -1328,7 +1330,7 @@ class PaymentLogController extends Controller
             return response()->stream($callback, 200, $headers);
         } else {
 
-            $funds = Payment::where('status', '!=', 0)
+            $funds = Payment::where('status', '!=', 'initiate')
                 ->when($search['name'], function ($query) use ($search) {
                     $query->whereHas('user', function ($subQuery) use ($search) {
                         $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
@@ -1343,31 +1345,27 @@ class PaymentLogController extends Controller
                     $query->where(function ($subQuery) use ($search) {
                         $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
                             ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-                    })->orWhereHas('payment', function ($subQuery) use ($search) {
-                        $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                     });
                 })
-                  ->when($search['status'] != 4, function ($query) use ($search) {
+                  ->when($search['status'] != 'All', function ($query) use ($search) {
                     if ($search['status'] == 99) {
                         // Get records where status is 2 (pending) and created more than 10 minutes ago
-                        $query->where('status', 2)
+                        $query->where('status', "Pending")
                               ->where('created_at', '<', Carbon::now()->subMinutes(10));
-                    } else if ($search['status'] == 2) {
+                    } else if ($search['status'] == "Pending") {
                         // Get records where status is 2 (pending) and created within the last 10 minutes
-                        $query->where('status', 2)
+                        $query->where('status', "Pending")
                               ->where('created_at', '>=', Carbon::now()->subMinutes(10));
                     } else {
                         // For other statuses, just match the status provided in $search
                         $query->where('status', $search['status']);
                     }
                 })
-
-
                 ->when($search['website'], function ($query) use ($search) {
                     $query->where('api_id', $search['website']);
                 })
-
                 ->orderBy('id', 'DESC')
                 ->with('user', 'gateway',  'api' ,'txn_record')
                 ->paginate(config('basic.paginate'));
@@ -1794,7 +1792,7 @@ class PaymentLogController extends Controller
 
             $api_id = "";
             $api_key = Api::where('api_key', $request->api_key)->first();
-            
+
             if ($api_key && $api_key->website == env('APP_WEBSITE')) {
                 $source = $api_key->website;
             } else {
@@ -1815,10 +1813,10 @@ class PaymentLogController extends Controller
 
             if (is_null($request->date_time)) {
                 $formattedDateTime = isset($formattedDate) && isset($formattedTime) ? $formattedDate . ' ' . $formattedTime : null;
-                
+
             } else {
                 $formattedDateTime = Carbon::parse($request->date_time)->format('Y-m-d H:i:s');
-                
+
             }
 
 
@@ -1829,7 +1827,7 @@ class PaymentLogController extends Controller
             if ($parsedDateTime->lessThan($twoHoursAgo)) {
                 $thismessage = "$formattedDateTime is less than two hours ago.";
                 return response()->json(['message' => $thismessage], 404);
-                
+
             }
 
 
@@ -1884,7 +1882,7 @@ class PaymentLogController extends Controller
                 }
             }
 
-            
+
 
 
             $partner_txn_verification = 0;
@@ -1917,10 +1915,10 @@ class PaymentLogController extends Controller
                     }else{
                         $order = Payment::where('sender', $request->sender)->where('api_id', $verify_api_id)->where('amount', $request_amount)->where('status', "Pending")->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                     }
-                    
+
                 }
             } else {
-                    
+
                     if (strpos($request->sender, 'XXXX') !== false && $request->mac_address=="111.111.11.111") {
                         $order = Payment::where(function ($query) use ($request) {
                             $query->where('sender', 'LIKE', substr($request->sender, 0, 4) . '%')
@@ -1937,23 +1935,8 @@ class PaymentLogController extends Controller
                     }else{
                         $order = Payment::where('sender', $request->sender)->where('amount', $request_amount)->where('status', "Pending")->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                     }
-                
+
             }
-
-
-
-           
-
-
-
-
-
-
-
-            
-
-
-
 
 
             $e_wallet_charge = 0;
@@ -1975,7 +1958,7 @@ class PaymentLogController extends Controller
                     }
                 }
             }
-                 
+
 
                 $this->updateLimits();
                 if ($request->filled('fee')) {
@@ -1986,10 +1969,10 @@ class PaymentLogController extends Controller
                     $account->commission += $request->commission;
                     $comm = $request->commission;
                 }
-    
+
                 //Three E-Wallet Account Log Save
                 $previous_account_balance = number_format($account->balance, 2, '.', '');
-    
+
                 // $account->balance += ($request_amount + $comm);
                 $account->balance += $request_amount;
                 $account->daily_received += $request_amount;
@@ -1997,17 +1980,17 @@ class PaymentLogController extends Controller
                 $account->received += $request_amount;
                 $account->save();
 
-                
-    
-                
+
+
+
 
                 $commit = 0;
 
-                
+
 
             $amount_to_save = 0;
             if ($order) {
-                
+
                 $partner_api_key = Api::where('id', $order->api_id)->lockForUpdate()->first();
                 if ($partner_api_key) {
                     $source = $partner_api_key->website;
@@ -2021,7 +2004,7 @@ class PaymentLogController extends Controller
                                 ->where('status', 'Complete')
                                 ->sum('amount');
 
-                                
+
 
                             $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                             if ($commissions) {
@@ -2058,18 +2041,18 @@ class PaymentLogController extends Controller
                     $Log->source = 'APIWithoutVerify';
                     $Log->save();
                 }
-    
-                
-    
-                
-    
+
+
+
+
+
                 if (isset($partner_api_key)) {
                     if ($partner_api_key->txn_verification == 0 || $partner_txn_verification == 1) {
                         if ($order) {
 
-                            
 
-                            
+
+
 
                             $order->status = 'Complete';
                             $order->trans_complete_date = Carbon::now();
@@ -2098,10 +2081,10 @@ class PaymentLogController extends Controller
                             $order->save();
 
                             $payment = $order;
-    
+
                             DB::commit();
                             $commit = 1;
-    
+
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
@@ -2109,7 +2092,7 @@ class PaymentLogController extends Controller
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
-    
+
                                 $summary_log = new DailyPartnerSummaryLog();
                                 $summary_log->partner_id = $partner_api_key->id;
                                 $summary_log->partner_balance = $partner_api_key->balance;
@@ -2120,17 +2103,17 @@ class PaymentLogController extends Controller
                                 $summary_log->source = 'APIWithoutVerify';
                                 $summary_log->save();
                             }
-    
+
                             $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
                             foreach ($PartnerCommissions as $PartnerCommission) {
                                 $PartnerCommission->status = 1;
                                 $PartnerCommission->save();
-    
+
                                 DB::beginTransaction();
                                 $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
                                 $parent_api_key->balance += $PartnerCommission->profit;
                                 $parent_api_key->save();
-    
+
                                 $Log = new Log();
                                 $Log->date_time = $PartnerCommission->created_at;
                                 $Log->final_amount = $PartnerCommission->profit;
@@ -2141,7 +2124,7 @@ class PaymentLogController extends Controller
                                 $Log->source = 'APIWithoutVerify';
                                 $Log->save();
                                 DB::commit();
-    
+
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
@@ -2149,7 +2132,7 @@ class PaymentLogController extends Controller
                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                     $DailyPartnerSummary_record->save();
-    
+
                                     $summary_log = new DailyPartnerSummaryLog();
                                     $summary_log->partner_id = $parent_api_key->id;
                                     $summary_log->partner_balance = $parent_api_key->balance;
@@ -2161,10 +2144,10 @@ class PaymentLogController extends Controller
                                     $summary_log->save();
                                 }
                             }
-    
-                            //curl request only 
+
+                            //curl request only
                             if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
-                                
+
                                 $string_to_hash = json_encode(array(
                                     "amount" => strval($this->convertStringToNumber($payment->amount)),
                                     "api_key" => $partner_api_key->api_key,
@@ -2172,7 +2155,7 @@ class PaymentLogController extends Controller
                                     "id" => strval($payment->id),
                                     'transaction_type' => 'Deposit',
                                     "user_account_no" => strval($payment->sender),
-    
+
                                 ));
                                 $secretKey = $partner_api_key->secret_key;
                                 $hash = hash("sha256", $string_to_hash);
@@ -2180,8 +2163,8 @@ class PaymentLogController extends Controller
                                 $timestamp = time();
                                 $combined = $hmac . $timestamp;
                                 $sign = base64_encode($combined);
-    
-    
+
+
                                 $array_data = [
                                             'id' => $payment->id,
                                             'partner_transection_id' => $payment->partner_transection_id,
@@ -2200,13 +2183,13 @@ class PaymentLogController extends Controller
                                             'updated_at' => $payment->updated_at,
                                             'sign' => $sign,
                                 ];
-    
-    
+
+
                                 if(!empty($payment->member_id)){
                                     $array_data['member_id'] = $payment->member_id;
                                 }
-    
-    
+
+
                                 $requestData = [
                                     'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
                                     'request_url' => $partner_api_key->api_endpoint_deposit,
@@ -2226,14 +2209,14 @@ class PaymentLogController extends Controller
                                         'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
                                     ])
                                         ->post($partner_api_key->api_endpoint_deposit, $array_data);
-    
+
                                     if ($response) {
                                         $responseData = [
                                             'response_code' => $response->status(),
                                             'response_payload' => $response->body(),
                                             'response_headers' => json_encode($response->headers()),
                                         ];
-    
+
                                         DB::table('api_logs')->where('id', $logId)->update($responseData);
                                     }
                                 } catch (\Exception $e) {
@@ -2242,13 +2225,13 @@ class PaymentLogController extends Controller
                         }
                     }
                 }
-        
+
                 if($commit == 0){
                     DB::commit();
                 }
             }
 
-            
+
 
             if(!isset($payment)){
                 $pending_payment = new PendingPayment();
@@ -2264,7 +2247,7 @@ class PaymentLogController extends Controller
                 $pending_payment->mac_address = $request->mac_address;
                 $pending_payment->source = $source;
 
-                
+
 
                 if ($request->filled('fee')) {
                     $pending_payment->fee = $request->fee;
@@ -2276,7 +2259,7 @@ class PaymentLogController extends Controller
 
                 $pending_payment->e_wallet_charges = $e_wallet_charge;
 
-                
+
 
                 $pending_payment->save();
 
@@ -2286,7 +2269,7 @@ class PaymentLogController extends Controller
                 $payment->status = "Pending";
             }
 
-            
+
 
 
 
@@ -2300,9 +2283,9 @@ class PaymentLogController extends Controller
             $e_wallet_log_save->final_amount = ($request_amount - $request->fee + $request->commission);
             $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
             $e_wallet_log_save->transaction_type = 1;
-            
+
             $e_wallet_log_save->transaction_id = $payment->id;
-            
+
             $e_wallet_log_save->account_id = $account->id;
             $e_wallet_log_save->source = "addPaymentInfo";
 
@@ -2314,16 +2297,16 @@ class PaymentLogController extends Controller
                 DB::commit();
             }
 
-            
-
-                
-
-            
-
-            
 
 
-            
+
+
+
+
+
+
+
+
             return response()->json(['message' => 'Payment information added successfully','id'=>$payment->id,'status'=>$payment->status], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -2368,7 +2351,7 @@ class PaymentLogController extends Controller
 
 
     public function directwebhookddd($source, $acc, $type){
-                
+
         $string = '{"from":"16216","fromName":"","to":"myself","tos":["myself"],"toName":"","toNames":[""],"content":"B2C: Cash-Out from A\/C: ***539 Tk1,000.00 Comm:Tk4.20; A\/C Balance: Tk469,249.21.TxnId: 5233259555 Date:14-MAR-25 06:31:14 am. Download https:\/\/bit.ly\/nexuspay","dir":"incoming","date":"2025-03-14T00:31:15.728Z"}';
 
         $botToken = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
@@ -2381,11 +2364,11 @@ class PaymentLogController extends Controller
         $CompletedchatId = "-4771016562";
         $HoldchatId = "-4771016562";
         $RejectedchatId = "-4771016562";
-        
-        
-        
 
-        
+
+
+
+
 
         // LaravelLog::info('Source:'.$source.' Acc:'.$acc.' Message:'.$string);
 
@@ -2401,16 +2384,16 @@ class PaymentLogController extends Controller
                 $text = substr($string, $valueStart, $valueEnd - $valueStart);
                 $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
                 $jsonWithoutText = rtrim($jsonWithoutText, ",");
-                
+
                 $array = json_decode($jsonWithoutText, true);
 
                 $result = [];
-                
+
 
                 if($array['from']=="bKash"){
 
                     $text = preg_replace('/\s*Download.*$/', '', $text);
-                    
+
                     if (strpos($text, "You have received") === 0) {
 
                         $t_type = 1;
@@ -2458,12 +2441,12 @@ class PaymentLogController extends Controller
                         }else{
                             $t_type = 1;
                         }
-                        
+
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                        
+
                         // Extract customer phone number after "from" and before "Fee"
                         // if (preg_match('/from (.*?) successful/', $text, $matches)) {
                         //     $result['Customer'] = $matches[1];
@@ -2508,15 +2491,15 @@ class PaymentLogController extends Controller
                             $t_type = 2;
                         }
 
-                        
 
-                        
-                        
+
+
+
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                        
+
                         // Extract customer phone number after "from" and before "Fee"
                         // if (preg_match('/from (.*?) successful/', $text, $matches)) {
                         //     $result['Customer'] = $matches[1];
@@ -2574,7 +2557,7 @@ class PaymentLogController extends Controller
                                 [$key, $value] = explode(':', $line, 2);
                                 $result[trim($key)] = trim($value);
                             }
-                        }                    
+                        }
                     }
                     if(isset($result['Sender'])){
                         $result['Customer'] = $result['Sender'];
@@ -2597,7 +2580,7 @@ class PaymentLogController extends Controller
                     }
 
                 }elseif($array['from']=="16216"){
-                    
+
                     if (strpos($text, "B2C: Cash-In") === 0) {
 
                         $t_type = 2;
@@ -2635,8 +2618,8 @@ class PaymentLogController extends Controller
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }        
-                        
+                        }
+
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -2652,14 +2635,14 @@ class PaymentLogController extends Controller
 
                         $result['Comment'] = "Cash In";
                         $result['charge'] = 0;
-                        
+
                     }elseif (strpos($text, "B2C: Cash-Out") === 0) {
 
                         $t_type = 1;
-                        
+
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
-                        
+
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
@@ -2670,7 +2653,7 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                      
+
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
@@ -2680,12 +2663,12 @@ class PaymentLogController extends Controller
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-                        
+
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-                        
+
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
@@ -2695,21 +2678,21 @@ class PaymentLogController extends Controller
 
                         $result['Comment'] = "Cash Out";
                         $result['charge'] = 0;
-                        
-                        
+
+
                     }elseif (str_starts_with($text, "Tk") && strpos($text, "received from") !== false) {
 
-                        
+
 
                         $t_type = 1;
-                        
+
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        
 
-                        
-                        
+
+
+
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
@@ -2718,7 +2701,7 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*received/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                      
+
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
@@ -2728,12 +2711,12 @@ class PaymentLogController extends Controller
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-                        
+
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-                        
+
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
@@ -2742,18 +2725,18 @@ class PaymentLogController extends Controller
                         }
 
                         $result['Comment'] = "Cash Received";
-                        $result['Comm'] = 0;                        
-                        
+                        $result['Comm'] = 0;
+
                     }elseif (strpos($text, "Cash-In from") === 0) {
 
-                        
+
 
                         $t_type = 1;
 
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        
+
 
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
@@ -2780,7 +2763,7 @@ class PaymentLogController extends Controller
                         }
 
 
-                        
+
 
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
@@ -2791,8 +2774,8 @@ class PaymentLogController extends Controller
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }        
-                        
+                        }
+
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -2809,13 +2792,13 @@ class PaymentLogController extends Controller
                         $result['Comment'] = "Cash In";
                         $result['Comm'] = 0;
 
-                        
 
-                        
-                        
+
+
+
                     }elseif (strpos($text, "Cash-Out to") === 0) {
 
-                        
+
 
                         $t_type = 2;
 
@@ -2823,7 +2806,7 @@ class PaymentLogController extends Controller
                         $text = preg_replace('/\s*Download.*$/', '', $text);
                         $text = preg_replace('/\s*download.*$/', '', $text);
 
-                        
+
 
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
@@ -2845,14 +2828,14 @@ class PaymentLogController extends Controller
                             }
                         }
 
-                        
+
 
                         if(!isset($result['charge']) || empty($result['charge'])){
                             $result['charge'] = 0;
                         }
 
-                        
-                        
+
+
 
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
@@ -2863,10 +2846,10 @@ class PaymentLogController extends Controller
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }        
+                        }
 
-                        
-                        
+
+
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -2874,7 +2857,7 @@ class PaymentLogController extends Controller
                         }
 
 
-                        
+
 
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
@@ -2885,25 +2868,25 @@ class PaymentLogController extends Controller
                         }
 
                         $result['Comment'] = "Cash In";
-                        $result['Comm'] = 0;                   
+                        $result['Comm'] = 0;
 
-                        
 
-                        
-                        
+
+
+
                     }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
 
-                        
+
 
                         $t_type = 2;
-                        
+
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        
 
-                        
-                        
+
+
+
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
@@ -2912,7 +2895,7 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                      
+
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
@@ -2922,12 +2905,12 @@ class PaymentLogController extends Controller
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-                        
+
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-                        
+
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
@@ -2936,15 +2919,15 @@ class PaymentLogController extends Controller
                         }
 
                         $result['Comment'] = "Cash Transferred";
-                        $result['Comm'] = 0;    
-                        
+                        $result['Comm'] = 0;
+
                     }
                 }
 
-                
 
-                
-                
+
+
+
 
                 if(isset($result['Comment']) && isset($result['Amount']) && isset($result['Customer']) && isset($result['TxnID']) && isset($result['Comm']) && isset($result['Balance']) && isset($result['DateTime'])){
                     $result['Amount'] = preg_replace('/[^0-9.]/', '', $result['Amount']);
@@ -2956,8 +2939,8 @@ class PaymentLogController extends Controller
                     $result['Comm'] = floatval($result['Comm']);
                     $result['charge'] = floatval($result['charge']);
 
-                    
-                    
+
+
 
                     $account_balance = 0;
                     DB::beginTransaction();
@@ -2970,7 +2953,7 @@ class PaymentLogController extends Controller
                             }
                         }
                     }
-                    
+
                     $account_balance = floatval($account_balance);
 
 
@@ -2978,7 +2961,7 @@ class PaymentLogController extends Controller
                     $counter = 0;
                     $recordsmatched = 0;
                     $array_t = [];
-                    $SmsLogs = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->orderBy('id', 'desc')->take(3)->get()->sortBy('id');                             
+                    $SmsLogs = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->orderBy('id', 'desc')->take(3)->get()->sortBy('id');
                     $sumMatched = $SmsLogs->sum('matched');
                     if($sumMatched==6){
                         foreach($SmsLogs as $singleSmsLog){
@@ -3000,7 +2983,7 @@ class PaymentLogController extends Controller
                                     $recordsmatched++;
                                     if($recordsmatched==3){
                                         $final_balance_get = $singleSmsLog->final_amount;
-                                    }                                   
+                                    }
                                 }
                             }else{
                                 if($counter==1){
@@ -3057,7 +3040,7 @@ class PaymentLogController extends Controller
                         $account_balance = $final_balance_get;
                     }
 
-                    
+
 
                     $total_deposit = $account_balance + $result['Amount'] + $result['Comm'] - $result['charge'];
                     $differance  = $total_deposit - $result['Balance'];
@@ -3110,7 +3093,7 @@ class PaymentLogController extends Controller
 
 
 
-                    
+
 
 
                     $Log = new SmsLog();
@@ -3126,11 +3109,11 @@ class PaymentLogController extends Controller
                     $Log->type = $t_type;
                     $Log->matched = $saved;
                     $Log->save();
-                    
+
 
                     DB::commit();
-                    
-                    
+
+
 
 
 
@@ -3141,7 +3124,7 @@ class PaymentLogController extends Controller
                     $result['acc'] = $acc;
                     $result['type'] = $type;
 
-                    
+
 
                     if($Log->type==1){
                         $tt_type = "Deposit";
@@ -3159,10 +3142,10 @@ class PaymentLogController extends Controller
 
                     $formattedDateee = Carbon::parse($Log->created_at)->format('d-m-Y h:i A');
 
-                    
-                    
+
+
                    $customer_accc = str_replace('*', '⋆', $Log->customer_acc_no);
-                    
+
                     $message = "";
                     $message .= "*$source => $acc => $type* \n";
                     $message .= "*Type:* $tt_type \n";
@@ -3176,18 +3159,18 @@ class PaymentLogController extends Controller
                     $message .= "DateTime: $formattedDateee \n";
                     $message .= "*-------------------------------------* \n";
                     $message .= "*$tt_matched* \n";
-                    
-                    
-                    
+
+
+
                     $response = Http::post($url, [
                         'chat_id' => $thischatid,
                         'text' => $message,
                         'parse_mode' => 'Markdown',
                     ]);
 
-                    dd('abc');    
-                        
-                    
+                    dd('abc');
+
+
                     if($saved == 2){
                         LaravelLog::info('Balance not match-xxxxxxxxxxxxxxxx');
 
@@ -3254,17 +3237,17 @@ class PaymentLogController extends Controller
                                                     }
                                                 }
                                             }
-                                                
 
-                                            
+
+
                                         }
 
                                         $attempt++;
                                     }
 
-                                    
-                         
-                                    
+
+
+
                                 }else{
                                     $ttt_type = "Withdrawal";
                                     LaravelLog::info('x Withdrawal Saved txn: '.$array_t_o['txn']);
@@ -3287,24 +3270,24 @@ class PaymentLogController extends Controller
                                 $message .= "DateTime: $formattedDateeee \n";
                                 $message .= "*-------------------------------------* \n";
                                 $message .= "*Holded SMS Saved* \n";
-                                
+
                                 $response = Http::post($url, [
                                     'chat_id' => $CompletedchatId,
                                     'text' => $message,
                                     'parse_mode' => 'Markdown',
                                 ]);
-                                    
+
                             }
                         }
-                            
+
                     }
 
-                    
-
-                    
 
 
-                    
+
+
+
+
 
                     $SmsLog = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->where('matched', 2)->orderBy('id', 'desc')->first();
                     if($SmsLog){
@@ -3358,7 +3341,7 @@ class PaymentLogController extends Controller
                                     }else{
                                         $success = 1;
 
-                                        if (stripos($content, 'pending') !== false) {    
+                                        if (stripos($content, 'pending') !== false) {
                                             $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
                                             if($Txn){
                                                 $api_key = Api::where('id', $Txn->api_id)->where('type', 'Admin')->first();
@@ -3397,7 +3380,7 @@ class PaymentLogController extends Controller
                                 $message .= "DateTime: $formattedDateeeee \n";
                                 $message .= "*-------------------------------------* \n";
                                 $message .= "*Holded SMS Saved* \n";
-                                
+
                                 $response = Http::post($url, [
                                     'chat_id' => $CompletedchatId,
                                     'text' => $message,
@@ -3405,8 +3388,8 @@ class PaymentLogController extends Controller
                                 ]);
                             }
                         }else{
-                            
-                            
+
+
                             $previous_withdrawal = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - $SmsLog->charge;
                             $previous_withdrawal2 = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - 5;
                             $previous_withdrawal3 = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - 10;
@@ -3429,7 +3412,7 @@ class PaymentLogController extends Controller
                                 }
                                 $p_matched = 1;
                                 LaravelLog::info('Previous Withdrawal Saved!!!!!!!!!');
-                                
+
                             }elseif(($SmsLog->final_amount - $previous_withdrawal3 < 1) && ($previous_withdrawal3 - $SmsLog->final_amount < 1)){
                                 if($accountt){
                                     $accountt->live_balance = $SmsLog->final_amount;
@@ -3462,7 +3445,7 @@ class PaymentLogController extends Controller
                                 $message .= "DateTime: $formattedDateeeeee \n";
                                 $message .= "*-------------------------------------* \n";
                                 $message .= "*Holded SMS Saved* \n";
-                                
+
                                 $response = Http::post($url, [
                                     'chat_id' => $CompletedchatId,
                                     'text' => $message,
@@ -3470,17 +3453,17 @@ class PaymentLogController extends Controller
                                 ]);
                             }
 
-                                
-                                
-                            
 
-                            
+
+
+
+
                         }
-                            
-                    }
-                                      
 
-                    
+                    }
+
+
+
 
                     if(($result['Balance'] - $total_deposit < 1) && ($total_deposit - $result['Balance'] < 1)){
                         $parameters = [
@@ -3517,7 +3500,7 @@ class PaymentLogController extends Controller
                             }else{
                                 $success = 1;
 
-                                if (stripos($content, 'pending') !== false) {  
+                                if (stripos($content, 'pending') !== false) {
 
                                     $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
                                     if($Txn){
@@ -3544,12 +3527,12 @@ class PaymentLogController extends Controller
 
 
                     $SmsLognotmatcheds = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->where('matched', 2)->where('sent', 0)->orderBy('id', 'desc')->skip(3)->take(PHP_INT_MAX)->get();
-                    foreach($SmsLognotmatcheds as $SmsLognotmatched){                            
+                    foreach($SmsLognotmatcheds as $SmsLognotmatched){
                             if($SmsLognotmatched->type==1){
                                 $ttttt_type = "Deposit";
                             }else{
                                 $ttttt_type = "Withdrawal";
-                            }                           
+                            }
 
                             $formattedDateeeeeeee = Carbon::parse($SmsLognotmatched->created_at)->format('d-m-Y h:i A');
                             $message = "";
@@ -3565,7 +3548,7 @@ class PaymentLogController extends Controller
                             $message .= "DateTime: $formattedDateeeeeeee \n";
                             $message .= "*-------------------------------------* \n";
                             $message .= "*Holded SMS Rejected* \n";
-                            
+
                             $response = Http::post($url, [
                                 'chat_id' => $RejectedchatId,
                                 'text' => $message,
@@ -3574,16 +3557,16 @@ class PaymentLogController extends Controller
 
                             $SmsLognotmatched->sent = 1;
                             $SmsLognotmatched->save();
-                                
+
                         }
-                        
+
 
 
                     return 'success';
                 }else{
                     LaravelLog::info('Formate note match-xxxxxxxxxxxxxxxx');
                 }
-                
+
             }
 
            return 'success';
@@ -3603,7 +3586,7 @@ class PaymentLogController extends Controller
         $HoldchatId = "-1002380966787";
         $RejectedchatId = "-1002488335071";
 
-        
+
 
         LaravelLog::info('Source:'.$source.' Acc:'.$acc.' Type:'.$type.' Message:'.$string);
 
@@ -3619,16 +3602,16 @@ class PaymentLogController extends Controller
                 $text = substr($string, $valueStart, $valueEnd - $valueStart);
                 $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
                 $jsonWithoutText = rtrim($jsonWithoutText, ",");
-                
+
                 $array = json_decode($jsonWithoutText, true);
 
                 $result = [];
-                
+
 
                 if($array['from']=="bKash"){
 
                     $text = preg_replace('/\s*Download.*$/', '', $text);
-                    
+
                     if (strpos($text, "You have received") === 0) {
 
                         $t_type = 1;
@@ -3676,12 +3659,12 @@ class PaymentLogController extends Controller
                         }else{
                             $t_type = 1;
                         }
-                        
+
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                        
+
                         // Extract customer phone number after "from" and before "Fee"
                         // if (preg_match('/from (.*?) successful/', $text, $matches)) {
                         //     $result['Customer'] = $matches[1];
@@ -3726,15 +3709,15 @@ class PaymentLogController extends Controller
                             $t_type = 2;
                         }
 
-                        
 
-                        
-                        
+
+
+
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                        
+
                         // Extract customer phone number after "from" and before "Fee"
                         // if (preg_match('/from (.*?) successful/', $text, $matches)) {
                         //     $result['Customer'] = $matches[1];
@@ -3792,7 +3775,7 @@ class PaymentLogController extends Controller
                                 [$key, $value] = explode(':', $line, 2);
                                 $result[trim($key)] = trim($value);
                             }
-                        }                    
+                        }
                     }
                     if(isset($result['Sender'])){
                         $result['Customer'] = $result['Sender'];
@@ -3815,8 +3798,8 @@ class PaymentLogController extends Controller
                     }
 
                 }elseif($array['from']=="16216"){
-                    
-                    
+
+
                     if (strpos($text, "B2C: Cash-In") === 0) {
 
                         $t_type = 2;
@@ -3854,8 +3837,8 @@ class PaymentLogController extends Controller
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }        
-                        
+                        }
+
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -3871,14 +3854,14 @@ class PaymentLogController extends Controller
 
                         $result['Comment'] = "Cash In";
                         $result['charge'] = 0;
-                        
+
                     }elseif (strpos($text, "B2C: Cash-Out") === 0) {
 
                         $t_type = 1;
-                        
+
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
-                        
+
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
@@ -3889,7 +3872,7 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                      
+
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
@@ -3899,12 +3882,12 @@ class PaymentLogController extends Controller
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-                        
+
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-                        
+
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
@@ -3914,21 +3897,21 @@ class PaymentLogController extends Controller
 
                         $result['Comment'] = "Cash Out";
                         $result['charge'] = 0;
-                        
-                        
+
+
                     }elseif (str_starts_with($text, "Tk") && strpos($text, "received from") !== false) {
 
-                        
+
 
                         $t_type = 1;
-                        
+
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        
 
-                        
-                        
+
+
+
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
@@ -3937,7 +3920,7 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*received/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                      
+
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
@@ -3947,12 +3930,12 @@ class PaymentLogController extends Controller
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-                        
+
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-                        
+
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
@@ -3961,18 +3944,18 @@ class PaymentLogController extends Controller
                         }
 
                         $result['Comment'] = "Cash Received";
-                        $result['Comm'] = 0;                        
-                        
+                        $result['Comm'] = 0;
+
                     }elseif (strpos($text, "Cash-In from") === 0) {
 
-                        
+
 
                         $t_type = 1;
 
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        
+
 
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
@@ -3999,7 +3982,7 @@ class PaymentLogController extends Controller
                         }
 
 
-                        
+
 
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
@@ -4010,8 +3993,8 @@ class PaymentLogController extends Controller
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }        
-                        
+                        }
+
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -4028,13 +4011,13 @@ class PaymentLogController extends Controller
                         $result['Comment'] = "Cash In";
                         $result['Comm'] = 0;
 
-                        
 
-                        
-                        
+
+
+
                     }elseif (strpos($text, "Cash-Out to") === 0) {
 
-                        
+
 
                         $t_type = 2;
 
@@ -4042,7 +4025,7 @@ class PaymentLogController extends Controller
                         $text = preg_replace('/\s*Download.*$/', '', $text);
                         $text = preg_replace('/\s*download.*$/', '', $text);
 
-                        
+
 
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
@@ -4064,14 +4047,14 @@ class PaymentLogController extends Controller
                             }
                         }
 
-                        
+
 
                         if(!isset($result['charge']) || empty($result['charge'])){
                             $result['charge'] = 0;
                         }
 
-                        
-                        
+
+
 
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
@@ -4082,10 +4065,10 @@ class PaymentLogController extends Controller
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }        
+                        }
 
-                        
-                        
+
+
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -4093,7 +4076,7 @@ class PaymentLogController extends Controller
                         }
 
 
-                        
+
 
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
@@ -4104,25 +4087,25 @@ class PaymentLogController extends Controller
                         }
 
                         $result['Comment'] = "Cash In";
-                        $result['Comm'] = 0;                   
+                        $result['Comm'] = 0;
 
-                        
 
-                        
-                        
+
+
+
                     }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
 
-                        
+
 
                         $t_type = 2;
-                        
+
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        
 
-                        
-                        
+
+
+
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
@@ -4131,7 +4114,7 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-                      
+
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
@@ -4141,12 +4124,12 @@ class PaymentLogController extends Controller
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-                        
+
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-                        
+
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
@@ -4155,13 +4138,13 @@ class PaymentLogController extends Controller
                         }
 
                         $result['Comment'] = "Cash Transferred";
-                        $result['Comm'] = 0;    
-                        
+                        $result['Comm'] = 0;
+
                     }
                 }
 
-                
-                
+
+
 
                 if(isset($result['Comment']) && isset($result['Amount']) && isset($result['Customer']) && isset($result['TxnID']) && isset($result['Comm']) && isset($result['Balance']) && isset($result['DateTime'])){
                     $result['Amount'] = preg_replace('/[^0-9.]/', '', $result['Amount']);
@@ -4172,7 +4155,7 @@ class PaymentLogController extends Controller
                     $result['Balance'] = floatval($result['Balance']);
                     $result['Comm'] = floatval($result['Comm']);
                     $result['charge'] = floatval($result['charge']);
-                    
+
 
                     $account_balance = 0;
                     DB::beginTransaction();
@@ -4185,7 +4168,7 @@ class PaymentLogController extends Controller
                             }
                         }
                     }
-                    
+
                     $account_balance = floatval($account_balance);
 
 
@@ -4193,7 +4176,7 @@ class PaymentLogController extends Controller
                     $counter = 0;
                     $recordsmatched = 0;
                     $array_t = [];
-                    $SmsLogs = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->orderBy('id', 'desc')->take(3)->get()->sortBy('id');                             
+                    $SmsLogs = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->orderBy('id', 'desc')->take(3)->get()->sortBy('id');
                     $sumMatched = $SmsLogs->sum('matched');
                     if($sumMatched==6){
                         foreach($SmsLogs as $singleSmsLog){
@@ -4215,7 +4198,7 @@ class PaymentLogController extends Controller
                                     $recordsmatched++;
                                     if($recordsmatched==3){
                                         $final_balance_get = $singleSmsLog->final_amount;
-                                    }                                   
+                                    }
                                 }
                             }else{
                                 if($counter==1){
@@ -4272,7 +4255,7 @@ class PaymentLogController extends Controller
                         $account_balance = $final_balance_get;
                     }
 
-                    
+
 
                     $total_deposit = $account_balance + $result['Amount'] + $result['Comm'] - $result['charge'];
                     $differance  = $total_deposit - $result['Balance'];
@@ -4337,7 +4320,7 @@ class PaymentLogController extends Controller
                     $Log->type = $t_type;
                     $Log->matched = $saved;
                     $Log->save();
-                    
+
 
                     DB::commit();
 
@@ -4350,7 +4333,7 @@ class PaymentLogController extends Controller
                     $result['acc'] = $acc;
                     $result['type'] = $type;
 
-                    
+
 
                     if($Log->type==1){
                         $tt_type = "Deposit";
@@ -4383,16 +4366,16 @@ class PaymentLogController extends Controller
                     $message .= "DateTime: $formattedDateee \n";
                     $message .= "*-------------------------------------* \n";
                     $message .= "*$tt_matched* \n";
-                    
+
                     $response = Http::post($url, [
                         'chat_id' => $thischatid,
                         'text' => $message,
                         'parse_mode' => 'Markdown',
                     ]);
 
-                        
-                        
-                    
+
+
+
                     if($saved == 2){
                         LaravelLog::info('Balance not match-xxxxxxxxxxxxxxxx');
 
@@ -4459,17 +4442,17 @@ class PaymentLogController extends Controller
                                                     }
                                                 }
                                             }
-                                                
 
-                                            
+
+
                                         }
 
                                         $attempt++;
                                     }
 
-                                    
-                         
-                                    
+
+
+
                                 }else{
                                     $ttt_type = "Withdrawal";
                                     LaravelLog::info('x Withdrawal Saved txn: '.$array_t_o['txn']);
@@ -4492,24 +4475,24 @@ class PaymentLogController extends Controller
                                 $message .= "DateTime: $formattedDateeee \n";
                                 $message .= "*-------------------------------------* \n";
                                 $message .= "*Holded SMS Saved* \n";
-                                
+
                                 $response = Http::post($url, [
                                     'chat_id' => $CompletedchatId,
                                     'text' => $message,
                                     'parse_mode' => 'Markdown',
                                 ]);
-                                    
+
                             }
                         }
-                            
+
                     }
 
-                    
-
-                    
 
 
-                    
+
+
+
+
 
                     $SmsLog = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->where('matched', 2)->orderBy('id', 'desc')->first();
                     if($SmsLog){
@@ -4563,7 +4546,7 @@ class PaymentLogController extends Controller
                                     }else{
                                         $success = 1;
 
-                                        if (stripos($content, 'pending') !== false) {    
+                                        if (stripos($content, 'pending') !== false) {
                                             $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
                                             if($Txn){
                                                 $api_key = Api::where('id', $Txn->api_id)->where('type', 'Admin')->first();
@@ -4604,7 +4587,7 @@ class PaymentLogController extends Controller
                                 $message .= "DateTime: $formattedDateeeee \n";
                                 $message .= "*-------------------------------------* \n";
                                 $message .= "*Holded SMS Saved* \n";
-                                
+
                                 $response = Http::post($url, [
                                     'chat_id' => $CompletedchatId,
                                     'text' => $message,
@@ -4612,8 +4595,8 @@ class PaymentLogController extends Controller
                                 ]);
                             }
                         }else{
-                            
-                            
+
+
                             $previous_withdrawal = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - $SmsLog->charge;
                             $previous_withdrawal2 = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - 5;
                             $previous_withdrawal3 = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - 10;
@@ -4636,7 +4619,7 @@ class PaymentLogController extends Controller
                                 }
                                 $p_matched = 1;
                                 LaravelLog::info('Previous Withdrawal Saved!!!!!!!!!');
-                                
+
                             }elseif(($SmsLog->final_amount - $previous_withdrawal3 < 1) && ($previous_withdrawal3 - $SmsLog->final_amount < 1)){
                                 if($accountt){
                                     $accountt->live_balance = $SmsLog->final_amount;
@@ -4671,7 +4654,7 @@ class PaymentLogController extends Controller
                                 $message .= "DateTime: $formattedDateeeeee \n";
                                 $message .= "*-------------------------------------* \n";
                                 $message .= "*Holded SMS Saved* \n";
-                                
+
                                 $response = Http::post($url, [
                                     'chat_id' => $CompletedchatId,
                                     'text' => $message,
@@ -4679,17 +4662,17 @@ class PaymentLogController extends Controller
                                 ]);
                             }
 
-                                
-                                
-                            
 
-                            
+
+
+
+
                         }
-                            
-                    }
-                                      
 
-                    
+                    }
+
+
+
 
                     if(($result['Balance'] - $total_deposit < 1) && ($total_deposit - $result['Balance'] < 1)){
                         $parameters = [
@@ -4726,7 +4709,7 @@ class PaymentLogController extends Controller
                             }else{
                                 $success = 1;
 
-                                if (stripos($content, 'pending') !== false) {  
+                                if (stripos($content, 'pending') !== false) {
 
                                     $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
                                     if($Txn){
@@ -4753,12 +4736,12 @@ class PaymentLogController extends Controller
 
 
                     $SmsLognotmatcheds = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->where('matched', 2)->where('sent', 0)->orderBy('id', 'desc')->skip(3)->take(PHP_INT_MAX)->get();
-                    foreach($SmsLognotmatcheds as $SmsLognotmatched){                            
+                    foreach($SmsLognotmatcheds as $SmsLognotmatched){
                             if($SmsLognotmatched->type==1){
                                 $ttttt_type = "Deposit";
                             }else{
                                 $ttttt_type = "Withdrawal";
-                            }                           
+                            }
 
                             $formattedDateeeeeeee = Carbon::parse($SmsLognotmatched->created_at)->format('d-m-Y h:i A');
 
@@ -4778,7 +4761,7 @@ class PaymentLogController extends Controller
                             $message .= "DateTime: $formattedDateeeeeeee \n";
                             $message .= "*-------------------------------------* \n";
                             $message .= "*Holded SMS Rejected* \n";
-                            
+
                             $response = Http::post($url, [
                                 'chat_id' => $RejectedchatId,
                                 'text' => $message,
@@ -4787,21 +4770,21 @@ class PaymentLogController extends Controller
 
                             $SmsLognotmatched->sent = 1;
                             $SmsLognotmatched->save();
-                                
+
                         }
-                        
+
 
 
                     return 'success';
                 }else{
                     LaravelLog::info('Formate note match-xxxxxxxxxxxxxxxx');
                 }
-                
+
             }
 
            return 'success';
     }
 
 
-    
+
 }

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Api;
 use App\Models\Payment;
 use App\Models\Payout;
+use App\Models\CCategory;
 use App\Models\Log;
+use App\Models\ParentCommission;
 use App\Models\ApiLog;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -18,8 +20,9 @@ class MerchantController extends Controller
     public function profile($id)
 {
     $pageTitle = "Merchants Profile";
+    $PartnerCommission= ParentCommission::with('partner')->where('user_id',$id)->get();
     $data = Api::findOrFail($id);
-
+    $categories = CCategory::where('status',1)->get();
     $payments = Payment::selectRaw(
         'DATE(created_at) as completion_date,
          api_id,
@@ -54,7 +57,10 @@ class MerchantController extends Controller
         'data',
         'pageTitle',
         'combined',
-        'total_deposit'
+        'total_deposit',
+        'categories',
+        'id',
+        'PartnerCommission'
     ));
 }
 

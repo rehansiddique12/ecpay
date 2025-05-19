@@ -1,13 +1,17 @@
-<x-partner-layout >
+@extends('partner.layouts.open')
+@section('title')
+@lang('Select Method')
+@endsection
+@section('content')
 
 <center>
-    <div class="w-full h-full" style="margin-top:10%; margin-bottom:10%">
-        <div class="row ">
+    <div class="" style="margin-top:10%">
+        <div class="row">
             <div class="col-md-6">
                 <a href="deposit">
                     <div>
                         <!-- <i class="fas fa-hand-holding-usd" style="font-size:200px;color:red"></i> -->
-                        <p style="font-size:80px;"><span class="badge badge-success" style="background-color:rgba(25, 192, 25, 0.781);">Deposit</span></p>
+                        <p style="font-size:80px;color:red"><span class="badge badge-success">Deposit</span></p>
                     </div>
                 </a>
             </div>
@@ -24,7 +28,7 @@
     </div>
 </center>
 
+@endsection
 
 @push('script')
 @endpush
-</x-partner-layout>

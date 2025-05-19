@@ -1,121 +1,91 @@
-<x-partner-layout>
-    <style>
-        .user-panel .deposit-box {
-            text-align: center;
-            border-radius: 5px;
-            background: var(--white);
-            -webkit-box-shadow: var(--shadow);
-            box-shadow: var(--shadow);
-            cursor: pointer;
-        }
-    </style>
+@extends('partner.layouts.open')
+@section('title')
+@lang('Add Fund')
+@endsection
+@section('content')
 
-    <div class="row g-3 m-4">
-        @foreach ($gateways as $key => $gateway)
-            <div class="col-lg-2 col-6 col-sm-4 col-md-3">
-                <div class="user-panel">
-                    <div class="deposit-box addFund" data-bs-toggle="modal" data-bs-target="#makeDeposit"
-                        data-id="{{ $gateway->id }}" data-name="{{ $gateway->name }}"
-                        data-currency="{{ $gateway->currency }}" data-gateway="{{ $gateway->code }}"
-                        data-qr_image="{{ $gateway->qr_image != '' ? getFile(config('location.gateway.path') . $gateway->qr_image) : '' }}"
-                        data-min_amount="{{ getAmount($gateway->min_amount, $basic->fraction_number) }}"
-                        data-max_amount="{{ getAmount($gateway->max_amount, $basic->fraction_number) }}"
-                        data-percent_charge="{{ getAmount($gateway->percentage_charge, $basic->fraction_number) }}"
-                        data-fix_charge="{{ getAmount($gateway->fixed_charge, $basic->fraction_number) }}">
-                        <div class="img-box">
-                            <img class="img-fluid"
-                                src="{{ getFile(config('location.gateway.path') . $gateway->image) }}"
-                                alt="{{ $gateway->name }}" />
-                            <p>{{ trans($gateway->name) }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-
-    {{-- @push('loadModal') --}}
-    <!-- Deposit Modal -->
-
-    <div class="modal fade" id="makeDeposit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="makeDepositLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-
-                    <h4>@lang('Make Deposit')</h4>
-                    <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div id="general-error"></div>
-                    <form>
-                        <div class="payment-form">
-                            @if(0 == $totalPayment)
-                            <p class="text-danger depositLimit"></p>
-                            @endif
-                            <input type="hidden" class="gateway" name="gateway" value="">
-                            <div class="form-group mb-30">
-                                <div class="input-box">
-                                    <div class="input-group">
-                                        <input type="text" class="amount form-control" required name="amount" autocomplete="off" placeholder="@lang('Amount')" @if($totalPayment !=null) value="{{$totalPayment}}" placeholder="@lang('Amount')" readonly @endif>
-                                        <div class="input-group-append">
-                                            <span class="input-group-text show-currency">Bangladeshi Taka</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <pre class="text-danger amount-error"></pre>
-                            </div>
-
-                            <div class="form-group mb-30">
-                                <div class="input-box">
-                                    <div class="input-group">
-                                        <input type="text" class="account_no form-control" required name="account_no" autocomplete="off" placeholder="@lang('Sender Phone No.')">
-                                        <div class="input-group-append">
-                                            <span class="input-group-text">Sender Phone No.</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <pre class="text-danger account-no-error"></pre>
-                            </div>
-
-                        </div>
-                    </form>
-                    <div class="payment-info text-center">
-                        <img id="loading" src="{{asset('assets/img/layouts/loading.gif')}}" alt="..." class="w-15" />
-                    </div>
-                </div>
-                <div class="modal-footer border-top-0">
-                    <button type="button" class="btn btn-success checkCalc">@lang('Next')</button>
+<div class="row g-3 m-4">
+    @foreach($gateways as $key => $gateway)
+    {{-- @dd($gateway) --}}
+    <div class="col-lg-2 col-6 col-sm-4 col-md-3">
+        <div class="user-panel">
+            <div class="deposit-box addFund" data-bs-toggle="modal" data-bs-target="#makeDeposit" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-currency="{{$gateway->currency}}" data-gateway="{{$gateway->code}}" data-qr_image="{{$gateway->qr_image!=''?getFile(config('location.gateway.path').$gateway->qr_image):''}}" data-min_amount="{{getAmount($gateway->min_amount, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->max_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percentage_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}">
+                <div class="img-box">
+                    <img class="img-fluid" src="{{ getFile(config('location.gateway.path').$gateway->image)}}" alt="{{$gateway->name}}" />
+                    <p>{{trans($gateway->name)}}</p>
                 </div>
             </div>
         </div>
     </div>
+    @endforeach
+</div>
+
+@push('loadModal')
+<!-- Deposit Modal -->
+
+<div class="modal fade" id="makeDeposit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="makeDepositLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4>@lang('Make Deposit')</h4>
+                <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="general-error"></div>
+            <div class="modal-body">
+                <form>
+                    <div class="payment-form">
+                        @if(0 == $totalPayment)
+                        <p class="text-danger depositLimit"></p>
+                        @endif
+                        <input type="hidden" class="gateway" name="gateway" value="">
+                        <div class="form-group mb-30">
+                            <div class="input-box">
+                                <div class="input-group">
+                                    <input type="text" class="amount form-control" required name="amount" autocomplete="off" placeholder="@lang('Amount')" @if($totalPayment !=null) value="{{$totalPayment}}" placeholder="@lang('Amount')" readonly @endif>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text show-currency"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <pre class="text-danger amount-error"></pre>
+                        </div>
+
+                        <div class="form-group mb-30">
+                            <div class="input-box">
+                                <div class="input-group">
+                                    <input type="text" class="account_no form-control" required name="account_no" autocomplete="off" placeholder="@lang('Sender Phone No.')">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">Sender Phone No.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <pre class="text-danger account-no-error"></pre>
+                        </div>
+
+                    </div>
+                </form>
+                <div class="payment-info text-center">
+                    <img id="loading" src="{{asset('assets/admin/images/loading.gif')}}" alt="..." class="w-15" />
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-success checkCalc">@lang('Next')</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
-    <!--<li class="list-group-item bg-transparent">@lang('Charge'):-->
-    <!--                        <strong>${data.charge}</strong>-->
-    <!--                </li>-->
-    <!--                <li class="list-group-item bg-transparent">-->
-    <!--                    @lang('Payable'): <strong> ${data.payable}</strong>-->
-    <!--                </li>-->
-    <!--                <li class="list-group-item bg-transparent">-->
-    <!--                    @lang('Conversion Rate'): <strong>${data.conversion_rate}</strong>-->
-    <!--                </li>-->
-    <!--                <li class="list-group-item bg-transparent">-->
-    <!--                    <strong>${data.in}</strong>-->
-    <!--                </li>-->
 
+@endpush
+@endsection
 
-
-    {{-- @endpush --}}
-
-    @push('js')
-<!-- Load Clipboard.js before using it -->
-<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+@push('script')
 
 <script>
     $('#loading').hide();
-
+    "use strict";
     var id, minAmount, maxAmount, baseSymbol, fixCharge, percentCharge, currency, amount, gateway, name, qr_image;
     $('.addFund').on('click', function() {
         id = $(this).data('id');
@@ -246,7 +216,6 @@
                 }
 
                 errorHtml += '</ul>';
-                console.log(errorHtml);
 
                 // Display the errors
                 $('#general-error').html(errorHtml);
@@ -289,6 +258,6 @@
         });
     });
 </script>
-@endpush
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
 
-</x-partner-layout>
+@endpush
