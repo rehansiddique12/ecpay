@@ -123,7 +123,7 @@
                                 {{ getAmount($item->charge,2 ) }} {{$basic->currency_symbol}}</td>
 
                             <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                {{ getAmount($item->amount +$item->charge ,2) }} {{$basic->currency_symbol}}</td>
+                                {{ getAmount($item->amount + $item->charge ,2) }} {{$basic->currency_symbol}}</td>
 
                            <td data-label="@lang('Status')" class="text-center">
                             <div class="d-flex flex-column align-items-center">
@@ -198,7 +198,7 @@
                                             data-route="{{route('admin.payout-action',$item->id)}}"
                                             data-feedback="{{$item->feedback}}" data-info="{{$details}}"
                                             data-id="{{$item->id}}" data-status="{{$item->transfer_status}}"
-                                            
+
                                             data-statusb="{{$item->status ? $item->status:''}}">
                                             @if(Request::routeIs('admin.payout-request'))
                                             <i class="icon-base ti tabler-pencil me-1"></i> Edit

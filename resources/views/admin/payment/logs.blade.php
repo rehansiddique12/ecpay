@@ -140,8 +140,9 @@
                                 {{$fund->gateway->currency}}</td>
                             <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }}
                                 {{$fund->gateway->currency}}</td>
-                            <td data-label="@lang('Payable')" class="font-weight-bold">{{ getAmount($fund->amount) -
-                                getAmount($fund->charges) }} {{$fund->gateway->currency}}</td>
+                            <td data-label="@lang('Payable')" class="font-weight-bold">
+                                {{ getAmount($fund->amount) - getAmount($fund->charge) }} {{$fund->gateway->currency}}
+                            </td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
                                 @if($fund->status == 'Pending')

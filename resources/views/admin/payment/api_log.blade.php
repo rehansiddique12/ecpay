@@ -84,7 +84,7 @@
                                 <td class="font-weight-bold text-uppercase">{{ getAmount($fund->amount, 2) }}</td>
                                 <td class="font-weight-bold text-uppercase">{{ getAmount($fund->charge, 2) }}</td>
                                 <td class="font-weight-bold text-uppercase">
-                                    {{ getAmount($fund->amount + $fund->charge), 2 }}</td>
+                                    {{ getAmount($fund->amount - $fund->charge), 2 }}</td>
                                <td data-label="@lang('Status')" class="text-lg-center text-right">
                                     @if($fund->status == "Complete")
                                     <span class="badge bg-success">
