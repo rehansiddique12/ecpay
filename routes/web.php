@@ -481,6 +481,21 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payout/report/daily', [PartnerPayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PartnerPayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class,'reportDetail'])->name('payout.report.detail');
+
+
+        Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
+        Route::get('/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('depositFund');
+        Route::post('/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('addFund.request.open');
+        Route::get('/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('addFund.processPayment.open');
+        Route::get('/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'update_order_fund_status'])->name('update_fund_order_status.open');
+
+
+        Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
+        Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+
+
+
+
     });
 
 
@@ -499,13 +514,4 @@ Route::post('process/payment3', [PartnerPayoutRecordController::class,'processNe
 Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class,'getaccount'])->name('iframe.getaccount');
 
 
-    Route::get('partner/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('partner.methods.get');
-    Route::get('partner/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('partner.depositFund');
-    Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('partner.addFund.request.open');
-    Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('partner.addFund.processPayment.open');
-    Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'partner.update_order_fund_status'])->name('update_fund_order_status.open');
-
-
-
-    Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
-    Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+    

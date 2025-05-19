@@ -7,6 +7,7 @@ use App\Models\Api;
 use App\Models\Log;
 use App\Models\Txn;
 use App\Models\Payout;
+use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Signature;
