@@ -261,8 +261,8 @@
                                 {{-- - --}}
                                 {{-- @endif --}}
                                 <button class="edit_buttonc  btn btn-danger text-white  btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#myModalc" data-bs-title="Edit" data-bs-id="{{ $fund->id }}"
-                                    data-bs-e_wallet_phone_number="{{$fund->e_wallet_phone_number}}">
+                                    data-bs-target="#myModalc" data-bs-title="Edit" data-id="{{ $fund->id }}"
+                                    data-e_wallet_phone_number="{{$fund->e_wallet_phone_number}}">
                                     <i class="icon-base ti tabler-device-mobile me-1"></i>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal"

@@ -118,7 +118,7 @@ class PaymentLogController extends Controller
         $search = $request->all();
         $fund_count = 0;
         $fund_sum = 0;
-        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        //$funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
 
         // Aggregate totals (COUNT & SUM)
         $funds_t = Payment::where('status', '!=', 'initiate')
@@ -140,7 +140,7 @@ class PaymentLogController extends Controller
                         ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-            ->when($search['status'] != 4, function ($query) use ($search) {
+            ->when($search['status'] != "All", function ($query) use ($search) {
                 $query->where('status', $search['status']);
             })
             ->when($search['website'], function ($query) use ($search) {
@@ -151,13 +151,16 @@ class PaymentLogController extends Controller
                       ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
             })
             ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
-            ->first();
+            ->with('user', 'gateway')
+            ->paginate(config('basic.paginate'));
 
-        $fund_count = $funds_t->amount_count ?? 0;
-        $fund_sum = round($funds_t->amount_sum ?? 0, 2);
+        if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
+            $fund_count = $funds_t[0]->amount_count;
+            $fund_sum = round($funds_t[0]->amount_sum, 2);
+        }
 
         // Paginated list of payments
-        $payments = Payment::where('status', '!=', 0)
+        $funds = Payment::where('status', '!=', 'initiate')
             ->when($search['name'], function ($query) use ($search) {
                 $query->whereHas('user', function ($subQuery) use ($search) {
                     $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
@@ -177,7 +180,7 @@ class PaymentLogController extends Controller
                         ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-            ->when($search['status'] != 4, function ($query) use ($search) {
+            ->when($search['status'] != "All", function ($query) use ($search) {
                 $query->where('status', $search['status']);
             })
             ->when($search['website'], function ($query) use ($search) {
@@ -193,8 +196,9 @@ class PaymentLogController extends Controller
             ->with('user', 'gateway')
             ->paginate(config('basic.paginate'));
 
+
         $pageTitle = "Search Payment Logs";
-        return view('admin.payment.report', compact('funds','payments', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains'));
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains'));
     }
 
     public function dailyReport()
@@ -493,31 +497,6 @@ class PaymentLogController extends Controller
         $this->validate($request, [
             'id' => 'required',
             'status' => ['required', Rule::in(['Complete', 'Reject'])],
-            'txn_id' => [
-                Rule::requiredIf($request->status === 'Complete'),
-                Rule::unique('payments', 'txn_id'),
-            ],
-            'sender' => [
-                    Rule::requiredIf($request->status === 'Complete'),
-                    'string',
-                ],
-
-            'date_time' => [
-                    Rule::requiredIf($request->status === 'Complete'),
-                    'date',
-                ],
-
-            'e_wallet_type' => [
-                    Rule::requiredIf($request->status === 'Complete'),
-                    Rule::in(['Personal', 'Merchant']),
-                ],
-
-            'e_wallet_phone_number' => [
-                    Rule::requiredIf($request->status === 'Complete'),
-                    'string',
-                ],
-        ], [
-            'txn_id.unique' => 'By This Txn no, Payment Already Completed.',
         ]);
         // dd($request->all());
         DB::beginTransaction();
@@ -557,9 +536,13 @@ class PaymentLogController extends Controller
                         ->orderBy('id', 'DESC')
                         ->first();
                 } else {
-                    // $check_payment = Payment::where('txn_id', $request->txn_id)
-                    //     ->where('status', 'Complete')
-                    //     ->first();
+                    $check_payment = Payment::where('txn_id', $request->txn_id)
+                        ->where('status', 'Complete')
+                        ->first();
+                    if ($check_payment) {
+                        DB::rollBack();
+                        throw new \Exception("By This Txn no, Payment Already Completed.");
+                    }
                     if ($data->status == "Complete") {
                         DB::rollBack();
                         throw new \Exception("This Payment Already Completed.");
