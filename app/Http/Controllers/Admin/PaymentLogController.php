@@ -118,7 +118,7 @@ class PaymentLogController extends Controller
         $search = $request->all();
         $fund_count = 0;
         $fund_sum = 0;
-        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        //$funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
 
         // Aggregate totals (COUNT & SUM)
         $funds_t = Payment::where('status', '!=', 'initiate')
@@ -140,7 +140,7 @@ class PaymentLogController extends Controller
                         ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-            ->when($search['status'] != 4, function ($query) use ($search) {
+            ->when($search['status'] != "All", function ($query) use ($search) {
                 $query->where('status', $search['status']);
             })
             ->when($search['website'], function ($query) use ($search) {
@@ -151,13 +151,16 @@ class PaymentLogController extends Controller
                       ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
             })
             ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
-            ->first();
+            ->with('user', 'gateway')
+            ->paginate(config('basic.paginate'));
 
-        $fund_count = $funds_t->amount_count ?? 0;
-        $fund_sum = round($funds_t->amount_sum ?? 0, 2);
+        if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
+            $fund_count = $funds_t[0]->amount_count;
+            $fund_sum = round($funds_t[0]->amount_sum, 2);
+        }
 
         // Paginated list of payments
-        $payments = Payment::where('status', '!=', 0)
+        $funds = Payment::where('status', '!=', 'initiate')
             ->when($search['name'], function ($query) use ($search) {
                 $query->whereHas('user', function ($subQuery) use ($search) {
                     $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
@@ -177,7 +180,7 @@ class PaymentLogController extends Controller
                         ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-            ->when($search['status'] != 4, function ($query) use ($search) {
+            ->when($search['status'] != "All", function ($query) use ($search) {
                 $query->where('status', $search['status']);
             })
             ->when($search['website'], function ($query) use ($search) {
@@ -193,8 +196,9 @@ class PaymentLogController extends Controller
             ->with('user', 'gateway')
             ->paginate(config('basic.paginate'));
 
+
         $pageTitle = "Search Payment Logs";
-        return view('admin.payment.report', compact('funds','payments', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains'));
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains'));
     }
 
     public function dailyReport()
@@ -211,10 +215,10 @@ class PaymentLogController extends Controller
             DB::raw('DATE(created_at) as payment_date'),
             DB::raw('COUNT(*) as payment_count'),
             DB::raw('SUM(amount) as total_amount'),
-            DB::raw('COUNT(CASE WHEN status = 2 THEN 1 END) as pending_count'),
-            DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
-            DB::raw('SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as pending_amount'),
-            DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
         )
             ->whereDate('created_at', '>=', $from_date)->whereDate('created_at', '<=', $to_date)
             ->groupBy(DB::raw('DATE(created_at)'))
@@ -234,10 +238,10 @@ class PaymentLogController extends Controller
             DB::raw('DATE(created_at) as payment_date'),
             DB::raw('COUNT(*) as payment_count'),
             DB::raw('SUM(amount) as total_amount'),
-            DB::raw('COUNT(CASE WHEN status = 2 THEN 1 END) as pending_count'),
-            DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
-            DB::raw('SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as pending_amount'),
-            DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
         )
             ->whereDate('created_at', '>=', $request->from_date)->whereDate('created_at', '<=', $request->to_date)
             ->when($request->filled('website'), function ($query) use ($request) {
@@ -354,9 +358,9 @@ class PaymentLogController extends Controller
         }
 
         if ($status == "Pending") {
-            $status = 2;
-        } elseif ($status == "Approved") {
-            $status = 1;
+            $status = 'Pending';
+        } elseif ($status == "Complete") {
+            $status = 'Complete';
         } else {
             $status = "";
         }
@@ -367,11 +371,9 @@ class PaymentLogController extends Controller
             ->orderBy('id', 'DESC')
             ->with('user', 'gateway')
             ->whereDate('created_at', $date)
-            ->whereHas('payment', function ($query) use ($date, $gateway) {
-                $query->where('e_wallet_name', 'like', '%' . $gateway . '%'); // Add the e_wallet_name condition
-            })
-            ->when($status != -1, function ($query) use ($status) {
-                return $query->where('status', 'like', '%' . $status . '%');
+            ->where('e_wallet_name', 'like', '%' . $gateway . '%')
+            ->when($status != '', function ($query) use ($status) {
+                return $query->where('status', $status);
             })
             ->paginate(config('basic.paginate'));
 
@@ -380,8 +382,8 @@ class PaymentLogController extends Controller
             ->with('user', 'gateway')
             ->whereDate('created_at', $date)
             ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Moved this condition here
-            ->when($status != -1, function ($query) use ($status) {
-                return $query->where('status', 'like', '%' . $status . '%');
+            ->when($status != '', function ($query) use ($status) {
+                return $query->where('status', $status);
             })
             ->first();
 
@@ -514,6 +516,7 @@ class PaymentLogController extends Controller
                     ->where('status', 1)
                     ->first();
                 if (!$account) {
+                    DB::rollBack();
                     throw new \Exception("E-Wallet Account Disable or not Exist.");
                 }
 
@@ -531,11 +534,16 @@ class PaymentLogController extends Controller
                         ->orderBy('id', 'DESC')
                         ->first();
                 } else {
-                    // $check_payment = Payment::where('txn_id', $request->txn_id)
-                    //     ->where('status', 'Complete')
-                    //     ->first();
-                    if ($data->status == "Complete") {
+                    $check_payment = Payment::where('txn_id', $request->txn_id)
+                        ->where('status', 'Complete')
+                        ->first();
+                    if ($check_payment) {
+                        DB::rollBack();
                         throw new \Exception("By This Txn no, Payment Already Completed.");
+                    }
+                    if ($data->status == "Complete") {
+                        DB::rollBack();
+                        throw new \Exception("This Payment Already Completed.");
                     }
 
                     $payment = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
@@ -555,6 +563,7 @@ class PaymentLogController extends Controller
                     $payment->delete();
                 }
                 $payment=$data;
+                //dd($payment);
 
                 if ($new == 1) {
                     // $payment->date = $formattedDate;
@@ -562,12 +571,15 @@ class PaymentLogController extends Controller
                     $data->date_time = $formattedDateTime;
                 }
 
-
                 $source = "";
                 $charge = 0;
                 $api_id = "";
 
                 $partner_api_key = Api::where('id', $data->api_id)->lockForUpdate()->first();
+                if (!$partner_api_key) {
+                    DB::rollBack();
+                    throw new \Exception("Partner Api Key Not Found.");
+                }
                 $amount_to_save = 0;
                 if ($partner_api_key) {
                     $source = $partner_api_key->website;
@@ -583,11 +595,11 @@ class PaymentLogController extends Controller
 
                         $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                         if ($commissions) {
-                            $charge = $commissions->deposit_percentage * $amount / 100;
+                            $charge = $commissions->deposit_percentage * $data->amount / 100;
                         } else {
                             $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                             if ($commissions) {
-                                $charge = $commissions->deposit_percentage * $amount / 100;
+                                $charge = $commissions->deposit_percentage * $data->amount / 100;
                             }
                         }
 
@@ -637,7 +649,7 @@ class PaymentLogController extends Controller
                     $summary_log = new DailyPartnerSummaryLog();
                     $summary_log->partner_id = $partner_api_key->id;
                     $summary_log->partner_balance = $partner_api_key->balance;
-                    $summary_log->payment_id = $payment->id;
+                    $summary_log->payment_id = $data->id;
                     $summary_log->total_amount = $net_amount;
                     $summary_log->summary_id = $DailyPartnerSummary_record->id;
                     $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
@@ -647,7 +659,7 @@ class PaymentLogController extends Controller
 
                 if ($new == 1) {
                     $e_wallet_charge = 0;
-                    $count_payments = Payment::where('e_wallet_name', $data->gateway->code)->where('status', 'Complete')->where('e_wallet_phone_number', $request->e_wallet_phone_number)->whereDate('date', $formattedDate)->count();
+                    $count_payments = Payment::where('e_wallet_name', $data->gateway->code)->where('status', 'Complete')->where('e_wallet_phone_number', $request->e_wallet_phone_number)->whereDate('date_time', $formattedDate)->count();
                     if ($count_payments >= $account->free_transections_day) {
                         $e_wallet_charges = EWalletCharge::where('account_id', $account->id)->where('from_amount', '<=', $data->amount)->where('to_amount', '>=', $data->amount)->first();
                         if ($e_wallet_charges) {
@@ -759,12 +771,17 @@ class PaymentLogController extends Controller
                     }
                 }
 
+
                 // $user = $data->user;
                 // $user->balance += $data->amount;
                 // $user->save();
 
                 $commit = 1;
                 DB::commit();
+                $datetime = Carbon::parse($payment->date_time);
+
+                $api_date = $datetime->toDateString();   // '2025-05-19'
+                $api_time = $datetime->toTimeString();   // '15:43:00'
 
                 if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
                     $string_to_hash = json_encode(array(
@@ -794,8 +811,8 @@ class PaymentLogController extends Controller
                             'e_wallet_type' => $payment->e_wallet_type,
                             'charges' => $this->convertStringToNumber($payment->charge),
                             'status' => $payment->status,
-                            // 'completion_date' => $payment->date,
-                            // 'completion_time' => $payment->time,
+                            'completion_date' => $api_date,
+                            'completion_time' => $api_time,
                             'created_at' => $payment->created_at,
                             'updated_at' => $payment->updated_at,
                             'sign' => $sign,
@@ -858,7 +875,12 @@ class PaymentLogController extends Controller
                 session()->flash('success', 'Approve Successfully');
             } elseif ($request->status == 'Reject') {
 
-                $data->status = 3;
+                if ($data->status == "Reject") {
+                    DB::rollBack();
+                    throw new \Exception("This Payment Already Rejected.");
+                }
+
+                $data->status = "Reject";
                 $data->feedback = $request->feedback;
                 $data->update();
                 //$user = $data->user;
@@ -977,8 +999,16 @@ class PaymentLogController extends Controller
         DB::beginTransaction();
         try {
                 $data = Payment::where('id', $request->id)->lockForUpdate()->firstOrFail();
+                if($data->status == "Complete" || $data->status == "Reject")
+                {
+                    DB::rollBack();
+                    throw new \Exception("Payment Already Processed.You cannot change e wallet account number.");
+                }
+               
                 $data->e_wallet_phone_number = $request->e_wallet_phone_number;
                 $data->save();
+
+              
 
 
                 if ($data) {
@@ -1241,7 +1271,7 @@ class PaymentLogController extends Controller
 
 
         if (isset($search['export'])) {
-            $funds = Payment::where('status', '!=', 0)
+            $funds = Payment::where('status', '!=', 'initiate')
                 ->when($search['name'], function ($query) use ($search) {
                     $query->whereHas('user', function ($subQuery) use ($search) {
                         $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
@@ -1256,19 +1286,18 @@ class PaymentLogController extends Controller
                     $query->where(function ($subQuery) use ($search) {
                         $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
                             ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-                    })->orWhereHas('payment', function ($subQuery) use ($search) {
-                        $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                     });
                 })
-                ->when($search['status'] != 4, function ($query) use ($search) {
+                ->when($search['status'] != 'All', function ($query) use ($search) {
                     if ($search['status'] == 99) {
                         // Get records where status is 2 (pending) and created more than 10 minutes ago
-                        $query->where('status', 2)
+                        $query->where('status', "Pending")
                               ->where('created_at', '<', Carbon::now()->subMinutes(10));
-                    } else if ($search['status'] == 2) {
+                    } else if ($search['status'] == "Pending") {
                         // Get records where status is 2 (pending) and created within the last 10 minutes
-                        $query->where('status', 2)
+                        $query->where('status', "Pending")
                               ->where('created_at', '>=', Carbon::now()->subMinutes(10));
                     } else {
                         // For other statuses, just match the status provided in $search
@@ -1296,15 +1325,15 @@ class PaymentLogController extends Controller
                     $user_name = optional($fund->api)->name;
                     $user_type = optional($fund->api)->acc_type;
                 }
-                $status = "Pending";
-                if ($fund->status == 2) {
-                    $status = "Pending";
-                } elseif ($fund->status == 1) {
-                    $status = "Completed";
-                } elseif ($fund->status == 3) {
-                    $status = "Rejected";
-                }
-
+                $status = $fund->status;
+                // $status = "Pending";
+                // if ($fund->status == 2) {
+                //     $status = "Pending";
+                // } elseif ($fund->status == 1) {
+                //     $status = "Completed";
+                // } elseif ($fund->status == 3) {
+                //     $status = "Rejected";
+                // }
                 $data[] = [$fund->created_at, $fund->transaction, optional($fund->payment)->txn_id, $partner_transection_id, $user_name, $user_type, optional($fund->gateway)->name, $fund->account_no, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->final_amount), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->source, optional($fund->payment)->updated_at];
             }
 

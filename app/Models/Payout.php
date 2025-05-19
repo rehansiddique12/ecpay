@@ -37,4 +37,9 @@ class Payout extends Model
     {
         return $this->belongsTo(Api::class, 'api_id', 'id');
     }
+
+    //  public function method()
+    // {
+    //     return $this->belongsTo(PayoutMethod::class, 'method_id');
+    // }
 }

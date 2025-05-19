@@ -35,7 +35,7 @@
                             <th scope="col">@lang('Amount')</th>
                             <th scope="col">@lang('Merchant Charge')</th>
                             <th scope="col">@lang('Payable')</th>
-                            <th scope="col">@lang('Status')</th>
+                            <th scope="col " class="text-center">@lang('Status')</th>
                             <th scope="col">@lang('Source')</th>
                         </tr>
                     </thead>
@@ -50,17 +50,17 @@
                                 <td class="font-weight-bold text-uppercase">{{ getAmount($fund->amount, 2) }}</td>
                                 <td class="font-weight-bold text-uppercase">{{ getAmount($fund->charge, 2) }}</td>
                                 <td class="font-weight-bold text-uppercase">
-                                    {{ getAmount($fund->amount + $fund->charge, 2) }}</td>
+                                    {{ getAmount($fund->amount - $fund->charge, 2) }}</td>
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                    @if($fund->status == 1)
-                                    <span class="badge badge-light">
-                                        <i class="fa fa-circle text-success success font-12"></i> @lang('Completed')</span>
+                                    @if($fund->status == "Complete")
+                                    <span class="badge bg-success">
+                                        <i class="fa fa-circle text-white success font-12"></i> @lang('Completed')</span>
                                     @else
-                                    <span class="badge badge-light">
-                                        <i class="fa fa-circle text-danger success font-12"></i> @lang('Pending')</span>
+                                    <span class="badge bg-warning">
+                                        <i class="fa fa-circle text-white success font-12"></i> @lang('Pending')</span>
                                     @endif
                                 </td>
-                                <td class="font-weight-bold text-uppercase">{{ $fund->source }}</td>
+                                <td class="font-weight-bold text-uppercase">{{ $fund->request_source }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -71,7 +71,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="mt-5">
                 {{ $funds->appends($_GET)->links('partials.pagination') }}
+                </div>
             </div>
         </div>
     </div>

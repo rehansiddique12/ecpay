@@ -16,7 +16,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4 mt-3">
                     <div class="form-group">
                         <select name="status" class="form-select">
                             <option value="All" @if(@request()->status == 'All') selected @endif>@lang('All Payment')
@@ -34,14 +34,14 @@
                 </div>
 
 
-                <div class="col-md-4">
+                <div class="col-md-4 mt-3">
                     <div class="form-group">
                         <input type="date" class="form-control" value="{{@request()->date_time}}" name="date_time"
                             id="datepicker" />
                     </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4 mt-3">
                     <div class="form-group">
                         <!--<label>Partner</label>-->
                         <select name="website" class="form-select select2" data-allow-clear="true"
@@ -56,13 +56,12 @@
                     </div>
                 </div>
 
-
-                <div class="col-md-4 ">
+                <div class="col-md-4 mt-5">
                     <div class="form-group d-flex gap-5">
-                        <button type="submit" class="btn btn-primary mt-2"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        <button type="submit" class="btn btn-primary"><i
+                                class="icon-base ti tabler-search"></i> @lang('Search')</button>&nbsp;
                         <button type="submit" name="export" value="export" class="btn btn-success mt-1"><i
-                                class="icon-base ti tabler-download me-1"></i> @lang('Export Data')</button>
+                                class="icon-base ti tabler-download"></i> @lang('Export Data')</button>
                     </div>
                 </div>
             </div>
@@ -141,8 +140,9 @@
                                 {{$fund->gateway->currency}}</td>
                             <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }}
                                 {{$fund->gateway->currency}}</td>
-                            <td data-label="@lang('Payable')" class="font-weight-bold">{{ getAmount($fund->amount) -
-                                getAmount($fund->charges) }} {{$fund->gateway->currency}}</td>
+                            <td data-label="@lang('Payable')" class="font-weight-bold">
+                                {{ getAmount($fund->amount) - getAmount($fund->charge) }} {{$fund->gateway->currency}}
+                            </td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
                                 @if($fund->status == 'Pending')
@@ -189,7 +189,7 @@
                                 <span class="{{ $classColor }}">{{ optional($fund->payment)->e_wallet_phone_number
                                     }}</span>
                                 @elseif($fund->status == "Reject")
-                                <span class="badge badge-light"><i class="fa fa-circle text-danger danger font-12"></i>
+                                <span class="badge bg-danger"><i class="fa fa-circle text-white danger font-12"></i>
                                     @lang('Rejected')</span>
                                 <br>
                                 <span class="text text-danger"> {{ $fund->e_wallet_phone_number }}</span>
@@ -262,8 +262,8 @@
                                 {{-- - --}}
                                 {{-- @endif --}}
                                 <button class="edit_buttonc  btn btn-danger text-white  btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#myModalc" data-bs-title="Edit" data-bs-id="{{ $fund->id }}"
-                                    data-bs-e_wallet_phone_number="{{$fund->e_wallet_phone_number}}">
+                                    data-bs-target="#myModalc" data-bs-title="Edit" data-id="{{ $fund->id }}"
+                                    data-e_wallet_phone_number="{{$fund->e_wallet_phone_number}}">
                                     <i class="icon-base ti tabler-device-mobile me-1"></i>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal"
@@ -284,7 +284,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="mt-5">
                 {{ $funds->appends($_GET)->links('partials.pagination') }}
+                </div>
             </div>
         </div>
     </div>
@@ -608,7 +610,7 @@
             // Allow form to proceed
             return true;
         });
-        let $select = $('.select2').select2({
+            let $select = $('.select2').select2({
                 // placeholder: "Select Partner",
                 allowClear: true,
                 selectOnClose: true,
