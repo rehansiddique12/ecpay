@@ -178,7 +178,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class,'exportCommissions'])->name('commissions.export');
         Route::get('/api/export-profile/{id}', [PayoutRecordController::class,'exportprofile'])->name('api.profile.export');
-        Route::get('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
+        // Route::get('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
         Route::post('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class, 'exportCommissions'])->name('commissions.export');
         Route::get('/api/export-profile/{id}', [PayoutRecordController::class, 'exportprofile'])->name('api.profile.export');
@@ -416,7 +416,8 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
-    //      ///////////////////////////////////////----------------------------------------
+          ///////////////////////////////////////---------------------
+
         Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
         Route::get('/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('depositFund');
         Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('addFund.request.open');
