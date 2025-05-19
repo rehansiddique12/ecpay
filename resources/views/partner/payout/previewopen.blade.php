@@ -35,67 +35,14 @@
 
                 <form action="" method="post" enctype="multipart/form-data" class="form-row text-left preview-form" id="withdrawForm">
                     @csrf
-                    @if(optional($withdraw->method)->input_form)
-                    @foreach($withdraw->method->input_form as $k => $v)
-                    @if($v->type == "text")
                     <div class="col-md-12">
-                        <label><strong>{{trans($v->field_level)}} @if($v->validation == 'required')
-                                <span class="text-danger">*</span>
-                                @endif</strong></label>
+                        <label><strong>Phone Number                                 <span class="text-danger">*</span>
+                                </strong></label>
                         <div class="form-group input-box  mt-2">
-                            <input type="text" name="{{$k}}" class="form-control" @if($v->validation == "required") required @endif>
-                            @if ($errors->has($k))
-                            <span class="text-danger">{{ trans($errors->first($k)) }}</span>
-                            @endif
-                        </div>
+                            <input type="text" name="PhoneNumber" class="form-control" required="">
+                                                    </div>
                     </div>
-                    @elseif($v->type == "textarea")
-                    <div class="col-md-12">
-                        <label><strong>{{trans($v->field_level)}} @if($v->validation == 'required')
-                                <span class="text-danger">*</span>
-                                @endif
-                            </strong></label>
-                        <div class="form-group input-box">
-                            <textarea name="{{$k}}" class="form-control" rows="3" @if($v->validation == "required") required @endif></textarea>
-                            @if ($errors->has($k))
-                            <span class="text-danger">{{ trans($errors->first($k)) }}</span>
-                            @endif
-                        </div>
-                    </div>
-                    @elseif($v->type == "file")
-
-                    <div class="col-md-12">
-                        <label><strong>{{trans($v->field_level)}} @if($v->validation == 'required')
-                                <span class="text-danger">*</span>
-                                @endif
-                            </strong></label>
-
-                        <div class="form-group mt-2">
-                            <div class="fileinput fileinput-new " data-provides="fileinput">
-                                <div class="fileinput-new thumbnail withdraw-thumbnail" data-trigger="fileinput">
-                                    <img class="wh-200-150" src="{{ getFile(config('location.default')) }}" alt="...">
-                                </div>
-                                <div class="fileinput-preview fileinput-exists thumbnail wh-200-150"></div>
-
-                                <div class="img-input-div">
-                                    <span class="btn btn-info btn-file">
-                                        <span class="fileinput-new "> @lang('Select') {{$v->field_level}}</span>
-                                        <span class="fileinput-exists"> @lang('Change')</span>
-                                        <input type="file" name="{{$k}}" accept="image/*" @if($v->validation == "required") required @endif>
-                                    </span>
-                                    <a href="#" class="btn btn-danger fileinput-exists" data-dismiss="fileinput"> @lang('Remove')</a>
-                                </div>
-
-                            </div>
-                            @if ($errors->has($k))
-                            <br>
-                            <span class="text-danger">{{ __($errors->first($k)) }}</span>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
-                    @endforeach
-                    @endif
+                    
                     <div class="col-md-12 mt-4">
                         <div class=" form-group">
                             <button type="submit" class="btn btn-success" id="submitButton" onclick="disableSubmitButton()">

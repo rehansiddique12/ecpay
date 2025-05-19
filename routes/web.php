@@ -496,8 +496,8 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'update_order_fund_status'])->name('update_fund_order_status.open');
 
 
-        Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
-        Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
+        // Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
+        // Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
 
 
 
@@ -531,6 +531,7 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
 
 
 
-    Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
-    Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('partner.payout.moneyRequest.transection');
+    Route::get('partner/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
+    Route::post('partner/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('partner.payout.moneyRequest.transection');
     Route::get('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class,'payoutPreviewTransection'])->name('partner.payout.preview.transection');
+    Route::post('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class, 'payoutRequestSubmitTransection'])->name('partner.payout.submit.transection');
