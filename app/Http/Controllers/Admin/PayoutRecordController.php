@@ -13,7 +13,6 @@ use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\CCategory;
-use App\Models\PayoutLog;
 use App\Models\Signature;
 use App\Models\AccountLog;
 use App\Models\Adjustment;
@@ -356,9 +355,9 @@ class PayoutRecordController extends Controller
         }
 
         if ($status == "Pending") {
-            $status = 1;
-        } elseif ($status == "Approved") {
-            $status = 2;
+            $status = 'Pending';
+        } elseif ($status == "Complete") {
+            $status = 'Complete';
         } else {
             $status = "";
         }
@@ -366,20 +365,20 @@ class PayoutRecordController extends Controller
         // dd($status);
 
         $records = Payout::where('status', 'like', '%' . $status . '%')
-        ->where('status', '!=', 0)
+        ->where('status', '!=', 'initiate')
+        ->with('user' ,'gateway')
         ->whereDate('created_at', $date) // Moved here directly
         ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Moved here directly
         ->orderBy('id', 'DESC')
-        ->with('user', 'method')
         ->paginate(config('basic.paginate'));
 
 
-        $funds_t = PayoutLog::where('status', '!=', 0)
+        $funds_t = Payout::where('status', '!=', 'initiate')
         ->where('status', 'like', '%' . $status . '%')
         ->whereDate('created_at', $date) // Applied directly
         ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Applied directly
         ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
-        ->with('user', 'method') // Removed 'payout'
+        ->with('user' , 'gateway') // Removed 'payout'
         ->first();
 
         $fund_count = $funds_t->fund_count;
@@ -696,7 +695,6 @@ class PayoutRecordController extends Controller
             'id' => 'required',
             'status' => ['required', Rule::in(['2', '3', '4'])],
         ]);
-
         DB::beginTransaction();
         try {
             $data = Payout::where('id', $request->id)->whereIn('transfer_status', [1, 2])->with('user', 'gateway')->lockForUpdate()->first();
@@ -951,7 +949,7 @@ class PayoutRecordController extends Controller
                         $datetime = Carbon::parse($data->date_time);
                         $api_date = $datetime->toDateString();   // '2025-05-19'
                         $api_time = $datetime->toTimeString();   // '15:43:00'
-                        
+
                         $array_data = [
                                 'id' => $data->id,
                                 'partner_transection_id' => $data->partner_transection_id,
@@ -1105,11 +1103,11 @@ class PayoutRecordController extends Controller
                             }
                         }
 
-                       
+
                         $account = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
                             ->where('account_no', $data->e_wallet_phone_number)
                             ->lockForUpdate()->first();
-                        
+
                         if (!$account) {
                             DB::rollBack();
                             throw new \Exception("No E-wallet account Available at this time to proceed this request.");
@@ -1293,7 +1291,7 @@ class PayoutRecordController extends Controller
         try {
 
             $pre_payout = Payout::where('id', $request->id)->lockForUpdate()->firstOrFail();
-         
+
             $pre_payout->e_wallet_phone_number = $request->e_wallet_phone_number;
             if ($pre_payout->status == "Reject" || $pre_payout->status == "Rejected") {
                 $pre_payout->status = "Pending";
@@ -1845,7 +1843,7 @@ class PayoutRecordController extends Controller
             'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways','partners'
         ));
     }
-   
+
     public function addpartnerCommission(Request $request){
       $api = Api::findOrFail($request->user_id);
 $commissions = Commission::where('category_id', $api->category_id)->get();
@@ -3472,11 +3470,11 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 $payout->transfer_status = 2;
                 $payout->e_wallet_phone_number = $account->account_no;
                 $payout->e_wallet_type = $account->type;
-                
+
             }
 
 
-            
+
 
             if ($source != env('APP_WEBSITE')) {
                 // $api_key->balance +=$request->amount;
@@ -3533,26 +3531,26 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 ], 404);
             }
 
-            
+
             // $payout->source = $source;
             // $payout->sign = $user_sign;
             $payout->api_id = $api_id;
             $payout->e_wallet_name = $request->e_wallet_name;
             $payout->amount = $request->amount;
             $payout->user_account_no = $request->user_account_no;
-            
+
             if ($request->filled('partner_transection_id')) {
                 $payout->partner_transection_id = $request->partner_transection_id;
             }
             if ($request->filled('member_id')) {
                 $payout->member_id = $request->member_id;
             }
-            
+
 
             $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()
-                ->values();           
+                ->values();
             foreach($parentIds as  $parentId){
 
                 $parent_charge = 0;
@@ -3586,7 +3584,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 }
 
 
-                    
+
 
             }
 
@@ -3598,7 +3596,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
             $payout->status = 'Pending';
             $payout->save();
 
-            
+
 
             return response()->json(['id' => $payout->id, 'message' => 'Payout Request has been sent'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -4587,7 +4585,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                     }
                 }
 
-                
+
             }
 
             if($commit==0){

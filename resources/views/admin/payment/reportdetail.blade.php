@@ -70,9 +70,9 @@
                         <tr>
                             <td data-label="@lang('Date')"> {{ dateTime($fund->created_at,'d M,Y H:i') }}</td>
                             <td data-label="@lang('Trx Number')"
-                                class="font-weight-bold text-uppercase">{{ optional($fund->payment)->txn_id }}</td>
+                                class="font-weight-bold text-uppercase">{{ $fund->txn_id }}</td>
                             <td data-label="@lang('Username')">
-                                @if(optional($fund->user)->username!="dummyuser")
+                                @if($fund->user->username != null && optional($fund->user)->username!="dummyuser")
                                     <div class="d-lg-flex d-block align-items-center ">
                                         <div class="mr-3"><img
                                                 src="{{getFile(config('location.user.path').optional($fund->user)->image) }}"
@@ -84,36 +84,36 @@
                                         </div>
                                     </div>
                                  @else
-                                Partner Transection
+                                Partner Transaction
                                 @endif
                             </td>
-                            <td data-label="@lang('Method')">{{ optional($fund->payment)->sender }}</td>
+                            <td data-label="@lang('Method')">{{ $fund->sender }}</td>
                             <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
                             <td data-label="@lang('Amount')"
                                 class="font-weight-bold">{{ getAmount($fund->amount ) }} {{$fund->gateway->currency}}</td>
                             <td data-label="@lang('Charge')"
-                                class="text-success">{{ getAmount(optional($fund->payment)->charge,2) }} {{$fund->gateway->currency}}</td>
+                                class="text-success">{{ getAmount($fund->charge,2) }} {{$fund->gateway->currency}}</td>
 
                             <td data-label="@lang('Payable')"
-                                class="font-weight-bold">{{ getAmount($fund->final_amount) }} {{$fund->gateway->currency}}</td>
+                                class="font-weight-bold">{{ getAmount($fund->amount + $fund->charge) }} {{$fund->gateway->currency}}</td>
 
-                                <td data-label="@lang('Method')">{{ optional($fund->payment)->e_wallet_phone_number	 }}</td>
-                                <td data-label="@lang('Method')">{{ optional($fund->payment)->e_wallet_type }}</td>
+                                <td data-label="@lang('Method')">{{ $fund->e_wallet_phone_number	 }}</td>
+                                <td data-label="@lang('Method')">{{ $fund->e_wallet_type }}</td>
 
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                @if($fund->status == 2)
-                                    <span class="badge badge-light"><i
-                                            class="fa fa-circle text-warning warning font-12"></i> @lang('Pending')</span>
-                                @elseif($fund->status == 1)
-                                    <span class="badge badge-light"><i
-                                            class="fa fa-circle text-success success font-12"></i> @lang('Approved')</span>
-                                @elseif($fund->status == 3)
-                                    <span class="badge badge-light"><i
-                                            class="fa fa-circle text-danger danger font-12"></i> @lang('Rejected')</span>
+                                @if($fund->status == "Pending")
+                                    <span class="badge bg-warning"><i
+                                            class="fa fa-circle text-white warning font-12"></i> @lang('Pending')</span>
+                                @elseif($fund->status == "Complete")
+                                    <span class="badge bg-success"><i
+                                            class="fa fa-circle text-white success font-12"></i> @lang('Approved')</span>
+                                @elseif($fund->status == 'Reject')
+                                    <span class="badge bg-danger"><i
+                                            class="fa fa-circle text-white danger font-12"></i> @lang('Rejected')</span>
                                 @endif
                             </td>
-                            <td data-label="@lang('Method')">{{ optional($fund->payment)->source }}</td>
+                            <td data-label="@lang('Method')">{{ $fund->request_source }}</td>
                             <td>
                                 @if(!empty($fund->receipt_image))
                                 <a data-fancybox="images" href="{{ getFile(config('location.receipts.path').$fund->receipt_image) }}">
@@ -138,90 +138,18 @@
         </div>
     </div>
 
-    <!-- Modal for Edit button -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content ">
-                <div class="modal-header modal-colored-header bg-primary">
-                    <h4 class="modal-title" id="myModalLabel">@lang('Deposit Information')</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                </div>
-
-                <form role="form" method="POST" class="actionRoute" action="" enctype="multipart/form-data">
-                    @csrf
-                    @method('put')
-                    <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
-
-                        <div class="get-feedback">
-
-                        </div>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">@lang('Close')</button>
-                        @if(Request::routeIs('admin.payment.pending'))
-                            <input type="hidden" class="action_id" name="id">
-                            <button type="submit" class="btn btn-primary" name="status"
-                                    value="1">@lang('Approve')</button>
-                            <button type="submit" class="btn btn-danger" name="status"
-                                    value="3">@lang('Reject')</button>
-                        @endif
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+ 
 
 @push('js')
     <script>
         "use strict";
         $(document).ready(function () {
-            $('select[name=status]').select2({
-                selectOnClose: true
-            });
-
-            $(document).on("click", '.edit_button', function (e) {
-                var id = $(this).data('id');
-                var feedback = $(this).data('feedback');
-
-                $(".action_id").val(id);
-                $(".actionRoute").attr('action', $(this).data('route'));
-                var details = Object.entries($(this).data('info'));
-                var list = [];
-                details.map(function (item, i) {
-                    if (item[1].type == 'file') {
-                        var singleInfo = `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
-                    } else {
-                        var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>  `;
-                    }
-                    list[i] = ` <li class="list-group-item"><span class="font-weight-bold "> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`
-                });
-                $('.withdraw-detail').html(list);
-
-                if (feedback == '') {
-                    var $res = `<div class="form-group"><br>
-                                <label class="font-weight-bold">{{trans('Send You Feedback')}}</label>
-                                <textarea name="feedback" class="form-control" row="3" required>{{old('feedback')}}</textarea>
-                            </div>`
-                } else {
-                    var $res = `<h5>{{trans('Feedback')}}</h5>
-                    <p>${feedback}</p>`
-                }
-
-                $('.get-feedback').html($res)
-            });
-        });
-    </script>
-    <script>
-    $(document).ready(function () {
         $('[data-fancybox="images"]').fancybox({
             buttons: ["close"],
             loop: true, // Enables looping through images
         });
     });
-</script>
+    </script>
+  
 @endpush
 </x-admin-layout>

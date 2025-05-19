@@ -338,14 +338,14 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')</button>
-                        {{-- @if(Request::routeIs('admin.payment.pending')) --}}
+                        @if(Request::routeIs('admin.payment.pending'))
                         <div id="showBtns" style="display: none;">
                             <input type="hidden" class="action_id" name="id">
                             <input type="hidden" name="status" id="statusInput">
                            <button type="submit" class="btn btn-primary status-btn" data-status="Complete">@lang('Approve')</button>
                             <button type="submit" class="btn btn-danger status-btn" data-status="Reject">@lang('Reject')</button>
-
                         </div>
+                        @endif
                     </div>
                 </form>
             </div>
@@ -363,14 +363,14 @@
                 var feedback = jQuery(this).data('feedback');
                 var status = jQuery(this).data('status');
                 $('#payment_status').val(status);
-                if(status == "Pending")
-                {
-                    $('#showBtns').show(); 
-                }
-                else
-                {
-                    $('#showBtns').hide(); 
-                }
+                // if(status == "Pending")
+                // {
+                //     $('#showBtns').show();
+                // }
+                // else
+                // {
+                //     $('#showBtns').hide();
+                // }
 
                 jQuery(".action_id").val(id);
                 jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
@@ -389,10 +389,11 @@
                 jQuery('.withdraw-detail').html(list);
 
                 if (feedback == '') {
-                    var res = `<div class="form-group"><br>
-                                <label class="font-weight-bold">{{trans('Send You Feedback')}}</label>
-                                <textarea name="feedback" class="form-control" row="3" required>{{old('feedback')}}</textarea>
-                            </div>`;
+                    // var res = `<div class="form-group"><br>
+                    //             <label class="font-weight-bold">{{trans('Send You Feedback')}}</label>
+                    //             <textarea name="feedback" class="form-control" row="3" required>{{old('feedback')}}</textarea>
+                    //         </div>`;
+                    var res="";
                 } else {
                     var res = `<h5>{{trans('Feedback')}}</h5>
                     <p>${feedback}</p>`;
@@ -402,13 +403,13 @@
             });
         });
 
-        document.querySelectorAll('.status-btn').forEach(function(btn) {
-            btn.addEventListener('click', function () {
-                document.getElementById('statusInput').value = this.getAttribute('data-status');
-            });
-        });
+        // document.querySelectorAll('.status-btn').forEach(function(btn) {
+        //     btn.addEventListener('click', function () {
+        //         document.getElementById('statusInput').value = this.getAttribute('data-status');
+        //     });
+        // });
     </script>
-    
+
     <script>
         $(document).ready(function () {
         $('form').on('submit', function () {
@@ -442,5 +443,5 @@
     });
     </script>
     @endpush
-   
+
 </x-admin-layout>

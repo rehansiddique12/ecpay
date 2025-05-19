@@ -215,10 +215,10 @@ class PaymentLogController extends Controller
             DB::raw('DATE(created_at) as payment_date'),
             DB::raw('COUNT(*) as payment_count'),
             DB::raw('SUM(amount) as total_amount'),
-            DB::raw('COUNT(CASE WHEN status = 2 THEN 1 END) as pending_count'),
-            DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
-            DB::raw('SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as pending_amount'),
-            DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
         )
             ->whereDate('created_at', '>=', $from_date)->whereDate('created_at', '<=', $to_date)
             ->groupBy(DB::raw('DATE(created_at)'))
@@ -238,10 +238,10 @@ class PaymentLogController extends Controller
             DB::raw('DATE(created_at) as payment_date'),
             DB::raw('COUNT(*) as payment_count'),
             DB::raw('SUM(amount) as total_amount'),
-            DB::raw('COUNT(CASE WHEN status = 2 THEN 1 END) as pending_count'),
-            DB::raw('COUNT(CASE WHEN status = 1 THEN 1 END) as complete_count'),
-            DB::raw('SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as pending_amount'),
-            DB::raw('SUM(CASE WHEN status = 1 THEN amount ELSE 0 END) as complete_amount')
+            DB::raw('COUNT(CASE WHEN status = "Pending" THEN 1 END) as pending_count'),
+            DB::raw('COUNT(CASE WHEN status = "Complete" THEN 1 END) as complete_count'),
+            DB::raw('SUM(CASE WHEN status = "Pending" THEN amount ELSE 0 END) as pending_amount'),
+            DB::raw('SUM(CASE WHEN status = "Complete" THEN amount ELSE 0 END) as complete_amount')
         )
             ->whereDate('created_at', '>=', $request->from_date)->whereDate('created_at', '<=', $request->to_date)
             ->when($request->filled('website'), function ($query) use ($request) {
@@ -358,9 +358,9 @@ class PaymentLogController extends Controller
         }
 
         if ($status == "Pending") {
-            $status = 2;
-        } elseif ($status == "Approved") {
-            $status = 1;
+            $status = 'Pending';
+        } elseif ($status == "Complete") {
+            $status = 'Complete';
         } else {
             $status = "";
         }
@@ -371,11 +371,9 @@ class PaymentLogController extends Controller
             ->orderBy('id', 'DESC')
             ->with('user', 'gateway')
             ->whereDate('created_at', $date)
-            ->whereHas('payment', function ($query) use ($date, $gateway) {
-                $query->where('e_wallet_name', 'like', '%' . $gateway . '%'); // Add the e_wallet_name condition
-            })
-            ->when($status != -1, function ($query) use ($status) {
-                return $query->where('status', 'like', '%' . $status . '%');
+            ->where('e_wallet_name', 'like', '%' . $gateway . '%')
+            ->when($status != '', function ($query) use ($status) {
+                return $query->where('status', $status);
             })
             ->paginate(config('basic.paginate'));
 
@@ -384,8 +382,8 @@ class PaymentLogController extends Controller
             ->with('user', 'gateway')
             ->whereDate('created_at', $date)
             ->where('e_wallet_name', 'like', '%' . $gateway . '%') // Moved this condition here
-            ->when($status != -1, function ($query) use ($status) {
-                return $query->where('status', 'like', '%' . $status . '%');
+            ->when($status != '', function ($query) use ($status) {
+                return $query->where('status', $status);
             })
             ->first();
 
