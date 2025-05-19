@@ -70,6 +70,7 @@ class PayoutRecordController extends Controller
             }
             $totalPayment = null;
             $gateways = Gateway::where('status', 1)->orderBy('sort_by', 'ASC')->get();
+            // dd($gateways);
             return view('partner.payout.depositFund', compact('totalPayment', 'gateways', 'username', 'min_deposit'));
         } else {
             abort(404);
@@ -84,7 +85,7 @@ class PayoutRecordController extends Controller
         if ($open_user && $open_user->type == "Admin") {
             $min_withdrawal = $open_user->min_withdrawal;
             $title = "Payout Money";
-            $gateways = PayoutMethod::whereStatus(1)->get();
+            $gateways = Gateway::whereStatus(1)->get();
             return view('partner.payout.moneyopen', compact('title', 'gateways', 'username','min_withdrawal'));
         } else {
             abort(404);
@@ -165,7 +166,7 @@ class PayoutRecordController extends Controller
 
                 $Setting = Setting::where('name', 'last_account_active')->first();
 
-                $recordcounts = Fund::where('gateway_id', $gate->id)
+                $recordcounts = Payment::where('gateway_id', $gate->id)
                     ->where('created_at', '>=', $Setting->value)
                     ->select('e_wallet_phone_number', DB::raw('count(*) as total'))
                     ->groupBy('e_wallet_phone_number')
@@ -740,7 +741,7 @@ class PayoutRecordController extends Controller
             $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()
-                ->values();           
+                ->values();
             foreach($parentIds as  $parentId){
 
                 $parent_charge = 0;
@@ -774,7 +775,7 @@ class PayoutRecordController extends Controller
                 }
 
 
-                    
+
 
             }
         }else{
@@ -871,7 +872,7 @@ class PayoutRecordController extends Controller
             $txn_id = $request->txn;
         }
 
-        
+
 
         while ($attempt < $maxAttempts && $success==0) {
 
@@ -892,7 +893,7 @@ class PayoutRecordController extends Controller
                 $ewallet = strtolower($order->gateway->code);
 
 
-                
+
                 if ($order->status="Complete") {
                     $processing = 2;
                     $message = "With This Transaction No. Payment Already Completed.";
@@ -961,9 +962,9 @@ class PayoutRecordController extends Controller
                         $Txn->api_id = $api_id;
                         $Txn->save();
                     }
-                   
 
-                   
+
+
 
                     $payment_record = PendingPayment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                     if (!$payment_record) {
@@ -1280,9 +1281,9 @@ class PayoutRecordController extends Controller
         $now = Carbon::now();
         $twoHoursAgo = $now->subHours(2);
 
-        DB::beginTransaction();      
+        DB::beginTransaction();
 
-        
+
 
         $payment_record = PendingPayment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
         if (!$payment_record) {
@@ -1366,7 +1367,7 @@ class PayoutRecordController extends Controller
             // $payment_record->partner_transection_id = $order->partner_transection_id;
             // $payment_record->member_id = $order->member_id;
             $order->save();
-            
+
 
            $payment_record->delete();
 
@@ -1715,13 +1716,13 @@ class PayoutRecordController extends Controller
         }
 
 
-        
+
         if ($fund) {
 
             $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()
-                ->values();           
+                ->values();
             foreach($parentIds as  $parentId){
 
                 $parent_charge = 0;
@@ -1755,10 +1756,10 @@ class PayoutRecordController extends Controller
                 }
 
 
-                    
+
 
             }
-            
+
         }else{
             $message = "Your Transection Already Processed!";
             return back()->with('error', $message);
@@ -2380,7 +2381,7 @@ class PayoutRecordController extends Controller
 
 
         if (!empty($transection_id) || $transection_id != "0") {
-            
+
             $merchantinvoice = $transection_id;
         } else {
 
@@ -2448,7 +2449,7 @@ class PayoutRecordController extends Controller
             $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()
-                ->values();           
+                ->values();
             foreach($parentIds as  $parentId){
 
                 $parent_charge = 0;
@@ -2482,11 +2483,11 @@ class PayoutRecordController extends Controller
                 }
 
 
-                    
+
 
             }
 
-            
+
 
             return redirect()->away($createBkashPayment['bkashURL']);
         }else{
@@ -3190,7 +3191,7 @@ class PayoutRecordController extends Controller
 
 
         $basic = (object)config('basic');
-        $method = PayoutMethod::where('id', $request->gateway)->where('status', 1)->firstOrFail();
+        $method = Gateway::where('id', $request->gateway)->where('status', 1)->firstOrFail();
 
         $authWallet = $open_user;
 
@@ -3202,19 +3203,17 @@ class PayoutRecordController extends Controller
             session()->flash('error', 'Minimum payout Amount ' . round($min_withdrawal, 2) . ' ' . $basic->currency);
             return back();
         }
-        if ($request->amount > $method->maximum_amount) {
-            session()->flash('error', 'Maximum payout Amount ' . round($method->maximum_amount, 2) . ' ' . $basic->currency);
+        if ($request->amount > $method->max_amount) {
+            session()->flash('error', 'Maximum payout Amount ' . round($method->max_amount, 2) . ' ' . $basic->currency);
             return back();
         }
 
 
         $pending_payout_ids = Payout::where('api_id', $open_user->id)
                 ->where('status', 'Pending')
-                ->whereNotNull('payout_log_id')
-                ->where('payout_log_id', '!=', '')
-                ->pluck('payout_log_id');
+                ->pluck('id');
 
-            $previous_pending = PayoutLog::where('api_id', $open_user->id)
+            $previous_pending = Payout::where('api_id', $open_user->id)
                 ->where(function ($query) use ($pending_payout_ids) {
                     $query->whereIn('status', [0, 1])
                         ->orWhere(function ($subQuery) use ($pending_payout_ids) {
@@ -3238,15 +3237,16 @@ class PayoutRecordController extends Controller
 
         } else {
             $trx = strRandom();
-            $withdraw = new PayoutLog();
+            $withdraw = new Payout();
             $withdraw->user_id = 0;
-            $withdraw->method_id = $method->id;
+            $withdraw->gateway_id = $method->id;
             $withdraw->amount = getAmount($request->amount);
             $withdraw->charge = $charge;
-            $withdraw->net_amount = $finalAmo;
+            // $withdraw->net_amount = $finalAmo;
             $withdraw->trx_id = $trx;
             $withdraw->status = 0;
-            $withdraw->api_key = $authWallet['api_key'];
+            $withdraw->e_wallet_name = $method->name;
+            // $withdraw->api_key = $authWallet['api_key'];
             $withdraw->api_id = $authWallet['id'];
             $withdraw->save();
             session()->put('wtrx', $trx);
@@ -3264,6 +3264,7 @@ class PayoutRecordController extends Controller
 
         $fund = new Payment();
         $fund->user_id = 0;
+        $fund->e_wallet_name = $gate->name;
         $fund->gateway_id = $gate->id;
         $fund->amount = $amount;
         $fund->charge = $charge;
@@ -3669,12 +3670,339 @@ public function settlementSearch(Request $request)
         }
 
         $processing = session()->get('processing_show');
-        $order = Fund::where('transaction', $track)->where('status' , 2)->orderBy('id', 'DESC')->with(['gateway', 'user'])->first();
+        $order = Payment::where('transaction', $track)->where('status' , 2)->orderBy('id', 'DESC')->with(['gateway', 'user'])->first();
         $pageTitle = "Search Adjustments";
         return view('partner.payout.paymentProcessingOpen', compact('order', 'processing', 'pageTitle', 'username'));
     }
 
+    public function verifytxn(Request $request)
+    {
 
+        $maxAttempts = 3;
+        $attempt = 0;
+        $success = 0;
+
+        $txn_id = "";
+        if ($request->filled('txn')) {
+            $txn_id = $request->txn;
+        }
+
+        while ($attempt < $maxAttempts && $success==0) {
+            LaravelLog::info('verifytxn-PartnerController try('. $attempt + 1 .') txn_id: '.$txn_id);
+
+            DB::beginTransaction();
+            try {
+                $track = session()->get('track');
+                $order = Payment::where('transaction', $track)->whereIn('status', [0, 2])->with(['user'])->orderBy('id', 'DESC')->lockForUpdate()->first();
+
+                $username = session()->get('username');
+                $api_key = API::where('username', $username)->lockForUpdate()->first();
+                if (!$api_key || $api_key->type != "Admin") {
+                    abort(404);
+                }
+
+                if (!$request->filled('txn') || empty($request->txn)) {
+                    return back()->with('error', 'Kindly Fill Transaction Number.');
+                }
+
+                if ($api_key) {
+                    $source = $api_key->website;
+                    $api_id = $api_key->id;
+                    if (empty($source)) {
+                        $source = "";
+                    }
+
+                    $secretKey = $api_key->secret_key;
+
+                } else {
+                    return back()->with('error', 'Wrong API key.');
+                }
+
+                $now = Carbon::now();
+                $twoHoursAgo = $now->subHours(2);
+
+                $Txn = Txn::where('txn_no', $request->txn)->where('api_id', $api_id)->orderBy('id', 'DESC')->first();
+                if(!$Txn){
+                    $Txn = new Txn();
+                    $Txn->txn_no = $request->txn;
+                    $Txn->api_id = $api_id;
+                    $Txn->partner_transection_id = $order->partner_transection_id;
+                    $Txn->save();
+                }
+
+                $payment_record = Payment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
+                if (!$payment_record) {
+                    DB::rollBack();
+                    session()->put('txn_verified', 1);
+                    return back()->with('success', 'Please Wait! Your Payment is Processing.');
+                }
+                if($payment_record->status=="Complete") {
+                    DB::rollBack();
+                    return back()->with('error', 'With This Transaction No. Payment Already Completed.');
+                }
+
+                $charge = 0;
+                $commit = 0;
+                if ($order && $order->amount == $payment_record->amount) {
+                    if($order->status==1){
+                        return redirect()->route('partner.depositFund', ['username' => $username])->with('success', 'Your Payment is Already Verified!');
+                    }
+                    $partner_api_key = $api_key;
+                        if ($source != env('APP_WEBSITE')) {
+                            $sum = Payment::whereYear('created_at', now()->year)
+                                ->whereMonth('created_at', now()->month)
+                                ->where('api_id', $api_id)
+                                ->where('status', 'Complete')
+                                ->sum('amount');
+
+                            $commissions = Commission::where('api_id', $partner_api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+                            if ($commissions) {
+                                $charge = $commissions->deposit_percentage * $payment_record->amount / 100;
+                            } else {
+                                $commissions = Commission::where('api_id', $partner_api_key->id)->orderBy('to_amount', 'desc')->first();
+                                if ($commissions) {
+                                    $charge = $commissions->deposit_percentage * $payment_record->amount / 100;
+                                }
+                            }
+
+                            $charge = str_replace(',', '', $charge);
+                            $charge = (float)$charge;
+                            $charge = round($charge, 2);
+
+                            $net_amount = $payment_record->amount - $charge;
+                            $partner_api_key->balance += $net_amount;
+                            $partner_api_key->save();
+
+                            $Log = new Log();
+                            $Log->date_time = $payment_record->updated_at;
+                            $Log->final_amount = $net_amount;
+                            $Log->balance = $partner_api_key->balance;
+                            $Log->transection_type = 1;
+                            $Log->transection_id = $payment_record->id;
+                            $Log->partner_id = $partner_api_key->id;
+                            $Log->source = 'VerifyByPartnerLink';
+                            $Log->save();
+                        }
+
+                        if (strpos($payment_record->sender, 'XXXX') !== false && ($payment_record->mac_address=="111.111.11.111" || $payment_record->mac_address=="222.222.22.222")) {
+                            if(!empty($order->account_no)){
+                                $payment_record->sender = $order->account_no;
+                            }
+                        }
+
+                        $payment_record->status = 'Complete';
+                        $order->status = 1;
+                        $order->completion_at = $order->created_at;
+                        $order->trans_completed_date = Carbon::now();
+                        $payment_record->completion_at = $order->created_at;
+                        $payment_record->trans_complete_date = Carbon::now();
+                        $payment_record->completed_source = 'VerifyByPartnerLink';
+                        $payment_record->transaction_id = $order->id;
+                        $payment_record->api_id = $api_id;
+                        $payment_record->source = $source;
+                        $payment_record->charge = $charge;
+                        $payment_record->partner_transection_id = $order->partner_transection_id;
+                        $payment_record->member_id = $order->member_id;
+                        $payment_record->save();
+                        $order->account_no = $payment_record->sender;
+                        $order->payment_id = $payment_record->id;
+                        $order->save();
+
+                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at','>=', $order->created_at)->get();
+                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
+                            $amount_to_update = round($amount_to_update, 2);
+                            // $amount_to_update = floor($amount_to_update * 100) / 100;
+                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                            $DailyPartnerSummary_record->save();
+
+                            $summary_log = new DailyPartnerSummaryLog();
+                            $summary_log->partner_id = $partner_api_key->id;
+                            $summary_log->partner_balance = $partner_api_key->balance;
+                            $summary_log->payment_id = $payment_record->id;
+                            $summary_log->total_amount = $net_amount;
+                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                            $summary_log->source = 'VerifyByPartnerLink';
+                            $summary_log->save();
+                        }
+
+                        $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
+                        foreach($PartnerCommissions as $PartnerCommission){
+                            $PartnerCommission->status = 1;
+                            $PartnerCommission->save();
+                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                            $parent_api_key->balance += $PartnerCommission->profit;
+                            $parent_api_key->save();
+
+                            $Log = new Log();
+                            $Log->date_time = $PartnerCommission->created_at;
+                            $Log->final_amount = $PartnerCommission->profit;
+                            $Log->balance = $parent_api_key->balance;
+                            $Log->transection_type = 5;
+                            $Log->transection_id = $PartnerCommission->id;
+                            $Log->partner_id = $PartnerCommission->from_id;
+                            $Log->source = 'VerifyByPartnerLink';
+                            $Log->save();
+
+                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at','>=', $PartnerCommission->created_at)->get();
+                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                                $amount_to_update = round($amount_to_update, 2);
+                                // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                $DailyPartnerSummary_record->save();
+
+                                $summary_log = new DailyPartnerSummaryLog();
+                                $summary_log->partner_id = $parent_api_key->id;
+                                $summary_log->partner_balance = $parent_api_key->balance;
+                                $summary_log->payment_id = $PartnerCommission->id;
+                                $summary_log->total_amount = $PartnerCommission->profit;
+                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                $summary_log->source = 'VerifyByPartnerLink';
+                                $summary_log->save();
+
+                            }
+                        }
+
+
+                        $commit = 1;
+                         DB::commit();
+
+                        if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
+
+                            $string_to_hash = json_encode(array(
+                                            "amount" => strval($this->convertStringToNumber($payment_record->amount)),
+                                            "api_key" => $partner_api_key->api_key,
+                                            "e_wallet_name" => $payment_record->e_wallet_name,
+                                            "id" => strval($payment_record->id),
+                                            'transaction_type' => 'Deposit',
+                                            "user_account_no" => strval($payment_record->sender),
+
+                                        ));
+                            $secretKey = $partner_api_key->secret_key;
+                            $hash = hash("sha256", $string_to_hash);
+                            $hmac = hash_hmac('sha256', $hash, $secretKey);
+                            $timestamp = time();
+                            $combined = $hmac . $timestamp;
+                            $sign = base64_encode($combined);
+
+                            $array_data = [
+                                        'id' => $payment_record->id,
+                                        'partner_transection_id' => $payment_record->partner_transection_id,
+                                        'transaction_type' => 'Deposit',
+                                        'e_wallet_name' => $payment_record->e_wallet_name,
+                                        'amount' => $this->convertStringToNumber($payment_record->amount),
+                                        'user_account_no' => $payment_record->sender,
+                                        'txn_id' => $payment_record->txn_id,
+                                        'e_wallet_phone_number' => $payment_record->e_wallet_phone_number,
+                                        'e_wallet_type' => $payment_record->e_wallet_type,
+                                        'charges' => $this->convertStringToNumber($payment_record->charge),
+                                        'status' => $payment_record->status,
+                                        'completion_date' => $payment_record->date,
+                                        'completion_time' => $payment_record->time,
+                                        'created_at' => $payment_record->created_at,
+                                        'updated_at' => $payment_record->updated_at,
+                                        'sign' => $sign,
+                            ];
+
+                            if(!empty($payment_record->member_id)){
+                                $array_data['member_id'] = $payment_record->member_id;
+                            }
+
+
+                            $requestData = [
+                                'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                                'request_url' => $partner_api_key->api_endpoint_deposit,
+                                'request_payload' => json_encode($array_data),
+                                'request_headers' => json_encode([
+                                    'Content-Type' => 'application/json',
+                                    'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                                ]),
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ];
+
+                            $logId = DB::table('api_logs')->insertGetId($requestData);
+                            try {
+                                $csrfToken = Str::random(40);
+                                $response = Http::withHeaders([
+                                    'Content-Type' => 'application/json',
+                                    'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                                ])
+                                    ->post($partner_api_key->api_endpoint_deposit, $array_data);
+
+                                if ($response) {
+                                    $responseData = [
+                                        'response_code' => $response->status(),
+                                        'response_payload' => $response->body(),
+                                        'response_headers' => json_encode($response->headers()),
+                                    ];
+
+                                    DB::table('api_logs')->where('id', $logId)->update($responseData);
+                                }
+                            } catch (\Exception $e) {
+                                //
+                            }
+                        }
+                    }
+
+                if($commit==0){
+                    DB::commit();
+                }
+                session()->put('txn_verified', 1);
+                return back()->with('success', 'Please Wait! Your Payment is Processing.');
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                if (stripos($e->getMessage(), 'lock') !== false) {
+                    $success = 0;
+                    sleep(1);
+                }else{
+                    $success = 1;
+                }
+
+                $attempt++;
+
+                LaravelLog::info('verifytxn-PartnerController Error: txn_id: '.$txn_id. ' Error: ' .$e->getMessage());
+
+
+
+            }
+        }
+
+        return response()->json(['error' => $e->getMessage()], 422);
+
+
+    }
+
+    public function update_order_fund_status(Request $request)
+    {
+        $track = session()->get('track');
+        $order = Payment::where('transaction', $track)->orderBy('id', 'DESC')->with(['user'])->first();
+
+        $payment = Payment::where('transaction_id', $order->id)->orderBy('id', 'DESC')->first();
+        if ($payment) {
+            return json_encode(['status' => 'success']);
+        } else {
+            return json_encode(['status' => 'false']);
+        }
+    }
+
+    public function payoutPreviewTransection()
+    {
+        $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->where('status', 0)->latest()->with('gateway', 'user')->firstOrFail();
+        $title = "Payout Form";
+        $username = session()->get('username');
+        $open_user = API::where('username', $username)->first();
+        if (!$open_user || $open_user->type != "Admin") {
+            abort(404);
+        }
+        $remaining = getAmount($open_user->balance - $withdraw->net_amount);
+        return view('partner.payout.previewopen', compact('withdraw', 'title', 'remaining'));
+    }
 
 
 }
