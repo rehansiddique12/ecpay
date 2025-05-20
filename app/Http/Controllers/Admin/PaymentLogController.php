@@ -1441,7 +1441,7 @@ class PaymentLogController extends Controller
                     $partner_transection_id = $request->partner_transection_id;
                 }
 
-                $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+                $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->where('status', 1)->first();
                 if ($api_key) {
                     $source = $api_key->website;
                     $api_id = $api_key->id;
@@ -1820,7 +1820,7 @@ class PaymentLogController extends Controller
 
 
             $api_id = "";
-            $api_key = Api::where('api_key', $request->api_key)->first();
+            $api_key = Api::where('api_key', $request->api_key)->where('status', 1)->first();
 
             if ($api_key && $api_key->website == env('APP_WEBSITE')) {
                 $source = $api_key->website;
@@ -2020,7 +2020,7 @@ class PaymentLogController extends Controller
             $amount_to_save = 0;
             if ($order) {
 
-                $partner_api_key = Api::where('id', $order->api_id)->lockForUpdate()->first();
+                $partner_api_key = Api::where('id', $order->api_id)->where('status', 1)->lockForUpdate()->first();
                 if ($partner_api_key) {
                     $source = $partner_api_key->website;
                     $api_id = $partner_api_key->id;
@@ -2139,7 +2139,7 @@ class PaymentLogController extends Controller
                                 $PartnerCommission->save();
 
                                 DB::beginTransaction();
-                                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                                 $parent_api_key->balance += $PartnerCommission->profit;
                                 $parent_api_key->save();
 
