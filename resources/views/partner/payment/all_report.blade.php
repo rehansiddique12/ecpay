@@ -65,7 +65,7 @@
       <div class="col-md-3">
         <div class="form-group">
           <label>E-Wallet</label>
-          <select name="gateway" class="form-control">
+          <select name="gateway" class="form-select">
             <option value="">All</option>
             @foreach($gateways as $gateway)
             <option value="{{ $gateway->name }}" @if(@request()->gateway == $gateway->name) selected @endif>{{ $gateway->name }}</option>

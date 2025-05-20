@@ -20,7 +20,7 @@
 
     $isReportsActive = in_array(Route::currentRouteName(), [
         'partner.payment.report.all',
-
+        'partner.payment.report.all.search',
         'partner.reports.partner_account_summary',
         'partner.reports.partner_account_balance_summary',
     ]);
