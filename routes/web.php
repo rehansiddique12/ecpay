@@ -26,6 +26,7 @@ use App\Http\Controllers\Partner\DashboardController as PartnerDashboardControll
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CCategoryController;
+use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManageRolePermissionController;
 use Illuminate\Support\Facades\Artisan;
 // rehan
 use Illuminate\Support\Facades\Route;
@@ -496,9 +497,14 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         // Route::get('/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
         // Route::post('/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('payout.moneyRequest.transection');
 
+        //Partner Staff Module
 
-
-
+        Route::get('/staff', [PartnerManageRolePermissionController::class, 'staff'])->name('staff');
+        Route::post('/staff', [PartnerManageRolePermissionController::class, 'storeStaff'])->name('storeStaff');
+        Route::put('/staff/{id}', [PartnerManageRolePermissionController::class, 'updateStaff'])->name('updateStaff');
+        Route::delete('/apis/delete', [PartnerManageRolePermissionController::class, 'apisDelete'])->name('apis.delete');
+        Route::post('/toggle-status/{id}', )->name('toggleStaffStatus');
+        Route::get('/apis/reset/{id}', [PartnerManageRolePermissionController::class, 'apisReset'])->name('apis.reset');
     });
 });
 

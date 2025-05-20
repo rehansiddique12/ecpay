@@ -19,20 +19,22 @@
                         @csrf
                         <div class="mb-6 form-control-validation">
                             <label for="email" class="form-label">Email or Username</label>
-                            <input id="username" type="text" class="form-control
+                            <input id="username" type="text"
+                                class="form-control
                                 @error('username') is-invalid @enderror
                                 @error('email') is-invalid @enderror
-                            " name="username" autocomplete="off" autofocus>
+                            "
+                                name="username" autocomplete="off" autofocus>
 
                             @error('username')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
                             @enderror
                             @error('email')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
                             @enderror
                         </div>
                         <div class="mb-6 form-password-toggle form-control-validation">
@@ -43,20 +45,21 @@
                                     aria-describedby="password" />
                                 <span class="input-group-text cursor-pointer"><i
                                         class="icon-base ti tabler-eye-off"></i></span> --}}
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
-                                        name="password" autocomplete="current-password">
-                                 @error('password')
-                                 <span class="invalid-feedback" role="alert">
-                                     <strong>{{ $message }}</strong>
-                                 </span>
-                                 @enderror
+                                <input id="password" type="password"
+                                    class="form-control @error('password') is-invalid @enderror" name="password"
+                                    autocomplete="current-password">
+                                @error('password')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                         </div>
                         <div class="my-8">
 
                         </div>
                         <div class="mb-6">
-                            <button  class="btn btn-primary d-grid w-100" type="submit">Login</button>
+                            <button class="btn btn-primary d-grid w-100" type="submit">Login</button>
                         </div>
                     </form>
 
@@ -66,4 +69,3 @@
         </div>
     </div>
 </x-partner-guest-layout>
-

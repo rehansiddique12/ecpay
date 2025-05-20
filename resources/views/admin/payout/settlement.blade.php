@@ -46,7 +46,8 @@
                 <div class="col-md-4  mt-4">
                     <div class="form-group">
                         <label>E-Wallet</label>
-                        <select name="gateway" class="form-select">
+                        <select name="gateway" class="form-select select2" data-allow-clear="true" data-placeholder="Select a partner">
+                            <option></option>
                             <option value="">All</option>
                             @foreach($gateways as $gateway)
                             <option value="{{ $gateway->source_name }}" @if(@request()->gateway ==
