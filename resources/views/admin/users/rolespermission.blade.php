@@ -20,6 +20,7 @@
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                 <div class="row">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        @if(adminAccessRoute(config('role.manage_staff.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
@@ -27,6 +28,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.manage_location.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.location' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.location') }}" class="menu-link">
@@ -34,6 +37,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_and_permission.access.add')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.roles_and_permission' ? 'btn-primary' : '' }}">
@@ -42,6 +47,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_category.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.rolescategory' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.rolescategory') }}" class="menu-link">
@@ -49,6 +56,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+
                     </div>
                 </div>
                 <div class="assign-permissions-content">
