@@ -852,7 +852,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Api Key">Api Key</div>
+                                <div data-i18n="Merchant List">Merchant List </div>
                             </a>
                         </li>
                         @endif

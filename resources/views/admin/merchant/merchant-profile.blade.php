@@ -227,9 +227,9 @@
                                                 $fields = [
                                                 'name', 'username', 'email', 'phone', 'website', 'api_endpoint_deposit',
                                                 'api_endpoint_withdrawal',
-                                                'type', 'api_key', 'last_login', 'remember_token', 'balance',
+                                                 'api_key',
                                                 'min_deposit',
-                                                'min_withdrawal', 'parent_id', 'secret_key', 'redirect_url', 'timezone'
+                                                'min_withdrawal',  'secret_key', 'redirect_url', 'timezone'
                                                 ];
                                                 @endphp
 
@@ -253,12 +253,7 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="col-md-6 mb-3">
-                                                    <label>Password</label>
-                                                    <input type="password" name="password" class="form-control">
-                                                    <small class="text-muted">Leave blank if you don't want to
-                                                        change</small>
-                                                </div>
+
 
                                                 <div class="col-md-6 mb-3">
                                                     <label>Status</label>
@@ -293,7 +288,7 @@
                                                 </div>
                                                 @if(isset($categories))
                                                 <div class="col-md-6 mb-3">
-                                                    <label>Assigned Category</label>
+                                                    <label>Comission Category</label>
                                                     <select name="category_id" class="form-control">
                                                         <option value="">Please select category</option>
                                                         @foreach($categories as $category)
