@@ -49,7 +49,7 @@ class PayoutRecordController extends Controller
 {
     public function methods($username)
     {
-        $open_user = API::where('username', $username)->first();
+        $open_user = API::where('username', $username)->where('status', 1)->first();
         if ($open_user && $open_user->type == "Admin") {
             return view('partner.payout.methods', compact('username'));
         } else {
@@ -62,7 +62,7 @@ class PayoutRecordController extends Controller
         if (session()->has('txn_verified')) {
             session()->forget('txn_verified');
         }
-        $open_user = API::where('username', $username)->first();
+        $open_user = API::where('username', $username)->where('status', 1)->first();
         if ($open_user && $open_user->type == "Admin") {
             $min_deposit = $open_user->min_deposit;
             if (session()->get('plan_id') != null) {
@@ -81,7 +81,7 @@ class PayoutRecordController extends Controller
 
     public function payoutMoneyTransection($username)
     {
-        $open_user = API::where('username', $username)->first();
+        $open_user = API::where('username', $username)->where('status', 1)->first();
         if ($open_user && $open_user->type == "Admin") {
             $min_withdrawal = $open_user->min_withdrawal;
             $title = "Payout Money";
@@ -108,7 +108,7 @@ class PayoutRecordController extends Controller
             if ($validator->fails()) {
                 return response($validator->messages(), 422);
             }
-            $open_user = API::where('username', $request->username)->lockForUpdate()->first();
+            $open_user = API::where('username', $request->username)->where('status', 1)->lockForUpdate()->first();
             if (!$open_user || $open_user->type != "Admin") {
                 DB::rollBack();
                 return response()->json(['error' => 'Contact with Admin or your link provider'], 422);
@@ -350,7 +350,7 @@ class PayoutRecordController extends Controller
                     foreach($PartnerCommissions as $PartnerCommission) {
                         $PartnerCommission->status = 1;
                         $PartnerCommission->save();
-                        $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                        $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                         $parent_api_key->balance += $PartnerCommission->profit;
                         $parent_api_key->save();
 
@@ -513,7 +513,7 @@ class PayoutRecordController extends Controller
 
         $txn_verification = "";
 
-        $api_key = API::where('username', $username)->first();
+        $api_key = API::where('username', $username)->where('status', 1)->where('status', 1)->first();
         if ($api_key && $api_key->type == "Admin") {
             $source = $api_key->website;
             $api_id = $api_key->id;
@@ -909,7 +909,7 @@ class PayoutRecordController extends Controller
                     return view('partner.payout.paymentProcessingIframe', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url'));
                 }
 
-                $open_user = API::where('id', $order->api_id)->lockForUpdate()->first();
+                $open_user = API::where('id', $order->api_id)->where('status', 1)->lockForUpdate()->first();
                 if (!$open_user || $open_user->type != "Admin") {
                     DB::rollBack();
                     abort(404);
@@ -1061,7 +1061,7 @@ class PayoutRecordController extends Controller
                         foreach ($PartnerCommissions as $PartnerCommission) {
                             $PartnerCommission->status = 1;
                             $PartnerCommission->save();
-                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                             $parent_api_key->balance += $PartnerCommission->profit;
                             $parent_api_key->save();
 
@@ -1291,7 +1291,7 @@ class PayoutRecordController extends Controller
 
 
 
-        $open_user = API::where('id', $order->api_id)->lockForUpdate()->first();
+        $open_user = API::where('id', $order->api_id)->where('status', 1)->lockForUpdate()->first();
         if (!$open_user || $open_user->type != "Admin") {
             DB::rollBack();
             abort(404);
@@ -1380,7 +1380,7 @@ class PayoutRecordController extends Controller
             foreach ($PartnerCommissions as $PartnerCommission) {
                 $PartnerCommission->status = 1;
                 $PartnerCommission->save();
-                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                 $parent_api_key->balance += $PartnerCommission->profit;
                 $parent_api_key->save();
 
@@ -1515,18 +1515,7 @@ class PayoutRecordController extends Controller
         }
     }
 
-     public function update_order_fund_status(Request $request)
-    {
-        $track = session()->get('track');
-        $order = Fund::where('transaction', $track)->orderBy('id', 'DESC')->with(['user'])->first();
-
-        $payment = Payment::where('transaction_id', $order->id)->orderBy('id', 'DESC')->first();
-        if ($payment) {
-            return json_encode(['status' => 'success']);
-        } else {
-            return json_encode(['status' => 'false']);
-        }
-    }
+    
 
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
@@ -1563,7 +1552,7 @@ class PayoutRecordController extends Controller
             $ewallet_to_show = "Rocket";
         }
 
-        $api_key = API::where('username', $username)->select('id','type','secret_key','txn_verification','redirect_url','sign','api_key','min_deposit','parent_id')->first();
+        $api_key = API::where('username', $username)->where('status', 1)->select('id','type','secret_key','txn_verification','redirect_url','sign','api_key','min_deposit','parent_id')->first();
         if ($api_key && $api_key->type == "Admin") {
             $api_id = $api_key->id;
             $secretKey = $api_key->secret_key;
@@ -1680,7 +1669,7 @@ class PayoutRecordController extends Controller
 
 
 
-        $api_key = API::where('username', $username)->where('type', 'Admin')->first();
+        $api_key = API::where('username', $username)->where('status', 1)->where('type', 'Admin')->first();
         if ($api_key) {
             $secretKey = $api_key->secret_key;
         } else {
@@ -1879,7 +1868,7 @@ class PayoutRecordController extends Controller
 
 
 
-                    $open_user = API::where('id', $order->api_id)->lockForUpdate()->first();
+                    $open_user = API::where('id', $order->api_id)->where('status', 1)->lockForUpdate()->first();
                     if (!$open_user || $open_user->type != "Admin") {
                         DB::rollBack();
                         abort(404);
@@ -1953,7 +1942,7 @@ class PayoutRecordController extends Controller
                         foreach ($PartnerCommissions as $PartnerCommission) {
                             $PartnerCommission->status = 1;
                             $PartnerCommission->save();
-                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                             $parent_api_key->balance += $PartnerCommission->profit;
                             $parent_api_key->save();
 
@@ -2173,7 +2162,7 @@ class PayoutRecordController extends Controller
 
         $gate = Gateway::where('id', $gate_id)->first();
 
-        $api_key = API::where('username', $username)->where('type', 'Admin')->first();
+        $api_key = API::where('username', $username)->where('status', 1)->where('type', 'Admin')->first();
         if ($api_key) {
             $secretKey = $api_key->secret_key;
         } else {
@@ -2280,7 +2269,7 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'You are only allowed to proceed with Bkash E-Wallet'], 404);
         }
 
-        $api_key = API::where('username', $username)->select('id','type','secret_key','txn_verification','redirect_url','sign','api_key','min_deposit','parent_id')->first();
+        $api_key = API::where('username', $username)->where('status', 1)->select('id','type','secret_key','txn_verification','redirect_url','sign','api_key','min_deposit','parent_id')->first();
         if ($api_key && $api_key->type == "Admin") {
             $api_id = $api_key->id;
             $secretKey = $api_key->secret_key;
@@ -2610,7 +2599,7 @@ class PayoutRecordController extends Controller
     {
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $log = "View Withdrawal Requests";
@@ -2623,7 +2612,7 @@ class PayoutRecordController extends Controller
             ->where('status', 'Complete')
             ->sum('amount');
 
-        $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
 
         $charge = 0;
         $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
@@ -2640,7 +2629,7 @@ class PayoutRecordController extends Controller
         $withdrawal_able_amount = round($withdrawal_able_amount ?? 0, 2);
 
         $pageTitle = "Payout Request";
-        $domains = Api::where('type', 'Admin')->get();
+        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
         $records = Payout::where('status', 1)
         ->orderBy('id', 'DESC')
         ->with('user', 'gateway')
@@ -2673,11 +2662,11 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $search = $request->all();
-        $domains = Api::where('type', 'Admin')->get();
+        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
         $dateSearch = $request->date_time;
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
 
@@ -2726,7 +2715,7 @@ class PayoutRecordController extends Controller
             ->where('api_id', $api_id)
             ->where('status', 'Complete')
             ->sum('amount');
-        $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $charge = 0;
         $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
         if ($commissions) {
@@ -2751,14 +2740,14 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $gateways = Gateway::where('status', 1)
             ->get();
         // dd($gateways);
         $pageTitle = "Payout Report";
-        $domains = Api::where('type', 'Admin')->get();
+        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
         $records = Payout::where('status', '!=', 0)
         ->orderBy('id', 'DESC')
         ->with('user', 'gateway')
@@ -2786,11 +2775,11 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $search = $request->all();
-        $domains = Api::where('type', 'Admin')->get();
+        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
         $gateways = Gateway::where('status', 1)->get();
 
         $fund_count = 0;
@@ -2997,7 +2986,7 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
 
@@ -3045,7 +3034,7 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
 
@@ -3098,7 +3087,7 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $partnerTimezone = $main_user->timezone;
         $api_id = $main_user->id;
 
@@ -3106,7 +3095,7 @@ class PayoutRecordController extends Controller
             ->get();
         // dd($gateways);
         $pageTitle = "Payout Report Detail";
-        $domains = Api::where('type', 'Admin')->get();
+        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
 
         $heading['date'] = $date;
         $heading['gateway'] = $gateway;
@@ -3181,7 +3170,7 @@ class PayoutRecordController extends Controller
             'amount' => ['required', 'numeric']
         ]);
 
-        $open_user = API::where('username', $request->username)->first();
+        $open_user = API::where('username', $request->username)->where('status', 1)->first();
         if (!$open_user || $open_user->type != "Admin") {
             abort(404);
         }
@@ -3301,7 +3290,7 @@ class PayoutRecordController extends Controller
         ->orderBy('api_id', 'DESC')
         ->get();
         $pageTitle = "Commissions Summary";
-        $partners = Api::where('type', 'Admin')->get();
+        $partners = Api::where('type', 'Admin')->where('status', 1)->get();
         return view('partner.payout.api', compact('records', 'pageTitle', 'partners'));
     }
 
@@ -3309,7 +3298,7 @@ class PayoutRecordController extends Controller
     public function apiCommissions(Request $request)
     {
         $user = Auth::guard('partner')->user();
-        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
         $partnerTimezone = $main_admin->timezone;
         $partner_ids = PartnerCommission::where('from_id', $user->id)
             ->distinct()
@@ -3458,7 +3447,7 @@ public function settlementSearch(Request $request)
 
     // Get API and timezone
     $api = Api::where('api_key', $user->api_key)
-        ->where('type', 'Admin')
+        ->where('type', 'Admin')->where('status', 1)
         ->first();
 
     $charge = 0;
@@ -3536,7 +3525,7 @@ public function settlementSearch(Request $request)
         $this->addLogs("View Day Wise Settlement Report");
 
         $user = Auth::guard('partner')->user();
-        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
         $website = $user->website;
 
         $from_date = date('Y-m-01');
@@ -3583,12 +3572,12 @@ public function settlementSearch(Request $request)
     public function partnerBalance(Request $request)
     {
             $user = Auth::guard('partner')->user();
-            $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+            $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
             $api_id = $main_admin->id;
 
         $records = ApiTransaction::where('partner_id', $api_id)->with('api')->orderBy('id', 'DESC')->get();
         $pageTitle = "Adjustments";
-        $partners = Api::where('type', 'Admin')->get();
+        $partners = Api::where('type', 'Admin')->where('status', 1)->get();
 
         return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
     }
@@ -3598,7 +3587,7 @@ public function settlementSearch(Request $request)
     {
 
         $user = Auth::guard('partner')->user();
-        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
         $partnerTimezone = $main_admin->timezone;
         $api_id = $main_admin->id;
 
@@ -3617,7 +3606,7 @@ public function settlementSearch(Request $request)
         }
 
 
-        $partners = Api::where('type', 'Admin')->get();
+        $partners = Api::where('type', 'Admin')->where('status', 1)->get();
 
         $records = ApiTransaction::with('api');
 
@@ -3651,7 +3640,7 @@ public function settlementSearch(Request $request)
         $sender = session()->get('sender');
 
         $username = session()->get('username');
-        $open_user = API::where('username', $username)->first();
+        $open_user = API::where('username', $username)->where('status', 1)->first();
 
         if (!$open_user || $open_user->type != "Admin") {
             abort(404);
@@ -3695,7 +3684,7 @@ public function settlementSearch(Request $request)
                 $order = Payment::where('transaction', $track)->where('status', 'Pending')->orderBy('id', 'DESC')->lockForUpdate()->first();
 
                 $username = session()->get('username');
-                $api_key = API::where('username', $username)->lockForUpdate()->first();
+                $api_key = API::where('username', $username)->where('status', 1)->lockForUpdate()->first();
                 if (!$api_key || $api_key->type != "Admin") {
                     abort(404);
                 }
@@ -3825,7 +3814,7 @@ public function settlementSearch(Request $request)
                         foreach($PartnerCommissions as $PartnerCommission){
                             $PartnerCommission->status = 1;
                             $PartnerCommission->save();
-                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                             $parent_api_key->balance += $PartnerCommission->profit;
                             $parent_api_key->save();
 
@@ -3989,7 +3978,7 @@ public function settlementSearch(Request $request)
         $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->whereIn('transfer_status', [0,1])->latest()->with('gateway', 'user')->firstOrFail();
         $title = "Payout Form";
         $username = session()->get('username');
-        $open_user = API::where('username', $username)->first();
+        $open_user = API::where('username', $username)->where('status', 1)->first();
         
         if (!$open_user || $open_user->type != "Admin") {
             abort(404);
@@ -4027,7 +4016,7 @@ public function settlementSearch(Request $request)
 
         $this->validate($request, $rules);
         $username = session()->get('username');
-        $open_user = API::where('username', $username)->first();
+        $open_user = API::where('username', $username)->where('status', 1)->first();
         $user = $open_user;
 
         $PhoneNumber = "";

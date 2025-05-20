@@ -53,7 +53,7 @@ class PaymentController extends Controller
         $request->amount = str_replace(',', '', $request->amount);
         $user_sign = "";
 
-        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->where('status', 1)->first();
         if ($api_key) {
             $source = $api_key->website;
             $api_id = $api_key->id;
@@ -331,7 +331,7 @@ class PaymentController extends Controller
 
         $request->amount = str_replace(',', '', $request->amount);
 
-        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->where('status', 1)->first();
         if ($api_key) {
             $source = $api_key->website;
                     $secretKey = $api_key->secret_key;
@@ -432,7 +432,7 @@ class PaymentController extends Controller
 
         $request->amount = str_replace(',', '', $request->amount);
 
-        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->where('status', 1)->first();
         if ($api_key) {
             $source = $api_key->website;
                 $secretKey = $api_key->secret_key;
