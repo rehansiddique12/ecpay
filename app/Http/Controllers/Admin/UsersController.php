@@ -49,54 +49,54 @@ class UsersController extends Controller
 
 
   public function userUpdate(Request $request, $id)
-{
-    $languages = Language::all()->pluck('id');
+    {
+        $languages = Language::all()->pluck('id');
 
-    $userData = Purify::clean($request->except('_token', '_method'));
-    $user = User::findOrFail($id);
+        $userData = Purify::clean($request->except('_token', '_method'));
+        $user = User::findOrFail($id);
 
-    $rules = [
-        'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-        'phone' => 'sometimes|required|string|max:20',
-        'image' => ['nullable', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
-        'language_id' => ['nullable', Rule::in($languages)],
-        'address' => 'nullable|string|max:255',
-    ];
+        $rules = [
+            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'phone' => 'sometimes|required|string|max:20',
+            'image' => ['nullable', 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
+            'language_id' => ['nullable', Rule::in($languages)],
+            'address' => 'nullable|string|max:255',
+        ];
 
-    $validator = Validator::make($userData, $rules);
+        $validator = Validator::make($userData, $rules);
 
-    if ($validator->fails()) {
-        return back()->withErrors($validator)->withInput();
-    }
-
-    if ($request->hasFile('image')) {
-        try {
-            $old = $user->image ?? null;
-            $user->image = $this->uploadImage(
-                $request->image,
-                config('location.user.path'),
-                config('location.user.size'),
-                $old
-            );
-        } catch (\Exception $e) {
-            return back()->with('error', 'Image could not be uploaded.');
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
         }
+
+        if ($request->hasFile('image')) {
+            try {
+                $old = $user->image ?? null;
+                $user->image = $this->uploadImage(
+                    $request->image,
+                    config('location.user.path'),
+                    config('location.user.size'),
+                    $old
+                );
+            } catch (\Exception $e) {
+                return back()->with('error', 'Image could not be uploaded.');
+            }
+        }
+
+        $user->email = $userData['email'] ?? $user->email;
+        $user->phone = $userData['phone'] ?? $user->phone;
+        $user->language_id = $userData['language_id'] ?? $user->language_id;
+        $user->address = $userData['address'] ?? $user->address;
+
+        $user->status = isset($userData['status']) && $userData['status'] === 'on' ? 0 : 1;
+        $user->email_verification = isset($userData['email_verification']) && $userData['email_verification'] === 'on' ? 0 : 1;
+        $user->sms_verification = isset($userData['sms_verification']) && $userData['sms_verification'] === 'on' ? 0 : 1;
+        $user->two_fa_verify = isset($userData['two_fa_verify']) && $userData['two_fa_verify'] === 'on' ? 1 : 0;
+
+        $user->save();
+
+        return back()->with('success', 'User updated successfully.');
     }
-
-    $user->email = $userData['email'] ?? $user->email;
-    $user->phone = $userData['phone'] ?? $user->phone;
-    $user->language_id = $userData['language_id'] ?? $user->language_id;
-    $user->address = $userData['address'] ?? $user->address;
-
-    $user->status = isset($userData['status']) && $userData['status'] === 'on' ? 0 : 1;
-    $user->email_verification = isset($userData['email_verification']) && $userData['email_verification'] === 'on' ? 0 : 1;
-    $user->sms_verification = isset($userData['sms_verification']) && $userData['sms_verification'] === 'on' ? 0 : 1;
-    $user->two_fa_verify = isset($userData['two_fa_verify']) && $userData['two_fa_verify'] === 'on' ? 1 : 0;
-
-    $user->save();
-
-    return back()->with('success', 'User updated successfully.');
-}
 
 
 

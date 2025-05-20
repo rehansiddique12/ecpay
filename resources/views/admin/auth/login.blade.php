@@ -6,14 +6,10 @@
                 <div class="card-body">
                     <!-- Logo -->
                     <div class="app-brand justify-content-center mb-6">
-                        <a href="" class="app-brand-link">
-                            <span class="app-brand-logo demo">
-                                <span class="text-primary">
-                                    <img src="{{ asset('assets/uploads/logo/logo.png') }}" height="50"
-                                        viewBox="0 0 128 128" fill="none" alt="ECPay logo">
-                                </span>
-                            </span>
-                            <span class="app-brand-text demo text-heading fw-bold">Vuexy</span>
+                        <a href="{{ route('admin.login') }}" class="app-brand-link">
+
+                            <img src="{{ asset('assets/uploads/logo/logo.png') }}" height="70" viewBox="0 0 128 128"
+                            fill="none" alt="ECPay logo">
                         </a>
                     </div>
                     <!-- /Logo -->

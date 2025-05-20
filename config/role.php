@@ -13,10 +13,72 @@ $arr = [
     'manage_staff' => [
         'label' => 'Manage Staff',
         'access' => [
-            'view' => ['admin.staff'],
+            'view' => ['admin.users'],
             'add' => ['admin.storeStaff'],
             'edit' => ['admin.updateStaff'],
             'delete' => [],
+        ],
+    ],
+
+    'manage_location' => [
+        'label' => 'Manage Location',
+        'access' => [
+            'view' => ['admin.location'],
+            'add' => ['admin.users.location.add'],
+            'edit' => ['admin.location.update'],
+            'delete' => ['admin.users.location.delete'],
+        ],
+    ],
+
+  'roles_category' => [
+        'label' => 'Roles Category',
+        'access' => [
+            'view' => ['admin.rolescategory'],
+            'add' => ['admin.roles.add' , 'admin.roles.copy'],
+            'edit' => ['admin.roles.update'],
+            'delete' => ['admin.roles.delete'],
+        ],
+    ],
+
+ 'roles_and_permission' => [
+        'label' => 'Assign Permission To Role',
+        'access' => [
+            'view' => [],
+            'add' => ['admin.roles_and_permission'],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
+    'parent_group' => [
+        'label' => 'Parent Group',
+        'access' => [
+            'view' => ['admin.parant'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
+    'work_board' => [
+        'label' => 'Work Board',
+        'access' => [
+            'view' => ['admin.workboard'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'telegram_group' => [
+        'label' => 'Telegram Group',
+        'access' => [
+            'view' => ['admin.groups'],
+            'add' => ['admin.add'],
+            'edit' => ['admin.update'],
+            'delete' => ['admin.delete'],
         ],
     ],
 
@@ -127,32 +189,32 @@ $arr = [
         ],
     ],
 
-    'user_management' => [
-        'label' => 'User Management',
-        'access' => [
-            'view' => [
-                'admin.users',
-                'admin.users.search',
-                'admin.email-send',
-                'admin.user.transaction',
-                'admin.user.fundLog',
-                'admin.user.withdrawal',
-                'admin.user.userKycHistory',
-                'admin.kyc.users.pending',
-                'admin.kyc.users',
-                'admin.user-edit',
-            ],
-            'add' => [],
-            'edit' => [
-                'admin.user-multiple-active',
-                'admin.user-multiple-inactive',
-                'admin.send-email',
-                'admin.user.userKycHistory',
-                'admin.user-balance-update',
-            ],
-            'delete' => [],
-        ],
-    ],
+    // 'user_management' => [
+    //     'label' => 'User Management',
+    //     'access' => [
+    //         'view' => [
+    //             'admin.users',
+    //             'admin.users.search',
+    //             'admin.email-send',
+    //             'admin.user.transaction',
+    //             'admin.user.fundLog',
+    //             'admin.user.withdrawal',
+    //             'admin.user.userKycHistory',
+    //             'admin.kyc.users.pending',
+    //             'admin.kyc.users',
+    //             'admin.user-edit',
+    //         ],
+    //         'add' => ['admin.user.add'],
+    //         'edit' => [
+    //             'admin.user-multiple-active',
+    //             'admin.user-multiple-inactive',
+    //             'admin.send-email',
+    //             'admin.user.userKycHistory',
+    //             'admin.user-balance-update',
+    //         ],
+    //         'delete' => ['admin.users'],
+    //     ],
+    // ],
 
     'payment_gateway' => [
         'label' => 'Payment Gateway',
@@ -217,6 +279,167 @@ $arr = [
             'delete' => [],
         ],
     ],
+
+    'merchant_reports' => [
+        'label' => 'Merchants Reports',
+        'access' => [
+            'view' => [
+                'admin.merchant_reports.by_date',
+                'admin.merchant_reports.export_by_date',
+                'admin.merchant_reports.by_name',
+                'admin.merchant_reports.export_by_name',
+                'admin.merchant_reports.by_month',
+                'merchant_reports.export_by_month'
+            ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'live_e_wallet_balance_report' => [
+        'label' => 'Live E-Wallet Balance Report',
+        'access' => [
+            'view' => ['admin.reports.live_ewallet_balance'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'daily_e_wallet_summary' => [
+        'label' => 'Daily E-Wallet Summary Report',
+        'access' => [
+            'view' => ['admin.reports.daily_ewallet_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'daily_transaction_summary' => [
+        'label' => 'Daily Transaction Summary Report',
+        'access' => [
+            'view' => ['admin.reports.daily_transection_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'merchant_charges_summary_report' => [
+        'label' => 'Merchant Charges Summary Report',
+        'access' => [
+            'view' => ['admin.reports.merchant_charges_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'partner_account_summary' => [
+        'label' => 'Partner Account Summary Report',
+        'access' => [
+            'view' => ['admin.reports.partner_account_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'partner_account_summary' => [
+        'label' => 'Partner Account Summary Report',
+        'access' => [
+            'view' => ['admin.reports.partner_account_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'partner_account_balance_summary_creation' => [
+        'label' => 'Partner Account Balance Summary Creation Report',
+        'access' => [
+            'view' => ['admin.reports.partner_account_balance_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'partner_account_balance_summary_completions' => [
+        'label' => 'Partner Account Balance Summary Completions Report',
+        'access' => [
+            'view' => ['admin.reports.partner_account_balance_summary_completions'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'revenue_center_report' => [
+        'label' => 'Revenue Center Report',
+        'access' => [
+            'view' => ['admin.reports.revenue_center'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'partner_balance_log' => [
+        'label' => 'Partner Balance Log Report',
+        'access' => [
+            'view' => ['admin.reports.logs'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'partner_balance_reports' => [
+        'label' => 'Partner Balance Report',
+        'access' => [
+            'view' => ['admin.reports.cal', 'admin.reports.cal2'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'master_report' => [
+        'label' => 'Master Report',
+        'access' => [
+            'view' => ['admin.reports.master_report'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'gateway_performance_report' => [
+        'label' => 'Gateway Performance Report',
+        'access' => [
+            'view' => ['admin.payment.payment_gateway_report'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+   'payment_type' => [
+        'label' => 'Payment Type',
+        'access' => [
+            'view' => ['admin.typ'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
+
+
 
     'all_reports' => [
         'label' => 'All Reports',
@@ -325,6 +548,28 @@ $arr = [
         ],
     ],
 
+    'account_management' => [
+        'label' => 'Account Management',
+        'access' => [
+            'view' => [
+                'admin.ewallet.accounts.details',
+            ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'commission_category' => [
+        'label' => 'Commission Category',
+        'access' => [
+            'view' => ['admin.commission.categories.index',],
+            'add' => ['admin.commission.categories.store'],
+            'edit' => ['admin.commission.categories.update'],
+            'delete' => ['admin.commission.categories.destroy'],
+        ],
+    ],
+
     'settings' => [
         'label' => 'Personal & Merchant Timming Setting',
         'access' => [
@@ -368,15 +613,9 @@ $arr = [
             'view' => [
                 'admin.apis.login',
             ],
-            'add' => [
-
-            ],
-            'edit' => [
-
-            ],
-            'delete' => [
-
-            ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
         ],
     ],
 
