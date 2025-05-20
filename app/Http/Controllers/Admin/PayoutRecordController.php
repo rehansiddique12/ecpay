@@ -5128,4 +5128,31 @@ return redirect()->back()->with('success', 'Partner commissions added successful
         ]);
     }
 
+    public function balanceLogsSearch(Request $request)
+    {
+        $accountlog = AccountLog::orderBy('id', 'DESC')
+            ->with('e_wallet_account')
+            ->whereHas('e_wallet_account', function ($query) use ($request) {
+                $query->where('e_wallet_name', 'like', '%' . $request->ewallet . '%')
+                    ->where('account_no', 'like', '%' . $request->account_no . '%')
+                    ->where('type', 'like', '%' . $request->a_type . '%');
+
+                if (!empty($request->from_date) && !empty($request->to_date)) {
+                    $query->whereDate('created_at', '>=', $request->from_date);
+                    $query->whereDate('created_at', '<=', $request->to_date);
+                } elseif (!empty($request->from_date)) {
+                    $query->whereDate('created_at', '>=', $request->from_date);
+                } elseif (!empty($request->to_date)) {
+                    $query->whereDate('created_at', '<=', $request->to_date);
+                }
+            })
+            ->where('type', 'like', '%' . $request->type . '%')
+            ->paginate(config('basic.paginate'));
+
+        // $accountlog = AccountLog::orderBy('id', 'DESC')->with('e_wallet_account')->get();
+        $pageTitle = "Account Balance Logs";
+
+        return view('admin.payout.balance_logs', compact('accountlog', 'pageTitle'));
+    }
+
 }

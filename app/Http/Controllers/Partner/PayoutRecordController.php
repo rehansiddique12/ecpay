@@ -1515,6 +1515,19 @@ class PayoutRecordController extends Controller
         }
     }
 
+     public function update_order_fund_status(Request $request)
+    {
+        $track = session()->get('track');
+        $order = Fund::where('transaction', $track)->orderBy('id', 'DESC')->with(['user'])->first();
+
+        $payment = Payment::where('transaction_id', $order->id)->orderBy('id', 'DESC')->first();
+        if ($payment) {
+            return json_encode(['status' => 'success']);
+        } else {
+            return json_encode(['status' => 'false']);
+        }
+    }
+
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
         $remainingTime = 600;

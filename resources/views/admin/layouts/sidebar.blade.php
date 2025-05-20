@@ -6,14 +6,14 @@
     //     Request::routeIs('admin.accounts.management') ||
     //     Request::routeIs('admin.balance.logs');
 
-
-
     $isPartnerActive = in_array(Route::currentRouteName(), [
         'admin.apis.balance.add.get',
         'admin.transfer.balance',
         'admin.settlements',
+        'admin.settlements.search',
         'admin.apis',
         'admin.api.commissions',
+        'admin.api.post.commissions',
         'admin.adjustments',
         'admin.adjustments.search',
         'admin.partner.balance',
@@ -26,6 +26,7 @@
         'admin.reports.daily_ewallet_summary',
         'admin.reports.daily_transection_summary',
         'admin.reports.merchant_charges_summary',
+        'admin.reports.merchant_charges_summary.search',
         'admin.reports.partner_account_summary',
         'admin.reports.partner_account_balance_summary',
         'admin.payment.payment_gateway_report',
@@ -54,21 +55,29 @@
 
     $isTransactionActive = in_array(Route::currentRouteName(), [
         'admin.payment.log',
+        'admin.payment.search',
         'admin.payout-log',
+        'admin.payout-log.search',
         'admin.payment.apiLog',
+        'admin.payment.apisearch',
         'admin.payment.apiLogunclaimed',
+        'admin.payment.apiLogunclaimed.search',
         'admin.payment.report',
+        'admin.payment.report.search',
         'admin.payment.report.daily',
+        'admin.payment.report.daily.search',
         'admin.payment.report.all',
+        'admin.payment.report.all.search',
         'admin.payout-report',
+        'admin.payout-report.search',
         'admin.payout.report.daily',
+        'admin.payout.report.daily.search',
     ]);
     // $isAccountsActive =
     //     Request::routeIs('admin.accounts.add') ||
     //     Request::routeIs('admin.accounts') ||
     //     Request::routeIs('admin.balance.logs') ||
     //     Request::routeIs('');
-
 
     $isAccountsActive =
         Request::routeIs('admin.groups') ||
@@ -99,8 +108,9 @@
             <a href="index.html" class="app-brand-link">
                 <span class="app-brand-logo demo">
                     <span class="text-primary">
-                    
-                            <img src="{{asset('assets/uploads/logo/logo.png')}}" height="50" viewBox="0 0 128 128" fill="none" alt="ECPay logo">
+
+                        <img src="{{ asset('assets/uploads/logo/logo.png') }}" height="50" viewBox="0 0 128 128"
+                            fill="none" alt="ECPay logo">
                     </span>
                 </span>
                 {{-- <span class="app-brand-text demo menu-text fw-bold text-heading">Vuexy</span> --}}
@@ -544,21 +554,22 @@
                         <div class="avatar avatar-online">
 
                             @php
-                            use Illuminate\Support\Facades\File;
+                                use Illuminate\Support\Facades\File;
 
-                            $user = Auth::user();
-                            $imagePath = public_path('uploads/admin/' . $user->image);
-                        @endphp
+                                $user = Auth::user();
+                                $imagePath = public_path('uploads/admin/' . $user->image);
+                            @endphp
 
-                        @auth
-                            @if (!empty($user->image) && File::exists($imagePath))
-                                <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
-                                     alt="{{ $user->name }}" class="rounded-circle" />
-                            @else
-                                <!-- Optional: Show placeholder -->
-                                <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar" class="rounded-circle" />
-                            @endif
-                        @endauth
+                            @auth
+                                @if (!empty($user->image) && File::exists($imagePath))
+                                    <img src="{{ asset('public/uploads/admin/' . $user->image) }}" alt="{{ $user->name }}"
+                                        class="rounded-circle" />
+                                @else
+                                    <!-- Optional: Show placeholder -->
+                                    <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
+                                        class="rounded-circle" />
+                                @endif
+                            @endauth
 
                         </div>
                     </a>
@@ -570,21 +581,22 @@
                                         <div class="avatar avatar-online">
 
                                             @php
-                                            // use Illuminate\Support\Facades\File;
+                                                // use Illuminate\Support\Facades\File;
 
-                                            $user = Auth::user();
-                                            $imagePath = public_path('uploads/admin/' . $user->image);
-                                        @endphp
+                                                $user = Auth::user();
+                                                $imagePath = public_path('uploads/admin/' . $user->image);
+                                            @endphp
 
-                                        @auth
-                                            @if (!empty($user->image) && File::exists($imagePath))
-                                                <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
-                                                     alt="{{ $user->name }}" class="rounded-circle" />
-                                            @else
-                                                <!-- Optional: Show placeholder -->
-                                                <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar" class="rounded-circle" />
-                                            @endif
-                                        @endauth
+                                            @auth
+                                                @if (!empty($user->image) && File::exists($imagePath))
+                                                    <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                                        alt="{{ $user->name }}" class="rounded-circle" />
+                                                @else
+                                                    <!-- Optional: Show placeholder -->
+                                                    <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
+                                                        class="rounded-circle" />
+                                                @endif
+                                            @endauth
 
                                         </div>
                                     </div>
@@ -692,8 +704,7 @@
                                     <div data-i18n="WorkBoard">WorkBoard</div>
                                 </a>
                             </li>
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.users' ? 'active' : '' }}">
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.users' ? 'active' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="All Users">All Users</div>
@@ -707,40 +718,42 @@
                                 </a>
                             </li> --}}
 
-                        <ul class="menu-sub">
-                            <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
+                            <ul class="menu-sub">
+                                <!-- <li class="menu-item {{ Request::routeIs('admin.accounts.add') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts.add') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Add Accounts">Add Accounts</div>
                                 </a>
                             </li> -->
-                            <!-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
+                                <!-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                                 <a href="{{ route('admin.accounts') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="All Accounts">All Accounts</div>
                                 </a>
                             </li> -->
-                            <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
-                                <a href="{{ route('admin.balance.logs') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Account Balance">Account Balance</div>
-                                </a>
-                            </li>
+                                <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.balance.logs') }}" class="menu-link">
+                                        <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                        <div data-i18n="Account Balance">Account Balance</div>
+                                    </a>
+                                </li>
 
-                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
-                                <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="E-Wallet Test">E-Wallet Test </div>
-                                </a>
-                            </li>
+                                <li
+                                    class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
+                                        <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                        <div data-i18n="E-Wallet Test">E-Wallet Test </div>
+                                    </a>
+                                </li>
 
-                            <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts.details') ? 'active' : '' }}">
-                                <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="E-Wallet Test"> Test </div>
-                                </a>
-                            </li>
-                        </ul>
+                                <li
+                                    class="menu-item {{ Request::routeIs('admin.ewallet.accounts.details') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
+                                        <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                        <div data-i18n="E-Wallet Test"> Test </div>
+                                    </a>
+                                </li>
+                            </ul>
                     </li>
 
 
@@ -769,7 +782,7 @@
                                 <div data-i18n="TelegramGroup">TelegramGroup</div>
                             </a>
                         </li>
-                         {{-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
+                        {{-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="All Accounts">All Accounts</div>
@@ -781,12 +794,12 @@
                                 <div data-i18n="Account Balance">Account Balance</div>
                             </a>
                         </li>
-                         <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
-                                <a href="{{ route('admin.accounts.management') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Account Management">Account Management</div>
-                                </a>
-                            </li>
+                        <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
+                            <a href="{{ route('admin.accounts.management') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Account Management">Account Management</div>
+                            </a>
+                        </li>
                         <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -806,21 +819,21 @@
 
                     <ul class="menu-sub">
 
-                          {{-- <li
+                        {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
                         </li> --}}
-<li
+                        <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Commision Category">Commision Category</div>
                             </a>
                         </li>
-                          <li
+                        <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
@@ -835,12 +848,14 @@
                             </a>
                         </li>
 
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.settlements' ? 'active' : '' }}">
+                        <li
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.settlements', 'admin.settlements.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.settlements') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-calendar"></i>
                                 <div data-i18n="Partner Settelment">Partner Settelment</div>
                             </a>
                         </li>
+
 
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis') }}" class="menu-link">
@@ -849,12 +864,13 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.api.commissions' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : '' }}">
                             <a href="{{ route('admin.api.commissions') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Partner Commission">Partner Commission</div>
                             </a>
                         </li>
+
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.adjustments' ? 'active' : '' }}">
                             <a href="{{ route('admin.adjustments') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -862,12 +878,13 @@
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.partner.balance' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.partner.balance', 'admin.partner.balance.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.partner.balance') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Adjustments ">Adjustments </div>
+                                <div data-i18n="Adjustments">Adjustments</div>
                             </a>
                         </li>
+
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transections.apilogs' ? 'active' : '' }}">
                             <a href="{{ route('admin.transections.apilogs') }}" class="menu-link">
@@ -895,75 +912,85 @@
                     </a>
 
                     <ul class="menu-sub">
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.payment.log' ? 'active' : '' }}">
+                        <li
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.log') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Deposit Log">Deposit Log</div>
                             </a>
                         </li>
 
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.payout-log' ? 'active' : '' }}">
+
+                        <li
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout-log', 'admin.payout-log.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout-log') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Withdrawl Log">Withdrawal Log </div>
+                                <div data-i18n="Withdrawl Log">Withdrawal Log</div>
                             </a>
                         </li>
 
+
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLog' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLog', 'admin.payment.apisearch']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Api Deposit Log">Api Deposit Log </div>
+                                <div data-i18n="Api Deposit Log">Api Deposit Log</div>
                             </a>
                         </li>
 
+
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.apiLogunclaimed' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLogunclaimed', 'admin.payment.apiLogunclaimed.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLogunclaimed') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Unclaimed Payment">Unclaimed Payment </div>
+                                <div data-i18n="Unclaimed Payment">Unclaimed Payment</div>
                             </a>
                         </li>
 
+
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.report' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report', 'admin.payment.report.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Deposit Report">Deposit Report </div>
+                                <div data-i18n="Deposit Report">Deposit Report</div>
                             </a>
                         </li>
 
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.daily' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report.daily', 'admin.payment.report.daily.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report.daily') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Daily Deposit Report">Daily Deposit Report </div>
+                                <div data-i18n="Daily Deposit Report">Daily Deposit Report</div>
                             </a>
                         </li>
 
+
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payment.report.all' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report.all', 'admin.payment.report.all.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report.all') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="All Report">All Report </div>
+                                <div data-i18n="All Report">All Report</div>
                             </a>
                         </li>
 
+
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payout-report' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout-report', 'admin.payout-report.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout-report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Withdrawal Report">Withdrawal Report </div>
+                                <div data-i18n="Withdrawal Report">Withdrawal Report</div>
                             </a>
                         </li>
 
+
                         <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.payout.report.daily' ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout.report.daily', 'admin.payout.report.daily.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout.report.daily') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report </div>
+                                <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report</div>
                             </a>
                         </li>
+
 
 
                     </ul>
@@ -998,13 +1025,13 @@
                                 <div data-i18n="Daily Transection Summary">Daily Transection Summary </div>
                             </a>
                         </li>
-                        <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.reports.merchant_charges_summary' ? 'active' : '' }}">
-                            <a href="{{ route('admin.reports.merchant_charges_summary') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Merchant Charges Summary">Merchant Charges Summary </div>
-                            </a>
-                        </li>
+                       <li class="menu-item {{ in_array(Route::currentRouteName(), ['admin.reports.merchant_charges_summary', 'admin.reports.merchant_charges_summary.search']) ? 'active' : '' }}">
+    <a href="{{ route('admin.reports.merchant_charges_summary') }}" class="menu-link">
+        <i class="menu-icon icon-base ti tabler-menu-2"></i>
+        <div data-i18n="Merchant Charges Summary">Merchant Charges Summary</div>
+    </a>
+</li>
+
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_summary') }}" class="menu-link">
@@ -1048,7 +1075,8 @@
                                 <div data-i18n="Partner Balance R1">Partner Balance R1 </div>
                             </a>
                         </li>
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal2' ? 'active' : '' }}">
+                        <li
+                            class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal2' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.cal2') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Partner Balance R2">Partner Balance R2 </div>

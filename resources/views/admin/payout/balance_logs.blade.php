@@ -39,7 +39,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Transection Type</label>
-                    <select name="type" class="form-control">
+                    <select name="type" class="form-select">
                         <option value="">@lang('All')</option>
                         <option value="plus" @if(@request()->type == 'plus') selected @endif>@lang('Add Credit')</option>
                         <option value="minus" @if(@request()->type == 'minus') selected @endif>@lang('Subtract Credit')</option>
@@ -49,7 +49,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Account Type</label>
-                    <select name="a_type" class="form-control">
+                    <select name="a_type" class="form-select">
                         <option value="">@lang('All')</option>
                         <option value="Merchant" @if(@request()->a_type == 'Merchant') selected @endif>@lang('Merchant')</option>
                         <option value="Personal" @if(@request()->a_type == 'Personal') selected @endif>@lang('Personal')</option>
@@ -119,7 +119,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="card-footer">
+                <div class="card-footer mt-2">
                     {{ $accountlog->appends($_GET)->links('partials.pagination') }}
                 </div>
             </div>

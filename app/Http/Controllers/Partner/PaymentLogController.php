@@ -371,7 +371,7 @@ class PaymentLogController extends Controller
 
         // dd($data);
 
-        return view('partner.payment.all_report', compact('data', 'pageTitle','gateways','from_date','to_date'));
+        // return view('partner.payment.all_report', compact('data', 'pageTitle','gateways','from_date','to_date'));
         // dd($paymentsByDate);
 
         return view('partner.payment.daily_report', compact('paymentsByDate', 'pageTitle','gateways','from_date','to_date'));

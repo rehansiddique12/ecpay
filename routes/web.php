@@ -206,7 +206,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/apis/reset/{id}', [PayoutRecordController::class, 'apisReset'])->name('apis.reset');
         Route::get('/apis/commission/{id}', [PayoutRecordController::class, 'apisCommission'])->name('apis.commission');
         Route::get('/apis/commissions/detail/{id}', [PayoutRecordController::class, 'apiCommissionsDetail'])->name('api.commissions.detail');
-      
+
         Route::get('/apis/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
         Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
