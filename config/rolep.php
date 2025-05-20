@@ -19,23 +19,15 @@ $arr = [
             'delete' => ['partner.apis.delete'],
         ],
     ],
-
-
     'payment_log' => [
         'label' => "Payment Reports",
         'access' => [
-            'view' => [
-                'partner.payment.report',
-                'partner.payment.report.search',
-                'partner.payment.report.daily',
-                'partner.payment.report.daily.search',
-            ],
+            'view' => ['partner.payment.report', 'partner.payment.report.search', 'partner.payment.report.daily', 'partner.payment.report.daily.search'],
             'add' => [],
             'edit' => [],
             'delete' => [],
         ],
     ],
-    
     'all_reports' => [
         'label' => "All Reports",
         'access' => [
@@ -48,9 +40,8 @@ $arr = [
             'delete' => [],
         ],
     ],
-
     'payout_manage' => [
-        'label' => "Withdrawal Requests & Log",
+        'label' => 'Withdrawal Requests And Log',
         'access' => [
             'view' => [
                 'partner.payout-log',
@@ -64,7 +55,6 @@ $arr = [
             'delete' => [],
         ],
     ],
-    
     'payout_report' => [
         'label' => "Withdrawal Reports",
         'access' => [
@@ -79,10 +69,6 @@ $arr = [
             'delete' => [],
         ],
     ],
-
 ];
 
 return $arr;
-
-
-
