@@ -114,7 +114,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:admin']], function () {
+    Route::group(['middleware' => ['auth:admin' , 'permission']], function () {
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
         // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
@@ -412,7 +412,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::post('/', [PartnerLoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:partner']], function () {
+    Route::group(['middleware' => ['auth:partner' , 'permission_partner']], function () {
         Route::get('/dashboard', [PartnerDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/twoFA', [PartnerDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [PartnerDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
