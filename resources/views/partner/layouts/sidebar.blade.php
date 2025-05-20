@@ -18,28 +18,28 @@ $isMainActive = in_array(Route::currentRouteName(), [
 'partner.payment.payment_gateway_report',
 ]);
 
-$isReportsActive = in_array(Route::currentRouteName(), [
-'partner.payment.report.all',
-
-'partner.reports.partner_account_summary',
-'partner.reports.partner_account_balance_summary',
-]);
-$isTransactionActive = in_array(Route::currentRouteName(), [
-'partner.reports.logs',
-'partner.payout-report',
-'partner.payout-report.search',
-'partner.payment.report',
-'partner.payment.report.search',
-'partner.payout.report.daily',
-'partner.payout.report.daily.search',
-'partner.payment.report.daily',
-'partner.payment.report.daily.search',
-]);
-$isMerchantReportsActive = in_array(Route::currentRouteName(), [
-'partner.merchant_reports.by_date',
-'partner.merchant_reports.by_name',
-'partner.merchant_reports.by_month',
-]);
+    $isReportsActive = in_array(Route::currentRouteName(), [
+        'partner.payment.report.all',
+        'partner.payment.report.all.search',
+        'partner.reports.partner_account_summary',
+        'partner.reports.partner_account_balance_summary',
+    ]);
+    $isTransactionActive = in_array(Route::currentRouteName(), [
+        'partner.reports.logs',
+        'partner.payout-report',
+        'partner.payout-report.search',
+        'partner.payment.report',
+        'partner.payment.report.search',
+        'partner.payout.report.daily',
+        'partner.payout.report.daily.search',
+        'partner.payment.report.daily',
+        'partner.payment.report.daily.search',
+    ]);
+    $isMerchantReportsActive = in_array(Route::currentRouteName(), [
+        'partner.merchant_reports.by_date',
+        'partner.merchant_reports.by_name',
+        'partner.merchant_reports.by_month',
+    ]);
 
 @endphp
 

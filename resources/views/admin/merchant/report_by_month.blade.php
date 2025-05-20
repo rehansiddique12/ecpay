@@ -29,7 +29,8 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>Merchants</label>
-                        <select name="merchant" class="form-control">
+                        <select  class="form-select select2" name="transfer_to1" data-allow-clear="true" data-placeholder="Select To Account">
+                                    <option></option>
                             <option value="">Select Merchant</option>
                             @foreach ($apis as $key => $val)
                                 <option value="{{ $key }}" @if (@request()->merchant == $key) selected @endif>
@@ -154,5 +155,73 @@
                 $('#yearpicker').val(currentYear);
             });
         </script>
+    @endpush
+
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    @endpush
+
+    @push('js')
+<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script>
+    $(document).ready(function () {
+        $('#category').change(function () {
+            var selectedCategory = $(this).val();
+
+            if (selectedCategory === 'Bank to E-wallet') {
+                // Show fromtransfer2 and hide fromtransfer1
+                $('#fromtransfer2').show();
+                $('#fromtransfer1').hide();
+
+                // Show totransfer1 and hide totransfer2
+                $('#totransfer1').show();
+                $('#totransfer2').hide();
+            } else if (selectedCategory === 'E-wallet to Bank') {
+                // Show fromtransfer1 and hide fromtransfer2
+                $('#fromtransfer1').show();
+                $('#fromtransfer2').hide();
+
+                // Show totransfer2 and hide totransfer1
+                $('#totransfer2').show();
+                $('#totransfer1').hide();
+            } else if (selectedCategory === 'E-wallet to E-wallet') {
+                // Show fromtransfer1 and hide fromtransfer2
+                $('#fromtransfer1').show();
+                $('#fromtransfer2').hide();
+
+                // Show totransfer1 and hide totransfer2
+                $('#totransfer1').show();
+                $('#totransfer2').hide();
+            }
+        });
+
+        $('form').on('submit', function () {
+            const $btn = $(this).find('button[type="submit"]');
+            // Disable the button
+            $btn.prop('disabled', true);
+            // Optional: Change button text to show loading spinner
+            $btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Submitting...');
+            return true; // allow form to submit
+        });
+           let $select = $('.select2').select2({
+                // placeholder: "Select Partner",
+                allowClear: true,
+                selectOnClose: true,
+            });
+
+            // Prevent dropdown from opening on clear
+            $select.on('select2:unselecting', function (e) {
+                $(this).data('unselecting', true);
+            });
+
+            $select.on('select2:opening', function (e) {
+                if ($(this).data('unselecting')) {
+                    $(this).removeData('unselecting');
+                    e.preventDefault();
+                }
+            });
+    });
+
+    </script>
     @endpush
 </x-admin-layout>
