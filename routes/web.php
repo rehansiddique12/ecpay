@@ -104,7 +104,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/403', [AdminDashboardController::class, 'forbidden'])->name('403');
@@ -114,7 +114,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:admin', 'permission']], function () {
+    Route::group(['middleware' => ['auth:admin']], function () {
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
         // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
@@ -158,6 +158,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/merchant_charges_summary', [ReportsController::class, 'merchant_charges_summary'])->name('reports.merchant_charges_summary');
         Route::get('reports/daily_transection_summary', [ReportsController::class, 'daily_transection_summary'])->name('reports.daily_transection_summary');
         Route::get('payment_gateway_performance_report', [PaymentMethodController::class, 'payment_gateway_report'])->name('payment.payment_gateway_report');
+        Route::get('payment_gateway_performance_report_detail/{id?}/{from_date?}/{to_date?}', [PaymentMethodController::class, 'payment_gateway_report_detail'])->name('payment.payment_gateway_report_detail');
         Route::get('reports/merchant_charges_summary/search', [ReportsController::class, 'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
         Route::get('reports/partner_account_balance_summary', [ReportsController::class, 'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class, 'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
@@ -174,10 +175,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/admin/merchant-reports/exports/{from_date?}', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
 
         // Partner Commission
-        Route::get('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
-        Route::post('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.post.commissions');
-        Route::get('/admin/commissions/export', [PayoutRecordController::class, 'exportCommissions'])->name('commissions.export');
-        Route::get('/api/export-profile/{id}', [PayoutRecordController::class, 'exportprofile'])->name('api.profile.export');
+        Route::get('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.commissions');
+        Route::post('/api/commissions', [PayoutRecordController::class,'apiCommissions'])->name('api.post.commissions');
+        Route::get('/admin/commissions/export', [PayoutRecordController::class,'exportCommissions'])->name('commissions.export');
+        Route::get('/api/export-profile/{id}', [PayoutRecordController::class,'exportprofile'])->name('api.profile.export');
         Route::get('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.commissions');
         Route::post('/api/commissions', [PayoutRecordController::class, 'apiCommissions'])->name('api.post.commissions');
         Route::get('/admin/commissions/export', [PayoutRecordController::class, 'exportCommissions'])->name('commissions.export');
@@ -284,11 +285,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/user/fundLog/{id}', [UsersController::class, 'funds'])->name('user.fundLog');
         Route::get('/user/payoutLog/{id}', [UsersController::class, 'payoutLog'])->name('user.withdrawal');
         Route::get('user/{user}/kyc', [UsersController::class, 'userKycHistory'])->name('user.userKycHistory');
-        // Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
+        Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
         Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::post('/user/password/{id}', [UsersController::class, 'passwordUpdate'])->name('userPasswordUpdate');
         Route::post('/user/balance-update/{id}', [UsersController::class, 'userBalanceUpdate'])->name('user-balance-update');
-        Route::post('/user/add', [UsersController::class, 'userAdd'])->name('user.add');
+        Route::post('/user/add', [UsersController::class,'userAdd'])->name('user.add');
         // end user management
 
 
@@ -305,10 +306,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('update_role_permissions/{id}', [UsersController::class, 'updatePermissions'])->name('update_role_permissions');
 
 
-        Route::get('/profile', [AdminDashboardController::class, 'profile'])->name('profile')->middleware('permission:profile');
-        Route::put('/profile', [AdminDashboardController::class, 'profileUpdate'])->name('profileUpdate');
-        Route::get('/password', [AdminDashboardController::class, 'password'])->name('password');
-        Route::put('/password', [AdminDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
+        Route::get('/profile', [AdminDashboardController::class,'profile'])->name('profile')->middleware('permission:profile');
+        Route::put('/profile', [AdminDashboardController::class,'profileUpdate'])->name('profileUpdate');
+        Route::get('/password', [AdminDashboardController::class,'password'])->name('password');
+        Route::put('/password', [AdminDashboardController::class,'passwordUpdate'])->name('passwordUpdate');
         // Roles Catgory Routs:
         // Roles Catgory Routs:
         Route::post('roles/copy', [UsersController::class, 'copyRole'])->name('roles.copy');
@@ -389,12 +390,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
 
 
-        Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
-            Route::get('/', [CCategoryController::class, 'index'])->name('index');
-            Route::post('/', [CCategoryController::class, 'store'])->name('store');
-            Route::put('/', [CCategoryController::class, 'update'])->name('update');
-            Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
-        });
+   Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
+    Route::get('/', [CCategoryController::class, 'index'])->name('index');
+    Route::post('/', [CCategoryController::class, 'store'])->name('store');
+    Route::put('/', [CCategoryController::class, 'update'])->name('update');
+    Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
+    });
+
+
+
     });
 
     // User Location Routes
@@ -409,7 +413,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::post('/', [PartnerLoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:partner', 'permission_partner']], function () {
+    Route::group(['middleware' => ['auth:partner']], function () {
         Route::get('/dashboard', [PartnerDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/twoFA', [PartnerDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [PartnerDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
@@ -431,7 +435,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
         Route::get('payment/report/all', [PartnerPaymentLogController::class, 'allReport'])->name('payment.report.all');
         Route::get('payment/report/all/search', [PartnerPaymentLogController::class, 'allReportSearch'])->name('payment.report.all.search');
-        Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
+        Route::get('payment/report/detail/{date}/{gateway}/{status}', [ PartnerPaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
 
         Route::get('settlement/report/daily', [PartnerPayoutRecordController::class, 'dailyReportSettlement'])->name('settlement.report.daily');
@@ -446,15 +450,15 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('reports/partner_account_balance_summary', [PartnerReportsController::class, 'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
         Route::get('reports/logs', [PartnerReportsController::class, 'logs'])->name('reports.logs');
         Route::get('reports/export_log', [PartnerReportsController::class, 'export_excel_record'])->name('report.export_excel_record');
-        Route::get('merchant/report_by_date', [PartnerMerchantController::class, 'report_by_date'])->name('merchant_reports.by_date');
-        Route::get('merchant-reports/export', [PartnerMerchantController::class, 'export_by_date'])->name('merchant_reports.export_by_date');
+        Route::get('merchant/report_by_date', [PartnerMerchantController::class,'report_by_date'])->name('merchant_reports.by_date');
+        Route::get('merchant-reports/export', [PartnerMerchantController::class,'export_by_date'])->name('merchant_reports.export_by_date');
 
         Route::get('reports/completions/logs', [PartnerReportsController::class, 'log_completions'])->name('reports.log_completions');
         Route::get('reports/export_log_completions', [PartnerReportsController::class, 'export_excel_record_completions'])->name('report.export_excel_record_completions');
         Route::get('payment_gateway_performance_report', [PartnerSummaryReportController::class, 'payment_gateway_report'])->name('payment.payment_gateway_report');
 
-        Route::get('merchant/report_by_name', [PartnerMerchantController::class, 'report_by_name'])->name('merchant_reports.by_name');
-        Route::get('merchant-reports/export_name', [PartnerMerchantController::class, 'export_by_name'])->name('merchant_reports.export_by_name');
+        Route::get('merchant/report_by_name', [PartnerMerchantController::class,'report_by_name'])->name('merchant_reports.by_name');
+        Route::get('merchant-reports/export_name', [PartnerMerchantController::class,'export_by_name'])->name('merchant_reports.export_by_name');
 
         Route::get('merchant/report_by_month', [PartnerMerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
         Route::get('merchant-reports/export_month', [PartnerMerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
@@ -471,19 +475,19 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
 
-        Route::get('payment/report', [PartnerPaymentLogController::class, 'report'])->name('payment.report');
-        Route::get('payment/report/search', [PartnerPaymentLogController::class, 'reportSearch'])->name('payment.report.search');
+        Route::get('payment/report', [PartnerPaymentLogController::class,'report'])->name('payment.report');
+        Route::get('payment/report/search', [PartnerPaymentLogController::class,'reportSearch'])->name('payment.report.search');
 
-        Route::get('payment/report/daily', [PartnerPaymentLogController::class, 'dailyReport'])->name('payment.report.daily');
-        Route::get('payment/report/daily/search', [PartnerPaymentLogController::class, 'dailyReportSearch'])->name('payment.report.daily.search');
-        Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
-        Route::get('/payout-request', [PartnerPayoutRecordController::class, 'request'])->name('payout-request');
-        Route::get('/payout-log/search', [PartnerPayoutRecordController::class, 'search'])->name('payout-log.search');
-        Route::get('/payout-report', [PartnerPayoutRecordController::class, 'report'])->name('payout-report');
-        Route::get('/payout-report/search', [PartnerPayoutRecordController::class, 'reportSearch'])->name('payout-report.search');
-        Route::get('payout/report/daily', [PartnerPayoutRecordController::class, 'dailyReport'])->name('payout.report.daily');
-        Route::get('payout/report/daily/search', [PartnerPayoutRecordController::class, 'dailyReportSearch'])->name('payout.report.daily.search');
-        Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
+        Route::get('payment/report/daily', [PartnerPaymentLogController::class,'dailyReport'])->name('payment.report.daily');
+        Route::get('payment/report/daily/search', [PartnerPaymentLogController::class,'dailyReportSearch'])->name('payment.report.daily.search');
+        Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
+        Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
+        Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
+        Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');
+        Route::get('/payout-report/search', [PartnerPayoutRecordController::class,'reportSearch'])->name('payout-report.search');
+        Route::get('payout/report/daily', [PartnerPayoutRecordController::class,'dailyReport'])->name('payout.report.daily');
+        Route::get('payout/report/daily/search', [PartnerPayoutRecordController::class,'dailyReportSearch'])->name('payout.report.daily.search');
+        Route::get('payout/report/detail/{date}/{gateway}/{status}', [PartnerPayoutRecordController::class,'reportDetail'])->name('payout.report.detail');
 
 
         Route::get('/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('methods.get');
@@ -500,31 +504,35 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
 
     });
+
+
+
+
 });
 
 
 Route::get('iframe/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection'])->name('iframe.open');
-Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection2'])->name('iframe.open');
-Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection3'])->name('iframe.direct');
-Route::get('process/update-fund-order-status/iframe/{id}', [PartnerPayoutRecordController::class, 'update_order_fund_status_iframe'])->name('update_fund_order_status.iframe');
-Route::get('process/payment/{id}', [PartnerPayoutRecordController::class, 'processNextPayment'])->name('iframe.payment');
-Route::post('process/payment2', [PartnerPayoutRecordController::class, 'processNextPayment2'])->name('iframe.payment2');
-Route::post('process/payment3', [PartnerPayoutRecordController::class, 'processNextPayment3'])->name('iframe.payment3');
-Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class, 'getaccount'])->name('iframe.getaccount');
+Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
+Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection3'])->name('iframe.direct');
+Route::get('process/update-fund-order-status/iframe/{id}', [PartnerPayoutRecordController::class,'update_order_fund_status_iframe'])->name('update_fund_order_status.iframe');
+Route::get('process/payment/{id}', [PartnerPayoutRecordController::class,'processNextPayment'])->name('iframe.payment');
+Route::post('process/payment2', [PartnerPayoutRecordController::class,'processNextPayment2'])->name('iframe.payment2');
+Route::post('process/payment3', [PartnerPayoutRecordController::class,'processNextPayment3'])->name('iframe.payment3');
+Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class,'getaccount'])->name('iframe.getaccount');
 
 
-Route::get('partner/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('partner.methods.get');
-Route::get('partner/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('partner.depositFund');
-Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('partner.addFund.request.open');
-Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('partner.addFund.processPayment.open');
+    Route::get('partner/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('partner.methods.get');
+    Route::get('partner/{username}/deposit', [PartnerPayoutRecordController::class, 'depositFund'])->name('partner.depositFund');
+    Route::post('partner/add-fund/open', [PartnerPayoutRecordController::class, 'addFundRequestOpen'])->name('partner.addFund.request.open');
+    Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('partner.addFund.processPayment.open');
 
 
-Route::post('partner/verify/txn', [PartnerPayoutRecordController::class, 'verifytxn'])->name('partner.verify.txn');
-Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class, 'update_order_fund_status'])->name('partner.update_fund_order_status.open');
+Route::post('partner/verify/txn', [PartnerPayoutRecordController::class,'verifytxn'])->name('partner.verify.txn');
+Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class,'update_order_fund_status'])->name('partner.update_fund_order_status.open');
 
 
 
-Route::get('partner/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
-Route::post('partner/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('partner.payout.moneyRequest.transection');
-Route::get('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class, 'payoutPreviewTransection'])->name('partner.payout.preview.transection');
-Route::post('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class, 'payoutRequestSubmitTransection'])->name('partner.payout.submit.transection');
+    Route::get('partner/{username}/withdrawal', [PartnerPayoutRecordController::class, 'payoutMoneyTransection'])->name('payout.money.transection');
+    Route::post('partner/withdraw/transection', [PartnerPayoutRecordController::class, 'payoutMoneyRequestTransection'])->name('partner.payout.moneyRequest.transection');
+    Route::get('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class,'payoutPreviewTransection'])->name('partner.payout.preview.transection');
+    Route::post('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class, 'payoutRequestSubmitTransection'])->name('partner.payout.submit.transection');
