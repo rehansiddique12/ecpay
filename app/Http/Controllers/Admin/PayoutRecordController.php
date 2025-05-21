@@ -1646,6 +1646,7 @@ class PayoutRecordController extends Controller
 
     public function apisAddByParent(Request $request)
     {
+        //pendingtocheck as this fn not working
         // Validate input
         $validatedData = $request->validate([
             'name' => 'required|string',
@@ -1876,11 +1877,8 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-
-
-        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name','id')
-            ->get();
+        $gateways = Gateway::where('status', 1)->get();
+        // dd($gateways);
         $pageTitle = "Manage Commissions";
 
         $records = "";
@@ -1897,9 +1895,7 @@ class PayoutRecordController extends Controller
         $cron_commissions = CronCommission::where('category_id', $id)->get();
 
         $commissions = Commission::where('category_id', $api->category_id)->get();
-        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name','id')
-            ->get();
+        $gateways = Gateway::where('status', 1)->get();
         $pageTitle = "Partner Commissions";
 
         $records = "";
@@ -1911,22 +1907,22 @@ class PayoutRecordController extends Controller
 
     public function addpartnerCommission(Request $request){
       $api = Api::findOrFail($request->user_id);
-$commissions = Commission::where('category_id', $api->category_id)->get();
+      $commissions = Commission::where('category_id', $api->category_id)->get();
 
-foreach ($commissions as $commission) {
-    ParentCommission::create([
-        'from_amount' => $commission->from_amount,
-        'to_amount' => $commission->to_amount,
-        'deposit_percentage' => $request->deposit_percentage,
-        'withdrawal_percentage' => $request->withdrawal_percentage,
-        'parent_id' => $request->partner_id,
-        'user_id' => $request->user_id,
-        'type' => $commission->type,
-        'gateway_id' => $request->gateway_id,
-    ]);
-}
+    foreach ($commissions as $commission) {
+        ParentCommission::create([
+            'from_amount' => $commission->from_amount,
+            'to_amount' => $commission->to_amount,
+            'deposit_percentage' => $request->deposit_percentage,
+            'withdrawal_percentage' => $request->withdrawal_percentage,
+            'parent_id' => $request->partner_id,
+            'user_id' => $request->user_id,
+            'type' => $commission->type,
+            'gateway_id' => $request->gateway_id,
+        ]);
+    }
 
-return redirect()->back()->with('success', 'Partner commissions added successfully.');
+    return redirect()->back()->with('success', 'Partner commissions added successfully.');
 
     }
 
@@ -2150,7 +2146,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
 
 
     public function apisCommissionAdd(Request $request)
-    {
+    {   
+       
 
         $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
         foreach ($cron_commissions as $cron_commission) {
@@ -2175,8 +2172,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
 
             // Convert gateways to JSON (for storage) if selected
             $gateway_ids = isset($request->settlement_gateway[$i]) ? json_encode($request->settlement_gateway[$i]) : json_encode([]);
-
-            $type = $request->type[$i] ?? null;
+            $types = isset($request->type[$i]) ? json_encode($request->type[$i]) : json_encode([]);
 
             if ($new == 0) {
                 if (!$new_commission) {
@@ -2190,7 +2186,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 $new_commission->settlement_percentage = $request->settlement_percentage[$i];
                 $new_commission->category_id = $request->category_id;
 
-                $new_commission->type = $type;
+                $new_commission->type = $types;
                 $new_commission->gateway_id = $gateway_ids; // store as JSON
 
                 $new_commission->save();
@@ -2205,7 +2201,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 $cron_commission->category_id = $request->category_id;
                 $cron_commission->commission_id = $commission_id;
 
-                $cron_commission->type = $type;
+                $cron_commission->type = $types;
                 $cron_commission->gateway_id = $gateway_ids;
 
                 $cron_commission->save();
@@ -3038,13 +3034,13 @@ return redirect()->back()->with('success', 'Partner commissions added successful
 
             // Calculate charge
             $charge = 0;
-            $commissions = Commission::where('api_id', $api_key->id)
+            $commissions = Commission::where('category_id', $api_key->category_id)
                 ->where('from_amount', '<=', $sum)
                 ->where('to_amount', '>=', $sum)
                 ->first();
 
             if (!$commissions) {
-                $commissions = Commission::where('api_id', $api_key->id)
+                $commissions = Commission::where('category_id', $api_key->category_id)
                     ->orderByDesc('to_amount')
                     ->first();
             }
@@ -4220,8 +4216,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                                 'e_wallet_type' => $payout->e_wallet_type,
                                 'charges' => $this->convertStringToNumber($payout->charge),
                                 'status' => $payout->status,
-                                'completion_date' => $payout->date,
-                                'completion_time' => $payout->time,
+                                'completion_date' => Carbon::parse($payout->date_time)->toDateString(),
+                                'completion_time' => Carbon::parse($payout->date_time)->toTimeString(),
                                 'created_at' => $payout->created_at,
                                 'updated_at' => $payout->updated_at,
                                 'sign' => $sign,
@@ -4422,8 +4418,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                                     'e_wallet_type' => $payout->e_wallet_type,
                                     'charges' => $this->convertStringToNumber($payout->charge),
                                     'status' => $payout->status,
-                                    'completion_date' => $payout->date,
-                                    'completion_time' => $payout->time,
+                                    'completion_date' => Carbon::parse($payout->date_time)->toDateString(),
+                                    'completion_time' => Carbon::parse($payout->date_time)->toTimeString(),
                                     'created_at' => $payout->created_at,
                                     'updated_at' => $payout->updated_at,
                                     'sign' => $sign,
@@ -4671,8 +4667,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                                         'e_wallet_type' => $payout->e_wallet_type,
                                         'charges' => $this->convertStringToNumber($payout->charge),
                                         'status' => $payout->status,
-                                        'completion_date' => $payout->date,
-                                        'completion_time' => $payout->time,
+                                        'completion_date' => Carbon::parse($payout->date_time)->toDateString(),
+                                        'completion_time' => Carbon::parse($payout->date_time)->toTimeString(),
                                         'created_at' => $payout->created_at,
                                         'updated_at' => $payout->updated_at,
                                         'sign' => $sign,

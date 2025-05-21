@@ -21,6 +21,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+
+Route::post('/direct/webhook/{source}/{acc}/{type}', [PaymentLogController::class, 'directwebhook']);
+
 Route::get('/paymentGateway', [PaymentController::class, 'paymentGateway']);
 Route::post('/paymentGatewayInfo', [PaymentController::class, 'paymentGatewayInfo']);
 Route::post('/uploadReceipt', [PaymentController::class, 'uploadReceipt']);
