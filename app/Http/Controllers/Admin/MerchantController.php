@@ -169,7 +169,7 @@ public function mechantlogs($id){
             }
 
     }
-    $deposit_logs = Payment::where('status', '!=', 'initiate')->where('api_id',$id)->orderBy('id', 'DESC')->with('user', 'gateway', 'payment' ,'txn_record')->paginate(config('basic.paginate'));
+    $deposit_logs = Payment::where('status', '!=', 'initiate')->where('api_id',$id)->orderBy('id', 'DESC')->with('user', 'gateway','txn_record')->paginate(config('basic.paginate'));
     $withrawl_logs = Payout::where('status', '!=', 'initiate')->where('api_id',$id)->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
     $payments = Payment::selectRaw(
         'DATE(created_at) as completion_date,

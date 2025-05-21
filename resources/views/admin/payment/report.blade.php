@@ -64,7 +64,7 @@
                 <div class="col-md-3">
                     <div class="form-group mt-2">
                         <label>Payments</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="All" @if(@request()->status == 'All') selected @endif>@lang('All Payment')
                             </option>
                             <option value="Complete" @if(@request()->status == 'Complete') selected

@@ -1,21 +1,24 @@
 <div class="dropdown text-center">
+    @if(adminAccessRoute(config('role.manage_location.access.edit')) ||
+    adminAccessRoute(config('role.manage_location.access.delete')))
     <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
         <i class="icon-base ti tabler-dots-vertical"></i>
     </button>
-    <div class="dropdown-menu">
-        <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal"
-           data-bs-target="#editModal"
-           data-id="{{ $location->id }}"
-           data-role="{{ $location->location }}"
-           data-status="{{ $location->status }}">
 
+    <div class="dropdown-menu">
+        @if(adminAccessRoute(config('role.manage_location.access.edit')))
+        <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
+            data-id="{{ $location->id }}" data-role="{{ $location->location }}" data-status="{{ $location->status }}">
             <i class="fa fa-edit text-warning me-2"></i> @lang('Edit')
         </a>
-
+        @endif
+        @if(adminAccessRoute(config('role.manage_location.access.delete')))
         <a href="#" class="dropdown-item delete-role" data-id="{{ $location->id }}">
             <i class="fa fa-trash text-danger me-2"></i> @lang('Delete')
+            @endif
         </a>
     </div>
+    @endif
 </div>
 
 <script>

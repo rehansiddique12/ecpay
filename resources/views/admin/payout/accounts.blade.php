@@ -14,6 +14,7 @@
                                 <tr>
 
                                     <th scope="col">Acc Number</th>
+                                    <th scope="col">Account Name</th>
                                     <!-- <th scope="col">@lang('Phone')</th>
                                 <th scope="col">@lang('Type')</th> -->
                                     <th scope="col">Category</th>
@@ -22,7 +23,7 @@
                                     <th scope="col">Location</th>
                                     <!-- <th scope="col">Monthly Received</th>
                                 <th scope="col">Total Received</th> -->
-                                    <th scope="col">Account Name</th>
+
                                     <!-- <th scope="col">Monthly Sent</th>
                                 <th scope="col">Total Sent</th> -->
                                     <th scope="col">Device Name</th>
@@ -44,6 +45,7 @@
                                     <td>
                                         {{ $item['account_no'] }}
                                     </td>
+                                    <td>{{ $item['e_wallet_name'] }}</td>
                                     <td>
                                         {{ $item->category->title ?? 'N/A' }}
                                     </td>
@@ -55,7 +57,7 @@
                                     <td>
                                         {{ $item['location'] ?? 'N/A' }}
                                     </td>
-                                    <td>{{ $item['e_wallet_name'] }}</td>
+
                                     <td>{{ $item['device_name']}}</td>
                                     <td>{{ $item['live_balance'] }}</td>
                                     <td>{{ $item['type'] }}</td>

@@ -1,102 +1,102 @@
 @php
-    // $isAccountsActive =
-    //     // Request::routeIs('admin.accounts.add') ||
-    //     Request::routeIs('admin.accounts') ||
-    //     Request::routeIs('admin.groups') ||
-    //     Request::routeIs('admin.accounts.management') ||
-    //     Request::routeIs('admin.balance.logs');
+// $isAccountsActive =
+// // Request::routeIs('admin.accounts.add') ||
+// Request::routeIs('admin.accounts') ||
+// Request::routeIs('admin.groups') ||
+// Request::routeIs('admin.accounts.management') ||
+// Request::routeIs('admin.balance.logs');
 
-    $isPartnerActive = in_array(Route::currentRouteName(), [
-        'admin.apis.balance.add.get',
-        'admin.transfer.balance',
-        'admin.settlements',
-        'admin.settlements.search',
-        'admin.apis',
-        'admin.api.commissions',
-        'admin.api.post.commissions',
-        'admin.adjustments',
-        'admin.adjustments.search',
-        'admin.partner.balance',
-        'admin.partner.balance.search',
-        'admin.transections.apilogs',
-        'admin.commission.categories.index',
-    ]);
-    $isReportsActive = in_array(Route::currentRouteName(), [
-        'admin.reports.live_ewallet_balance',
-        'admin.reports.daily_ewallet_summary',
-        'admin.reports.daily_transection_summary',
-        'admin.reports.merchant_charges_summary',
-        'admin.reports.merchant_charges_summary.search',
-        'admin.reports.partner_account_summary',
-        'admin.reports.partner_account_balance_summary',
-        'admin.payment.payment_gateway_report',
-        'admin.reports.partner_account_balance_summary_completions',
-        'admin.reports.revenue_center',
-        'admin.reports.logs',
-        'admin.reports.cal',
-        'admin.reports.cal2',
-        'admin.reports.master_report',
-        'admin.payment_gateway_performance_report',
+$isPartnerActive = in_array(Route::currentRouteName(), [
+'admin.apis.balance.add.get',
+'admin.transfer.balance',
+'admin.settlements',
+'admin.settlements.search',
+'admin.apis',
+'admin.api.commissions',
+'admin.api.post.commissions',
+'admin.adjustments',
+'admin.adjustments.search',
+'admin.partner.balance',
+'admin.partner.balance.search',
+'admin.transections.apilogs',
+'admin.commission.categories.index',
+]);
+$isReportsActive = in_array(Route::currentRouteName(), [
+'admin.reports.live_ewallet_balance',
+'admin.reports.daily_ewallet_summary',
+'admin.reports.daily_transection_summary',
+'admin.reports.merchant_charges_summary',
+'admin.reports.merchant_charges_summary.search',
+'admin.reports.partner_account_summary',
+'admin.reports.partner_account_balance_summary',
+'admin.payment.payment_gateway_report',
+'admin.reports.partner_account_balance_summary_completions',
+'admin.reports.revenue_center',
+'admin.reports.logs',
+'admin.reports.cal',
+'admin.reports.cal2',
+'admin.reports.master_report',
+'admin.payment_gateway_performance_report',
 
-        'admin.type',
-    ]);
-    // $isMerchantReportsActive = in_array(Route::currentRouteName(), [
-    // 'partner.merchant_reports.by_date',
-    // 'partner.merchant_reports.by_name',
-    // 'partner.merchant_reports.by_month'
+'admin.type',
+]);
+// $isMerchantReportsActive = in_array(Route::currentRouteName(), [
+// 'partner.merchant_reports.by_date',
+// 'partner.merchant_reports.by_name',
+// 'partner.merchant_reports.by_month'
 
-    // ]);
+// ]);
 
-    $isMerchantReportsActive = in_array(Route::currentRouteName(), [
-        'admin.merchant_reports.by_date',
-        'admin.merchant_reports.by_name',
-        'admin.merchant_reports.by_month',
-    ]);
+$isMerchantReportsActive = in_array(Route::currentRouteName(), [
+'admin.merchant_reports.by_date',
+'admin.merchant_reports.by_name',
+'admin.merchant_reports.by_month',
+]);
 
-    $isTransactionActive = in_array(Route::currentRouteName(), [
-        'admin.payment.log',
-        'admin.payment.search',
-        'admin.payout-log',
-        'admin.payout-log.search',
-        'admin.payment.apiLog',
-        'admin.payment.apisearch',
-        'admin.payment.apiLogunclaimed',
-        'admin.payment.apiLogunclaimed.search',
-        'admin.payment.report',
-        'admin.payment.report.search',
-        'admin.payment.report.daily',
-        'admin.payment.report.daily.search',
-        'admin.payment.report.all',
-        'admin.payment.report.all.search',
-        'admin.payout-report',
-        'admin.payout-report.search',
-        'admin.payout.report.daily',
-        'admin.payout.report.daily.search',
-    ]);
-    // $isAccountsActive =
-    //     Request::routeIs('admin.accounts.add') ||
-    //     Request::routeIs('admin.accounts') ||
-    //     Request::routeIs('admin.balance.logs') ||
-    //     Request::routeIs('');
+$isTransactionActive = in_array(Route::currentRouteName(), [
+'admin.payment.log',
+'admin.payment.search',
+'admin.payout-log',
+'admin.payout-log.search',
+'admin.payment.apiLog',
+'admin.payment.apisearch',
+'admin.payment.apiLogunclaimed',
+'admin.payment.apiLogunclaimed.search',
+'admin.payment.report',
+'admin.payment.report.search',
+'admin.payment.report.daily',
+'admin.payment.report.daily.search',
+'admin.payment.report.all',
+'admin.payment.report.all.search',
+'admin.payout-report',
+'admin.payout-report.search',
+'admin.payout.report.daily',
+'admin.payout.report.daily.search',
+]);
+// $isAccountsActive =
+// Request::routeIs('admin.accounts.add') ||
+// Request::routeIs('admin.accounts') ||
+// Request::routeIs('admin.balance.logs') ||
+// Request::routeIs('');
 
-    $isAccountsActive =
-        Request::routeIs('admin.groups') ||
-        Request::routeIs('admin.accounts.add') ||
-        Request::routeIs('admin.accounts') ||
-        Request::routeIs('admin.balance.logs') ||
-        Request::routeIs('admin.accounts.management') ||
-        Request::routeIs('admin.ewallet.accounts') ||
-        Request::routeIs('');
+$isAccountsActive =
+Request::routeIs('admin.groups') ||
+Request::routeIs('admin.accounts.add') ||
+Request::routeIs('admin.accounts') ||
+Request::routeIs('admin.balance.logs') ||
+Request::routeIs('admin.accounts.management') ||
+Request::routeIs('admin.ewallet.accounts') ||
+Request::routeIs('');
 
-    $isMainActive = in_array(Route::currentRouteName(), [
-        'admin.dashboard',
-        'admin.staff',
-        //'admin.groups',
-        'admin.parant',
-        'admin.workboard',
-        'admin.users',
-        'admin.deposit.manual.index',
-    ]);
+$isMainActive = in_array(Route::currentRouteName(), [
+'admin.dashboard',
+'admin.staff',
+//'admin.groups',
+'admin.parant',
+'admin.workboard',
+'admin.users',
+'admin.deposit.manual.index',
+]);
 
 @endphp
 
@@ -138,35 +138,37 @@
                 <!-- /Search -->
 
                 {{-- <li class="nav-item dropdown-language dropdown">
-            <a
-              class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
-              href="javascript:void(0);"
-              data-bs-toggle="dropdown">
-              <i class="icon-base ti tabler-language icon-22px text-heading"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="javascript:void(0);" data-language="en" data-text-direction="ltr">
-                  <span>English</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="javascript:void(0);" data-language="fr" data-text-direction="ltr">
-                  <span>French</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="javascript:void(0);" data-language="ar" data-text-direction="rtl">
-                  <span>Arabic</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="javascript:void(0);" data-language="de" data-text-direction="ltr">
-                  <span>German</span>
-                </a>
-              </li>
-            </ul>
-          </li> --}}
+                    <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
+                        href="javascript:void(0);" data-bs-toggle="dropdown">
+                        <i class="icon-base ti tabler-language icon-22px text-heading"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0);" data-language="en"
+                                data-text-direction="ltr">
+                                <span>English</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0);" data-language="fr"
+                                data-text-direction="ltr">
+                                <span>French</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0);" data-language="ar"
+                                data-text-direction="rtl">
+                                <span>Arabic</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="javascript:void(0);" data-language="de"
+                                data-text-direction="ltr">
+                                <span>German</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li> --}}
                 <!--/ Language -->
 
                 <!-- Style Switcher -->
@@ -203,349 +205,323 @@
 
                 <!-- Quick links  -->
                 {{-- <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown">
-            <a
-              class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
-              href="javascript:void(0);"
-              data-bs-toggle="dropdown"
-              data-bs-auto-close="outside"
-              aria-expanded="false">
-              <i class="icon-base ti tabler-layout-grid-add icon-22px text-heading"></i>
-            </a>
-            <div class="dropdown-menu dropdown-menu-end p-0">
-              <div class="dropdown-menu-header border-bottom">
-                <div class="dropdown-header d-flex align-items-center py-3">
-                  <h6 class="mb-0 me-auto">Shortcuts</h6>
-                  <a
-                    href="javascript:void(0)"
-                    class="dropdown-shortcuts-add py-2 btn btn-text-secondary rounded-pill btn-icon"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Add shortcuts"
-                    ><i class="icon-base ti tabler-plus icon-20px text-heading"></i
-                  ></a>
-                </div>
-              </div>
-              <div class="dropdown-shortcuts-list scrollable-container">
-                <div class="row row-bordered overflow-visible g-0">
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-calendar icon-26px text-heading"></i>
-                    </span>
-                    <a href="app-calendar.html" class="stretched-link">Calendar</a>
-                    <small>Appointments</small>
-                  </div>
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-file-dollar icon-26px text-heading"></i>
-                    </span>
-                    <a href="app-invoice-list.html" class="stretched-link">Invoice App</a>
-                    <small>Manage Accounts</small>
-                  </div>
-                </div>
-                <div class="row row-bordered overflow-visible g-0">
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-user icon-26px text-heading"></i>
-                    </span>
-                    <a href="app-user-list.html" class="stretched-link">User App</a>
-                    <small>Manage Users</small>
-                  </div>
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-users icon-26px text-heading"></i>
-                    </span>
-                    <a href="app-access-roles.html" class="stretched-link">Role Management</a>
-                    <small>Permission</small>
-                  </div>
-                </div>
-                <div class="row row-bordered overflow-visible g-0">
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-device-desktop-analytics icon-26px text-heading"></i>
-                    </span>
-                    <a href="index.html" class="stretched-link">Dashboard</a>
-                    <small>User Dashboard</small>
-                  </div>
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-settings icon-26px text-heading"></i>
-                    </span>
-                    <a href="pages-account-settings-account.html" class="stretched-link">Setting</a>
-                    <small>Account Settings</small>
-                  </div>
-                </div>
-                <div class="row row-bordered overflow-visible g-0">
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-help-circle icon-26px text-heading"></i>
-                    </span>
-                    <a href="pages-faq.html" class="stretched-link">FAQs</a>
-                    <small>FAQs & Articles</small>
-                  </div>
-                  <div class="dropdown-shortcuts-item col">
-                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                      <i class="icon-base ti tabler-square icon-26px text-heading"></i>
-                    </span>
-                    <a href="modal-examples.html" class="stretched-link">Modals</a>
-                    <small>Useful Popups</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> --}}
+                    <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
+                        href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                        aria-expanded="false">
+                        <i class="icon-base ti tabler-layout-grid-add icon-22px text-heading"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end p-0">
+                        <div class="dropdown-menu-header border-bottom">
+                            <div class="dropdown-header d-flex align-items-center py-3">
+                                <h6 class="mb-0 me-auto">Shortcuts</h6>
+                                <a href="javascript:void(0)"
+                                    class="dropdown-shortcuts-add py-2 btn btn-text-secondary rounded-pill btn-icon"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Add shortcuts"><i
+                                        class="icon-base ti tabler-plus icon-20px text-heading"></i></a>
+                            </div>
+                        </div>
+                        <div class="dropdown-shortcuts-list scrollable-container">
+                            <div class="row row-bordered overflow-visible g-0">
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-calendar icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="app-calendar.html" class="stretched-link">Calendar</a>
+                                    <small>Appointments</small>
+                                </div>
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-file-dollar icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="app-invoice-list.html" class="stretched-link">Invoice App</a>
+                                    <small>Manage Accounts</small>
+                                </div>
+                            </div>
+                            <div class="row row-bordered overflow-visible g-0">
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-user icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="app-user-list.html" class="stretched-link">User App</a>
+                                    <small>Manage Users</small>
+                                </div>
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-users icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="app-access-roles.html" class="stretched-link">Role Management</a>
+                                    <small>Permission</small>
+                                </div>
+                            </div>
+                            <div class="row row-bordered overflow-visible g-0">
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i
+                                            class="icon-base ti tabler-device-desktop-analytics icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="index.html" class="stretched-link">Dashboard</a>
+                                    <small>User Dashboard</small>
+                                </div>
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-settings icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="pages-account-settings-account.html" class="stretched-link">Setting</a>
+                                    <small>Account Settings</small>
+                                </div>
+                            </div>
+                            <div class="row row-bordered overflow-visible g-0">
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-help-circle icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="pages-faq.html" class="stretched-link">FAQs</a>
+                                    <small>FAQs & Articles</small>
+                                </div>
+                                <div class="dropdown-shortcuts-item col">
+                                    <span class="dropdown-shortcuts-icon rounded-circle mb-3">
+                                        <i class="icon-base ti tabler-square icon-26px text-heading"></i>
+                                    </span>
+                                    <a href="modal-examples.html" class="stretched-link">Modals</a>
+                                    <small>Useful Popups</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li> --}}
                 <!-- Quick links -->
 
                 <!-- Notification -->
                 {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
-            <a
-              class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
-              href="javascript:void(0);"
-              data-bs-toggle="dropdown"
-              data-bs-auto-close="outside"
-              aria-expanded="false">
-              <span class="position-relative">
-                <i class="icon-base ti tabler-bell icon-22px text-heading"></i>
-                <span class="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
-              </span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end p-0">
-              <li class="dropdown-menu-header border-bottom">
-                <div class="dropdown-header d-flex align-items-center py-3">
-                  <h6 class="mb-0 me-auto">Notification</h6>
-                  <div class="d-flex align-items-center h6 mb-0">
-                    <span class="badge bg-label-primary me-2">8 New</span>
-                    <a
-                      href="javascript:void(0)"
-                      class="dropdown-notifications-all p-2 btn btn-icon"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Mark all as read"
-                      ><i class="icon-base ti tabler-mail-opened text-heading"></i
-                    ></a>
-                  </div>
-                </div>
-              </li>
-              <li class="dropdown-notifications-list scrollable-container">
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <img src="../../assets/img/avatars/1.png" alt class="rounded-circle" />
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="small mb-1">Congratulation Lettie 🎉</h6>
-                        <small class="mb-1 d-block text-body">Won the monthly best seller gold badge</small>
-                        <small class="text-body-secondary">1h ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <span class="avatar-initial rounded-circle bg-label-danger">CF</span>
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">Charles Franklin</h6>
-                        <small class="mb-1 d-block text-body">Accepted your connection</small>
-                        <small class="text-body-secondary">12hr ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <img src="../../assets/img/avatars/2.png" alt class="rounded-circle" />
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">New Message ✉️</h6>
-                        <small class="mb-1 d-block text-body">You have new message from Natalie</small>
-                        <small class="text-body-secondary">1h ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <span class="avatar-initial rounded-circle bg-label-success"
-                            ><i class="icon-base ti tabler-shopping-cart"></i
-                          ></span>
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">Whoo! You have new order 🛒</h6>
-                        <small class="mb-1 d-block text-body">ACME Inc. made new order $1,154</small>
-                        <small class="text-body-secondary">1 day ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <img src="../../assets/img/avatars/9.png" alt class="rounded-circle" />
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">Application has been approved 🚀</h6>
-                        <small class="mb-1 d-block text-body"
-                          >Your ABC project application has been approved.</small
-                        >
-                        <small class="text-body-secondary">2 days ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <span class="avatar-initial rounded-circle bg-label-success"
-                            ><i class="icon-base ti tabler-chart-pie"></i
-                          ></span>
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">Monthly report is generated</h6>
-                        <small class="mb-1 d-block text-body">July monthly financial report is generated </small>
-                        <small class="text-body-secondary">3 days ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <img src="../../assets/img/avatars/5.png" alt class="rounded-circle" />
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">Send connection request</h6>
-                        <small class="mb-1 d-block text-body">Peter sent you connection request</small>
-                        <small class="text-body-secondary">4 days ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <img src="../../assets/img/avatars/6.png" alt class="rounded-circle" />
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">New message from Jane</h6>
-                        <small class="mb-1 d-block text-body">Your have new message from Jane</small>
-                        <small class="text-body-secondary">5 days ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
-                    <div class="d-flex">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar">
-                          <span class="avatar-initial rounded-circle bg-label-warning"
-                            ><i class="icon-base ti tabler-alert-triangle"></i
-                          ></span>
-                        </div>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 small">CPU is running high</h6>
-                        <small class="mb-1 d-block text-body"
-                          >CPU Utilization Percent is currently at 88.63%,</small
-                        >
-                        <small class="text-body-secondary">5 days ago</small>
-                      </div>
-                      <div class="flex-shrink-0 dropdown-notifications-actions">
-                        <a href="javascript:void(0)" class="dropdown-notifications-read"
-                          ><span class="badge badge-dot"></span
-                        ></a>
-                        <a href="javascript:void(0)" class="dropdown-notifications-archive"
-                          ><span class="icon-base ti tabler-x"></span
-                        ></a>
-                      </div>
-                    </div>
-                  </li>
-                </ul>
-              </li>
-              <li class="border-top">
-                <div class="d-grid p-4">
-                  <a class="btn btn-primary btn-sm d-flex" href="javascript:void(0);">
-                    <small class="align-middle">View all notifications</small>
-                  </a>
-                </div>
-              </li>
-            </ul>
-          </li> --}}
+                    <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
+                        href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                        aria-expanded="false">
+                        <span class="position-relative">
+                            <i class="icon-base ti tabler-bell icon-22px text-heading"></i>
+                            <span class="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end p-0">
+                        <li class="dropdown-menu-header border-bottom">
+                            <div class="dropdown-header d-flex align-items-center py-3">
+                                <h6 class="mb-0 me-auto">Notification</h6>
+                                <div class="d-flex align-items-center h6 mb-0">
+                                    <span class="badge bg-label-primary me-2">8 New</span>
+                                    <a href="javascript:void(0)" class="dropdown-notifications-all p-2 btn btn-icon"
+                                        data-bs-toggle="tooltip" data-bs-placement="top" title="Mark all as read"><i
+                                            class="icon-base ti tabler-mail-opened text-heading"></i></a>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="dropdown-notifications-list scrollable-container">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <img src="../../assets/img/avatars/1.png" alt class="rounded-circle" />
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="small mb-1">Congratulation Lettie 🎉</h6>
+                                            <small class="mb-1 d-block text-body">Won the monthly best seller gold
+                                                badge</small>
+                                            <small class="text-body-secondary">1h ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <span class="avatar-initial rounded-circle bg-label-danger">CF</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">Charles Franklin</h6>
+                                            <small class="mb-1 d-block text-body">Accepted your connection</small>
+                                            <small class="text-body-secondary">12hr ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li
+                                    class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <img src="../../assets/img/avatars/2.png" alt class="rounded-circle" />
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">New Message ✉️</h6>
+                                            <small class="mb-1 d-block text-body">You have new message from
+                                                Natalie</small>
+                                            <small class="text-body-secondary">1h ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <span class="avatar-initial rounded-circle bg-label-success"><i
+                                                        class="icon-base ti tabler-shopping-cart"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">Whoo! You have new order 🛒</h6>
+                                            <small class="mb-1 d-block text-body">ACME Inc. made new order
+                                                $1,154</small>
+                                            <small class="text-body-secondary">1 day ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li
+                                    class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <img src="../../assets/img/avatars/9.png" alt class="rounded-circle" />
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">Application has been approved 🚀</h6>
+                                            <small class="mb-1 d-block text-body">Your ABC project application has been
+                                                approved.</small>
+                                            <small class="text-body-secondary">2 days ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li
+                                    class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <span class="avatar-initial rounded-circle bg-label-success"><i
+                                                        class="icon-base ti tabler-chart-pie"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">Monthly report is generated</h6>
+                                            <small class="mb-1 d-block text-body">July monthly financial report is
+                                                generated </small>
+                                            <small class="text-body-secondary">3 days ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li
+                                    class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <img src="../../assets/img/avatars/5.png" alt class="rounded-circle" />
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">Send connection request</h6>
+                                            <small class="mb-1 d-block text-body">Peter sent you connection
+                                                request</small>
+                                            <small class="text-body-secondary">4 days ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <img src="../../assets/img/avatars/6.png" alt class="rounded-circle" />
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">New message from Jane</h6>
+                                            <small class="mb-1 d-block text-body">Your have new message from
+                                                Jane</small>
+                                            <small class="text-body-secondary">5 days ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li
+                                    class="list-group-item list-group-item-action dropdown-notifications-item marked-as-read">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar">
+                                                <span class="avatar-initial rounded-circle bg-label-warning"><i
+                                                        class="icon-base ti tabler-alert-triangle"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 small">CPU is running high</h6>
+                                            <small class="mb-1 d-block text-body">CPU Utilization Percent is currently
+                                                at 88.63%,</small>
+                                            <small class="text-body-secondary">5 days ago</small>
+                                        </div>
+                                        <div class="flex-shrink-0 dropdown-notifications-actions">
+                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
+                                                    class="badge badge-dot"></span></a>
+                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span
+                                                    class="icon-base ti tabler-x"></span></a>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="border-top">
+                            <div class="d-grid p-4">
+                                <a class="btn btn-primary btn-sm d-flex" href="javascript:void(0);">
+                                    <small class="align-middle">View all notifications</small>
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </li> --}}
                 <!--/ Notification -->
 
                 <!-- User -->
@@ -554,21 +530,21 @@
                         <div class="avatar avatar-online">
 
                             @php
-                                use Illuminate\Support\Facades\File;
+                            use Illuminate\Support\Facades\File;
 
-                                $user = Auth::user();
-                                $imagePath = public_path('uploads/admin/' . $user->image);
+                            $user = Auth::user();
+                            $imagePath = public_path('uploads/admin/' . $user->image);
                             @endphp
 
                             @auth
-                                @if (!empty($user->image) && File::exists($imagePath))
-                                    <img src="{{ asset('public/uploads/admin/' . $user->image) }}" alt="{{ $user->name }}"
-                                        class="rounded-circle" />
-                                @else
-                                    <!-- Optional: Show placeholder -->
-                                    <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
-                                        class="rounded-circle" />
-                                @endif
+                            @if (!empty($user->image) && File::exists($imagePath))
+                            <img src="{{ asset('public/uploads/admin/' . $user->image) }}" alt="{{ $user->name }}"
+                                class="rounded-circle" />
+                            @else
+                            <!-- Optional: Show placeholder -->
+                            <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
+                                class="rounded-circle" />
+                            @endif
                             @endauth
 
                         </div>
@@ -581,21 +557,21 @@
                                         <div class="avatar avatar-online">
 
                                             @php
-                                                // use Illuminate\Support\Facades\File;
+                                            // use Illuminate\Support\Facades\File;
 
-                                                $user = Auth::user();
-                                                $imagePath = public_path('uploads/admin/' . $user->image);
+                                            $user = Auth::user();
+                                            $imagePath = public_path('uploads/admin/' . $user->image);
                                             @endphp
 
                                             @auth
-                                                @if (!empty($user->image) && File::exists($imagePath))
-                                                    <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
-                                                        alt="{{ $user->name }}" class="rounded-circle" />
-                                                @else
-                                                    <!-- Optional: Show placeholder -->
-                                                    <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
-                                                        class="rounded-circle" />
-                                                @endif
+                                            @if (!empty($user->image) && File::exists($imagePath))
+                                            <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                                alt="{{ $user->name }}" class="rounded-circle" />
+                                            @else
+                                            <!-- Optional: Show placeholder -->
+                                            <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
+                                                class="rounded-circle" />
+                                            @endif
                                             @endauth
 
                                         </div>
@@ -622,7 +598,7 @@
                                     class="align-middle">Password</span>
                             </a>
                         </li>
-                        <li>
+                        {{-- <li>
                             <a class="dropdown-item" href="pages-account-settings-billing.html">
                                 <span class="d-flex align-items-center align-middle">
                                     <i class="flex-shrink-0 icon-base ti tabler-file-dollar me-3 icon-md"></i><span
@@ -631,22 +607,22 @@
                                         class="flex-shrink-0 badge bg-danger d-flex align-items-center justify-content-center">4</span>
                                 </span>
                             </a>
-                        </li>
+                        </li> --}}
                         <li>
                             <div class="dropdown-divider my-1 mx-n2"></div>
                         </li>
                         {{-- <li>
-                <a class="dropdown-item" href="pages-pricing.html">
-                  <i class="icon-base ti tabler-currency-dollar me-3 icon-md"></i
-                  ><span class="align-middle">Pricing</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="pages-faq.html">
-                  <i class="icon-base ti tabler-question-mark me-3 icon-md"></i
-                  ><span class="align-middle">FAQ</span>
-                </a>
-              </li> --}}
+                            <a class="dropdown-item" href="pages-pricing.html">
+                                <i class="icon-base ti tabler-currency-dollar me-3 icon-md"></i><span
+                                    class="align-middle">Pricing</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="pages-faq.html">
+                                <i class="icon-base ti tabler-question-mark me-3 icon-md"></i><span
+                                    class="align-middle">FAQ</span>
+                            </a>
+                        </li> --}}
                         <li>
                             <div class="d-grid px-2 pt-2 pb-1">
                                 <form method="POST" action="{{ route('admin.logout') }}">
@@ -683,33 +659,37 @@
                         </a>
 
                         <ul class="menu-sub">
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
                             </li>
 
+                            @if(adminAccessRoute(config('role.parent_group.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Partner Group">Partner Group</div>
                                 </a>
                             </li>
-                            <li
-                                class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
+                            @endif
+                            @if(adminAccessRoute(config('role.work_board.access.view')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.workboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="WorkBoard">WorkBoard</div>
                                 </a>
                             </li>
+                            @endif
+                            @if(adminAccessRoute(config('role.manage_staff.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.users' ? 'active' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="All Users">All Users</div>
                                 </a>
                             </li>
+                            @endif
                             {{-- <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.deposit.manual.index' ? 'active' : '' }}">
                                 <a href="{{ route('admin.deposit.manual.index') }}" class="menu-link">
@@ -738,8 +718,7 @@
                                     </a>
                                 </li>
 
-                                <li
-                                    class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
+                                <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                                     <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                         <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                         <div data-i18n="E-Wallet Test">E-Wallet Test </div>
@@ -775,37 +754,44 @@
                                 <div data-i18n="Add Accounts">Add Accounts</div>
                             </a>
                         </li> --}}
-
+                        @if(adminAccessRoute(config('role.telegram_group.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.groups' ? 'active' : '' }}">
                             <a href="{{ route('admin.groups') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="TelegramGroup">TelegramGroup</div>
                             </a>
                         </li>
+                        @endif
                         {{-- <li class="menu-item {{ Request::routeIs('admin.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="All Accounts">All Accounts</div>
                             </a>
                         </li> --}}
+                        @if(adminAccessRoute(config('role.account_balance_logs.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
                             <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Account Balance">Account Balance</div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.account_management.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts.management') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Account Management">Account Management</div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.e_wallet_accounts_test.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="E-Wallet Test">E-Wallet Test </div>
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </li>
 
@@ -826,13 +812,16 @@
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
                         </li> --}}
+                        @if(adminAccessRoute(config('role.commission_category.access.index')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                <div data-i18n="Commision Category">Commision Category</div>
+                                <div data-i18n="Commision Category">Commission Category</div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partners.access.edit')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
@@ -840,6 +829,8 @@
                                 <div data-i18n="Add Balance/Adjustment">Add Balance/Adjustment</div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.ewallet_transfer_balance.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
@@ -847,22 +838,25 @@
                                 <div data-i18n="Transfer Balance">Transfer Balance</div>
                             </a>
                         </li>
-
+                        @endif
+                        @if(adminAccessRoute(config('role.settlements.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.settlements', 'admin.settlements.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.settlements') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-calendar"></i>
-                                <div data-i18n="Partner Settelment">Partner Settelment</div>
+                                <div data-i18n="Partner Settelment">Partner Settlement</div>
                             </a>
                         </li>
-
-
+                        @endif
+                        @if(adminAccessRoute(config('role.partnersbalance.access.add')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Api Key">Api Key</div>
+                                <div data-i18n="Merchant List">Merchant List </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.commissions.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : '' }}">
                             <a href="{{ route('admin.api.commissions') }}" class="menu-link">
@@ -870,13 +864,16 @@
                                 <div data-i18n="Partner Commission">Partner Commission</div>
                             </a>
                         </li>
-
+                        @endif
+                        @if(adminAccessRoute(config('role.adjustments.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.adjustments' ? 'active' : '' }}">
                             <a href="{{ route('admin.adjustments') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Monthly Adjustments ">Monthly Adjustments </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partner_balance.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.partner.balance', 'admin.partner.balance.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.partner.balance') }}" class="menu-link">
@@ -884,7 +881,8 @@
                                 <div data-i18n="Adjustments">Adjustments</div>
                             </a>
                         </li>
-
+                        @endif
+                        @if(adminAccessRoute(config('role.api_logs.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transections.apilogs' ? 'active' : '' }}">
                             <a href="{{ route('admin.transections.apilogs') }}" class="menu-link">
@@ -892,6 +890,7 @@
                                 <div data-i18n="API Logs ">API Logs </div>
                             </a>
                         </li>
+                        @endif
                         {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
@@ -912,6 +911,7 @@
                     </a>
 
                     <ul class="menu-sub">
+                        @if(adminAccessRoute(config('role.payment_log.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.log') }}" class="menu-link">
@@ -919,8 +919,8 @@
                                 <div data-i18n="Deposit Log">Deposit Log</div>
                             </a>
                         </li>
-
-
+                        @endif
+                        @if(adminAccessRoute(config('role.payout_manage.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout-log', 'admin.payout-log.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout-log') }}" class="menu-link">
@@ -928,8 +928,8 @@
                                 <div data-i18n="Withdrawl Log">Withdrawal Log</div>
                             </a>
                         </li>
-
-
+                        @endif
+                        @if(adminAccessRoute(config('role.api_payment_log.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLog', 'admin.payment.apisearch']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
@@ -946,8 +946,8 @@
                                 <div data-i18n="Unclaimed Payment">Unclaimed Payment</div>
                             </a>
                         </li>
-
-
+                        @endif
+                        @if(adminAccessRoute(config('role.deposit_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report', 'admin.payment.report.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report') }}" class="menu-link">
@@ -963,8 +963,8 @@
                                 <div data-i18n="Daily Deposit Report">Daily Deposit Report</div>
                             </a>
                         </li>
-
-
+                        @endif
+                        @if(adminAccessRoute(config('role.all_reports.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report.all', 'admin.payment.report.all.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report.all') }}" class="menu-link">
@@ -972,8 +972,8 @@
                                 <div data-i18n="All Report">All Report</div>
                             </a>
                         </li>
-
-
+                        @endif
+                        @if(adminAccessRoute(config('role.withdrawal_reports.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout-report', 'admin.payout-report.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout-report') }}" class="menu-link">
@@ -990,9 +990,7 @@
                                 <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report</div>
                             </a>
                         </li>
-
-
-
+                        @endif
                     </ul>
                 </li>
 
@@ -1004,6 +1002,7 @@
                         <div data-i18n="Reports">Reports</div>
                     </a>
                     <ul class="menu-sub">
+                        @if(adminAccessRoute(config('role.live_e_wallet_balance_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.live_ewallet_balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.live_ewallet_balance') }}" class="menu-link">
@@ -1011,6 +1010,8 @@
                                 <div data-i18n="Live E-Wallet Balance">Live E-Wallet Balance</div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.daily_e_wallet_summary.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_ewallet_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.daily_ewallet_summary') }}" class="menu-link">
@@ -1018,6 +1019,8 @@
                                 <div data-i18n="Daily E-Wallet Summary">Daily E-Wallet Summary </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.daily_transaction_summary.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_transection_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.daily_transection_summary') }}" class="menu-link">
@@ -1025,13 +1028,17 @@
                                 <div data-i18n="Daily Transection Summary">Daily Transection Summary </div>
                             </a>
                         </li>
-                       <li class="menu-item {{ in_array(Route::currentRouteName(), ['admin.reports.merchant_charges_summary', 'admin.reports.merchant_charges_summary.search']) ? 'active' : '' }}">
-    <a href="{{ route('admin.reports.merchant_charges_summary') }}" class="menu-link">
-        <i class="menu-icon icon-base ti tabler-menu-2"></i>
-        <div data-i18n="Merchant Charges Summary">Merchant Charges Summary</div>
-    </a>
-</li>
-
+                        @endif
+                        @if(adminAccessRoute(config('role.merchant_charges_summary_report.access.view')))
+                        <li
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.reports.merchant_charges_summary', 'admin.reports.merchant_charges_summary.search']) ? 'active' : '' }}">
+                            <a href="{{ route('admin.reports.merchant_charges_summary') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Merchant Charges Summary">Merchant Charges Summary</div>
+                            </a>
+                        </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partner_account_summary.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_summary') }}" class="menu-link">
@@ -1039,6 +1046,8 @@
                                 <div data-i18n="Partner Account Summary">Partner Account Summary </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partner_account_balance_summary_creation.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_balance_summary') }}" class="menu-link">
@@ -1047,6 +1056,8 @@
                                     Summary Creations </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partner_account_balance_summary_completions.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary_completions' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_balance_summary_completions') }}"
@@ -1056,6 +1067,8 @@
                                     Balance Summary Completions </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.revenue_center_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.revenue_center' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.revenue_center') }}" class="menu-link">
@@ -1063,25 +1076,30 @@
                                 <div data-i18n="Revenue Center">Revenue Center </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partner_balance_log.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.logs' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Partner Balance Logs">Partner Balance Logs </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partner_balance_reports.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.cal') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Partner Balance R1">Partner Balance R1 </div>
                             </a>
                         </li>
-                        <li
-                            class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal2' ? 'active' : '' }}">
+                        <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal2' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.cal2') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Partner Balance R2">Partner Balance R2 </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.master_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.master_report' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.master_report') }}" class="menu-link">
@@ -1089,6 +1107,8 @@
                                 <div data-i18n="Master Report">Master Report </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.gateway_performance_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.payment.payment_gateway_report' ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.payment_gateway_report') }}" class="menu-link">
@@ -1096,15 +1116,18 @@
                                 <div data-i18n="Gateway Performance Report">Gateway Performance Report </div>
                             </a>
                         </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.payment_type.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.type' ? 'active' : '' }}">
                             <a href="{{ route('admin.type') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Payment Type">Payment Type </div>
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </li>
-
+                @if(adminAccessRoute(config('role.merchant_reports.access.view')))
                 <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
@@ -1135,6 +1158,7 @@
 
                     </ul>
                 </li>
+                @endif
                 </ul>
             </div>
         </aside>
@@ -1145,30 +1169,29 @@
             <div class="card">
                 <!-- Pricing Plans -->
                 @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                            </li>
-                        </ul>
-                    </div>
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                        </li>
+                    </ul>
+                </div>
                 @endif
                 {{-- ======= --}}
                 @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                            aria-label="Close"></button>
-                    </div>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
                 @endif
 
 
 
                 @if (session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
                 @endif
 
                 {{ $slot }}

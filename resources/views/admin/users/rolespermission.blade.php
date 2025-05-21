@@ -10,6 +10,22 @@
             height: 20px;
 
         }
+
+    .custom-checkbox {
+        transform: scale(1.5); /* Make checkbox bigger */
+        margin: auto;
+        display: block;
+    }
+   .custom-checkbox-lg {
+        transform: scale(1.5); /* Makes checkbox bigger */
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+
+    .custom-label-lg {
+        font-size: 1.4rem; /* Increases label text size */
+        font-weight: 500;
+    }
     </style>
     @php
     $currentRoute = Route::currentRouteName();
@@ -20,6 +36,7 @@
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                 <div class="row">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        @if(adminAccessRoute(config('role.manage_staff.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
@@ -27,6 +44,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.manage_location.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.location' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.location') }}" class="menu-link">
@@ -34,6 +53,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_and_permission.access.add')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.roles_and_permission' ? 'btn-primary' : '' }}">
@@ -42,6 +63,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_category.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.rolescategory' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.rolescategory') }}" class="menu-link">
@@ -49,6 +72,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+
                     </div>
                 </div>
                 <div class="assign-permissions-content">
@@ -90,9 +115,11 @@
                                 @csrf
                                 <div class="card-body select-all-access">
                                     <div class="form-group">
-                                        <label><input type="checkbox" class="selectAll" name="accessAll">
-                                            {{trans('Select
-                                            All')}}</label>
+                                        {{-- <label> --}}
+                                            <input type="checkbox" class="selectAll custom-checkbox-lg mb-3" name="accessAll">
+                                            <span class="custom-label-lg">{{trans('Select
+                                            All')}}</span>
+                                            {{-- </label> --}}
                                     </div>
 
                                     <table class=" table table-hover table-striped table-bordered">
@@ -111,7 +138,7 @@
                                                 <td data-label="Permissions" class="text-left">{{$value['label']}}</td>
                                                 <td data-label="View">
                                                     @if(!empty($value['access']['view']))
-                                                    <input type="checkbox"
+                                                    <input type="checkbox" class="custom-checkbox"
                                                         value="{{join(',',$value['access']['view'])}}" name="access[]"
                                                         @if(in_array_any( $value['access']['view'],
                                                         $storedPermissions??[] )) checked @endif />
@@ -119,14 +146,14 @@
                                                 </td>
                                                 <td data-label="Add">
                                                     @if(!empty($value['access']['add']))
-                                                    <input type="checkbox" value="{{join(',',$value['access']['add'])}}"
+                                                    <input type="checkbox" class="custom-checkbox" value="{{join(',',$value['access']['add'])}}"
                                                         name="access[]" @if(in_array_any($value['access']['add'],
                                                         $storedPermissions??[] )) checked @endif />
                                                     @endif
                                                 </td>
                                                 <td data-label="Edit">
                                                     @if(!empty($value['access']['edit']))
-                                                    <input type="checkbox"
+                                                    <input type="checkbox" class="custom-checkbox"
                                                         value="{{join(',',$value['access']['edit'])}}" name="access[]"
                                                         @if(in_array_any($value['access']['edit'],
                                                         $storedPermissions??[])) checked @endif />
@@ -135,7 +162,7 @@
 
                                                 <td data-label="Delete">
                                                     @if(!empty($value['access']['delete']))
-                                                    <input type="checkbox"
+                                                    <input type="checkbox" class="custom-checkbox"
                                                         value="{{join(',',$value['access']['delete'])}}" name="access[]"
                                                         @if(in_array_any( $value['access']['delete'],
                                                         $storedPermissions??[])) checked @endif />
@@ -149,7 +176,7 @@
 
                                 </div>
                                 <!-- Action Buttons -->
-                                <div class="row mt-4">
+                                <div class="row mb-4">
                                     <div class="col-md-12 text-end">
                                         <button type="submit" class="btn btn-primary me-2" id="updatePermissions">
                                             <i class="fas fa-save"></i> @lang('Update Permissions')

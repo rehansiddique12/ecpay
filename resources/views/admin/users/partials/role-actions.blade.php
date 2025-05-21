@@ -1,21 +1,28 @@
+@if(adminAccessRoute(config('role.roles_category.access.edit')) ||
+adminAccessRoute(config('role.roles_category.access.delete')))
 <div class="dropdown text-center">
+
+
     <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
         <i class="icon-base ti tabler-dots-vertical"></i>
     </button>
+
     <div class="dropdown-menu">
-        <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal"
-           data-bs-target="#editModal"
-           data-id="{{ $role->id }}"
-           data-role="{{ $role->name }}">
+        @if(adminAccessRoute(config('role.roles_category.access.edit')))
+        <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
+            data-id="{{ $role->id }}" data-role="{{ $role->name }}">
             <i class="fa fa-edit text-warning me-2"></i> @lang('Edit')
         </a>
-
+        @endif
+        @if(adminAccessRoute(config('role.roles_category.access.delete')))
         <a href="#" class="dropdown-item delete-role" data-id="{{ $role->id }}">
             <i class="fa fa-trash text-danger me-2"></i> @lang('Delete')
         </a>
+        @endif
     </div>
-</div>
 
+</div>
+@endif
 <script>
     $(document).on('click', '.delete-role', function(e) {
         e.preventDefault();

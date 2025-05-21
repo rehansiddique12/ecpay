@@ -21,7 +21,7 @@
             <div class="col-md-3">
                 <div class="form-group">
                     <label>Merchants</label>
-                    <select name="merchant" class="form-control">
+                    <select name="merchant" class="form-select">
                         <option value="">Select Merchant</option>
                         @foreach($apis as  $key => $val)
                         <option value="{{ $key }}" @if(@request()->merchant == $key) selected @endif>{{ $val }}</option>

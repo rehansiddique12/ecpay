@@ -44,7 +44,7 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>E-Wallet</label>
-                        <select name="gateway" class="form-control">
+                        <select name="gateway" class="form-select">
                             <option value="">All</option>
                             @foreach ($gateways as $gateway)
                                 <option value="{{ $gateway->name }}" @if (@request()->gateway == $gateway->name) selected @endif>
@@ -57,7 +57,7 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>Status</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="">@lang('All Payment')</option>
                             <option value="1" @if (@request()->status == '1') selected @endif>@lang('Pending Payment')
                             </option>

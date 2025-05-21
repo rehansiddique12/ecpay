@@ -11,7 +11,7 @@
 
                 <div class="col-md-5">
                     <div class="form-group mb-2">
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="" style="bg-primary" @if (@request()->status == '') selected @endif>
                                 @lang('All Payment')</option>
                             <option value="Complete " @if (@request()->status == 'Complete') selected @endif>

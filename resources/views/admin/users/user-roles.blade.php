@@ -35,7 +35,8 @@
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
 
                 <div class="row ">
-                    <div class="col-md-5 gap-6 d-flex justify-content-between">
+                  <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        @if(adminAccessRoute(config('role.manage_staff.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
@@ -43,6 +44,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.manage_location.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.location' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.location') }}" class="menu-link">
@@ -50,6 +53,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_and_permission.access.add')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.roles_and_permission' ? 'btn-primary' : '' }}">
@@ -58,6 +63,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_category.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.rolescategory' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.rolescategory') }}" class="menu-link">
@@ -65,22 +72,25 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+
                     </div>
                 </div>
 
                 <div class="card card-primary my-4 shadow">
                     <div class="card-body">
-
+                        @if(adminAccessRoute(config('role.roles_category.access.add')))
                         <div class="d-flex gap-2 mb-3">
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                                 data-bs-target="#newModal">
                                 Add New Role
                             </button>
-                            <button type="button" class="btn btn-warning" id="openCloneModal" data-bs-toggle="modal" data-bs-target="#cloneModal">
+                            <button type="button" class="btn btn-warning" id="openCloneModal" data-bs-toggle="modal"
+                                data-bs-target="#cloneModal">
                                 Clone Role Permission
                             </button>
                         </div>
-
+                        @endif
                         <div class="table-responsive">
                             <table id="rolesTables"
                                 class="text-center categories-show-table table table-hover table-striped table-bordered">
@@ -110,8 +120,8 @@
     </div>
 
     {{-- Add Role Modal --}}
-    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel"
-        data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" data-bs-backdrop="static"
+        data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form id="addRolesForm">
@@ -138,11 +148,12 @@
     </div>
 
     {{-- CloneEdit--}}
-    <div class="modal fade" id="cloneModal" tabindex="-1" aria-labelledby="cloneModalLabel" >
+    <div class="modal fade" id="cloneModal" tabindex="-1" aria-labelledby="cloneModalLabel">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form id="addRolesFormCopy" action="{{ route('admin.roles.copy') }}" method="POST">
                     @csrf
+
                     <div class="modal-header">
                         <h5 class="modal-title" id="cloneModalLabel">Clone Role Permission</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -152,15 +163,16 @@
                         <label for="add_new_role" class="form-label">Role Name</label>
                         <input type="text" class="form-control" id="add_new_role" name="add_new_role"
                             placeholder="Enter role name" required>
-
                     </div>
-                        <div class="modal-body">
-                            <label for="copy_role_name" class="form-labels">Clone from</label>
-                            <select class="form-select" id="copy_role_name" name="copy_role_name" required>
-                                <option value="">-- Select Role --</option>
-                                <!-- Options will be appended here -->
-                            </select>
-                        </div>
+
+
+                    <div class="modal-body">
+                        <label for="copy_role_name" class="form-labels">Clone from</label>
+                        <select class="form-select" id="copy_role_name" name="copy_role_name" required>
+                            <option value="">-- Select Role --</option>
+                            <!-- Options will be appended here -->
+                        </select>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Save Role</button>
@@ -171,7 +183,7 @@
     </div>
 
     {{-- Edit Role Modal --}}
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" >
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form id="editRolesForm">

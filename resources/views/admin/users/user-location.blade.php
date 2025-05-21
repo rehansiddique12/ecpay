@@ -5,14 +5,15 @@
         }
     </style>
     @php
-        $currentRoute = Route::currentRouteName();
+    $currentRoute = Route::currentRouteName();
     @endphp
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                 <div class="row ">
-                    <div class="col-md-5 gap-6 d-flex justify-content-between">
+                   <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        @if(adminAccessRoute(config('role.manage_staff.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.users' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
@@ -20,6 +21,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.manage_location.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.location' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.location') }}" class="menu-link">
@@ -27,6 +30,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_and_permission.access.add')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.roles_and_permission' ? 'btn-primary' : '' }}">
@@ -35,6 +40,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.roles_category.access.view')))
                         <div>
                             <button class="btn {{ $currentRoute == 'admin.rolescategory' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.rolescategory') }}" class="menu-link">
@@ -42,24 +49,33 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+
                     </div>
                 </div>
                 {{-- <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                     <div class="card-body"> --}}
                         {{-- <div class="card-header"> --}}
-                        <button type="button" class="btn btn-primary  mt-5 mb-3" data-bs-toggle="modal" data-bs-target="#newModal">
-                            Add New Location
-                        </button>
-                        {{-- </div> --}}
+                            @if(adminAccessRoute(config('role.manage_location.access.add')))
+                            <button type="button" class="btn btn-primary  mt-5 mb-3" data-bs-toggle="modal"
+                                data-bs-target="#newModal">
+                                Add New Location
+                            </button>
+                            @endif
+                            {{--
+                        </div> --}}
 
                         <div class="">
-                            <table id="locationTableBody" class="categories-show-table table table-hover table-striped table-bordered">
+                            <table id="locationTableBody"
+                                class="categories-show-table table table-hover table-striped table-bordered">
                                 <thead class="thead-dark">
                                     <tr>
                                         <th style="width: 50px;">@lang('No.')</th>
                                         <th style="width: 200px;">@lang('Location')</th>
                                         <th style="width: 120px;">@lang('Status')</th>
+                                        @if(adminAccessRoute(config('role.manage_location.access.edit')) || adminAccessRoute(config('role.manage_location.access.delete')) )
                                         <th style="width: 100px;" class="text-center">@lang('Action')</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -73,13 +89,15 @@
                             </div>
                         </div>
                     </div>
-                {{-- </div>
+                    {{--
+                </div>
             </div> --}}
         </div>
     </div>
 
     <!-- Add Location Modal -->
-    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -91,7 +109,8 @@
                         @csrf
                         <div class="mb-3">
                             <label for="location" class="form-label">Location:</label>
-                            <input type="text" class="form-control" id="location" name="location" required placeholder="Enter location">
+                            <input type="text" class="form-control" id="location" name="location" required
+                                placeholder="Enter location">
                         </div>
 
                         <div class="mb-3">
@@ -105,7 +124,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="addLocationForm" id="saveLocationBtn" class="btn btn-primary">Save Location</button>
+                    <button type="submit" form="addLocationForm" id="saveLocationBtn" class="btn btn-primary">Save
+                        Location</button>
                     <div id="formErrors" class="text-danger mt-2"></div>
                 </div>
             </div>
@@ -113,7 +133,8 @@
     </div>
 
     <!-- Edit Location Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -127,7 +148,8 @@
                         <input type="hidden" name="id" id="edit_id">
                         <div class="mb-3">
                             <label for="edit_location" class="form-label">Location:</label>
-                            <input type="text" class="form-control" id="edit_location" name="location" required placeholder="Enter location">
+                            <input type="text" class="form-control" id="edit_location" name="location" required
+                                placeholder="Enter location">
                         </div>
 
                         <div class="mb-3">
@@ -141,7 +163,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="editLocationForm" id="editLocationBtn" class="btn btn-primary">Update Location</button>
+                    <button type="submit" form="editLocationForm" id="editLocationBtn" class="btn btn-primary">Update
+                        Location</button>
                     <div id="formErrors1" class="text-danger mt-2"></div>
                 </div>
             </div>
@@ -149,10 +172,10 @@
     </div>
 
     @push('js')
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
-        <script>
-            jQuery(document).ready(function() {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
+    <script>
+        jQuery(document).ready(function() {
                 // jQuery(document).on('click', '.edit-location', function(e) {
                 //     e.preventDefault();
                 //     try {
@@ -404,6 +427,6 @@
 
             });
 
-        </script>
+    </script>
     @endpush
 </x-admin-layout>

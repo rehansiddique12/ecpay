@@ -1,26 +1,26 @@
 @php
-    $isAccountsActive =
-        Request::routeIs('admin.accounts.add') ||
-        Request::routeIs('admin.accounts') ||
-        Request::routeIs('admin.balance.logs');
+$isAccountsActive =
+Request::routeIs('admin.accounts.add') ||
+Request::routeIs('admin.accounts') ||
+Request::routeIs('admin.balance.logs');
 
-    $isMainActive = in_array(Route::currentRouteName(), [
-        'partner.apis',
-        'partner.dashboard',
-        'partner.settlements',
-        'partner.partner.balance',
-        'partner.partner.balance.search',
-        'partner.api.commissions',
-        'partner.settlements.search',
-        'partner.partner.methods.get',
-        'partner.settlement.report.daily',
-        'partner.reports.log_completions',
-        'partner.payment.payment_gateway_report',
-    ]);
+$isMainActive = in_array(Route::currentRouteName(), [
+'partner.apis',
+'partner.dashboard',
+'partner.settlements',
+'partner.partner.balance',
+'partner.partner.balance.search',
+'partner.api.commissions',
+'partner.settlements.search',
+'partner.partner.methods.get',
+'partner.settlement.report.daily',
+'partner.reports.log_completions',
+'partner.payment.payment_gateway_report',
+]);
 
     $isReportsActive = in_array(Route::currentRouteName(), [
         'partner.payment.report.all',
-
+        'partner.payment.report.all.search',
         'partner.reports.partner_account_summary',
         'partner.reports.partner_account_balance_summary',
     ]);
@@ -87,9 +87,28 @@
                 <!-- User -->
                 <li class="nav-item navbar-dropdown dropdown-user dropdown">
                     <a class="nav-link dropdown-toggle hide-arrow p-0" href="profile" data-bs-toggle="dropdown">
-                        <div class="avatar avatar-online">
+                        {{-- <div class="avatar avatar-online">
                             <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
                                 alt="{{ Auth::user()->name }}" class="rounded-circle" />
+                        </div> --}}
+                        <div class="avatar avatar-online">
+                            @php
+                            use Illuminate\Support\Facades\File;
+
+                            $user = Auth::user();
+                            $imagePath = public_path('uploads/admin/' . $user->image);
+                            @endphp
+
+                            @auth
+                            @if (!empty($user->image) && File::exists($imagePath))
+                            <img src="{{ asset('public/uploads/admin/' . $user->image) }}" alt="{{ $user->name }}"
+                                class="rounded-circle" />
+                            @else
+                            <!-- Optional: Show placeholder -->
+                            <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
+                                class="rounded-circle" />
+                            @endif
+                            @endauth
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -98,8 +117,24 @@
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-2">
                                         <div class="avatar avatar-online">
-                                            <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
-                                                alt="{{ Auth::user()->name }}" class="rounded-circle" />
+                                            {{-- <img src="{{ asset('public/uploads/admin/' . Auth::user()->image) }}"
+                                                alt="{{ Auth::user()->name }}" class="rounded-circle" /> --}}
+                                            @php
+
+                                            $user = Auth::user();
+                                            $imagePath = public_path('uploads/admin/' . $user->image);
+                                            @endphp
+
+                                            @auth
+                                            @if (!empty($user->image) && File::exists($imagePath))
+                                            <img src="{{ asset('public/uploads/admin/' . $user->image) }}"
+                                                alt="{{ $user->name }}" class="rounded-circle" />
+                                            @else
+                                            <!-- Optional: Show placeholder -->
+                                            <img src="{{ asset('assets/img/avatars/1.png') }}" alt="Default Avatar"
+                                                class="rounded-circle" />
+                                            @endif
+                                            @endauth
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
@@ -185,6 +220,7 @@
                         </a>
 
                         <ul class="menu-sub">
+                            @if(partnerAccessRoute(config('rolep.dashboard.access.view')))
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('partner.dashboard') }}" class="menu-link">
@@ -192,6 +228,19 @@
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
                             </li>
+                            @endif
+
+                            @if(partnerAccessRoute(config('rolep.manage_staff.access.view')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'partner.staff' ? 'active' : '' }}">
+                                <a href="{{ route('partner.staff') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Staff">Staff</div>
+                                </a>
+                            </li>
+                            @endif
+
+
+                            @if(partnerAccessRoute(config('rolep.manage_staff.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'partner.apis' ? 'active' : '' }}">
                                 <a href="{{ route('partner.apis') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
@@ -202,10 +251,11 @@
                                 class="menu-item {{ Route::currentRouteName() == 'partner.api.commissions' ? 'active' : '' }}">
                                 <a href="{{ route('partner.api.commissions') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Commission History">Commission History</div>
+                                    <div data-i18n="Commission History">Commission Report</div>
                                 </a>
                             </li>
-
+                            @endif
+                            @if(Auth::guard('partner')->user()->type=="Admin")
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.settlements' ? 'active' : '' }}">
                                 <a href="{{ route('partner.settlements') }}" class="menu-link">
@@ -228,7 +278,7 @@
                                     <div data-i18n="Adjustments">Adjustments</div>
                                 </a>
                             </li>
-
+                            @endif
 
                             {{-- <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.reports.partner_account_balance_summary' ? 'active' : '' }}">
@@ -283,8 +333,7 @@
 
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'partner.reports.partner_account_balance_summary' ? 'active' : '' }}">
-                            <a href="{{ route('partner.reports.partner_account_balance_summary') }}"
-                                class="menu-link">
+                            <a href="{{ route('partner.reports.partner_account_balance_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                 <div data-i18n="Account Balance">Account Balance</div>
                             </a>
@@ -305,8 +354,7 @@
                         <div data-i18n="Transactions">Transaction</div>
                     </a>
                     <ul class="menu-sub">
-                        <li
-                            class="menu-item {{ Route::currentRouteName() == 'partner.reports.logs' ? 'active' : '' }}">
+                        <li class="menu-item {{ Route::currentRouteName() == 'partner.reports.logs' ? 'active' : '' }}">
                             <a href="{{ route('partner.reports.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                 <div data-i18n="Transaction Logs">Transaction Logs</div>
@@ -398,18 +446,17 @@
             <div class="card">
                 <!-- Pricing Plans -->
                 @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                            aria-label="Close"></button>
-                    </div>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
                 @endif
 
 
                 @if (session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
                 @endif
 
                 {{ $slot }}

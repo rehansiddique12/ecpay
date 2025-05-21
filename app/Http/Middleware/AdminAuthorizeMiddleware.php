@@ -14,8 +14,11 @@ class AdminAuthorizeMiddleware
         $list = collect(config('role'))->pluck(['access'])->flatten();
         $filtered = $list->intersect($user->admin_access);
 
+        if ($user->id == 1) {
+            return $next($request);
+        }
         // dd($request->route()->getName());
-        if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
+        if (!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray())) {
             return $next($request);
         }
 
