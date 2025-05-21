@@ -52,6 +52,12 @@
                         data-bs-target="#newModal">
                         Add New
                     </button>
+                    <div class="d-flex justify-content-end mb-3">
+                        <label class="form-check-label me-2" for="showAllToggle">@lang('Show All')</label>
+                        <input type="checkbox" id="showAllToggle" {{ $showAll == '1' ? 'checked' : '' }}>
+                    </div>
+
+
 
                     {{-- @endif --}}
 
@@ -124,16 +130,44 @@
                                             data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
                                     </td>
 
-                                   <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                        <label class="switch">
-                                            <input type="checkbox" class="toggle-status"
-                                                data-id="{{ $item->id }}"
-                                                {{ $item->status == 1 ? 'checked' : '' }}>
-                                            <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
-                                                {{ $item->status == 1 ? __('Active') : __('Deactive') }}
-                                            </span>
-                                        </label>
+                                    <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                        {{-- Flex container for Status --}}
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>@lang('Status')&nbsp;</span>
+                                            <label class="switch mb-0">
+                                                <input type="checkbox" class="toggle-switch" data-id="{{ $item->id }}" data-type="status"
+                                                    {{ $item->status == 1 ? 'checked' : '' }}>
+                                                <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
+                                                    {{ $item->status == 1 ? __('Active') : __('Deactive') }}
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        {{-- Flex container for Sign --}}
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>@lang('Sign')</span>
+                                            <label class="switch mb-0">
+                                                <input type="checkbox" class="toggle-switch" data-id="{{ $item->id }}" data-type="sign"
+                                                    {{ $item->sign == 1 ? 'checked' : '' }}>
+                                                <span class="slider {{ $item->sign == 1 ? 'active' : 'deactive' }}">
+                                                    {{ $item->sign == 1 ? __('Signed') : __('Unsigned') }}
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        {{-- Flex container for Transaction Verification --}}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>@lang('Txn')</span>
+                                            <label class="switch mb-0">
+                                                <input type="checkbox" class="toggle-switch" data-id="{{ $item->id }}" data-type="txn_verification"
+                                                    {{ $item->txn_verification == 1 ? 'checked' : '' }}>
+                                                <span class="slider {{ $item->txn_verification == 1 ? 'active' : 'deactive' }}">
+                                                    {{ $item->txn_verification == 1 ? __('Verified') : __('Unverified') }}
+                                                </span>
+                                            </label>
+                                        </div>
                                     </td>
+
 
 
                                     <td>
@@ -207,8 +241,11 @@
                         </table>
                     </div>
                     <div class="card-footer">
-                        {{ $records->appends($_GET)->links('partials.pagination') }}
+                        @if ($records instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                            {{ $records->appends($_GET)->links('partials.pagination') }}
+                        @endif
                     </div>
+
                 </div>
             </div>
         </div>
@@ -453,7 +490,7 @@
                                     <label class="pr-3">Signature</label>
                                     <select class="form-control" name="sign" required>
                                         <option value="0">Inactive</option>
-                                        <option value="1">Active</option>
+                                        <option value="1" selected>Active</option>
                                     </select>
                                 </div>
                             </div>
@@ -462,7 +499,7 @@
                                     <label class="pr-3">Txn Verification</label>
                                     <select class="form-control" name="txn_verification" required>
                                         <option value="0">Optional</option>
-                                        <option value="1">Required</option>
+                                        <option value="1" selected>Required</option>
                                     </select>
                                 </div>
                             </div>
@@ -754,41 +791,44 @@
             });
         });
 
-        $(document).on('change', '.toggle-status', function () {
-            const checkbox = $(this);
-            const apiId = checkbox.data('id');
-            const status = checkbox.is(':checked') ? 1 : 0;
+        $(document).on('change', '.toggle-switch', function () {
+    const checkbox = $(this);
+    const apiId = checkbox.data('id');
+    const type = checkbox.data('type'); // 'status', 'sign', or 'txn_verification'
+    const value = checkbox.is(':checked') ? 1 : 0;
 
-            $.ajax({
-                url: "{{ route('admin.apis.toggleStatus') }}",  // Laravel route name used here
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    id: apiId,
-                    status: status
-                },
-                success: function (response) {
-                    if (response.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Updated!',
-                            text: response.message || 'Status updated successfully.',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
+    $.ajax({
+        url: "{{ route('admin.apis.toggleStatus') }}",
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            id: apiId,
+            type: type,
+            value: value
+        },
+        success: function (response) {
+            if (response.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Updated!',
+                    text: response.message || 'Field updated successfully.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
 
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        Swal.fire('Error!', response.message || 'Update failed.', 'error');
-                    }
-                },
-                error: function () {
-                    Swal.fire('Error!', 'Something went wrong.', 'error');
-                }
-            });
-        });
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                Swal.fire('Error!', response.message || 'Update failed.', 'error');
+            }
+        },
+        error: function () {
+            Swal.fire('Error!', 'Something went wrong.', 'error');
+        }
+    });
+});
+
 
         document.addEventListener('DOMContentLoaded', function() {
                 let currentlyEditing = null;
@@ -985,6 +1025,16 @@
                 });
             });
     </script>
+   <script>
+    document.getElementById('showAllToggle').addEventListener('change', function () {
+        const showAll = this.checked ? 1 : 0;
+        const url = new URL(window.location.href);
+        url.searchParams.set('show_all', showAll);
+        window.location.href = url.toString();
+    });
+</script>
+
+
 
     @endpush
 </x-admin-layout>

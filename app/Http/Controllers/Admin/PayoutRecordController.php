@@ -1550,10 +1550,24 @@ class PayoutRecordController extends Controller
 
     public function apis(Request $request)
     {
-        $records = Api::where('type', 'Admin')->select(['id', 'name', 'username', 'acc_type', 'website','api_endpoint_deposit', 'api_endpoint_withdrawal', 'redirect_url','api_key', 'secret_key', 'balance', 'min_deposit', 'min_withdrawal', 'status','password_string'])->paginate(20);
+        $query = Api::where('type', 'Admin')->select([
+            'id', 'name', 'username', 'acc_type', 'website', 'api_endpoint_deposit',
+            'api_endpoint_withdrawal', 'redirect_url', 'api_key', 'secret_key', 'balance',
+            'min_deposit', 'min_withdrawal', 'status', 'password_string', 'sign', 'txn_verification'
+        ]);
+
+        // Default to show_all = 1
+        $showAll = $request->get('show_all', '1');
+
+        $records = $showAll == '1'
+            ? $query->get()
+            : $query->paginate(20);
+
         $pageTitle = "Manage APIs";
-        return view('admin.payout.api', compact('records', 'pageTitle'));
+
+        return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
+
 
     // Partner controller
 
@@ -1604,20 +1618,20 @@ class PayoutRecordController extends Controller
                 'username' => 'required|string|max:100',
                 'email' => 'nullable|email|max:100',
                 'phone' => 'nullable|string|max:20',
-                'password' => 'nullable|string|min:6',
+                // 'password' => 'nullable|string|min:6',
                 'website' => 'nullable|string|max:255',
                 'api_endpoint_deposit' => 'nullable|string|max:200',
                 'api_endpoint_withdrawal' => 'nullable|string|max:200',
                 'admin_access' => 'nullable|string',
-                'type' => 'required|string|max:50',
+                // 'type' => 'required|string|max:50',
                 'api_key' => 'required|string|max:255',
-                'last_login' => 'nullable|string|max:50',
-                'remember_token' => 'nullable|string|max:100',
-                'balance' => 'nullable|numeric',
+                // 'last_login' => 'nullable|string|max:50',
+                // 'remember_token' => 'nullable|string|max:100',
+                // 'balance' => 'nullable|numeric',
                 'min_deposit' => 'nullable|numeric',
                 'min_withdrawal' => 'required|numeric',
                 'acc_type' => 'required|string|max:20',
-                'parent_id' => 'nullable|integer',
+                // 'parent_id' => 'nullable|integer',
                 'sign' => 'required|boolean',
                 'secret_key' => 'nullable|string|max:255',
                 'txn_verification' => 'required|boolean',
@@ -1938,11 +1952,18 @@ return redirect()->back()->with('success', 'Partner commissions added successful
             return response()->json(['status' => 'error', 'message' => 'API not found.']);
         }
 
-        $api->status = $request->status;
+        $type = $request->type; // expected: 'status', 'sign', or 'txn_verification'
+
+        if (!in_array($type, ['status', 'sign', 'txn_verification'])) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid field type.']);
+        }
+
+        $api->$type = $request->value;
         $api->save();
 
-        return response()->json(['status' => 'success', 'message' => 'Status updated.']);
+        return response()->json(['status' => 'success', 'message' => ucfirst($type) . ' updated.']);
     }
+
 
 
 
