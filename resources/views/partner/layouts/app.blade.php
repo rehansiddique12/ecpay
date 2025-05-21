@@ -162,7 +162,6 @@
     <script src="{{asset('/assets/js/main.js')}}"></script>
 
     <!-- Page JS -->
-    <script src="{{asset('/assets//js/pages-pricing.js')}}"></script>
     @stack('js')
   </body>
 </html>

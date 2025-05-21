@@ -1550,10 +1550,24 @@ class PayoutRecordController extends Controller
 
     public function apis(Request $request)
     {
-        $records = Api::where('type', 'Admin')->select(['id', 'name', 'username', 'acc_type', 'website','api_endpoint_deposit', 'api_endpoint_withdrawal', 'redirect_url','api_key', 'secret_key', 'balance', 'min_deposit', 'min_withdrawal', 'status','password_string'])->paginate(20);
+        $query = Api::where('type', 'Admin')->select([
+            'id', 'name', 'username', 'acc_type', 'website', 'api_endpoint_deposit',
+            'api_endpoint_withdrawal', 'redirect_url', 'api_key', 'secret_key', 'balance',
+            'min_deposit', 'min_withdrawal', 'status', 'password_string', 'sign', 'txn_verification'
+        ]);
+
+        // Default to show_all = 1
+        $showAll = $request->get('show_all', '1');
+
+        $records = $showAll == '1'
+            ? $query->get()
+            : $query->paginate(20);
+
         $pageTitle = "Manage APIs";
-        return view('admin.payout.api', compact('records', 'pageTitle'));
+
+        return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
+
 
     // Partner controller
 
@@ -1604,20 +1618,20 @@ class PayoutRecordController extends Controller
                 'username' => 'required|string|max:100',
                 'email' => 'nullable|email|max:100',
                 'phone' => 'nullable|string|max:20',
-                'password' => 'nullable|string|min:6',
+                // 'password' => 'nullable|string|min:6',
                 'website' => 'nullable|string|max:255',
                 'api_endpoint_deposit' => 'nullable|string|max:200',
                 'api_endpoint_withdrawal' => 'nullable|string|max:200',
                 'admin_access' => 'nullable|string',
-                'type' => 'required|string|max:50',
+                // 'type' => 'required|string|max:50',
                 'api_key' => 'required|string|max:255',
-                'last_login' => 'nullable|string|max:50',
-                'remember_token' => 'nullable|string|max:100',
-                'balance' => 'nullable|numeric',
+                // 'last_login' => 'nullable|string|max:50',
+                // 'remember_token' => 'nullable|string|max:100',
+                // 'balance' => 'nullable|numeric',
                 'min_deposit' => 'nullable|numeric',
                 'min_withdrawal' => 'required|numeric',
                 'acc_type' => 'required|string|max:20',
-                'parent_id' => 'nullable|integer',
+                // 'parent_id' => 'nullable|integer',
                 'sign' => 'required|boolean',
                 'secret_key' => 'nullable|string|max:255',
                 'txn_verification' => 'required|boolean',
@@ -1646,6 +1660,7 @@ class PayoutRecordController extends Controller
 
     public function apisAddByParent(Request $request)
     {
+        //pendingtocheck as this fn not working
         // Validate input
         $validatedData = $request->validate([
             'name' => 'required|string',
@@ -1876,11 +1891,8 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-
-
-        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name','id')
-            ->get();
+        $gateways = Gateway::where('status', 1)->get();
+        // dd($gateways);
         $pageTitle = "Manage Commissions";
 
         $records = "";
@@ -1897,9 +1909,7 @@ class PayoutRecordController extends Controller
         $cron_commissions = CronCommission::where('category_id', $id)->get();
 
         $commissions = Commission::where('category_id', $api->category_id)->get();
-        $gateways = Settlement::select('source_name','id', DB::raw('COUNT(*) as count'))
-            ->groupBy('source_name','id')
-            ->get();
+        $gateways = Gateway::where('status', 1)->get();
         $pageTitle = "Partner Commissions";
 
         $records = "";
@@ -1911,22 +1921,22 @@ class PayoutRecordController extends Controller
 
     public function addpartnerCommission(Request $request){
       $api = Api::findOrFail($request->user_id);
-$commissions = Commission::where('category_id', $api->category_id)->get();
+      $commissions = Commission::where('category_id', $api->category_id)->get();
 
-foreach ($commissions as $commission) {
-    ParentCommission::create([
-        'from_amount' => $commission->from_amount,
-        'to_amount' => $commission->to_amount,
-        'deposit_percentage' => $request->deposit_percentage,
-        'withdrawal_percentage' => $request->withdrawal_percentage,
-        'parent_id' => $request->partner_id,
-        'user_id' => $request->user_id,
-        'type' => $commission->type,
-        'gateway_id' => $request->gateway_id,
-    ]);
-}
+    foreach ($commissions as $commission) {
+        ParentCommission::create([
+            'from_amount' => $commission->from_amount,
+            'to_amount' => $commission->to_amount,
+            'deposit_percentage' => $request->deposit_percentage,
+            'withdrawal_percentage' => $request->withdrawal_percentage,
+            'parent_id' => $request->partner_id,
+            'user_id' => $request->user_id,
+            'type' => $commission->type,
+            'gateway_id' => $request->gateway_id,
+        ]);
+    }
 
-return redirect()->back()->with('success', 'Partner commissions added successfully.');
+    return redirect()->back()->with('success', 'Partner commissions added successfully.');
 
     }
 
@@ -1938,11 +1948,18 @@ return redirect()->back()->with('success', 'Partner commissions added successful
             return response()->json(['status' => 'error', 'message' => 'API not found.']);
         }
 
-        $api->status = $request->status;
+        $type = $request->type; // expected: 'status', 'sign', or 'txn_verification'
+
+        if (!in_array($type, ['status', 'sign', 'txn_verification'])) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid field type.']);
+        }
+
+        $api->$type = $request->value;
         $api->save();
 
-        return response()->json(['status' => 'success', 'message' => 'Status updated.']);
+        return response()->json(['status' => 'success', 'message' => ucfirst($type) . ' updated.']);
     }
+
 
 
 
@@ -2150,7 +2167,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
 
 
     public function apisCommissionAdd(Request $request)
-    {
+    {   
+       
 
         $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
         foreach ($cron_commissions as $cron_commission) {
@@ -2175,8 +2193,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
 
             // Convert gateways to JSON (for storage) if selected
             $gateway_ids = isset($request->settlement_gateway[$i]) ? json_encode($request->settlement_gateway[$i]) : json_encode([]);
-
-            $type = $request->type[$i] ?? null;
+            $types = isset($request->type[$i]) ? json_encode($request->type[$i]) : json_encode([]);
 
             if ($new == 0) {
                 if (!$new_commission) {
@@ -2190,7 +2207,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 $new_commission->settlement_percentage = $request->settlement_percentage[$i];
                 $new_commission->category_id = $request->category_id;
 
-                $new_commission->type = $type;
+                $new_commission->type = $types;
                 $new_commission->gateway_id = $gateway_ids; // store as JSON
 
                 $new_commission->save();
@@ -2205,7 +2222,7 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                 $cron_commission->category_id = $request->category_id;
                 $cron_commission->commission_id = $commission_id;
 
-                $cron_commission->type = $type;
+                $cron_commission->type = $types;
                 $cron_commission->gateway_id = $gateway_ids;
 
                 $cron_commission->save();
@@ -2969,13 +2986,13 @@ return redirect()->back()->with('success', 'Partner commissions added successful
 
             // Calculate charge
             $charge = 0;
-            $commissions = Commission::where('api_id', $api_key->id)
+            $commissions = Commission::where('category_id', $api_key->category_id)
                 ->where('from_amount', '<=', $sum)
                 ->where('to_amount', '>=', $sum)
                 ->first();
 
             if (!$commissions) {
-                $commissions = Commission::where('api_id', $api_key->id)
+                $commissions = Commission::where('category_id', $api_key->category_id)
                     ->orderByDesc('to_amount')
                     ->first();
             }
@@ -4151,8 +4168,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                                 'e_wallet_type' => $payout->e_wallet_type,
                                 'charges' => $this->convertStringToNumber($payout->charge),
                                 'status' => $payout->status,
-                                'completion_date' => $payout->date,
-                                'completion_time' => $payout->time,
+                                'completion_date' => Carbon::parse($payout->date_time)->toDateString(),
+                                'completion_time' => Carbon::parse($payout->date_time)->toTimeString(),
                                 'created_at' => $payout->created_at,
                                 'updated_at' => $payout->updated_at,
                                 'sign' => $sign,
@@ -4353,8 +4370,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                                     'e_wallet_type' => $payout->e_wallet_type,
                                     'charges' => $this->convertStringToNumber($payout->charge),
                                     'status' => $payout->status,
-                                    'completion_date' => $payout->date,
-                                    'completion_time' => $payout->time,
+                                    'completion_date' => Carbon::parse($payout->date_time)->toDateString(),
+                                    'completion_time' => Carbon::parse($payout->date_time)->toTimeString(),
                                     'created_at' => $payout->created_at,
                                     'updated_at' => $payout->updated_at,
                                     'sign' => $sign,
@@ -4602,8 +4619,8 @@ return redirect()->back()->with('success', 'Partner commissions added successful
                                         'e_wallet_type' => $payout->e_wallet_type,
                                         'charges' => $this->convertStringToNumber($payout->charge),
                                         'status' => $payout->status,
-                                        'completion_date' => $payout->date,
-                                        'completion_time' => $payout->time,
+                                        'completion_date' => Carbon::parse($payout->date_time)->toDateString(),
+                                        'completion_time' => Carbon::parse($payout->date_time)->toTimeString(),
                                         'created_at' => $payout->created_at,
                                         'updated_at' => $payout->updated_at,
                                         'sign' => $sign,

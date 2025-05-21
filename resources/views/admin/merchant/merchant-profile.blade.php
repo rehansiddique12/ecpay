@@ -169,39 +169,34 @@
                                     <div class="card-body position-relative">
                                         <p
                                             class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
-                                            Partner Commissions
+                                            Parent Commissions
                                             <!-- Plus Button -->
                                             <a href="{{ route('admin.partner.commision.form', ['id' => $id]) }}"
                                                 class="btn btn-sm btn-primary" title="Add New">
-                                                <i class="ti ti-plus">Add</i>
+                                                <i class="fa fa-plus"></i>
                                             </a>
 
                                         </p>
-                                        <table class="table table-bordered table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Partner</th>
-                                                    <th>Deposit Percentage</th>
-                                                    <th>Withdrawal Percentage</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @forelse ($PartnerCommission as $index => $pcom)
-                                                <tr>
-                                                    <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $pcom->partner->name ?? '-' }}</td>
-                                                    <td>{{ $pcom->deposit_percentage }}%</td>
-                                                    <td>{{ $pcom->withdrawal_percentage }}%</td>
-                                                </tr>
+                                        
+                                            @forelse ($PartnerCommission as $index => $pcom)
+                                                <div class="row">
+                                                    
+                                                    <div class="col-3">{{ $pcom->partner->name ?? '-' }}</div>
+                                                    <div class="col-3 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
+                                                    <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
+                                                    <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%</div>
+                                                    <div class="col-2"><i class="fa fa-edit"></i></div>
+                                                </div>
                                                 @empty
-                                                <tr>
-                                                    <td colspan="4" class="text-center">No partner commissions found.
-                                                    </td>
-                                                </tr>
+                                                <div class="row">
+                                                    <div class="col-12">No partner commissions found.</div>
+                                                </div>
                                                 @endforelse
-                                            </tbody>
-                                        </table>
+                                            <div class="col-4">
+
+                                            </div>
+                                        
+                                        
                                     </div>
                                 </div>
                                 @endif
@@ -227,9 +222,9 @@
                                                 $fields = [
                                                 'name', 'username', 'email', 'phone', 'website', 'api_endpoint_deposit',
                                                 'api_endpoint_withdrawal',
-                                                'type', 'api_key', 'last_login', 'remember_token', 'balance',
+                                                 'api_key',
                                                 'min_deposit',
-                                                'min_withdrawal', 'parent_id', 'secret_key', 'redirect_url', 'timezone'
+                                                'min_withdrawal',  'secret_key', 'redirect_url', 'timezone'
                                                 ];
                                                 @endphp
 
@@ -253,12 +248,7 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="col-md-6 mb-3">
-                                                    <label>Password</label>
-                                                    <input type="password" name="password" class="form-control">
-                                                    <small class="text-muted">Leave blank if you don't want to
-                                                        change</small>
-                                                </div>
+
 
                                                 <div class="col-md-6 mb-3">
                                                     <label>Status</label>
@@ -293,7 +283,7 @@
                                                 </div>
                                                 @if(isset($categories))
                                                 <div class="col-md-6 mb-3">
-                                                    <label>Assigned Category</label>
+                                                    <label>Comission Category</label>
                                                     <select name="category_id" class="form-control">
                                                         <option value="">Please select category</option>
                                                         @foreach($categories as $category)
