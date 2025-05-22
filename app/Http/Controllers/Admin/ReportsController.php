@@ -33,31 +33,102 @@ class ReportsController extends Controller
 
     public function daily_ewallet_summary(Request $request)
     {
-        // $this->add_daily_summary();
-        // exit;
-
         $timezone = config('app.timezone');
         $now = Carbon::now($timezone);
         $date = $now->toDateString();
         $oneDayBefore = $now->subDay()->toDateString();
+        
         if ($request->filled('date')) {
             $date = $request->date;
             $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
-            $oneDayBefore = $carbonDate->subDay();
+            $oneDayBefore = $carbonDate->subDay()->toDateString();
         }
+
+        // Get all wallet accounts with pagination
         $EWalletAccounts = EWalletAccount::paginate(20);
+        $accountIds = $EWalletAccounts->pluck('id');
+        $eWalletNames = $EWalletAccounts->pluck('e_wallet_name');
+        $accountNumbers = $EWalletAccounts->pluck('account_no');
+
+        // Preload previous day's closing balances
+        $previousBalances = DailyEWalletSummary::whereIn('e_wallet_id', $accountIds)
+            ->whereDate('created_at', $oneDayBefore)
+            ->get()
+            ->keyBy('e_wallet_id');
+
+        // Preload deposits
+        $deposits = Payment::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupBy('e_wallet_name', 'e_wallet_phone_number')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+        // Preload withdrawals
+        $withdrawals = Payout::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupBy('e_wallet_name', 'e_wallet_phone_number')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+        // Preload transfers in
+        $transfersIn = EWalletTransaction::whereIn('to_e_wallet', $eWalletNames)
+            ->whereIn('to_account_no', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->selectRaw('to_e_wallet, to_account_no, SUM(amount) as total')
+            ->groupBy('to_e_wallet', 'to_account_no')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->to_e_wallet . '|' . $item->to_account_no;
+            });
+
+        // Preload transfers out
+        $transfersOut = EWalletTransaction::whereIn('from_e_wallet', $eWalletNames)
+            ->whereIn('from_account_no', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->selectRaw('from_e_wallet, from_account_no, SUM(amount) as total')
+            ->groupBy('from_e_wallet', 'from_account_no')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->from_e_wallet . '|' . $item->from_account_no;
+            });
+
+        // Build the data array
+        $data = [];
         foreach ($EWalletAccounts as $key => $account) {
-            $data[$key]['e_wallet_name'] = $account->e_wallet_name;
-            $data[$key]['account_no'] = $account->account_no;
-            $data[$key]['opening_balance'] = DailyEWalletSummary::where('e_wallet_id', $account->id)->whereDate('created_at', $oneDayBefore)->first()->closing_balance ?? 0.00;
-            $data[$key]['total_deposit'] = Payment::where('e_wallet_name', $account->e_wallet_name)->where('e_wallet_phone_number', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
-            $data[$key]['total_withdrawal'] = Payout::where('e_wallet_name', $account->e_wallet_name)->where('e_wallet_phone_number', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
-            $data[$key]['transfer_in'] = EWalletTransaction::where('to_e_wallet', $account->e_wallet_name)->where('to_account_no', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
-            $data[$key]['transfer_out'] = EWalletTransaction::where('from_e_wallet', $account->e_wallet_name)->where('from_account_no', $account->account_no)->where('status', 'Complete')->whereDate('created_at', $date)->sum('amount') ?? 0.00;
-            $data[$key]['closing_balance'] = $data[$key]['opening_balance'] + $data[$key]['total_deposit'] - $data[$key]['total_withdrawal'] + $data[$key]['transfer_in'] - $data[$key]['transfer_out'];
+            $accountKey = $account->e_wallet_name . '|' . $account->account_no;
+            
+            $openingBalance = $previousBalances[$account->id]->closing_balance ?? 0.00;
+            $totalDeposit = $deposits[$accountKey]->total ?? 0.00;
+            $totalWithdrawal = $withdrawals[$accountKey]->total ?? 0.00;
+            $transferIn = $transfersIn[$accountKey]->total ?? 0.00;
+            $transferOut = $transfersOut[$accountKey]->total ?? 0.00;
+            
+            $data[$key] = [
+                'e_wallet_name' => $account->e_wallet_name,
+                'account_no' => $account->account_no,
+                'opening_balance' => $openingBalance,
+                'total_deposit' => $totalDeposit,
+                'total_withdrawal' => $totalWithdrawal,
+                'transfer_in' => $transferIn,
+                'transfer_out' => $transferOut,
+                'closing_balance' => $openingBalance + $totalDeposit - $totalWithdrawal + $transferIn - $transferOut
+            ];
         }
+
         $pageTitle = "Daily E-Wallet Summary";
-        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'data','EWalletAccounts'));
+        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'data', 'EWalletAccounts'));
     }
 
 

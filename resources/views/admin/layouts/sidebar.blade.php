@@ -659,20 +659,20 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </a>
 
                         <ul class="menu-sub">
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
-                            </li>
+                            </li> --}}
 
                             @if(adminAccessRoute(config('role.parent_group.access.view')))
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
+                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Partner Group">Partner Group</div>
                                 </a>
-                            </li>
+                            </li> --}}
                             @endif
                             @if(adminAccessRoute(config('role.work_board.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">

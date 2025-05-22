@@ -216,6 +216,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/partner/commission/{id}', [PayoutRecordController::class, 'partnerCommission'])->name('partner.commision.form');
         Route::post('/add-partner/commission', [PayoutRecordController::class, 'addpartnerCommission'])->name('add.partner.commission');
 
+        Route::delete('/partner/commission/{id}', [PayoutRecordController::class, 'commissionDelete'])->name('partner.commission.delete');
+        Route::get('/partner/commissionedit/{id}', [PayoutRecordController::class, 'partnerCommissionedit'])->name('partner.commisionedit.form');
+        Route::post('/edit-partner/commission', [PayoutRecordController::class, 'editpartnerCommission'])->name('edit.partner.commission');
+
 
 
         Route::get('/apis/balance/add', [PayoutRecordController::class, 'apisBalanceAddGet'])->name('apis.balance.add.get');

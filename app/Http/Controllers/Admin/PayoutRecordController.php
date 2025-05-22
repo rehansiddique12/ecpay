@@ -1906,8 +1906,8 @@ class PayoutRecordController extends Controller
     {
         $api = Api::where('id',$id)->first();
         $partners = Api::where('id', '!=', $id)->get();
-        $cron_commissions = CronCommission::where('category_id', $id)->get();
-
+        // $cron_commissions = CronCommission::where('category_id', $id)->get();
+        $user_id = $api->id;
         $commissions = Commission::where('category_id', $api->category_id)->get();
         $gateways = Gateway::where('status', 1)->get();
         $pageTitle = "Partner Commissions";
@@ -1915,29 +1915,94 @@ class PayoutRecordController extends Controller
         $records = "";
 
         return view('admin.payout.partner_commission', compact(
-            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways','partners'
+            'records', 'pageTitle', 'commissions','id' ,'gateways','partners','user_id'
         ));
     }
 
     public function addpartnerCommission(Request $request){
-      $api = Api::findOrFail($request->user_id);
-      $commissions = Commission::where('category_id', $api->category_id)->get();
+        
+        $api = Api::findOrFail($request->user_id);
+        $commissions = Commission::where('category_id', $api->category_id)->get();
+        foreach ($commissions as $key => $commission) {
+            $ParentCommission = ParentCommission::where('commission_id', $commission->id)->where('parent_id', $request->partner_id)->where('user_id', $request->user_id)->first();
+            if($ParentCommission){
+                $ParentCommission->update([
+                    'from_amount' => $commission->from_amount,
+                    'to_amount' => $commission->to_amount,
+                    'deposit_percentage' => $request->deposit_percentage[$key],
+                    'withdrawal_percentage' => $request->withdrawal_percentage[$key],
+                    'parent_id' => $request->partner_id,
+                    'user_id' => $request->user_id,
+                    'type' => $commission->type,
+                    'gateway_id' => $request->gateway_id,
+                    'commission_id' => $commission->id,
+                ]);
+            }else{
+                ParentCommission::create([
+                    'from_amount' => $commission->from_amount,
+                    'to_amount' => $commission->to_amount,
+                    'deposit_percentage' => $request->deposit_percentage[$key],
+                    'withdrawal_percentage' => $request->withdrawal_percentage[$key],
+                    'parent_id' => $request->partner_id,
+                    'user_id' => $request->user_id,
+                    'type' => $commission->type,
+                    'gateway_id' => $request->gateway_id,
+                    'commission_id' => $commission->id,
+                ]);
+            }
+            
+                
+        }
+        return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
 
-    foreach ($commissions as $commission) {
-        ParentCommission::create([
-            'from_amount' => $commission->from_amount,
-            'to_amount' => $commission->to_amount,
-            'deposit_percentage' => $request->deposit_percentage,
-            'withdrawal_percentage' => $request->withdrawal_percentage,
-            'parent_id' => $request->partner_id,
-            'user_id' => $request->user_id,
-            'type' => $commission->type,
-            'gateway_id' => $request->gateway_id,
-        ]);
     }
 
-    return redirect()->back()->with('success', 'Partner commissions added successfully.');
 
+    public function partnerCommissionedit($cid)
+    {
+        $ParentCommission = ParentCommission::where('id', $cid)->first();
+        $id = $ParentCommission->user_id;
+        $parent_id = $ParentCommission->parent_id;
+        $user_id = $ParentCommission->user_id;
+        
+
+        $partner = Api::where('id', $parent_id)->first();
+     
+        
+        $commission = Commission::where('id', $ParentCommission->commission_id)->first();
+        
+        
+        $gateways = Gateway::where('status', 1)->get();
+        $pageTitle = "Partner Commissions";
+
+        $records = "";
+
+        return view('admin.payout.partner_commission_edit', compact(
+            'records', 'pageTitle', 'commission','id' ,'gateways','partner','user_id','ParentCommission','parent_id','cid'
+        ));
+    }
+
+    public function editpartnerCommission(Request $request){
+
+        $cid = $request->cid;
+        $ParentCommission = ParentCommission::where('id', $cid)->first();
+        $ParentCommission->update([
+            'deposit_percentage' => $request->deposit_percentage,
+            'withdrawal_percentage' => $request->withdrawal_percentage,
+        ]);
+        
+        return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
+
+    }
+
+
+    public function commissionDelete($id){
+        $ParentCommission = ParentCommission::where('id', $id)->first();
+        $user_id = $ParentCommission->user_id;
+        if($ParentCommission){
+            $ParentCommission->delete();
+        }
+        return redirect()->route('admin.merchant.profile', ['id' => $user_id]);
     }
 
     public function toggleStatusApi(Request $request)
