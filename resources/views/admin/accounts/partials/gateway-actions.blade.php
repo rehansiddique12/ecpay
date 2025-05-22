@@ -67,7 +67,7 @@
                 console.error('Method ID missing');
                 return;
             }
-            console.log(($(this).data('name')));
+            // console.log(($(this).data('name')));
 
             // Build the update URL dynamically
             let updateUrlTemplate = "{{ route('admin.deposit.accounts.update', ':id') }}";
@@ -96,7 +96,7 @@
 
             // Checkbox status - checked if status == 1 (active)
             let status = $(this).data('status');
-            $("#editMethodModal input[name='status']").prop("checked", status == 1);
+            $("#editMethodModal input[name='edit_status']").prop("checked", status == 1);
     });
 
 </script>

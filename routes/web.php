@@ -402,18 +402,19 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/activity-logs', [MerchantController::class, 'fetchActivityLogs'])->name('fetchActivityLogs');
 
 
+        Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
 
 
-   Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
-    Route::get('/', [CCategoryController::class, 'index'])->name('index');
-    Route::post('/', [CCategoryController::class, 'store'])->name('store');
-    Route::put('/', [CCategoryController::class, 'update'])->name('update');
-    Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
-    });
+        Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
+            Route::get('/', [CCategoryController::class, 'index'])->name('index');
+            Route::post('/', [CCategoryController::class, 'store'])->name('store');
+            Route::put('/', [CCategoryController::class, 'update'])->name('update');
+            Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
+            });
 
 
 
-    });
+        });
 
     // User Location Routes
     // Route::get('users/location', [UsersController::class, 'location'])->name('users.location');

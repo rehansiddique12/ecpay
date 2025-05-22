@@ -30,6 +30,15 @@
 
                         <div>
                             <button
+                                class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.account_group') }}" class="menu-link">
+                                    <div data-i18n="Account Group">Account Group</div>
+                                </a>
+                            </button>
+                        </div>
+
+                        <div>
+                            <button
                                 class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
                                     <div data-i18n="Gateway">Gateway</div>
@@ -255,8 +264,8 @@
                                     <div class="input-group-prepend"><span class="input-group-text">1
                                             {{ $basic->currency ?? 'USD' }} =</span></div>
                                     <input type="text" name="edit_convention_rate" class="form-control" value="">
-                                    <div class="input-group-append"><span class="input-group-text set-currency"></span>
-                                    </div>
+                                    {{-- <div class="input-group-append"><span class="input-group-text set-currency"></span>
+                                    </div> --}}
                                 </div>
                                 <span class="error_text text-danger edit_convention_rate_error"></span>
                             </div>
@@ -369,7 +378,7 @@
                             <label>@lang('Status')</label>
                             <div class="form-check form-switch d-flex align-items-center">
                                 <span id="disableText" class="me-12 text-primary">@lang('No')</span>
-                                <input class="form-check-input" type="checkbox" id="statusSwitch" name="status"
+                                <input class="form-check-input" type="checkbox" id="statusSwitch" name="edit_status"
                                     value="1">
                                 <span id="enableText" class="ms-2 text-secondary">@lang('Yes')</span>
                             </div>
@@ -535,11 +544,11 @@
                     contentType: false,
                     success: function (response) {
                     // Reset form & dropzone preview
-                    $(form)[0].reset();
+                    // $(form)[0].reset();
                     if (myDropzone) myDropzone.removeAllFiles();
 
                     // Hide modal (assuming Bootstrap modal)
-                    $('#editGatewayBtn').modal('hide');
+                    $('#editMethodModal').modal('hide');
 
                     // Reload datatable
                     $('.categories-show-table').DataTable().ajax.reload(null, false);

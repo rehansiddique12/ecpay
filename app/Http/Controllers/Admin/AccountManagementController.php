@@ -6,10 +6,11 @@ use App\Models\Gateway;
 use App\Models\Category;
 use App\Http\Traits\Upload;
 use Illuminate\Support\Str;
+use App\Models\AccountGroup;
 use Illuminate\Http\Request;
+use App\Models\EWalletAccount;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use App\Models\AccountGateway; // use the new model
 
 class AccountManagementController extends Controller
 {
@@ -17,7 +18,7 @@ class AccountManagementController extends Controller
 
     public function index()
     {
-        $data['methods'] = AccountGateway::orderBy('sort_by', 'asc')->get();
+        $data['methods'] = Gateway::orderBy('sort_by', 'asc')->get();
         $data['types'] = Category::where('status', '1')->get();
         $data['pageTitle'] = 'Payment Methods';
 
@@ -176,104 +177,94 @@ class AccountManagementController extends Controller
         ]);
     }
 
-
-
     public function edit($id)
     {
 
-        $data['method'] = AccountGateway::findOrFail($id);
+        $data['method'] = Gateway::findOrFail($id);
         $data['pageTitle'] = 'Edit Payment Method';
 
         return view('admin.payment_methods.accounts.edit', $data);
     }
 
-   public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'currency' => 'required|string|max:10',
-            'convention_rate' => 'required|numeric',
-            'minimum_deposit_amount' => 'required|numeric',
-            'maximum_deposit_amount' => 'required|numeric',
-            'minimum_withdrawal_amount' => 'required|numeric',
-            'maximum_withdrawal_amount' => 'required|numeric',
-            'percentage_deposit_charge' => 'nullable|numeric',
-            'fixed_deposit_charge' => 'nullable|numeric',
-            'percentage_withdraw_charge' => 'nullable|numeric',
-            'fixed_withdraw_charge' => 'nullable|numeric',
-            'status' => 'nullable|in:0,1',
-            'note' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ];
+        $gateway = Gateway::findOrFail($id);
 
-        $gateway = AccountGateway::findOrFail($id);
+        $validated = $request->validate([
+            'edit_name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($id) {
+                    $code = strtolower($value);
+                    if (Gateway::where('code', $code)->where('id', '!=', $id)->exists()) {
+                        $fail('The name field results in a duplicate code: ' . $code);
+                    }
+                }
+            ],
+            'edit_currency' => 'required|string|max:10',
+            // 'edit_type' => 'required|exists:categories,id',
+            'edit_minimum_deposit_amount' => 'required|numeric|min:0',
+            'edit_maximum_deposit_amount' => 'required|numeric',
+            'edit_minimum_withdrawal_amount' => 'required|numeric|min:0',
+            'edit_maximum_withdrawal_amount' => 'required|numeric',
+            'edit_convention_rate' => 'required|numeric|min:0',
+            'edit_percentage_charge' => 'required|numeric|min:0',
+            'edit_fixed_charge' => 'required|numeric|min:0',
+            'edit_status' => 'nullable|boolean',
+            'edit_note' => 'nullable',
+            'edit_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        // Validate request
-        $validator = Validator::make($request->all(), $rules);
+        // Handle image update
+        if ($request->hasFile('edit_file')) {
+            $file = $request->file('edit_file');
+            $destinationPath = base_path('assets/uploads/gateway');
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Handle dynamic fields
-        $input_form = [];
-
-        if ($request->has('field_name')) {
-            for ($a = 0; $a < count($request->field_name); $a++) {
-                $arr = [
-                    'field_name' => clean($request->field_name[$a]),
-                    'field_level' => $request->field_name[$a],
-                    'type' => $request->type[$a] ?? '',
-                    'validation' => $request->validation[$a] ?? ''
-                ];
-                $input_form[$arr['field_name']] = $arr;
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
             }
-        }
 
-        // Handle file upload
-        if ($request->hasFile('image')) {
-            try {
-                $old = $gateway->image ?? null;
-                $gateway->image = $this->uploadImage(
-                    $request->file('image'),
-                    config('location.accounts.path'),
-                    config('location.accounts.size'),
-                    $old
-                );
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Image could not be uploaded.'], 500);
+            // Delete old image if exists
+            if ($gateway->image && file_exists($destinationPath . '/' . $gateway->image)) {
+                unlink($destinationPath . '/' . $gateway->image);
             }
+
+            // Save new image
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move($destinationPath, $filename);
+            $validated['image'] = $filename;
         }
 
-        // Assign data
-        try {
-            $gateway->name = $request->name;
-            $gateway->currency = $request->currency;
-            $gateway->symbol = $request->currency;
-            $gateway->convention_rate = $request->convention_rate;
-            $gateway->withdraw_convention_rate = $request->withdraw_convention_rate ?? $request->convention_rate;
-            $gateway->min_amount = $request->minimum_deposit_amount;
-            $gateway->max_amount = $request->maximum_deposit_amount;
-            $gateway->minimum_withdrawal_amount = $request->minimum_withdrawal_amount;
-            $gateway->maximum_withdrawal_amount = $request->maximum_withdrawal_amount;
-            $gateway->fixed_deposit_charge = $request->fixed_deposit_charge;
-            $gateway->percentage_deposit_charge = $request->percentage_deposit_charge;
-            $gateway->fixed_withdraw_charge = $request->fixed_withdraw_charge;
-            $gateway->percentage_withdraw_charge = $request->percentage_withdraw_charge;
-            $gateway->daily_withdraw_limit = $request->daily_withdraw_limit;
-            $gateway->monthly_withdraw_limit = $request->monthly_withdraw_limit;
-            $gateway->daily_deposit_limit = $request->daily_deposit_limit;
-            $gateway->monthly_deposit_limit = $request->monthly_deposit_limit;
-            $gateway->parameters = $input_form;
-            $gateway->status = $request->has('status') ? 1 : 0;
-            $gateway->note = $request->note;
+        // Convert checkbox into boolean
+        $validated['status'] = $request->has('edit_status') ? 1 : 0;
 
-            $gateway->save();
+        // Field mappings (same as store)
+        $gateway->name = $validated['edit_name'];
+        $gateway->code = strtolower($validated['edit_name']);
+        $gateway->currency = $validated['edit_currency'];
+        $gateway->symbol = $validated['edit_currency'];
+        // $gateway->category_id = $validated['type'];
+        $gateway->min_amount = $validated['edit_minimum_deposit_amount'];
+        $gateway->max_amount = $validated['edit_maximum_deposit_amount'];
+        $gateway->min_withdrawal_amount = $validated['edit_minimum_withdrawal_amount'];
+        $gateway->max_withdrawal_amount = $validated['edit_maximum_withdrawal_amount'];
 
-            return response()->json(['success' => 'Payment Method has been updated.']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+        $gateway->convention_rate = $validated['edit_convention_rate'];
+        $gateway->percentage_charge = $validated['edit_percentage_charge'];
+        $gateway->fixed_charge = $validated['edit_fixed_charge'];
+        $gateway->status = $validated['status'];
+        $gateway->note = $validated['edit_note'];
+
+        if (isset($validated['image'])) {
+            $gateway->image = $validated['image'];
         }
+
+        $gateway->save();
+
+        return response()->json([
+            'message' => 'Gateway updated successfully!',
+        ]);
     }
 
 
@@ -295,6 +286,22 @@ class AccountManagementController extends Controller
                 'message' => 'An error occurred while updating the gateway status.',
             ], 500);
         }
+    }
+
+    public function accountGroup()
+    {
+        $pageTitle="Account Group";
+        $groups = AccountGroup::all();
+        $records = EWalletAccount::with(['apiHits' => function ($query) {
+            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        }])->paginate(20);
+
+
+        foreach ($records as $record) {
+            $record->live = $record->apiHits ? 1 : 0;
+        }
+        // dd($records);
+        return  view('admin.accounts.groups' , compact('pageTitle' , 'groups' , 'records'));
     }
 
 }
