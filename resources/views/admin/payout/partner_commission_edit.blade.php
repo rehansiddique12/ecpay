@@ -17,21 +17,16 @@
             <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
 
-                <form action="{{ route('admin.add.partner.commission') }}" method="POST">
+                <form action="{{ route('admin.edit.partner.commission') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="cid" value="{{ $cid }}">
                     <input type="hidden" name="user_id" value="{{ $user_id }}">
+                    <input type="hidden" name="partner_id" value="{{ $parent_id }}">
                     <div class="mb-3">
-                        <label for="partner_id" class="form-label">Select Parent</label>
-                        <select name="partner_id" style="border:2px solid green;" id="partner_id" class="form-select" required>
-                            <option value="">-- Choose Parent --</option>
-                            @foreach ($partners as $partner)
-                            <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                            @endforeach
-                        </select>
+                        <label for="partner_id" class="form-label">Parent</label>
+                        <input type="text" readonly class="form-control" name="partner_id" value="{{ $partner->name }}">
                     </div>
 
-                    @if(count($commissions) > 0)
-                    @foreach($commissions as $commission)
                     <div id="row-p{{ $key }}">
                         <br>
                         <div style="border:1px solid;padding:20px">
@@ -40,7 +35,7 @@
                                     <div class="row">
                                     <div class="col-md-3">
                                         <label>From Amount</label>
-                                        <input type="hidden" name="id[]" value="{{ $commission->id }}">
+                                        <input type="hidden" name="id" value="{{ $commission->id }}">
                                         <input type="number" class="form-control"
                                             value="{{ $commission->from_amount }}" readonly>
                                     </div>
@@ -103,25 +98,18 @@
                             <div class="row">
                                 <div class="col-md-6 mt-4">
                                     <label for="deposit" class="form-label">Deposit Percentage</label>
-                                    <input style="border:2px solid green;" type="number" name="deposit_percentage[]" id="deposit" class="form-control" step="0.01"
+                                    <input style="border:2px solid green;" type="number" name="deposit_percentage" value="{{ $ParentCommission->deposit_percentage }}" id="deposit" class="form-control" step="0.01"
                                         placeholder="Enter deposit percentage">
                                 </div>
                                 <div class="col-md-6 mt-4">
                                     <label for="withdrawal" class="form-label">Withdrawal Percentage</label>
-                                    <input style="border:2px solid green;" type="number" name="withdrawal_percentage[]" id="withdrawal" class="form-control" step="0.01"
+                                    <input style="border:2px solid green;" type="number" name="withdrawal_percentage" value="{{ $ParentCommission->withdrawal_percentage }}" id="withdrawal" class="form-control" step="0.01"
                                         placeholder="Enter withdrawal percentage">
                                 </div>
                                 
                             </div>
                         </div>
                     </div>
-                    @php
-                    $key++;
-                    @endphp
-                    @endforeach
-                    @else
-                    
-                    @endif
 
                     <div class="col-md-12">
                         <button type="submit" class="btn btn-primary">Submit</button>
