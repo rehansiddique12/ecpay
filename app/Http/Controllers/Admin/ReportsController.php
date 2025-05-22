@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Api;
+use App\Models\Log;
 use App\Models\Payout;
 use App\Models\Payment;
 use App\Models\Settlement;
