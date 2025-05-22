@@ -138,15 +138,24 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         // accounts details
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
+        Route::get('/accounts-management/add-account', [CategoryController::class, 'addAccount'])->name('account_management.add_account');
+        Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
+
+
+        Route::get('/accounts-management/add-gateways', [CategoryController::class, 'gateway'])->name('account_management.gateway');
+
+
+
+
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
-        Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
+        Route::delete('/categories/delete', [CategoryController::class, 'destroy'])->name('category.delete');
+        Route::post('/categories/update/{id}', [CategoryController::class, 'update'])->name('category.update');
 
         Route::get('/account/groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
         Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
-        Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
+
+
         // rehan Reports:
         Route::get('reports/cal', [ReportsController::class, 'cal'])->name('reports.cal');
         Route::get('reports/logs', [ReportsController::class, 'logs'])->name('reports.logs');
@@ -367,8 +376,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment-methods/manual/new/accounts', [AccountManagementController::class, 'create'])->name('deposit.accounts.create');
         Route::post('payment-methods/manual/new/accounts', [AccountManagementController::class, 'store'])->name('deposit.accounts.store');
         Route::get('payment-methods/manual/edit/{id}/accounts', [AccountManagementController::class, 'edit'])->name('deposit.maccounts.edit');
-        Route::put('payment-methods/manual/update/{id}/accounts', [AccountManagementController::class, 'update'])->name('deposit.accounts.update');
-        Route::post('payment-methods/deactivate/accounts', [AccountManagementController::class, 'deactivate'])->name('accounts.payment.methods.deactivate');
+        Route::post('payment-methods/manual/update/{id}/accounts', [AccountManagementController::class, 'update'])->name('deposit.accounts.update');
+        Route::post('payment-methods/deactivate/accounts/{id?}', [AccountManagementController::class, 'deactivate'])->name('accounts.payment.methods.deactivate');
         Route::get('payment-methods/deactivate/accounts', [AccountManagementController::class, 'deactivate'])->name('.accountsl.payment.methods.deactivate');
 
         Route::get('/e-wallet/accounts', [PayoutRecordController::class, 'eWalletAccounts'])->name('ewallet.accounts');

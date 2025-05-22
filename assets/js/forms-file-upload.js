@@ -33,7 +33,7 @@
     const myDropzone = new Dropzone(dropzoneBasic, {
       previewTemplate: previewTemplate,
       parallelUploads: 1,
-      maxFilesize: 5,
+      maxFilesize: 1,
       addRemoveLinks: true,
       maxFiles: 1
     });

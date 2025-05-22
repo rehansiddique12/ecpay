@@ -6,14 +6,18 @@ namespace App\Http\Controllers\Admin;
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Models\Gateway;
+use App\Models\Category;
+
+use App\Models\AccountGroup;
+use Illuminate\Http\Request;
 use App\Models\AccountGateway;
 
 use App\Models\EWalletAccount;
-use App\Models\Category;
-use App\Models\AccountGroup;
-
-use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Http\Controllers\Controller;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -37,40 +41,149 @@ class CategoryController extends Controller
         return view('admin.accounts.ewallet_accounts', $data);
     }
 
+    public function addAccount(Request $request)
+    {
+        $pageTitle = 'Add New Account';
+        $categories = Category::select('name', 'id')->get();
+        $methods = Gateway::select('name', 'id')->where('status', 1)->get();
+
+        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods'));
+    }
+
+    public  function  addCategory(Request $request)
+    {
+        $pageTitle = 'Categories List';
+        // $categories = Category::select('name' , 'id' , 'status')->get();
+
+        if (request()->ajax()) {
+            $categories = Category::orderBy('id', 'DESC');
+
+            return DataTables::of($categories)
+                ->addIndexColumn()
+
+                ->addColumn('status', function ($category) {
+                    $statusClass = $category->status == 1 ? 'bg-success' : 'bg-danger';
+                    $statusText = $category->status == 1 ? 'Active' : 'Deactive';
+
+                    return '<span class="toggle-status" data-id="' . $category->id . '" style="cursor:pointer;">' . ($category->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '</span>';
+                })
+                ->addColumn('action', function ($category) {
+                    return view('admin.accounts.partials.location-actions', compact('category'))->render();
+                })
+                ->rawColumns(['action', 'status'])
+                ->make(true);
+        }
+
+        return view('admin.accounts.add_category', compact('pageTitle'));
+    }
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
+        // Use manual validation to return JSON on failure
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name',
             'status' => 'required|boolean',
-
         ]);
 
-        Category::create($validated);
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        return redirect()->back()->with('success', 'Category created.');
+        $category = Category::create($validator->validated());
+
+        return response()->json([
+            'success' => 'true',
+            'message' => 'Category created successfully.',
+            'data' => $category
+        ]);
     }
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'status' => 'required|boolean',
 
+        $request->validate([
+            'edit_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->ignore($id),
+            ],
+            'edit_status' => 'required|boolean',
         ]);
 
-        $category = Category::findOrFail($id);
-        $category->update($validated);
+        $category = Category::find($id);
 
-        return redirect()->back()->with('success', 'Category updated.');
+        if (!$category) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Category not found.'
+            ], 404);
+        }
+
+        $category->update([
+            'name' => $request->input('edit_name'),
+            'status' => $request->input('edit_status'),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Category updated successfully.',
+            'data' => $category,
+        ]);
     }
 
-    public function destroy($id)
+
+    public function destroy(Request $request)
     {
-        $category = Category::findOrFail($id);
+        $id = (int)$request->input('id');
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found.'
+            ], 404);
+        }
+
         $category->delete();
 
-        return redirect()->back()->with('success', 'Category deleted.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Category deleted successfully.'
+        ]);
     }
+
+
+    public function gateway()
+    {
+        $pageTitle = 'Gateways';
+        if (request()->ajax()) {
+            $gateways = Gateway::orderBy('id', 'DESC');
+
+            return DataTables::of($gateways)
+                ->addIndexColumn()
+                ->editColumn('status', function ($gateways) {
+                    $toggleRoute = route('admin.accounts.payment.methods.deactivate', $gateways->id);
+
+                    return '<span class="toggle-status"
+                                data-id="' . $gateways->id . '"
+                                data-url="' . $toggleRoute . '"
+                                style="cursor: pointer;">
+                                ' . ($gateways->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '
+                            </span>';
+                })
+                ->addColumn('action', function ($gateway) {
+                    return view('admin.accounts.partials.gateway-actions', compact('gateway'))->render();
+                })
+                ->rawColumns(['action', 'status'])
+                ->make(true);
+        }
+        $categories = Category::all();
+        return view('admin.accounts.add_gateway', compact('pageTitle' , 'categories'));
+    }
+
 
     public function updateLimits()
     {
