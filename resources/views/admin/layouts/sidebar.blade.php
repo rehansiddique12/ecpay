@@ -856,6 +856,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
                         @endif
+                        @if(adminAccessRoute(config('role.partnersbalance.access.add')))
+                        <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
+                            <a href="{{ route('admin.agent.list') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Merchant List">Agent List </div>
+                            </a>
+                        </li>
+                        @endif
                         @if(adminAccessRoute(config('role.commissions.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : '' }}">

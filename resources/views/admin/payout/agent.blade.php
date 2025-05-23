@@ -69,11 +69,7 @@
                                     <th scope="col">@lang('ID')</th>
                                     <th scope="col">@lang('Name')</th>
                                     <th scope="col">@lang('Username')</th>
-                                    <th scope="col">@lang('Website')</th>
-                                    <th class="setcolumn" scope="col">API End-Point</th>
-                                    <th class="setcolumn" scope="col">@lang('Keys')</th>
                                     <th scope="col">@lang('Balance')</th>
-                                    <th scope="col">@lang('Min')</th>
                                     <th scope="col">@lang('Status')</th>
                                     <th>Action</th>
                                 </tr>
@@ -87,48 +83,7 @@
                                             }}</a>
                                     </td>
                                     <td style="max-width: 100px;">{{ $item['username'] }}</td>
-                                    <td style="max-width: 130px;"><span class="editable" data-id="{{ $item['id'] }}"
-                                            data-field="website">{{ $item['website'] }}</span></td>
-                                    <td style="max-width: 220px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                            style="border-radius: 8px; padding: 7px;">Deposit:</span>
-                                        {{ $item['api_endpoint_deposit'] }}<br>
-
-                                        <span class="bg-warning text-white  d-inline-block mt-2 mb-2"
-                                            style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
-                                        {{ $item['api_endpoint_withdrawal'] }}<br>
-
-                                        <span class="bg-info text-white  d-inline-block mt-2"
-                                            style="border-radius: 10px; padding: 7px;">Redirect
-                                            URL:</span>
-                                        {{ $item['redirect_url'] }}<br>
-                                    </td>
-
-                                    <td style="max-width: 220px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                            style="border-radius: 6px; padding: 7px;">API Key:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="api_key">{{
-                                            $item['api_key'] }}</span>
-                                        <br>
-
-                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
-                                            style="border-radius: 8px; padding: 7px;">Secret
-                                            Key:</span>
-                                        {{ $item['secret_key'] }}
-                                    </td>
-
                                     <td>{{ $item['balance'] }}</td>
-                                    <td style="max-width: 300px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                            style="border-radius: 6px; padding: 7px;">Deposit:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}" data-field="min_deposit">{{
-                                            $item['min_deposit'] }}</span><br>
-
-                                        <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2"
-                                            style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
-                                        <span class="editable" data-id="{{ $item['id'] }}"
-                                            data-field="min_withdrawal">{{ $item['min_withdrawal'] }}</span>
-                                    </td>
 
                                     <td data-label="@lang('Status')" class="text-lg-center text-right">
                                         {{-- Flex container for Status --}}
@@ -139,30 +94,6 @@
                                                     {{ $item->status == 1 ? 'checked' : '' }}>
                                                 <span class="slider {{ $item->status == 1 ? 'active' : 'deactive' }}">
                                                     {{ $item->status == 1 ? __('Active') : __('Deactive') }}
-                                                </span>
-                                            </label>
-                                        </div>
-
-                                        {{-- Flex container for Sign --}}
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>@lang('Sign')</span>
-                                            <label class="switch mb-0">
-                                                <input type="checkbox" class="toggle-switch" data-id="{{ $item->id }}" data-type="sign"
-                                                    {{ $item->sign == 1 ? 'checked' : '' }}>
-                                                <span class="slider {{ $item->sign == 1 ? 'active' : 'deactive' }}">
-                                                    {{ $item->sign == 1 ? __('Active') : __('Inactive') }}
-                                                </span>
-                                            </label>
-                                        </div>
-
-                                        {{-- Flex container for Transaction Verification --}}
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>@lang('Txn')</span>
-                                            <label class="switch mb-0">
-                                                <input type="checkbox" class="toggle-switch" data-id="{{ $item->id }}" data-type="txn_verification"
-                                                    {{ $item->txn_verification == 1 ? 'checked' : '' }}>
-                                                <span class="slider {{ $item->txn_verification == 1 ? 'active' : 'deactive' }}">
-                                                    {{ $item->txn_verification == 1 ? __('Required') : __('Optional') }}
                                                 </span>
                                             </label>
                                         </div>
@@ -222,12 +153,6 @@
                                             data-bs-toggle="tooltip" data-bs-placement="right" title="QR Code">
                                             <i class="icon-base ti tabler-qrcode me-1"></i>
                                         </a>
-                                        {{-- <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">
-                                            <button type="submit" class="btn"
-                                                data-bs-placement="right" title="QR Code">
-                                                <i class="icon-base ti tabler-qrcode me-1"></i>
-                                            </button>
-                                        </form> --}}
                                     </td>
                                 </tr>
                                 @empty
@@ -252,156 +177,6 @@
 
     </div>
 
-    {{-- ye awaly --}}
-    @foreach ($records as $item)
-    <!-- Edit Modal -->
-    <div id="editModal{{ $item['id'] }}" class="modal modal-top fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-
-                <div class="modal-header modal-colored-header bg-warning">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Edit Record') </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('admin.apis.update', $item['id']) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-body">
-                        <div class="row justify-content-between align-items-center">
-                            <!-- Input fields for editing the record -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Name</label>
-                                    <input type="text" class="form-control" name="name" value="{{ $item['name'] }}"
-                                        required />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Username</label>
-                                    <input type="text" class="form-control" name="username"
-                                        value="{{ $item['username'] }}" required />
-                                </div>
-                            </div>
-                            <!-- Add other input fields for editing here -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Email</label>
-                                    <input type="text" class="form-control" name="email" value="{{ $item['email'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Phone</label>
-                                    <input type="text" class="form-control" name="phone" value="{{ $item['phone'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Min Deposit</label>
-                                    <input type="number" class="form-control" name="min_deposit"
-                                        value="{{ $item['min_deposit'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Min Withdrawal</label>
-                                    <input type="number" class="form-control" name="min_withdrawal"
-                                        value="{{ $item['min_withdrawal'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Account Type</label>
-                                    <select class="form-control" name="acc_type" required>
-                                        <option value="Partner" {{ $item['acc_type']=='Partner' ? 'selected' : '' }}>
-                                            Partner</option>
-                                        <option value="Agent" {{ $item['acc_type']=='Agent' ? 'selected' : '' }}>Agent
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Status</label>
-                                    <select class="form-control" name="status" required>
-                                        <option value="1" {{ $item['status']==1 ? 'selected' : '' }}>Active
-                                        </option>
-                                        <option value="0" {{ $item['status']==0 ? 'selected' : '' }}>
-                                            Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Signature</label>
-                                    <select class="form-control" name="sign" required>
-                                        <option value="0" {{ $item['sign']==0 ? 'selected' : '' }}>Inactive
-                                        </option>
-                                        <option value="1" {{ $item['sign']==1 ? 'selected' : '' }}>Active
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Txn Verification</label>
-                                    <select class="form-control" name="txn_verification" required>
-                                        <option value="0" {{ $item['txn_verification']==0 ? 'selected' : '' }}>
-                                            Optional</option>
-                                        <option value="1" {{ $item['txn_verification']==1 ? 'selected' : '' }}>
-                                            Required</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Password</label>
-                                    <input type="text" class="form-control" name="password" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Website</label>
-                                    <input type="text" class="form-control" placeholder="http://ecwin.asia"
-                                        name="website" value="{{ $item['website'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">API End-Point Deposit</label>
-                                    <input type="text" class="form-control" name="api_endpoint_deposit"
-                                        placeholder="http://ecwin.asia/api"
-                                        value="{{ $item['api_endpoint_deposit'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">API End-Point Withdrawal</label>
-                                    <input type="text" class="form-control" name="api_endpoint_withdrawal"
-                                        placeholder="http://ecwin.asia/api"
-                                        value="{{ $item['api_endpoint_withdrawal'] }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Redirect URL</label>
-                                    <input type="text" class="form-control" name="redirect_url"
-                                        placeholder="http://ecwin.asia" value="{{ $item['redirect_url'] }}" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">@lang('Update')</button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
-                            aria-label="Close">@lang('Close')</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endforeach
 
     {{-- New MODAL --}}
     <div class="modal modal-top fade" id="newModal" tabindex="-1" data-bs-backdrop="static">
@@ -409,10 +184,10 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Add New API')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">@lang('Add Agent')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('admin.apis.add') }}" method="POST">
+                <form action="{{ route('admin.agent.add') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
@@ -430,32 +205,6 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">E-Mail</label>
-                                    <input type="text" class="form-control" name="email" />
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Phone</label>
-                                    <input type="text" class="form-control" name="phone" />
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Min Deposit</label>
-                                    <input type="number" class="form-control" name="min_deposit" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Min Withdrawal</label>
-                                    <input type="number" class="form-control" name="min_withdrawal" />
-                                </div>
-                            </div>
 
                             <div class="col-md-12">
                                 <div class="form-group">
@@ -466,15 +215,6 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Account Type</label>
-                                    <select class="form-control" name="acc_type" required>
-                                        <option value="Partner">Partner</option>
-                                        <option value="Agent">Agent</option>
-                                    </select>
-                                </div>
-                            </div>
 
                             <div class="col-md-12">
                                 <div class="form-group">
@@ -485,53 +225,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Signature</label>
-                                    <select class="form-control" name="sign" required>
-                                        <option value="0">Inactive</option>
-                                        <option value="1" selected>Active</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Txn Verification</label>
-                                    <select class="form-control" name="txn_verification" required>
-                                        <option value="0">Optional</option>
-                                        <option value="1" selected>Required</option>
-                                    </select>
-                                </div>
-                            </div>
 
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Website</label>
-                                    <input type="text" class="form-control" placeholder="http://ecwin.asia"
-                                        name="website" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">API End-Point</label>
-                                    <input type="text" class="form-control" placeholder="http://ecwin.asia/api"
-                                        name="api_endpoint_deposit" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">API End-Point</label>
-                                    <input type="text" class="form-control" placeholder="http://ecwin.asia/api"
-                                        name="api_endpoint_withdrawal" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Redirect URL</label>
-                                    <input type="text" class="form-control" placeholder="http://ecwin.asia"
-                                        name="redirect_url" />
-                                </div>
-                            </div>
 
                         </div>
                     </div>
@@ -968,6 +662,7 @@
                         method: $form.attr('method'),
                         data: $form.serialize(),
                         success: function (response) {
+                            console.log(response);
                             if (response.status === 'success') {
                                 $('#newModal').modal('hide');
                                 $form[0].reset();
@@ -975,6 +670,7 @@
                             }
                         },
                         error: function (xhr) {
+                            console.log(xhr);
                             if (xhr.status === 422) {
                                 let errors = xhr.responseJSON.errors;
                                 $.each(errors, function (key, value) {
