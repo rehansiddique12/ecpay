@@ -13,4 +13,10 @@ class Category extends Model
 
     protected $fillable = ['name', 'status',
     ];
+
+
+    public function gateways()
+    {
+        return $this->hasMany(Gateway::class, 'category_id');
+    }
 }

@@ -1892,19 +1892,27 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-        $gateways = Gateway::where('status', 1)
-    ->get()
-    ->groupBy('category_id');
-        $categories = Category::where('status', 1)->get();
         
-        dd($gateways);
-        // dd($gateways);
+        $categories = Category::with(['gateways' => function($query) {
+            $query->where('status', 1);
+        }])->where('status', 1)->get();
+
+
+        $allgateways = Gateway::where('status', 1)->get();
+        
+        $gateways = [];
+        foreach ($categories as $category) {
+            foreach ($category->gateways as $gateway) {
+                $gateways[$category->name][] = $gateway->name;
+            }
+        }
+        
         $pageTitle = "Manage Commissions";
 
         $records = "";
 
         return view('admin.payout.commission', compact(
-            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways'
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways','categories','allgateways'
         ));
     }
 
@@ -2277,6 +2285,7 @@ class PayoutRecordController extends Controller
                 $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
                 $new_commission->settlement_percentage = $request->settlement_percentage[$i];
                 $new_commission->category_id = $request->category_id;
+                $new_commission->category = $request->category[$i];
 
                 $new_commission->type = $types;
                 $new_commission->gateway_id = $gateway_ids; // store as JSON
@@ -2292,6 +2301,7 @@ class PayoutRecordController extends Controller
                 $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
                 $cron_commission->category_id = $request->category_id;
                 $cron_commission->commission_id = $commission_id;
+                $cron_commission->category = $request->category[$i];
 
                 $cron_commission->type = $types;
                 $cron_commission->gateway_id = $gateway_ids;
