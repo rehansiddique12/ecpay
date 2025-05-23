@@ -169,39 +169,90 @@
                                     <div class="card-body position-relative">
                                         <p
                                             class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
-                                            Partner Commissions
+                                            Parent Commissions
                                             <!-- Plus Button -->
                                             <a href="{{ route('admin.partner.commision.form', ['id' => $id]) }}"
                                                 class="btn btn-sm btn-primary" title="Add New">
-                                                <i class="ti ti-plus">Add</i>
+                                                <i class="fa fa-plus"></i>
                                             </a>
 
                                         </p>
-                                        <table class="table table-bordered table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Partner</th>
-                                                    <th>Deposit Percentage</th>
-                                                    <th>Withdrawal Percentage</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                        
                                                 @forelse ($PartnerCommission as $index => $pcom)
-                                                <tr>
-                                                    <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $pcom->partner->name ?? '-' }}</td>
-                                                    <td>{{ $pcom->deposit_percentage }}%</td>
-                                                    <td>{{ $pcom->withdrawal_percentage }}%</td>
-                                                </tr>
-                                                @empty
-                                                <tr>
-                                                    <td colspan="4" class="text-center">No partner commissions found.
-                                                    </td>
-                                                </tr>
+                                                    <div class="row">
+                                                        
+                                                        <div class="col-3">{{ $pcom->partner->name ?? '-' }}</div>
+                                                        <div class="col-3 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
+                                                        <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
+                                                        <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%</div>
+                                                        <div class="col-2 d-flex align-items-center gap-2">
+                                                            <!-- Edit Button -->
+                                                            <a href="{{ route('admin.partner.commisionedit.form', ['id' => $pcom->id]) }}">
+                                                                <i class="fa fa-edit text-warning"></i>
+                                                            </a>
+                                                        
+                                                            <!-- Delete Form -->
+                                                            <form action="{{ route('admin.partner.commission.delete', $pcom->id) }}"
+                                                                method="POST"
+                                                                class="delete-form"
+                                                                data-id="{{ $pcom->id }}">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-sm btn-icon edit_button p-0 m-0">
+                                                                    <i class="fa fa-trash text-danger"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                        
+                                                    </div>
+                                                    @empty
+                                                    <div class="row">
+                                                        <div class="col-12">No partner commissions found.</div>
+                                                    </div>
                                                 @endforelse
-                                            </tbody>
-                                        </table>
+                                            <div class="col-4">
+
+                                            </div>
+                                        
+                                        
+                                    </div>
+                                </div>
+
+                                <div class="card mb-6">
+                                    <div class="card-body position-relative">
+                                        <p
+                                            class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
+                                            Merchant Commissions
+                                            <!-- Plus Button -->
+                                            
+
+                                        </p>
+                                        
+                                                @forelse ($MCommissions as $index => $pcom)
+                                                @if($index>0)
+                                                <hr>
+                                                @endif
+                                                    <div class="row">
+                                                        
+                                                        <div class="col-3">{{ implode(', ', json_decode($pcom->type, true)) }}</div>
+                                                        <div class="col-3">{{ implode(', ', json_decode($pcom->gateway_id, true)) }}</div>
+                                                        <div class="col-2 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
+                                                        <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
+                                                        <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%</div>
+                                                        
+                                                        
+                                                    </div>
+                                                    
+                                                    @empty
+                                                    <div class="row">
+                                                        <div class="col-12">No commissions found.</div>
+                                                    </div>
+                                                @endforelse
+                                            <div class="col-4">
+
+                                            </div>
+                                        
+                                        
                                     </div>
                                 </div>
                                 @endif
@@ -330,7 +381,35 @@
     </div>
 
     @push('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.delete-form');
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); // stop form
+
+                const itemId = form.getAttribute('data-id');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: `This will permanently delete item ID: ${itemId}`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // proceed to submit
+                    }
+                });
+            });
+        });
+        });    
+
+
     function copyToClipboard(element) {
         const text = element.getAttribute('data-copy');
         navigator.clipboard.writeText(text).then(function() {
@@ -338,6 +417,9 @@
         }, function(err) {
             alert('Failed to copy text: ', err);
         });
+
+
+        
     }
     </script>
     @endpush

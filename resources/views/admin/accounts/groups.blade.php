@@ -1,25 +1,95 @@
-<style>
+<x-admin-layout :title="$pageTitle">
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+    <style>
+        /* Fix for Select2 inside Bootstrap modal */
+        .select2-container {
+            z-index: 9999 !important;
+        }
 
-.select2-container {
-    z-index: 999999 !important;
-}
-</style>
-<!-- In <head> -->
+        .select2-dropdown {
+            z-index: 9999 !important;
+        }
+
+        .modal {
+            overflow-y: auto;
+        }
+    </style>
+    @endpush
+    @php
+    $currentRoute = Route::currentRouteName();
+    @endphp
+
+    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+        <div class="row justify-content-between">
+            <div class="col-md-12">
+                <div class="row ">
+                    <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
+                                    <div data-i18n="Accounts List">Accounts List</div>
+                                </a>
+                            </button>
+                        </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.add_account') }}" class="menu-link">
+                                    <div data-i18n="Add Accounts">Add Accounts</div>
+                                </a>
+                            </button>
+                        </div>
+
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.account_group') }}" class="menu-link">
+                                    <div data-i18n="Account Group">Account Group</div>
+                                </a>
+                            </button>
+                        </div>
+
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                    <div data-i18n="Gateway">Gateway</div>
+                                </a>
+                            </button>
+                        </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.add_category') }}" class="menu-link">
+                                    <div data-i18n="Add Category">Categories</div>
+                                </a>
+                            </button>
+                        </div>
 
 
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-2 mb-3">
-                        <button type="button" class="btn btn-primary btn-sm w-100" data-bs-toggle="modal"
-                            data-bs-target="#groupModal">
-                            Add Group
-                        </button>
                     </div>
                 </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
+        <div class="card-body">
+
+            <div class="">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#groupModal" id="newCategoryButton">
+                        Add Account Group
+                    </button>
+                </div>
+
 
                 <div class="table-responsive">
                     <table class="table table-hover table-striped table-bordered">
@@ -40,9 +110,15 @@
                     </table>
                 </div>
             </div>
+
+
         </div>
+    </div>
+
+
         <!-- Group Modal -->
-        <div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" aria-hidden="true">
+        <div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" aria-hidden="true" data-bs-backdrop="static"
+        data-bs-keyboard="false">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -62,7 +138,7 @@
 
                             <div class="mb-3">
                                 <label for="" class="form-label" >Select Pairs</label>
-                                <select id="" name="pairs[]" class="form-select select2" multiple z-index="1000">
+                                <select id="" name="pairs[]" class="form-select select2" multiple z-index="9999">
                                     @foreach($records as $accounts)
                                     <option value="{{$accounts->account_no}}"> {{$accounts->account_no}}</option>
                                     @endforeach
@@ -82,24 +158,27 @@
             </div>
         </div>
 
-    </div>
-</div>
+    @push('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <script>
+                   let $select = $('.select2').select2({
+                        dropdownParent: $('#groupModal'), // Ensures dropdown appears inside modal
+                        allowClear: true,
+                        selectOnClose: true,
+                    });
+                    // Prevent dropdown from opening on clear
+                    $select.on('select2:unselecting', function (e) {
+                        $(this).data('unselecting', true);
+                    });
 
-<script>
-$(document).ready(function () {
-    // let initialized = false;
-
-    // $('#groupModal').on('shown.bs.modal', function () {
-    //     if (!initialized) {
-    //         $('#groupPairs').select2({
-    //             dropdownParent: $('#groupModal'),
-    //             placeholder: "Search & select pairs",
-    //             width: '100%'
-    //         });
-    //         initialized = true;
-    //     }
-    // });
-
-
-});
-</script>
+                    $select.on('select2:opening', function (e) {
+                        if ($(this).data('unselecting')) {
+                            $(this).removeData('unselecting');
+                            e.preventDefault();
+                        }
+                    });
+    </script>
+    @endpush
+</x-admin-layout>

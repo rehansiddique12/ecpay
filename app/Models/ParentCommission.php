@@ -19,6 +19,7 @@ class ParentCommission extends Model
     'gateway_id',
     'parent_id',
     'type',
+    'commission_id',
 ];
 
 public function category()

@@ -4,7 +4,7 @@
             <div class="mb-3 text-right">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal"
                     id="newCategoryButton">
-                    Add Category
+                    Add Commission Category
                 </button>
             </div>
             <div class="table-responsive">
@@ -13,7 +13,7 @@
                         <tr>
                             <th>@lang('Name')</th>
                             <th>@lang('Created At')</th>
-                            <th>@lang('Status')</th>
+                            {{-- <th>@lang('Status')</th> --}}
                             <th>@lang('Actions')</th>
                         </tr>
                     </thead>
@@ -22,13 +22,13 @@
                         <tr>
                             <td>{{ $item->title }}</td>
                             <td>{{ dateTime($item->created_at, 'd M, Y H:i') }}</td>
-                            <td>
+                            {{-- <td>
                                 @if ($item->status == 1)
                                 <span class="badge bg-success">Active</span>
                                 @else
                                 <span class="badge bg-danger">Inactive</span>
                                 @endif
-                            </td>
+                            </td> --}}
                             <td>
                                 <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
                                     data-bs-target="#editCategoryModal" data-id="{{ $item->id }}"
@@ -72,13 +72,13 @@
                         <label>Category Name</label>
                         <input type="text" class="form-control" name="name" required />
                     </div>
-                    <div class="form-group mt-3">
+                    {{-- <div class="form-group mt-3">
                         <label>Status</label>
                         <select class="form-control" name="status" required>
                             <option value="1">Active</option>
                             <option value="0">Inactive</option>
                         </select>
-                    </div>
+                    </div> --}}
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">@lang('Save')</button>
@@ -103,13 +103,13 @@
                         <label>Category Name</label>
                         <input type="text" class="form-control" name="name" id="editCategoryName" required />
                     </div>
-                    <div class="form-group mt-3">
+                    {{-- <div class="form-group mt-3">
                         <label>Status</label>
                         <select class="form-control" name="status" id="editCategoryStatus" required>
                             <option value="1">Active</option>
                             <option value="0">Inactive</option>
                         </select>
-                    </div>
+                    </div> --}}
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">@lang('Update')</button>
@@ -147,11 +147,10 @@
             var button = $(event.relatedTarget);
             var id = button.data('id');
             var name = button.data('name');
-            var status = button.data('status').toString();
-            alert(status);
+            // var status = button.data('status').toString();
             $('#editCategoryId').val(id);
             $('#editCategoryName').val(name);
-            $('#editCategoryStatus').val(status);
+            // $('#editCategoryStatus').val(status == 1 ? '1' : '0');
         });
 
         $('#deleteCategoryModal').on('show.bs.modal', function(event) {

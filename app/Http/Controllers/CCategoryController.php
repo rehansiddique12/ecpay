@@ -58,8 +58,7 @@ class CCategoryController extends Controller
 public function update(Request $request)
 {
     $request->validate([
-        'name' => 'required|string|max:255',
-        'status' => 'required|boolean',
+        'name' => 'required|string|max:255'
     ]);
 
     try {
@@ -79,9 +78,11 @@ public function update(Request $request)
 
 
     // Delete a category
-  public function destroy(CCategory $category)
-{
+  public function destroy(Request $request)
+{   
+    
     try {
+        $category = CCategory::findOrFail($request->id);
         $category->delete();
         return redirect()->back()->with('success', 'Category deleted successfully.');
     } catch (\Exception $e) {

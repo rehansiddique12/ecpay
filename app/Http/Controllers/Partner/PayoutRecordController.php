@@ -402,8 +402,8 @@ class PayoutRecordController extends Controller
                                     'e_wallet_type' => $order->e_wallet_type,
                                     'charges' => $this->convertStringToNumber($order->charge),
                                     'status' => $order->status,
-                                    'completion_date' => $order->date,
-                                    'completion_time' => $order->time,
+                                    'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                    'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
                                     'created_at' => $order->created_at,
                                     'updated_at' => $order->updated_at,
                                     'sign' => $order->sign,
@@ -1129,8 +1129,8 @@ class PayoutRecordController extends Controller
                                         'e_wallet_type' => $order->e_wallet_type,
                                         'charges' => $this->convertStringToNumber($order->charge),
                                         'status' => $order->status,
-                                        'completion_date' => $order->date,
-                                        'completion_time' => $order->time,
+                                        'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                        'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
                                         'created_at' => $order->created_at,
                                         'updated_at' => $order->updated_at,
                                         'sign' => $sign,
@@ -1449,8 +1449,8 @@ class PayoutRecordController extends Controller
                             'e_wallet_type' => $order->e_wallet_type,
                             'charges' => $this->convertStringToNumber($order->charge),
                             'status' => $order->status,
-                            'completion_date' => $order->date,
-                            'completion_time' => $order->time,
+                            'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                            'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
                             'created_at' => $order->created_at,
                             'updated_at' => $order->updated_at,
                             'sign' => $sign,
@@ -2011,8 +2011,8 @@ class PayoutRecordController extends Controller
                                         'e_wallet_type' => $order->e_wallet_type,
                                         'charges' => $this->convertStringToNumber($order->charge),
                                         'status' => $order->status,
-                                        'completion_date' => $order->date,
-                                        'completion_time' => $order->time,
+                                        'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                        'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
                                         'created_at' => $order->created_at,
                                         'updated_at' => $order->updated_at,
                                         'sign' => $sign,
@@ -2615,11 +2615,11 @@ class PayoutRecordController extends Controller
         $api_key = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
 
         $charge = 0;
-        $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
         if ($commissions) {
             $charge = $commissions->withdrawal_percentage * $user->balance / 100;
         } else {
-            $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
+            $commissions = Commission::where('category_id', $api_key->category_id)->orderBy('to_amount', 'desc')->first();
             if ($commissions) {
                 $charge = $commissions->withdrawal_percentage * $user->balance / 100;
             }
@@ -2717,11 +2717,11 @@ class PayoutRecordController extends Controller
             ->sum('amount');
         $api_key = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
         $charge = 0;
-        $commissions = Commission::where('api_id', $api_key->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
         if ($commissions) {
             $charge = $commissions->withdrawal_percentage * $user->balance / 100;
         } else {
-            $commissions = Commission::where('api_id', $api_key->id)->orderBy('to_amount', 'desc')->first();
+            $commissions = Commission::where('category_id', $api_key->category_id)->orderBy('to_amount', 'desc')->first();
             if ($commissions) {
                 $charge = $commissions->withdrawal_percentage * $user->balance / 100;
             }
@@ -3391,13 +3391,13 @@ class PayoutRecordController extends Controller
     $charge = 0;
 
     if ($api) {
-        $commission = Commission::where('api_id', $api->id)
+        $commission = Commission::where('category_id', $api->category_id)
             ->where('from_amount', '<=', $monthlyTotal)
             ->where('to_amount', '>=', $monthlyTotal)
             ->first();
 
         if (!$commission) {
-            $commission = Commission::where('api_id', $api->id)
+            $commission = Commission::where('category_id', $api->category_id)
                 ->orderByDesc('to_amount')
                 ->first();
         }
@@ -3452,13 +3452,13 @@ public function settlementSearch(Request $request)
 
     $charge = 0;
     if ($api) {
-        $commission = Commission::where('api_id', $api->id)
+        $commission = Commission::where('category_id', $api->category_id)
             ->where('from_amount', '<=', $monthlyTotal)
             ->where('to_amount', '>=', $monthlyTotal)
             ->first();
 
         if (!$commission) {
-            $commission = Commission::where('api_id', $api->id)
+            $commission = Commission::where('category_id', $api->category_id)
                 ->orderByDesc('to_amount')
                 ->first();
         }
@@ -3883,8 +3883,8 @@ public function settlementSearch(Request $request)
                                         'e_wallet_type' => $order->e_wallet_type,
                                         'charges' => $this->convertStringToNumber($order->charge),
                                         'status' => $order->status,
-                                        'completion_date' => $order->date,
-                                        'completion_time' => $order->time,
+                                        'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                        'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
                                         'created_at' => $order->created_at,
                                         'updated_at' => $order->updated_at,
                                         'sign' => $sign,

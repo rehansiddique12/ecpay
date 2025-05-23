@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Gateway extends Model
 {
-    protected $fillable = ['code', 'name', 'image', 'status',  'currencies', 'currency', 'symbol', 'min_amount', 'max_amount', 'percentage_charge', 'fixed_charge', 'convention_rate'];
+    protected $fillable = ['code', 'name', 'image', 'status',  'currencies', 'currency', 'symbol', 'min_amount', 'max_amount', 'percentage_charge', 'fixed_charge', 'convention_rate' , 'type' , 'min_withdrawal_amount' ,'max_withdrawal_amount' ,'category_id'];
     protected $casts = [
         'parameters' => 'object',
         'currencies' => 'object',

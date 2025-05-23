@@ -971,8 +971,9 @@
                             if (response.status === 'success') {
                                 $('#newModal').modal('hide');
                                 $form[0].reset();
-
+                                window.location.reload();
                             }
+
                         },
                         error: function (xhr) {
                             if (xhr.status === 422) {
