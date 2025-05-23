@@ -208,9 +208,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('/type/update/{id}', [PaymentTypeController::class, 'updatetype'])->name('type.update');
 
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
+        Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
         Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
 
         Route::post('/apis/add', [PayoutRecordController::class, 'apisAdd'])->name('apis.add');
+        Route::post('/agent/add', [PayoutRecordController::class, 'agentAdd'])->name('agent.add');
         Route::post('/apis/add-by-parent', [PayoutRecordController::class, 'apisAddByParent'])->name('apis.addByParent');
         Route::delete('/apis/delete/{id}', [PayoutRecordController::class, 'apisDelete'])->name('apis.delete');
         Route::get('/apis/login/{id}', [PayoutRecordController::class, 'apisLgoin'])->name('apis.login');

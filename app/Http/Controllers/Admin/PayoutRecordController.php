@@ -1551,7 +1551,7 @@ class PayoutRecordController extends Controller
 
     public function apis(Request $request)
     {
-        $query = Api::where('type', 'Admin')->select([
+        $query = Api::where('type', 'Admin')->where('acc_type','Partner')->select([
             'id', 'name', 'username', 'acc_type', 'website', 'api_endpoint_deposit',
             'api_endpoint_withdrawal', 'redirect_url', 'api_key', 'secret_key', 'balance',
             'min_deposit', 'min_withdrawal', 'status', 'password_string', 'sign', 'txn_verification'
@@ -1568,6 +1568,27 @@ class PayoutRecordController extends Controller
 
         return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
+
+    public function agentlist(Request $request)
+    {
+        $query = Api::where('type', 'Admin')->where('acc_type','Agent')->select([
+            'id', 'name', 'username', 'balance','status'
+        ]);
+
+        // Default to show_all = 1
+        $showAll = $request->get('show_all', '1');
+
+        $records = $showAll == '1'
+            ? $query->get()
+            : $query->paginate(20);
+
+        $pageTitle = "Agent List";
+        // dd($records);
+
+        return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
+    }
+
+
 
 
     // Partner controller
@@ -1780,6 +1801,61 @@ class PayoutRecordController extends Controller
             'secret_key' => $secretKey,
             'admin_access' => $permissionsArray,
             'type' => 'Admin',
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'API Added Successfully',
+        ]);
+    }
+
+
+    public function agentAdd(Request $request)
+    {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'username' => 'required|string',
+            'status' => 'required',
+            'password' => 'required|string|min:5',
+        ]);
+
+        if ($validator->fails()) {
+            // Return validation errors as JSON
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Permissions list
+        $permissionsArray = [
+            "partner.dashboard", "partner.staff", "partner.storeStaff", "partner.updateStaff",
+            "partner.apis.delete", "partner.payment.report", "partner.payment.report.search",
+            "partner.payment.report.daily", "partner.payment.report.daily.search",
+            "partner.payment.report.all", "partner.payment.report.all.search", "partner.payout-log",
+            "partner.payout-request", "partner.payout-log.search", "partner.payout-action",
+            "partner.payout-report", "partner.payout-report.search", "partner.payout.report.daily",
+            "partner.payout.report.daily.search"
+        ];
+
+        // Create and save API entry
+        Api::create([
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => '',
+            'phone' => '',
+            'password' => bcrypt($request->password), // Secure password hashing
+            'status' => $request->status,
+            'website' => '',
+            'api_endpoint_deposit' => '',
+            'api_endpoint_withdrawal' => '',
+            'redirect_url' => '',
+            'acc_type' => '',
+            'admin_access' => $permissionsArray,
+            'type' => 'Admin',
+            'balance' => 0,
+            'acc_type' => 'Agent',
         ]);
 
         return response()->json([
