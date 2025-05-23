@@ -12,6 +12,7 @@ use App\Models\Payout;
 use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
+use App\Models\Category;
 use App\Models\CCategory;
 use App\Models\Signature;
 use App\Models\AccountLog;
@@ -25,15 +26,15 @@ use Illuminate\Support\Str;
 use App\Models\AccountGroup;
 use App\Models\AdminAccount;
 use Illuminate\Http\Request;
-use App\Models\EWalletCharge;
 // rehan
-use App\Models\ParentCommission;
+use App\Models\EWalletCharge;
 use App\Models\AccountGateway;
 use App\Models\ApiTransaction;
 use App\Models\CronCommission;
 use App\Models\EWalletAccount;
 use App\Models\EWalletTransfer;
 use Illuminate\Validation\Rule;
+use App\Models\ParentCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
@@ -1891,7 +1892,12 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-        $gateways = Gateway::where('status', 1)->get();
+        $gateways = Gateway::where('status', 1)
+    ->get()
+    ->groupBy('category_id');
+        $categories = Category::where('status', 1)->get();
+        
+        dd($gateways);
         // dd($gateways);
         $pageTitle = "Manage Commissions";
 

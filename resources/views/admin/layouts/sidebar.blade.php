@@ -812,7 +812,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
                         </li> --}}
-                        @if(adminAccessRoute(config('role.commission_category.access.index')))
+                        @if(adminAccessRoute(config('role.commission_category.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
