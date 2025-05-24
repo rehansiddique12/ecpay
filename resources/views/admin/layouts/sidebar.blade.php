@@ -659,21 +659,6 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </a>
 
                         <ul class="menu-sub">
-                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
-                                <a href="{{ route('admin.dashboard') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Dashboards">Dashboard</div>
-                                </a>
-                            </li> --}}
-
-                            @if(adminAccessRoute(config('role.parent_group.access.view')))
-                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
-                                <a href="{{ route('admin.parant') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Partner Group">Partner Group</div>
-                                </a>
-                            </li> --}}
-                            @endif
                             @if(adminAccessRoute(config('role.work_board.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.workboard') }}" class="menu-link">
@@ -682,11 +667,44 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 </a>
                             </li>
                             @endif
+                            @if(adminAccessRoute(config('role.partnersbalance.access.add')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
+                                <a href="{{ route('admin.apis') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Merchant List">Merchant Management </div>
+                                </a>
+                            </li>
+                            @endif
+                            @if(adminAccessRoute(config('role.partnersbalance.access.add')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
+                                <a href="{{ route('admin.agent.list') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Merchant List">Agent Management </div>
+                                </a>
+                            </li>
+                            @endif
+
+                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                                <a href="{{ route('admin.dashboard') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-smart-home"></i>
+                                    <div data-i18n="Dashboards">Dashboard</div>
+                                </a>
+                            </li> --}}
+
+                            {{-- @if(adminAccessRoute(config('role.parent_group.access.view'))) --}}
+                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
+                                <a href="{{ route('admin.parant') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Partner Group">Partner Group</div>
+                                </a>
+                            </li> --}}
+                            {{-- @endif --}}
+                            
                             @if(adminAccessRoute(config('role.manage_staff.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.users' ? 'active' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="All Users">All Users</div>
+                                    <div data-i18n="All Users">User Management</div>
                                 </a>
                             </li>
                             @endif
@@ -711,12 +729,12 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="All Accounts">All Accounts</div>
                                 </a>
                             </li> -->
-                                <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
+                                {{-- <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
                                     <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                         <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                         <div data-i18n="Account Balance">Account Balance</div>
                                     </a>
-                                </li>
+                                </li> --}}
 
                                 <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                                     <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
@@ -768,14 +786,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="All Accounts">All Accounts</div>
                             </a>
                         </li> --}}
-                        @if(adminAccessRoute(config('role.account_balance_logs.access.view')))
-                        <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
+                        {{-- @if(adminAccessRoute(config('role.account_balance_logs.access.view'))) --}}
+                        {{-- <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
                             <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Account Balance">Account Balance</div>
                             </a>
-                        </li>
-                        @endif
+                        </li> --}}
+                        {{-- @endif --}}
                         @if(adminAccessRoute(config('role.account_management.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts.management') }}" class="menu-link">
@@ -848,22 +866,8 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partnersbalance.access.add')))
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
-                            <a href="{{ route('admin.apis') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Merchant List">Merchant List </div>
-                            </a>
-                        </li>
-                        @endif
-                        @if(adminAccessRoute(config('role.partnersbalance.access.add')))
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
-                            <a href="{{ route('admin.agent.list') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Merchant List">Agent List </div>
-                            </a>
-                        </li>
-                        @endif
+                        
+                       
                         @if(adminAccessRoute(config('role.commissions.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : '' }}">

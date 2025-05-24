@@ -51,15 +51,15 @@ $arr = [
     ],
 
 
-    'parent_group' => [
-        'label' => 'Parent Group',
-        'access' => [
-            'view' => ['admin.parant'],
-            'add' => [],
-            'edit' => [],
-            'delete' => [],
-        ],
-    ],
+    // 'parent_group' => [
+    //     'label' => 'Parent Group',
+    //     'access' => [
+    //         'view' => ['admin.parant'],
+    //         'add' => [],
+    //         'edit' => [],
+    //         'delete' => [],
+    //     ],
+    // ],
 
 
     'work_board' => [
@@ -535,18 +535,18 @@ $arr = [
         ],
     ],
 
-    'account_balance_logs' => [
-        'label' => 'E-Wallet Account Balance Logs',
-        'access' => [
-            'view' => [
-                'admin.balance.logs',
-                'admin.balance.logs.search',
-            ],
-            'add' => [],
-            'edit' => [],
-            'delete' => [],
-        ],
-    ],
+    // 'account_balance_logs' => [
+    //     'label' => 'E-Wallet Account Balance Logs',
+    //     'access' => [
+    //         'view' => [
+    //             'admin.balance.logs',
+    //             'admin.balance.logs.search',
+    //         ],
+    //         'add' => [],
+    //         'edit' => [],
+    //         'delete' => [],
+    //     ],
+    // ],
 
     'account_management' => [
         'label' => 'Account Management',
