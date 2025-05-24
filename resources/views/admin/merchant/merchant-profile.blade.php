@@ -136,7 +136,7 @@
 
                                         {{-- Bottom Right Copy Button --}}
                                         <a class="btn btn-sm position-absolute end-0 bottom-0 m-2 edit_button"
-                                            data-copy="{{ $data->username }} | {{ $data->password_string }} | {{ $data->api_key }} | {{ $data->secret_key }}"
+                                        data-copy="Username: {{ $data['username'] }}&#10;Password: {{ $data['password_string'] }}&#10;Api Key: {{ $data['api_key'] }}&#10;Secret Key: {{ $data['secret_key'] }}"
                                             onclick="copyToClipboard(this)">
                                             <i class="ti tabler-copy-check me-1 fs-4"></i>
                                         </a>
@@ -177,10 +177,10 @@
                                             </a>
 
                                         </p>
-                                        
+
                                                 @forelse ($PartnerCommission as $index => $pcom)
                                                     <div class="row">
-                                                        
+
                                                         <div class="col-3">{{ $pcom->partner->name ?? '-' }}</div>
                                                         <div class="col-3 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
                                                         <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
@@ -190,7 +190,7 @@
                                                             <a href="{{ route('admin.partner.commisionedit.form', ['id' => $pcom->id]) }}">
                                                                 <i class="fa fa-edit text-warning"></i>
                                                             </a>
-                                                        
+
                                                             <!-- Delete Form -->
                                                             <form action="{{ route('admin.partner.commission.delete', $pcom->id) }}"
                                                                 method="POST"
@@ -203,7 +203,7 @@
                                                                 </button>
                                                             </form>
                                                         </div>
-                                                        
+
                                                     </div>
                                                     @empty
                                                     <div class="row">
@@ -213,8 +213,8 @@
                                             <div class="col-4">
 
                                             </div>
-                                        
-                                        
+
+
                                     </div>
                                 </div>
 
@@ -224,25 +224,25 @@
                                             class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
                                             Merchant Commissions
                                             <!-- Plus Button -->
-                                            
+
 
                                         </p>
-                                        
+
                                                 @forelse ($MCommissions as $index => $pcom)
                                                 @if($index>0)
                                                 <hr>
                                                 @endif
                                                     <div class="row">
-                                                        
+
                                                         <div class="col-3">{{ implode(', ', json_decode($pcom->type, true)) }}</div>
                                                         <div class="col-3">{{ implode(', ', json_decode($pcom->gateway_id, true)) }}</div>
                                                         <div class="col-2 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
                                                         <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
                                                         <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%</div>
-                                                        
-                                                        
+
+
                                                     </div>
-                                                    
+
                                                     @empty
                                                     <div class="row">
                                                         <div class="col-12">No commissions found.</div>
@@ -251,8 +251,8 @@
                                             <div class="col-4">
 
                                             </div>
-                                        
-                                        
+
+
                                     </div>
                                 </div>
                                 @endif
@@ -340,7 +340,7 @@
                                                 @if(isset($categories))
                                                 <div class="col-md-6 mb-3">
                                                     <label>Comission Category</label>
-                                                    <select name="category_id" class="form-control">
+                                                    <select name="category_id" class="form-select">
                                                         <option value="">Please select category</option>
                                                         @foreach($categories as $category)
                                                         <option value="{{ $category->id }}"
@@ -351,6 +351,12 @@
                                                     </select>
                                                 </div>
                                                 @endif
+
+                                                <div class="col-md-6 mb-3">
+                                                    <label>Password </label>
+                                                    <input type="text" class="form-control" name="password">
+
+                                                </div>
 
                                                 <div class="col-12 text-end mt-3">
                                                     <button type="submit" class="btn btn-primary">Update</button>
@@ -407,7 +413,7 @@
                 });
             });
         });
-        });    
+        });
 
 
     function copyToClipboard(element) {
@@ -419,7 +425,7 @@
         });
 
 
-        
+
     }
     </script>
     @endpush

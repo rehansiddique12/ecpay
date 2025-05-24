@@ -161,6 +161,7 @@ class PayoutRecordController extends Controller
         $newPassword = Str::random(12); // 12-digit alphanumeric password
 
         $api->password = Hash::make($newPassword); // If it's hashed
+        $api->password_string = $newPassword; // If it's hashed
         $api->save();
 
         return response()->json([
@@ -1640,7 +1641,7 @@ class PayoutRecordController extends Controller
                 'username' => 'required|string|max:100',
                 'email' => 'nullable|email|max:100',
                 'phone' => 'nullable|string|max:20',
-                // 'password' => 'nullable|string|min:6',
+                'password' => 'nullable|string|min:6',
                 'website' => 'nullable|string|max:255',
                 'api_endpoint_deposit' => 'nullable|string|max:200',
                 'api_endpoint_withdrawal' => 'nullable|string|max:200',
@@ -1968,21 +1969,21 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-        
+
         $categories = Category::with(['gateways' => function($query) {
             $query->where('status', 1);
         }])->where('status', 1)->get();
 
 
         $allgateways = Gateway::where('status', 1)->get();
-        
+
         $gateways = [];
         foreach ($categories as $category) {
             foreach ($category->gateways as $gateway) {
                 $gateways[$category->name][] = $gateway->name;
             }
         }
-        
+
         $pageTitle = "Manage Commissions";
 
         $records = "";
@@ -2010,7 +2011,7 @@ class PayoutRecordController extends Controller
     }
 
     public function addpartnerCommission(Request $request){
-        
+
         $api = Api::findOrFail($request->user_id);
         $commissions = Commission::where('category_id', $api->category_id)->get();
         foreach ($commissions as $key => $commission) {
@@ -2040,8 +2041,8 @@ class PayoutRecordController extends Controller
                     'commission_id' => $commission->id,
                 ]);
             }
-            
-                
+
+
         }
         return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
 
@@ -2054,14 +2055,14 @@ class PayoutRecordController extends Controller
         $id = $ParentCommission->user_id;
         $parent_id = $ParentCommission->parent_id;
         $user_id = $ParentCommission->user_id;
-        
+
 
         $partner = Api::where('id', $parent_id)->first();
-     
-        
+
+
         $commission = Commission::where('id', $ParentCommission->commission_id)->first();
-        
-        
+
+
         $gateways = Gateway::where('status', 1)->get();
         $pageTitle = "Partner Commissions";
 
@@ -2080,7 +2081,7 @@ class PayoutRecordController extends Controller
             'deposit_percentage' => $request->deposit_percentage,
             'withdrawal_percentage' => $request->withdrawal_percentage,
         ]);
-        
+
         return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
 
     }
@@ -2322,8 +2323,8 @@ class PayoutRecordController extends Controller
 
 
     public function apisCommissionAdd(Request $request)
-    {   
-       
+    {
+
 
         $cron_commissions = CronCommission::where('category_id', $request->category_id)->get();
         foreach ($cron_commissions as $cron_commission) {
