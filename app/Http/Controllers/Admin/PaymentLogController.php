@@ -22,6 +22,8 @@ use Illuminate\Validation\Rule;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MerchantReportExport;
 use Illuminate\Support\Facades\Http;
 use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
@@ -38,6 +40,18 @@ class PaymentLogController extends Controller
         $domains = Api::where('type', 'Admin')->get();
         $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway','txn_record')->paginate(config('basic.paginate'));
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
+    }
+
+       public function export_by_logs($from_date)
+    {
+        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new MerchantReportExport($from_date), "merchant_report_by_date_{$sanitizedDate}.csv");
     }
 
     public function apiLog()
@@ -108,7 +122,9 @@ class PaymentLogController extends Controller
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
-        return view('admin.payment.report', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+          $from_date = date('Y-m-d');
+
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum','from_date'));
     }
 
     public function reportSearch(Request $request)
@@ -1004,11 +1020,11 @@ class PaymentLogController extends Controller
                     DB::rollBack();
                     throw new \Exception("Payment Already Processed.You cannot change e wallet account number.");
                 }
-               
+
                 $data->e_wallet_phone_number = $request->e_wallet_phone_number;
                 $data->save();
 
-              
+
 
 
                 if ($data) {

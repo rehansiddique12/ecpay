@@ -275,7 +275,7 @@ class PayoutRecordController extends Controller
 
 
             }
-            
+
 
             //start
             $commit = 0;
@@ -316,13 +316,13 @@ class PayoutRecordController extends Controller
                     $Log->source = 'PartnerLink';
                     $Log->save();
 
-                    
+
                     $order->charge = $charge;
                     $order->status = 'Complete';
                     $order->trans_complete_date = Carbon::now();
                     $order->completed_source = 'PartnerLink';
                     $payment->delete();
-                    
+
                     $order->api_id = $api_id;
                     $order->save();
 
@@ -1515,7 +1515,7 @@ class PayoutRecordController extends Controller
         }
     }
 
-    
+
 
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
@@ -3296,72 +3296,68 @@ class PayoutRecordController extends Controller
 
 
     public function apiCommissions(Request $request)
-    {
-        $user = Auth::guard('partner')->user();
-        $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
-        $partnerTimezone = $main_admin->timezone;
-        $partner_ids = PartnerCommission::where('from_id', $user->id)
-            ->distinct()
-            ->pluck('api_id')
-            ->toArray();
+{
+    $user = Auth::guard('partner')->user();
 
+    $main_admin = Api::where('type', 'Admin')
+        ->where('status', 1)
+        ->where('api_key', $user->api_key)
+        ->first();
 
-        // If no partner IDs are found, set an empty collection
-        if (empty($partner_ids)) {
-            $partners = collect();
-        } else {
-            $partners = Api::whereIn('id', $partner_ids) // Filter by partner IDs in the array
-                ->get();
-        }
+    // Set default timezone if not found
+    $partnerTimezone = $main_admin ? $main_admin->timezone : env('APP_TIMEZONE', 'Asia/Dhaka');
 
-        // Create a query builder for PartnerCommission
-        $records = PartnerCommission::query();
-
-        // Check if from_date and to_date are provided, otherwise set today's date
-        $from_date = !empty($request->from_date) ? $request->from_date : Carbon::today()->toDateString();
-        $to_date = !empty($request->to_date) ? $request->to_date : Carbon::today()->toDateString();
-
-
-        $from_date_to_search = date('Y-m-d H:i:s', strtotime($from_date . ' 00:00:00'));
-        $to_date_to_search = date('Y-m-d H:i:s', strtotime($to_date . ' 23:59:59'));
-
-
-        $partnerTimezone = $main_admin->timezone;
-        $originalTimezone = $partnerTimezone;
-        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
-        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-
-
-        // Apply date filters
-        $records->where('created_at', '>=', $from_date_to_search);
-        $records->where('created_at', '<=', $to_date_to_search);
-
-        // Filter by partner if provided
-        if (!empty($request->partner)) {
-            $records->where('api_id', $request->partner);
-        }
-
-        // Filter by from_id (the current user's id)
-        $records->where('from_id', $user->id);
-
-        // Filter by type if provided
-        if (!empty($request->type) || $request->type == '0') {
-            $records->where('type', $request->type);
-        }
-
-        // Ensure the status is 1 (active)
-        $records->where('status', 1);
-
-        // Paginate the results
-        $records = $records->orderBy('id', 'DESC')->paginate(config('basic.paginate'));
-
-        // Set the page title for the view
-        $pageTitle = "Commission History";
-
-        // Return the view with data
-        return view('partner.payout.commission_report', compact('records', 'pageTitle', 'partners' , 'from_date' , 'to_date'));
+    if (!$main_admin) {
+        // Log for debugging
+        \Log::warning('Main admin API not found for partner.', [
+            'partner_id' => $user->id,
+            'api_key' => $user->api_key,
+        ]);
+        // Optional: show flash message or use toastr
+        session()->flash('error', 'Admin configuration missing. Using default timezone.');
     }
+
+    $partner_ids = PartnerCommission::where('from_id', $user->id)
+        ->distinct()
+        ->pluck('api_id')
+        ->toArray();
+
+    $partners = empty($partner_ids)
+        ? collect()
+        : Api::whereIn('id', $partner_ids)->get();
+
+    $records = PartnerCommission::query();
+
+    $from_date = $request->from_date ?: Carbon::today()->toDateString();
+    $to_date = $request->to_date ?: Carbon::today()->toDateString();
+
+    $from_date_to_search = Carbon::parse($from_date . ' 00:00:00', $partnerTimezone)
+        ->setTimezone(env('APP_TIMEZONE', 'Asia/Dhaka'));
+    $to_date_to_search = Carbon::parse($to_date . ' 23:59:59', $partnerTimezone)
+        ->setTimezone(env('APP_TIMEZONE', 'Asia/Dhaka'));
+
+    $records->where('created_at', '>=', $from_date_to_search);
+    $records->where('created_at', '<=', $to_date_to_search);
+
+    if (!empty($request->partner)) {
+        $records->where('api_id', $request->partner);
+    }
+
+    $records->where('from_id', $user->id);
+
+    if (!is_null($request->type) && $request->type !== '') {
+        $records->where('type', $request->type);
+    }
+
+    $records->where('status', 1);
+
+    $records = $records->orderBy('id', 'DESC')->paginate(config('basic.paginate'));
+
+    $pageTitle = "Commission History";
+
+    return view('partner.payout.commission_report', compact('records', 'pageTitle', 'partners', 'from_date', 'to_date'));
+}
+
 
 
     public function settlements()
@@ -3780,7 +3776,7 @@ public function settlementSearch(Request $request)
                                 $payment_record->sender = $order->account_no;
                             }
                         }
-                        
+
 
                         $order->status = 'Complete';
                         $order->trans_complete_date = Carbon::now();
@@ -3789,7 +3785,7 @@ public function settlementSearch(Request $request)
                         $order->sender = $payment_record->sender;
                         $order->save();
                         $payment_record->delete();
-                        
+
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at','>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -3974,12 +3970,12 @@ public function settlementSearch(Request $request)
 
     public function payoutPreviewTransection()
     {
-        
+
         $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->whereIn('transfer_status', [0,1])->latest()->with('gateway', 'user')->firstOrFail();
         $title = "Payout Form";
         $username = session()->get('username');
         $open_user = API::where('username', $username)->where('status', 1)->first();
-        
+
         if (!$open_user || $open_user->type != "Admin") {
             abort(404);
         }
@@ -3988,9 +3984,9 @@ public function settlementSearch(Request $request)
     }
 
     public function payoutRequestSubmitTransection(Request $request)
-    {   
+    {
 
-        
+
 
         $basic = (object)config('basic');
         $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->whereIn('transfer_status', [0,1])->with('gateway', 'user')->firstOrFail();
@@ -4044,10 +4040,10 @@ public function settlementSearch(Request $request)
                 return back();
             }
         } else {
-            
+
             $collection = collect($request);
-            
-            
+
+
             $reqField = [];
             if ($withdraw->gateway->input_form != null) {
                 foreach ($collection as $k => $v) {
@@ -4055,7 +4051,7 @@ public function settlementSearch(Request $request)
                         if ($k != $inKey) {
                             continue;
                         } else {
-                            
+
                             if ($inVal->type == 'file') {
                                 if ($request->hasFile($inKey)) {
                                     $image = $request->file($inKey);
@@ -4098,7 +4094,7 @@ public function settlementSearch(Request $request)
 
             $acc = $PhoneNumber;
             $ewalletee = strtolower($method->name);
-            
+
             if (!is_numeric($acc)) {
                     return back()->with('error', 'Account number formate not valid');
                 }
@@ -4120,16 +4116,16 @@ public function settlementSearch(Request $request)
 
             $source = $user->website;
             $api_id = $user->api_id;
-            
-            
-            
-            
+
+
+
+
             $withdraw->e_wallet_name = $method->name;
             $withdraw->amount = $withdraw->amount;
             $withdraw->user_account_no = $PhoneNumber;
             $withdraw->save();
 
-            $charge = 0;          
+            $charge = 0;
 
 
 
