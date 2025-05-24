@@ -343,6 +343,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/apiLogUnclaimed/search', [PaymentLogController::class, 'apiLogUnclaimedsearch'])->name('payment.apiLogunclaimed.search');
 
         Route::get('payment/report', [PaymentLogController::class, 'report'])->name('payment.report');
+        Route::get('/admin/reports/export/{from_date?}', [PaymentLogController::class, 'export_by_logs'])->name('merchant_reports.export_by_logs');
         Route::get('payment/report/search', [PaymentLogController::class, 'reportSearch'])->name('payment.report.search');
         Route::get('payment/report/daily', [PaymentLogController::class, 'dailyReport'])->name('payment.report.daily');
         Route::get('payment/report/daily/search', [PaymentLogController::class, 'dailyReportSearch'])->name('payment.report.daily.search');
