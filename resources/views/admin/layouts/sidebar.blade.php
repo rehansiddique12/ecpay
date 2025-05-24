@@ -938,6 +938,9 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
                         @endif
                         @if(adminAccessRoute(config('role.api_payment_log.access.view')))
+                       @if(auth()->user()->username=="dev")
+
+                       
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLog', 'admin.payment.apisearch']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
@@ -945,7 +948,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Api Deposit Log">Api Deposit Log</div>
                             </a>
                         </li>
-
+                        
 
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLogunclaimed', 'admin.payment.apiLogunclaimed.search']) ? 'active' : '' }}">
@@ -954,6 +957,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Unclaimed Payment">Unclaimed Payment</div>
                             </a>
                         </li>
+                        @endif
                         @endif
                         @if(adminAccessRoute(config('role.deposit_report.access.view')))
                         <li
