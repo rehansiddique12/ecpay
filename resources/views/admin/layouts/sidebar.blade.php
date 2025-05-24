@@ -659,20 +659,20 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </a>
 
                         <ul class="menu-sub">
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
-                            </li>
+                            </li> --}}
 
                             @if(adminAccessRoute(config('role.parent_group.access.view')))
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
+                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Partner Group">Partner Group</div>
                                 </a>
-                            </li>
+                            </li> --}}
                             @endif
                             @if(adminAccessRoute(config('role.work_board.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
@@ -812,7 +812,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
                         </li> --}}
-                        @if(adminAccessRoute(config('role.commission_category.access.index')))
+                        @if(adminAccessRoute(config('role.commission_category.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
@@ -853,6 +853,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             <a href="{{ route('admin.apis') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                 <div data-i18n="Merchant List">Merchant List </div>
+                            </a>
+                        </li>
+                        @endif
+                        @if(adminAccessRoute(config('role.partnersbalance.access.add')))
+                        <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
+                            <a href="{{ route('admin.agent.list') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Merchant List">Agent List </div>
                             </a>
                         </li>
                         @endif
@@ -930,6 +938,9 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
                         @endif
                         @if(adminAccessRoute(config('role.api_payment_log.access.view')))
+                       @if(auth()->user()->username=="dev")
+
+                       
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLog', 'admin.payment.apisearch']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
@@ -937,7 +948,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Api Deposit Log">Api Deposit Log</div>
                             </a>
                         </li>
-
+                        
 
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLogunclaimed', 'admin.payment.apiLogunclaimed.search']) ? 'active' : '' }}">
@@ -946,6 +957,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Unclaimed Payment">Unclaimed Payment</div>
                             </a>
                         </li>
+                        @endif
                         @endif
                         @if(adminAccessRoute(config('role.deposit_report.access.view')))
                         <li

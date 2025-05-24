@@ -138,15 +138,24 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         // accounts details
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
+        Route::get('/accounts-management/add-account', [CategoryController::class, 'addAccount'])->name('account_management.add_account');
+        Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
+
+
+        Route::get('/accounts-management/add-gateways', [CategoryController::class, 'gateway'])->name('account_management.gateway');
+
+
+
+
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
-        Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
+        Route::delete('/categories/delete', [CategoryController::class, 'destroy'])->name('category.delete');
+        Route::post('/categories/update/{id}', [CategoryController::class, 'update'])->name('category.update');
 
         Route::get('/account/groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
         Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
-        Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('category.update');
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy'])->name('category.delete');
+
+
         // rehan Reports:
         Route::get('reports/cal', [ReportsController::class, 'cal'])->name('reports.cal');
         Route::get('reports/logs', [ReportsController::class, 'logs'])->name('reports.logs');
@@ -199,9 +208,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('/type/update/{id}', [PaymentTypeController::class, 'updatetype'])->name('type.update');
 
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
+        Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
         Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
 
         Route::post('/apis/add', [PayoutRecordController::class, 'apisAdd'])->name('apis.add');
+        Route::post('/agent/add', [PayoutRecordController::class, 'agentAdd'])->name('agent.add');
         Route::post('/apis/add-by-parent', [PayoutRecordController::class, 'apisAddByParent'])->name('apis.addByParent');
         Route::delete('/apis/delete/{id}', [PayoutRecordController::class, 'apisDelete'])->name('apis.delete');
         Route::get('/apis/login/{id}', [PayoutRecordController::class, 'apisLgoin'])->name('apis.login');
@@ -216,6 +227,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // partner commission
         Route::get('/partner/commission/{id}', [PayoutRecordController::class, 'partnerCommission'])->name('partner.commision.form');
         Route::post('/add-partner/commission', [PayoutRecordController::class, 'addpartnerCommission'])->name('add.partner.commission');
+
+        Route::delete('/partner/commission/{id}', [PayoutRecordController::class, 'commissionDelete'])->name('partner.commission.delete');
+        Route::get('/partner/commissionedit/{id}', [PayoutRecordController::class, 'partnerCommissionedit'])->name('partner.commisionedit.form');
+        Route::post('/edit-partner/commission', [PayoutRecordController::class, 'editpartnerCommission'])->name('edit.partner.commission');
 
 
 
@@ -369,8 +384,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment-methods/manual/new/accounts', [AccountManagementController::class, 'create'])->name('deposit.accounts.create');
         Route::post('payment-methods/manual/new/accounts', [AccountManagementController::class, 'store'])->name('deposit.accounts.store');
         Route::get('payment-methods/manual/edit/{id}/accounts', [AccountManagementController::class, 'edit'])->name('deposit.maccounts.edit');
-        Route::put('payment-methods/manual/update/{id}/accounts', [AccountManagementController::class, 'update'])->name('deposit.accounts.update');
-        Route::post('payment-methods/deactivate/accounts', [AccountManagementController::class, 'deactivate'])->name('accounts.payment.methods.deactivate');
+        Route::post('payment-methods/manual/update/{id}/accounts', [AccountManagementController::class, 'update'])->name('deposit.accounts.update');
+        Route::post('payment-methods/deactivate/accounts/{id?}', [AccountManagementController::class, 'deactivate'])->name('accounts.payment.methods.deactivate');
         Route::get('payment-methods/deactivate/accounts', [AccountManagementController::class, 'deactivate'])->name('.accountsl.payment.methods.deactivate');
 
         Route::get('/e-wallet/accounts', [PayoutRecordController::class, 'eWalletAccounts'])->name('ewallet.accounts');
@@ -390,18 +405,19 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/activity-logs', [MerchantController::class, 'fetchActivityLogs'])->name('fetchActivityLogs');
 
 
+        Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
 
 
-   Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
-    Route::get('/', [CCategoryController::class, 'index'])->name('index');
-    Route::post('/', [CCategoryController::class, 'store'])->name('store');
-    Route::put('/', [CCategoryController::class, 'update'])->name('update');
-    Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
-    });
+        Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
+            Route::get('/', [CCategoryController::class, 'index'])->name('index');
+            Route::post('/', [CCategoryController::class, 'store'])->name('store');
+            Route::put('/', [CCategoryController::class, 'update'])->name('update');
+            Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
+            });
 
 
 
-    });
+        });
 
     // User Location Routes
     // Route::get('users/location', [UsersController::class, 'location'])->name('users.location');

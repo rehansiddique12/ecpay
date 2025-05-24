@@ -11,7 +11,6 @@
 
     @php
     $key = 0;
-    $selectedGateways = '';
     @endphp
     <div class="row">
         <div class="col-md-12">
@@ -67,7 +66,7 @@
                                     </div>
                                 </div>
                                 @php
-                                $selectedGateways = json_decode($commission->gateway_id ?? '[]', true);
+                                $selectedGateways = json_decode($commission->gateway_id ?? '');
                                 $selectedtypes = json_decode($commission->type ?? '');
                                 @endphp
                                 <div class="col-md-2">
@@ -82,8 +81,8 @@
                                 </div>
 
                                 <div class="col-md-5">
-                                    <label>Category</label>
-                                    <select class="form-select" id="category{{ $key }}" name="category[]">
+                                    <label>Gateway</label>
+                                    <select class="form-select select2" multiple name="category[]">
                                         @foreach($categories as $category)
                                         <option value="{{ $category->name }}" {{ $category->name == $commission->category
                                             ? 'selected' : '' }}>
@@ -95,8 +94,13 @@
                                 
                                 <div class="col-md-5">
                                     <label>Gateway</label>
-                                    <select id="settlement_gateway{{ $key }}" class="form-select select2" multiple name="settlement_gateway[{{ $key }}][]" data-selected='@json($selectedGateways)'>
-                                        
+                                    <select class="form-select select2" multiple name="settlement_gateway[{{ $key }}][]">
+                                        @foreach($gateways as $gateway)
+                                        <option value="{{ $gateway->name }}" {{ in_array($gateway->name, $selectedGateways)
+                                            ? 'selected' : '' }}>
+                                            {{ $gateway->name }}
+                                        </option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 @if($key > 0)
@@ -113,9 +117,6 @@
                     @endphp
                     @endforeach
                     @else
-                    @php
-                    $key = 1;
-                    @endphp
                     <div id="row-p0">
                         <br>
                         <div style='border:1px solid;padding:20px'>
@@ -163,23 +164,13 @@
                                         <option value="Merchant">Merchant</option>
                                     </select>
                                 </div>
-                                <div class="col-md-5">
-                                    <label>Category</label>
-                                    <select class="form-select" id="category0" name="category[]">
-                                        @foreach($categories as $category)
-                                        <option value="{{ $category->name }}">
-                                            {{ $category->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-
                                 <div class="col-md-3">
                                     <label>Gateway</label>
-                                    <select id="settlement_gateway0" class="form-select select2" name="settlement_gateway[0][]" multiple
+                                    <select class="form-select select2" name="settlement_gateway[0][]" multiple
                                         required>
-                                       
+                                        @foreach($gateways as $gateway)
+                                        <option value="{{ $gateway->name }}">{{ $gateway->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
@@ -213,14 +204,12 @@
                                 value="{{ $commission->from_amount }}" readonly /></div>
                         <div class="col-md-1"><label>To</label><input type="number" class="form-control"
                                 value="{{ $commission->to_amount }}" readonly /></div>
-                        <div class="col-md-1"><label>Deposit %</label><input type="number" class="form-control"
+                        <div class="col-md-2"><label>Deposit %</label><input type="number" class="form-control"
                                 value="{{ $commission->deposit_percentage }}" readonly /></div>
-                        <div class="col-md-1"><label>Withdrawal %</label><input type="number" class="form-control"
+                        <div class="col-md-2"><label>Withdrawal %</label><input type="number" class="form-control"
                                 value="{{ $commission->withdrawal_percentage }}" readonly /></div>
-                        <div class="col-md-1"><label>Settlement %</label><input type="number" class="form-control"
+                        <div class="col-md-2"><label>Settlement %</label><input type="number" class="form-control"
                                 value="{{ $commission->settlement_percentage }}" readonly /></div>
-                        <div class="col-md-1"><label>Category</label><input type="text" class="form-control"
-                            value="{{ $commission->category }}" readonly /></div>
                         <div class="col-md-2">
                             <label>Type</label>
                             <select class="form-select select2" multiple readonly>
@@ -234,7 +223,7 @@
                         <div class="col-md-2">
                             <label>Gateway</label>
                             <select class="form-select select2" multiple readonly>
-                                @foreach($allgateways as $gateway)
+                                @foreach($gateways as $gateway)
                                 <option value="{{ $gateway->name }}" {{ in_array($gateway->name, $selectedGateways)
                                     ? 'selected' : '' }}>
                                     {{ $gateway->name }}
@@ -259,6 +248,9 @@
             // allowClear: true,
             selectOnClose: true,
         });
+
+
+        
 
         // Prevent dropdown from opening on clear
         $select.on('select2:unselecting', function (e) {
@@ -318,20 +310,11 @@
                                     </select>
                                 </div>
                                 <div class="col-md-5">
-                                    <label>Category</label>
-                                    <select class="form-select" id="category${key}" name="category[]">
-                                        @foreach($categories as $category)
-                                        <option value="{{ $category->name }}">
-                                            {{ $category->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-5">
                                     <label>Gateway</label>
-                                    <select id="settlement_gateway${key}" class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
-                                       
+                                    <select class="form-select select2" name="settlement_gateway[${key}][]" multiple required>
+                                        @foreach($gateways as $gateway)
+                                            <option value="{{ $gateway->name }}">{{ $gateway->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-1 mt-4">
@@ -342,50 +325,12 @@
                     </div>`;
         $('#add-row').append(html);
         $('.select2').select2();
-        $('#category'+key).trigger('change');
         key++;
     });
 
     $(document).on('click', '.cancel-row', function() {
         const rowId = $(this).data('row');
         $(`#row-${rowId}`).remove();
-    });
-
-
-    let gateways = @json($gateways);
-
-    // Load gateway options
-    function loadGateways(category, gatewaySelect, preselected = []) {
-        gatewaySelect.empty();
-
-        if (gateways[category]) {
-            $.each(gateways[category], function (index, gateway) {
-                let selected = preselected.includes(gateway) ? 'selected' : '';
-                gatewaySelect.append('<option value="' + gateway + '" ' + selected + '>' + gateway + '</option>');
-            });
-        }
-
-        gatewaySelect.trigger('change'); // Refresh Select2
-    }
-
-    // On change of any category select field
-    $(document).on('change', 'select[id^="category"]', function () {
-        let categorySelect = $(this);
-        let key = categorySelect.attr('id').replace('category', '');
-        let selectedCategory = categorySelect.val();
-        let gatewaySelect = $('#settlement_gateway' + key);
-
-        // Read selected gateways from data-selected attribute
-        let preselected = gatewaySelect.data('selected') || [];
-
-        loadGateways(selectedCategory, gatewaySelect, preselected);
-    });
-
-    // Trigger change on load for initial values
-    $(document).ready(function () {
-        $('select[id^="category"]').each(function () {
-            $(this).trigger('change');
-        });
     });
     </script>
     @endpush
