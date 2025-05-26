@@ -972,13 +972,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
 
-                        <li
+                        {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report.daily', 'admin.payment.report.daily.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report.daily') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
                                 <div data-i18n="Daily Deposit Report">Daily Deposit Report</div>
                             </a>
-                        </li>
+                        </li> --}}
                         @endif
                         @if(adminAccessRoute(config('role.all_reports.access.view')))
                         <li
@@ -999,13 +999,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
 
 
-                        <li
+                        {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout.report.daily', 'admin.payout.report.daily.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout.report.daily') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
                                 <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report</div>
                             </a>
-                        </li>
+                        </li> --}}
                         @endif
                     </ul>
                 </li>

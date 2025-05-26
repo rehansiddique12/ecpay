@@ -173,154 +173,382 @@ class ReportsController extends Controller
 
     public function logs(Request $request)
     {
-        // $from_date = date('Y-m-d');
-        // $to_date = date('Y-m-d');
-          $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d 00:00');
+        $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d 00:00');
         $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d H:i');
-
-        // $from_date = $request->filled('from_date') ? Carbon::parse($request->from_date)->startOfDay() : Carbon::today()->startOfDay();
-        // $to_date = $request->filled('to_date') ? Carbon::parse($request->to_date)->endOfDay() : Carbon::today()->endOfDay();
-
-        // $from_date = '2023-09-01';
-        $sort_by = $request->get('sort_by', 'created_at');
         $orderval = $request->get('order', 'desc');
-
-
-        $website = "";
-        if ($request->filled('from_date')) {
-            $from_date = $request->from_date;
-        }
-        if ($request->filled('to_date')) {
-            $to_date = $request->to_date;
-        }
 
         $user = Auth::guard('partner')->user();
         $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
-        $partnerTimezone = $main_user->timezone;
+        if (!$main_user) {
+            abort(403, 'Unauthorized.');
+        }
+
         $api_id = $main_user->id;
 
-        $data = Log::where('partner_id', $user->id)->whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])->orderBy('logs.created_at', 'desc')->get();
+        // Step 1: Fetch all logs in date range
+        $logs = Log::where('partner_id', $api_id)
+            ->whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->orderBy('created_at', $orderval)
+            ->get();
 
+        if ($logs->isEmpty()) {
+            return view('partner.reports.logs', [
+                'pageTitle' => 'Partner Balance Logs',
+                'filter_data' => [],
+                'from_date' => $from_date,
+                'to_date' => $to_date,
+                'orderval' => $orderval
+            ]);
+        }
 
-        // dd($data );
-            $filter_data = [];
-            foreach ($data as $key => $item) {
-                $filter_data[$key]['id'] =  $item->id;
-                // $filter_data[$key]['partner'] =  $item->api->name;
-                $filter_data[$key]['date_time'] =  $item->date_time;
-                $filter_data[$key]['final_amount'] =  $item->final_amount;
-                $filter_data[$key]['balance'] =  $item->balance;
-                $filter_data[$key]['transection_type'] =  $item->transection_type;
-                $filter_data[$key]['transection_id'] =  $item->transection_id;
-                $filter_data[$key]['partner_id'] =  $item->partner_id;
-                $filter_data[$key]['created_at'] =  $item->created_at;
-                $filter_data[$key]['updated_at'] =  $item->updated_at;
-                $filter_data[$key]['source'] =  $item->source;
+        // Step 2: Group logs by transaction type
+        $logsByType = $logs->groupBy('transection_type');
 
-                $filter_data[$key]['amount'] =  "";
-                $filter_data[$key]['charge'] =  "";
-                $filter_data[$key]['sender'] =  "";
-                $filter_data[$key]['e_wallet_name'] =  "";
-                $filter_data[$key]['e_wallet_phone_number'] =  "";
-                $filter_data[$key]['e_wallet_type'] =  "";
-                $filter_data[$key]['partner_transection_id'] =  "";
-                $filter_data[$key]['txn_id'] =  "";
-                $filter_data[$key]['txn_created_at'] =  "";
+        // Step 3: Preload data for each type
+        $transectionData = [];
 
-                    if($item->transection_type==1){
-                        $deposits = Payment::where('id', $item->transection_id)->first();
-                        if($deposits){
-                            $filter_data[$key]['amount'] =  $deposits->amount;
-                            $filter_data[$key]['charge'] =  $deposits->charge;
-                            $filter_data[$key]['sender'] =  $deposits->sender;
-                            $filter_data[$key]['e_wallet_name'] =  $deposits->e_wallet_name;
-                            $filter_data[$key]['e_wallet_phone_number'] =  $deposits->e_wallet_phone_number;
-                            $filter_data[$key]['e_wallet_type'] =  $deposits->e_wallet_type;
-                            $filter_data[$key]['partner_transection_id'] =  $deposits->partner_transection_id;
-                            $filter_data[$key]['txn_id'] =  $deposits->txn_id;
-                            $filter_data[$key]['txn_created_at'] =  $deposits->created_at;
-                            $filter_data[$key]['txn_updated_at'] =  $deposits->trans_complete_date;
-                            $filter_data[$key]['transection_id'] =  $deposits->id;
-                        }
-                    }elseif($item->transection_type==2){
-                       $withdrawal = Payout::where('id', $item->transection_id)->first();
-                        if($withdrawal){
-                            $filter_data[$key]['amount'] =  $withdrawal->amount;
-                            $filter_data[$key]['charge'] =  $withdrawal->charge;
-                            $filter_data[$key]['sender'] =  $withdrawal->user_account_no;
-                            $filter_data[$key]['e_wallet_name'] =  $withdrawal->e_wallet_name;
-                            $filter_data[$key]['e_wallet_phone_number'] =  $withdrawal->e_wallet_phone_number;
-                            $filter_data[$key]['e_wallet_type'] =  $withdrawal->e_wallet_type;
-                            $filter_data[$key]['partner_transection_id'] =  $withdrawal->partner_transection_id;
-                            $filter_data[$key]['txn_id'] =  $withdrawal->txn_id;
-                            $filter_data[$key]['txn_created_at'] =  $withdrawal->created_at;
-                            $filter_data[$key]['txn_updated_at'] =  $withdrawal->completions_at;
-                            $filter_data[$key]['transection_id'] =  $withdrawal->id;
-                        }
-                    }elseif($item->transection_type==3){
-                        $ApiTransaction = ApiTransaction::where('id', $item->transection_id)->first();
-                        if($ApiTransaction){
-                            $filter_data[$key]['amount'] =  $ApiTransaction->amount;
-                            $filter_data[$key]['charge'] =  $ApiTransaction->charges;
-                            $filter_data[$key]['e_wallet_name'] =  $ApiTransaction->source;
-                            $filter_data[$key]['txn_id'] =  $ApiTransaction->txn;
-                            $filter_data[$key]['txn_created_at'] =  $ApiTransaction->created_at;
-                            $filter_data[$key]['txn_updated_at'] =  $ApiTransaction->updated_at;
-                            $filter_data[$key]['transection_id'] =  $ApiTransaction->id;
-                        }
-                    }elseif($item->transection_type==4){
-                        $Settlement = Settlement::where('id', $item->transection_id)->first();
-                        if($Settlement){
-                            $filter_data[$key]['amount'] =  $Settlement->amount;
-                            $filter_data[$key]['charge'] =  $Settlement->charges;
-                            $filter_data[$key]['sender'] =  $Settlement->account_no;
-                            $filter_data[$key]['e_wallet_name'] =  $Settlement->source_name;
-                            $filter_data[$key]['e_wallet_type'] =  $Settlement->source;
-                            $filter_data[$key]['txn_created_at'] =  $Settlement->created_at;
-                            $filter_data[$key]['txn_updated_at'] =  $Settlement->updated_at;
-                            $filter_data[$key]['transection_id'] =  $Settlement->id;
-                        }
-                    }elseif($item->transection_type==5){
-                        $PartnerCommission = PartnerCommission::where('id', $item->transection_id)->first();
-                        if($PartnerCommission){
-                            $sender = Api::where('id', $PartnerCommission->api_id)->first();
-                            if($sender){
-                                $filter_data[$key]['sender'] =  $sender->name;
-                            }
-                            $filter_data[$key]['amount'] =  $PartnerCommission->amount;
-                            $filter_data[$key]['charge'] =  $PartnerCommission->charges;
-                            if($PartnerCommission->type==1){
-                                $filter_data[$key]['e_wallet_type'] =  "Deposit";
-                            }
-                            if($PartnerCommission->type==2){
-                                $filter_data[$key]['e_wallet_type'] =  "Withdrawal";
-                            }
-                            $filter_data[$key]['txn_created_at'] =  $PartnerCommission->created_at;
-                            $filter_data[$key]['txn_updated_at'] =  $PartnerCommission->updated_at;
-                            $filter_data[$key]['transection_id'] =  $PartnerCommission->id;
-                        }
-                    }elseif($item->transection_type==7){
-                        $withdrawal = Payout::where('id', $item->transection_id)->first();
-                        if($withdrawal){
-                            $filter_data[$key]['amount'] =  $withdrawal->amount;
-                            $filter_data[$key]['charge'] =  $withdrawal->charge;
-                            $filter_data[$key]['sender'] =  $withdrawal->user_account_no;
-                            $filter_data[$key]['e_wallet_name'] =  $withdrawal->e_wallet_name;
-                            $filter_data[$key]['e_wallet_phone_number'] =  $withdrawal->e_wallet_phone_number;
-                            $filter_data[$key]['e_wallet_type'] =  $withdrawal->e_wallet_type;
-                            $filter_data[$key]['partner_transection_id'] =  $withdrawal->partner_transection_id;
-                            $filter_data[$key]['txn_id'] =  $withdrawal->txn_id;
-                            $filter_data[$key]['txn_created_at'] =  $withdrawal->created_at;
-                            $filter_data[$key]['txn_updated_at'] =  $withdrawal->updated_at;
-                            $filter_data[$key]['transection_id'] =  $withdrawal->id;
-                        }
+        if (isset($logsByType[1])) {
+            $ids = $logsByType[1]->pluck('transection_id')->unique();
+            $transectionData[1] = Payment::whereIn('id', $ids)->get()->keyBy('id');
+        }
+
+        if (isset($logsByType[2]) || isset($logsByType[7])) {
+            $ids = collect($logsByType[2] ?? [])->merge($logsByType[7] ?? [])->pluck('transection_id')->unique();
+            $transectionData[2] = Payout::whereIn('id', $ids)->get()->keyBy('id');
+        }
+
+        if (isset($logsByType[3])) {
+            $ids = $logsByType[3]->pluck('transection_id')->unique();
+            $transectionData[3] = ApiTransaction::whereIn('id', $ids)->get()->keyBy('id');
+        }
+
+        if (isset($logsByType[4])) {
+            $ids = $logsByType[4]->pluck('transection_id')->unique();
+            $transectionData[4] = Settlement::whereIn('id', $ids)->get()->keyBy('id');
+        }
+
+        if (isset($logsByType[5])) {
+            $ids = $logsByType[5]->pluck('transection_id')->unique();
+            $commissions = PartnerCommission::whereIn('id', $ids)->get();
+            $transectionData[5] = $commissions->keyBy('id');
+            // Preload sender data
+            $apiIds = $commissions->pluck('api_id')->unique();
+            $senders = Api::whereIn('id', $apiIds)->get()->keyBy('id');
+            $transectionData['commission_senders'] = $senders;
+        }
+
+        // Step 4: Prepare final filtered data
+        $filter_data = [];
+
+        foreach ($logs as $item) {
+            $entry = [
+                'id' => $item->id,
+                'date_time' => $item->date_time,
+                'final_amount' => $item->final_amount,
+                'balance' => $item->balance,
+                'transection_type' => $item->transection_type,
+                'transection_id' => $item->transection_id,
+                'partner_id' => $item->partner_id,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+                'source' => $item->source,
+                'amount' => '',
+                'charge' => '',
+                'sender' => '',
+                'e_wallet_name' => '',
+                'e_wallet_phone_number' => '',
+                'e_wallet_type' => '',
+                'partner_transection_id' => '',
+                'txn_id' => '',
+                'txn_created_at' => '',
+                'txn_updated_at' => '',
+            ];
+
+            $type = $item->transection_type;
+            $tid = $item->transection_id;
+
+            switch ($type) {
+                case 1:
+                    $trx = $transectionData[1][$tid] ?? null;
+                    if ($trx) {
+                        $entry['amount'] = $trx->amount;
+                        $entry['charge'] = $trx->charge;
+                        $entry['sender'] = $trx->sender;
+                        $entry['e_wallet_name'] = $trx->e_wallet_name;
+                        $entry['e_wallet_phone_number'] = $trx->e_wallet_phone_number;
+                        $entry['e_wallet_type'] = $trx->e_wallet_type;
+                        $entry['partner_transection_id'] = $trx->partner_transection_id;
+                        $entry['txn_id'] = $trx->txn_id;
+                        $entry['txn_created_at'] = $trx->created_at;
+                        $entry['txn_updated_at'] = $trx->trans_complete_date;
                     }
-
+                    break;
+                case 2:
+                case 7:
+                    $trx = $transectionData[2][$tid] ?? null;
+                    if ($trx) {
+                        $entry['amount'] = $trx->amount;
+                        $entry['charge'] = $trx->charge;
+                        $entry['sender'] = $trx->user_account_no;
+                        $entry['e_wallet_name'] = $trx->e_wallet_name;
+                        $entry['e_wallet_phone_number'] = $trx->e_wallet_phone_number;
+                        $entry['e_wallet_type'] = $trx->e_wallet_type;
+                        $entry['partner_transection_id'] = $trx->partner_transection_id;
+                        $entry['txn_id'] = $trx->txn_id;
+                        $entry['txn_created_at'] = $trx->created_at;
+                        $entry['txn_updated_at'] = $trx->updated_at;
+                    }
+                    break;
+                case 3:
+                    $trx = $transectionData[3][$tid] ?? null;
+                    if ($trx) {
+                        $entry['amount'] = $trx->amount;
+                        $entry['charge'] = $trx->charges;
+                        $entry['e_wallet_name'] = $trx->source;
+                        $entry['txn_id'] = $trx->txn;
+                        $entry['txn_created_at'] = $trx->created_at;
+                        $entry['txn_updated_at'] = $trx->updated_at;
+                    }
+                    break;
+                case 4:
+                    $trx = $transectionData[4][$tid] ?? null;
+                    if ($trx) {
+                        $entry['amount'] = $trx->amount;
+                        $entry['charge'] = $trx->charges;
+                        $entry['sender'] = $trx->account_no;
+                        $entry['e_wallet_name'] = $trx->source_name;
+                        $entry['e_wallet_type'] = $trx->source;
+                        $entry['txn_created_at'] = $trx->created_at;
+                        $entry['txn_updated_at'] = $trx->updated_at;
+                    }
+                    break;
+                case 5:
+                    $trx = $transectionData[5][$tid] ?? null;
+                    if ($trx) {
+                        $sender = $transectionData['commission_senders'][$trx->api_id] ?? null;
+                        $entry['sender'] = $sender?->name ?? '';
+                        $entry['amount'] = $trx->amount;
+                        $entry['charge'] = $trx->charges;
+                        $entry['e_wallet_type'] = $trx->type == 1 ? 'Deposit' : ($trx->type == 2 ? 'Withdrawal' : '');
+                        $entry['txn_created_at'] = $trx->created_at;
+                        $entry['txn_updated_at'] = $trx->updated_at;
+                    }
+                    break;
             }
 
-        $pageTitle = "Partner Balance Logs";
-        return view('partner.reports.logs', compact('pageTitle',  'filter_data', 'from_date', 'to_date' , 'orderval'));
+            $filter_data[] = $entry;
+        }
+
+        return view('partner.reports.logs', [
+            'pageTitle' => 'Partner Balance Logs',
+            'filter_data' => $filter_data,
+            'from_date' => $from_date,
+            'to_date' => $to_date,
+            'orderval' => $orderval,
+        ]);
     }
+
+
+
+
+    public function export_excel_record(Request $request){
+
+        $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d 00:00');
+       $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d H:i');
+       $sort_by = $request->get('sort_by', 'created_at');
+       $order = $request->get('order', 'desc');
+
+       $user = Auth::guard('partner')->user();
+       $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
+       $api_id = $main_user->id;
+
+
+       // Header for CSV file
+       $headers = [
+           'Content-Type' => 'text/csv',
+           'Content-Disposition' => 'attachment; filename="transaction_completed_at_log_report.csv"',
+       ];
+
+       $data = Log::where('partner_id', $user->id)->whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])->orderBy('logs.created_at', 'desc')->get();
+       // dd($data );
+       $filter_data = [];
+       foreach ($data as $key => $item) {
+           $filter_data[$key]['id'] =  $item->id;
+           // $filter_data[$key]['partner'] =  $item->api->name;
+           $filter_data[$key]['date_time'] =  $item->date_time;
+           $filter_data[$key]['final_amount'] =  $item->final_amount;
+           $filter_data[$key]['balance'] =  $item->balance;
+           $filter_data[$key]['transection_type'] =  $item->transection_type;
+           $filter_data[$key]['transection_id'] =  $item->transection_id;
+           $filter_data[$key]['partner_id'] =  $item->partner_id;
+           $filter_data[$key]['created_at'] =  $item->created_at;
+           $filter_data[$key]['updated_at'] =  $item->updated_at;
+           $filter_data[$key]['source'] =  $item->source;
+
+           $filter_data[$key]['amount'] =  "";
+           $filter_data[$key]['charge'] =  "";
+           $filter_data[$key]['sender'] =  "";
+           $filter_data[$key]['e_wallet_name'] =  "";
+           $filter_data[$key]['e_wallet_phone_number'] =  "";
+           $filter_data[$key]['e_wallet_type'] =  "";
+           $filter_data[$key]['partner_transection_id'] =  "";
+           $filter_data[$key]['txn_id'] =  "";
+           $filter_data[$key]['txn_created_at'] =  "";
+
+               if($item->transection_type==1){
+                   $deposits = Payment::where('id', $item->transection_id)->first();
+                   if($deposits){
+                       $filter_data[$key]['amount'] =  $deposits->amount;
+                       $filter_data[$key]['charge'] =  $deposits->charge;
+                       $filter_data[$key]['sender'] =  $deposits->sender;
+                       $filter_data[$key]['e_wallet_name'] =  $deposits->e_wallet_name;
+                       $filter_data[$key]['e_wallet_phone_number'] =  $deposits->e_wallet_phone_number;
+                       $filter_data[$key]['e_wallet_type'] =  $deposits->e_wallet_type;
+                       $filter_data[$key]['partner_transection_id'] =  $deposits->partner_transection_id;
+                       $filter_data[$key]['txn_id'] =  $deposits->txn_id;
+                       $filter_data[$key]['txn_created_at'] =  $deposits->created_at;
+                       $filter_data[$key]['txn_updated_at'] =  $deposits->trans_complete_date;
+                       $filter_data[$key]['transection_id'] =  $deposits->id;
+                   }
+               }elseif($item->transection_type==2){
+                   $withdrawal = Payout::where('id', $item->transection_id)->first();
+                   if($withdrawal){
+                       $filter_data[$key]['amount'] =  $withdrawal->amount;
+                       $filter_data[$key]['charge'] =  $withdrawal->charge;
+                       $filter_data[$key]['sender'] =  $withdrawal->user_account_no;
+                       $filter_data[$key]['e_wallet_name'] =  $withdrawal->e_wallet_name;
+                       $filter_data[$key]['e_wallet_phone_number'] =  $withdrawal->e_wallet_phone_number;
+                       $filter_data[$key]['e_wallet_type'] =  $withdrawal->e_wallet_type;
+                       $filter_data[$key]['partner_transection_id'] =  $withdrawal->partner_transection_id;
+                       $filter_data[$key]['txn_id'] =  $withdrawal->txn_id;
+                       $filter_data[$key]['txn_created_at'] =  $withdrawal->created_at;
+                       $filter_data[$key]['txn_updated_at'] =  $withdrawal->completions_at;
+                       $filter_data[$key]['transection_id'] =  $withdrawal->id;
+                   }
+               }elseif($item->transection_type==3){
+                   $ApiTransaction = ApiTransaction::where('id', $item->transection_id)->first();
+                   if($ApiTransaction){
+                       $filter_data[$key]['amount'] =  $ApiTransaction->amount;
+                       $filter_data[$key]['charge'] =  $ApiTransaction->charges;
+                       $filter_data[$key]['e_wallet_name'] =  $ApiTransaction->source;
+                       $filter_data[$key]['txn_id'] =  $ApiTransaction->txn;
+                       $filter_data[$key]['txn_created_at'] =  $ApiTransaction->created_at;
+                       $filter_data[$key]['txn_updated_at'] =  $ApiTransaction->updated_at;
+                       $filter_data[$key]['transection_id'] =  $ApiTransaction->id;
+                   }
+               }elseif($item->transection_type==4){
+                   $Settlement = Settlement::where('id', $item->transection_id)->first();
+                   if($Settlement){
+                       $filter_data[$key]['amount'] =  $Settlement->amount;
+                       $filter_data[$key]['charge'] =  $Settlement->charges;
+                       $filter_data[$key]['sender'] =  $Settlement->account_no;
+                       $filter_data[$key]['e_wallet_name'] =  $Settlement->source_name;
+                       $filter_data[$key]['e_wallet_type'] =  $Settlement->source;
+                       $filter_data[$key]['txn_created_at'] =  $Settlement->created_at;
+                       $filter_data[$key]['txn_updated_at'] =  $Settlement->updated_at;
+                       $filter_data[$key]['transection_id'] =  $Settlement->id;
+                   }
+               }elseif($item->transection_type==5){
+                   $PartnerCommission = PartnerCommission::where('id', $item->transection_id)->first();
+                   if($PartnerCommission){
+                       $sender = Api::where('id', $PartnerCommission->api_id)->first();
+                       if($sender){
+                           $filter_data[$key]['sender'] =  $sender->name;
+                       }
+                       $filter_data[$key]['amount'] =  $PartnerCommission->amount;
+                       $filter_data[$key]['charge'] =  $PartnerCommission->charges;
+                       if($PartnerCommission->type==1){
+                           $filter_data[$key]['e_wallet_type'] =  "Deposit";
+                       }
+                       if($PartnerCommission->type==2){
+                           $filter_data[$key]['e_wallet_type'] =  "Withdrawal";
+                       }
+                       $filter_data[$key]['txn_created_at'] =  $PartnerCommission->created_at;
+                       $filter_data[$key]['txn_updated_at'] =  $PartnerCommission->updated_at;
+                       $filter_data[$key]['transection_id'] =  $PartnerCommission->id;
+                   }
+               }elseif($item->transection_type==7){
+                   $withdrawal = Payout::where('id', $item->transection_id)->first();
+                   if($withdrawal){
+                       $filter_data[$key]['amount'] =  $withdrawal->amount;
+                       $filter_data[$key]['charge'] =  $withdrawal->charge;
+                       $filter_data[$key]['sender'] =  $withdrawal->user_account_no;
+                       $filter_data[$key]['e_wallet_name'] =  $withdrawal->e_wallet_name;
+                       $filter_data[$key]['e_wallet_phone_number'] =  $withdrawal->e_wallet_phone_number;
+                       $filter_data[$key]['e_wallet_type'] =  $withdrawal->e_wallet_type;
+                       $filter_data[$key]['partner_transection_id'] =  $withdrawal->partner_transection_id;
+                       $filter_data[$key]['txn_id'] =  $withdrawal->txn_id;
+                       $filter_data[$key]['txn_created_at'] =  $withdrawal->created_at;
+                       $filter_data[$key]['txn_updated_at'] =  $withdrawal->updated_at;
+                       $filter_data[$key]['transection_id'] =  $withdrawal->id;
+                   }
+               }
+
+       }
+
+       return response()->stream(function () use ($filter_data) {
+           // Clear any previous output
+           if (ob_get_level() > 0) {
+               ob_end_clean();
+           }
+
+           // Open the output stream
+           $handle = fopen('php://output', 'w');
+
+           // Add the CSV header
+           fputcsv($handle, ['Transaction Date', 'Completed Date', 'Txn No', 'Partner Txn No', 'Account No', 'Source', 'Type', 'E-Wallet Acc No', 'Amount', 'Chargers', 'Final Amount', 'Balance', 'Transaction Type']);
+
+
+           // Loop through data and write to CSV
+           foreach ($filter_data as $row) {
+
+               if ($row['transection_type'] == 1) {
+                   $type = "Deposit";
+               } elseif ($row['transection_type'] == 2) {
+                   $type = "Withdrawal";
+               } elseif ($row['transection_type'] == 3) {
+                   $type = "Adjustment";
+               } elseif ($row['transection_type'] == 4) {
+                   $type = "Settlement";
+               } elseif ($row['transection_type'] == 5) {
+                   $type = "Commission";
+               } elseif ($row['transection_type'] == 7) {
+                   $type = "Withdrawal Refunded";
+               } else {
+                   $type = $row['transection_type'];
+               }
+
+               fputcsv($handle, [
+                   $row['txn_created_at'],
+                   $row['txn_updated_at'],
+                   $row['transection_id'],
+                   $row['partner_transection_id'],
+                   $row['sender'],
+                   $row['e_wallet_name'],
+                   $row['e_wallet_type'],
+                   $row['e_wallet_phone_number'],
+                   $row['amount'],
+                   $row['charge'],
+                   number_format($row['final_amount'], 2),
+                   number_format($row['balance'], 2),
+                   $type,
+               ]);
+           }
+
+           // Close the handle
+           fclose($handle);
+       }, 200, [
+           "Content-Type" => "text/csv",
+           "Content-Disposition" => "attachment; filename=\"transaction_created_at_log_report.csv\"",
+           "Cache-Control" => "no-cache, no-store, must-revalidate",
+           "Pragma" => "no-cache",
+           "Expires" => "0"
+       ]);
+
+
+
+       return response()->stream($callback, 200, $headers);
+   }
 
 
        public function log_completions(Request $request)
