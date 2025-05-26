@@ -5,7 +5,7 @@
     $currentRoute = Route::currentRouteName();
     @endphp
 
-    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+   <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <div class="row ">
@@ -29,6 +29,15 @@
 
                         <div>
                             <button
+                                class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.account_group') }}" class="menu-link">
+                                    <div data-i18n="Account Group">Account Group</div>
+                                </a>
+                            </button>
+                        </div>
+
+                        <div>
+                            <button
                                 class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
                                 <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
                                     <div data-i18n="Gateway">Gateway</div>
@@ -45,13 +54,13 @@
                         </div>
 
 
+
                     </div>
                 </div>
 
             </div>
         </div>
     </div>
-
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">

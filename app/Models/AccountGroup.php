@@ -10,7 +10,16 @@ class AccountGroup extends Model
     use HasFactory;
 
     protected $fillable = [
-        'group_name',
-        'pairs',
-    ];    
+        'account_id',
+        'group_id',
+    ];
+    public function group()
+    {
+        return $this->belongsTo(Group::class, 'group_id');
+    }
+
+    public function account()
+    {
+        return $this->belongsTo(EWalletAccount::class, 'account_id');
+    }
 }

@@ -15,17 +15,10 @@
 
                                 <th scope="col">Acc Number</th>
                                 <th scope="col">Account Name</th>
-                                <!-- <th scope="col">@lang('Phone')</th>
-                                <th scope="col">@lang('Type')</th> -->
                                 <th scope="col">Category</th>
                                 <th scope="col">Code</th>
                                 <th scope="col">Group</th>
                                 <th scope="col">Location</th>
-                                <!-- <th scope="col">Monthly Received</th>
-                                <th scope="col">Total Received</th> -->
-
-                                <!-- <th scope="col">Monthly Sent</th>
-                                <th scope="col">Total Sent</th> -->
                                 <th scope="col">Device Name</th>
                                 <th scope="col">Live Balance</th>
                                 <th>Type</th>
@@ -55,7 +48,7 @@
                                     {{ $item->group->group_name ?? 'N/A' }}
                                 </td>
                                 <td>
-                                    {{ $item['location'] ?? 'N/A' }}
+                                    {{ $item->location->location ?? 'N/A' }}
                                 </td>
 
                                 <td>{{ $item['device_name']}}</td>
@@ -241,28 +234,7 @@
 
 @push('js')
 <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
-<script>
-    "use strict";
-$(document).ready(function(e) {
 
-
-    $('#image').change(function() {
-        let reader = new FileReader();
-        reader.onload = (e) => {
-            $('#image_preview_container').attr('src', e.target.result);
-        }
-        reader.readAsDataURL(this.files[0]);
-    });
-
-
-});
-
-$(document).ready(function() {
-    // $('select').select2({
-    //     selectOnClose: true
-    // });
-});
-</script>
 <script>
     function setBalanceItem(itemId) {
     // Find the input field in the modal

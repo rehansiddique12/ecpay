@@ -139,6 +139,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // accounts details
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
         Route::get('/accounts-management/add-account', [CategoryController::class, 'addAccount'])->name('account_management.add_account');
+        Route::get('/get-accounts/{category_id}', [CategoryController::class, 'getAccountsByCategory'])->name('get.e_wallet_accounts');
+
+
+
         Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
 
 
@@ -267,6 +271,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         // Accunt groups
         Route::post('/accounts/addpairs', [PayoutRecordController::class, 'addAccountPairs'])->name('accounts.addpairs');
+        Route::post('/admin/accounts/update-group', [PayoutRecordController::class, 'updateAccountGroup'])->name('accounts.updateGroup');
         Route::post('/updateaccount-status', [PayoutRecordController::class, 'updateaccountStatus'])->name('update.accstatus');
 
         Route::get('/merchant', [PayoutRecordController::class, 'merchant'])->name('merchant');

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Group;
 use App\Models\Gateway;
 use App\Models\Category;
 use App\Http\Traits\Upload;
 use Illuminate\Support\Str;
 use App\Models\AccountGroup;
 use Illuminate\Http\Request;
+use App\Models\AccountGateway;
 use App\Models\EWalletAccount;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -288,20 +290,59 @@ class AccountManagementController extends Controller
         }
     }
 
+
+
     public function accountGroup()
     {
-        $pageTitle="Account Group";
-        $groups = AccountGroup::all();
+        $pageTitle = "Account Group";
+
+        // Get all groups with their related accounts
+        $groups = Group::with(['accounts'])->get();
+
+        // Records for live check (if still needed)
         $records = EWalletAccount::with(['apiHits' => function ($query) {
             $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
         }])->paginate(20);
 
-
         foreach ($records as $record) {
             $record->live = $record->apiHits ? 1 : 0;
         }
-        // dd($records);
-        return  view('admin.accounts.groups' , compact('pageTitle' , 'groups' , 'records'));
+
+        return view('admin.accounts.groups', compact('pageTitle', 'groups', 'records'));
     }
+
+    public function addAccountPairs(Request $request)
+    {
+        $request->validate([
+            'group_name' => 'required|string|max:255',
+            'pairs' => 'nullable|array',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Create or update
+            $group = Group::updateOrCreate(
+                ['id' => $request->id],
+                ['name' => $request->group_name]
+            );
+
+            // Sync account pairs
+            if (!empty($request->pairs)) {
+                $group->accounts()->sync($request->pairs); // replaces old entries
+            } else {
+                $group->accounts()->detach();
+            }
+
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'errors' => ['server' => [$e->getMessage()]]
+            ], 500);
+        }
+    }
+
 
 }
