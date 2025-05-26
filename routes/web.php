@@ -139,6 +139,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // accounts details
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
         Route::get('/accounts-management/add-account', [CategoryController::class, 'addAccount'])->name('account_management.add_account');
+        // Route::get('/accounts-management/edit-account/{id}', [CategoryController::class, 'editAccount'])->name('account_management.edit_account');
         Route::get('/get-accounts/{category_id}', [CategoryController::class, 'getAccountsByCategory'])->name('get.e_wallet_accounts');
 
 
@@ -266,8 +267,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Add Accounts
         Route::get('/accounts/add', [PayoutRecordController::class, 'addAccount'])->name('accounts.add');
         Route::post('/accounts/create', [PayoutRecordController::class, 'createAccount'])->name('accounts.create');
+        Route::post('/accounts/update/{id}', [PayoutRecordController::class, 'updateAccount'])->name('accounts.update');
         Route::post('/accounts/{id}/status', [PayoutRecordController::class, 'changeStatus'])->name('accounts.status');
-        Route::put('/accounts/update/{id}', [PayoutRecordController::class, 'updateAccount'])->name('accounts.update');
         Route::post('/accounts/charges/add', [PayoutRecordController::class, 'accountChargesAdd'])->name('accounts.charges.add');
         Route::get('/accounts/group', [PayoutRecordController::class, 'accountGroupList'])->name('accounts.group.add');
 

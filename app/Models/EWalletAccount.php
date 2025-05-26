@@ -41,6 +41,8 @@ class EWalletAccount extends Model
         'received',
         'device_name',
         'location_id',
+        'category_id',
+        'gateway_id',
         // Note: 'account_group' is handled via relationship, not mass assignment
         // Note: 'time_slots' is commented out in your code
     ];
@@ -63,4 +65,10 @@ class EWalletAccount extends Model
     {
         return $this->belongsTo(UserLocation::class, 'location_id');
     }
+    
+    public function timeSlots()
+    {
+        return $this->hasMany(EWalletAccountTimeSlot::class);
+    }
+   
 }

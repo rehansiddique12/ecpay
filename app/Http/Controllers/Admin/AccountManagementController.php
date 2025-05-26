@@ -299,19 +299,7 @@ class AccountManagementController extends Controller
         // Get all groups with their related accounts
         $groups = Group::with(['accounts'])->get();
 
-        // Records for live check (if still needed)
-        // $records = EWalletAccount::with(['apiHits' => function ($query) {
-        //     $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        // }])->paginate(20);
-
         $records = EWalletAccount::select('id' , 'account_no')->get();
-
-        // dd($records);
-
-        // foreach ($records as $record) {
-        //     $record->live = $record->apiHits ? 1 : 0;
-        // }
-
         return view('admin.accounts.groups', compact('pageTitle', 'groups', 'records'));
     }
 

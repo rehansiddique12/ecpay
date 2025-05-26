@@ -53,6 +53,19 @@ class CategoryController extends Controller
         return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations'));
     }
 
+    public function editAccount(Request $request , $id)
+    {
+        $pageTitle = 'Edit New Account';
+        $categories = Category::select('name', 'id')->get();
+        $methods = Gateway::select('name', 'id')->where('status', 1)->get();
+        $groups = Group::all();
+        $users_locations=UserLocation::where('status' , 1)->get();
+
+        $e_wallet_account= EWalletAccount::findOfFail($id);
+
+        return view('admin.accounts.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account'));
+    }
+
     public  function  addCategory(Request $request)
     {
         $pageTitle = 'Categories List';

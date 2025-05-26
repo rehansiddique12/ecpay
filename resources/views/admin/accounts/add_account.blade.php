@@ -363,10 +363,10 @@
             </div>
 
             <div class="form-group col-md-2 col-12">
-                <label>Account Group</label>
-                <select name="account_group[]" class="form-select select2" data-placeholder="Select Account" multiple>
+                <label for="">Account Group</label>
+                <select class="form-select select2" name="account_group[__INDEX__][]" multiple data-placeholder="Select Groups" data-allow-clear="true">
                     @foreach($groups as $group)
-                    <option value="{{$group->id}}">{{$group->name}}</option>
+                        <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -418,51 +418,64 @@
     <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
         $(document).ready(function() {
-            // Add first row on page load
+        let rowIndex = 0;
+
+        // Add first row on page load
+        addNewRow();
+
+        // Add more button functionality
+        $('#addMoreBtn').click(function() {
             addNewRow();
+        });
 
-            // Add more button functionality
-            $('#addMoreBtn').click(function() {
-                addNewRow();
-            });
-
-            // Remove button functionality
-            $(document).on('click', '.remove-btn', function() {
-                if ($('#inputGroupContainer .input-group-row').length > 1) {
-                    $(this).closest('.input-group-row').remove();
-                } else {
-                    alert("You need at least one row");
-                }
-            });
-
-            function addNewRow() {
-                // Clone from template
-                var $clone = $('#rowTemplate .input-group-row').clone(true);
-
-                // Generate unique IDs for elements that need them
-                var timestamp = Date.now();
-                $clone.find('[id]').each(function() {
-                    var id = $(this).attr('id') + '_' + timestamp;
-                    $(this).attr('id', id);
-                });
-
-                // Append to container
-                $('#inputGroupContainer').append($clone);
-
-                // Initialize Select2 for the new elements
-                $clone.find('.select2').select2({
-                    placeholder: function() {
-                        return $(this).data('placeholder');
-                    },
-                    allowClear: $(this).data('allow-clear') || false
-                });
-
-                // Hide remove button if it's the first row
-                if ($('#inputGroupContainer .input-group-row').length === 1) {
-                    $clone.find('.remove-btn').hide();
-                }
+        // Remove button functionality
+        $(document).on('click', '.remove-btn', function() {
+            if ($('#inputGroupContainer .input-group-row').length > 1) {
+                $(this).closest('.input-group-row').remove();
+            } else {
+                alert("You need at least one row");
             }
         });
+
+        function addNewRow() {
+            // Get HTML from template
+            let rowHtml = $('#rowTemplate').html();
+
+            // Replace __INDEX__ with current index
+            rowHtml = rowHtml.replace(/__INDEX__/g, rowIndex);
+
+            // Convert HTML to jQuery object
+            let $clone = $(rowHtml);
+
+            // Generate unique IDs if needed
+            let timestamp = Date.now();
+            $clone.find('[id]').each(function() {
+                let newId = $(this).attr('id') + '_' + timestamp;
+                $(this).attr('id', newId);
+            });
+
+            // Append to container
+            $('#inputGroupContainer').append($clone);
+
+            // Initialize Select2
+            $clone.find('.select2').select2({
+                placeholder: function() {
+                    return $(this).data('placeholder');
+                },
+                allowClear: true
+            });
+
+            // Hide remove button if it's the first row
+            if ($('#inputGroupContainer .input-group-row').length === 1) {
+                $clone.find('.remove-btn').hide();
+            } else {
+                $clone.find('.remove-btn').show();
+            }
+
+            // Increment for next row
+            rowIndex++;
+        }
+    });
 
         // let $select = $('.select2').select2({
         //     // dropdownParent: $('#groupModal'), // Ensures dropdown appears inside modal
