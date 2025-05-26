@@ -284,6 +284,8 @@
                         @endforeach
                 </div>
             </div>
+
+
             <hr style="border-top: 1px solid white;">
             <div class="row">
                 <h6>{{ trans('THRESHOLD ALERT') }}</h6>
@@ -458,36 +460,36 @@ $(document).ready(function() {
 </script>
 <script>
     $(document).ready(function() {
-    function toggleMaxWithdrawalLimit() {
-        if ($('#account_type').val() === 'Deposit') {
-            $('#max_withdrawal_limit').hide();
-        } else {
-            $('#max_withdrawal_limit').show();
+        function toggleMaxWithdrawalLimit() {
+            if ($('#account_type').val() === 'Deposit') {
+                $('#max_withdrawal_limit').hide();
+            } else {
+                $('#max_withdrawal_limit').show();
+            }
         }
-    }
 
-    $('#account_type').on('change', toggleMaxWithdrawalLimit);
+        $('#account_type').on('change', toggleMaxWithdrawalLimit);
 
-    // Initialize the visibility on page load
-    toggleMaxWithdrawalLimit();
-
+        // Initialize the visibility on page load
+        toggleMaxWithdrawalLimit();
 
 
-    function toggleTimeFields() {
-        if ($('#apply_time_limit').val() == 0) {
-            $('#from_time_div').hide();
-            $('#to_time_div').hide();
-        } else {
-            $('#from_time_div').show();
-            $('#to_time_div').show();
-        }
-    }
 
-    $('#apply_time_limit').on('change', toggleTimeFields);
+            function toggleTimeFields() {
+                if ($('#apply_time_limit').val() == 0) {
+                    $('#from_time_div').hide();
+                    $('#to_time_div').hide();
+                } else {
+                    $('#from_time_div').show();
+                    $('#to_time_div').show();
+                }
+            }
 
-    // Initialize the visibility on page load
-    toggleTimeFields();
-});
+        $('#apply_time_limit').on('change', toggleTimeFields);
+
+        // Initialize the visibility on page load
+        toggleTimeFields();
+    });
 document.addEventListener("DOMContentLoaded", function() {
     const statusSwitch = document.getElementById("statusSwitch");
     const disableText = document.getElementById("disableText");

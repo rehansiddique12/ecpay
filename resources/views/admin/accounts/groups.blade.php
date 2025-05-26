@@ -4,15 +4,7 @@
     <style>
         /* Fix for Select2 inside Bootstrap modal */
         .select2-container {
-            z-index: 9999 !important;
-        }
-
-        .select2-dropdown {
-            z-index: 9999 !important;
-        }
-
-        .modal {
-            overflow-y: auto;
+            z-index: 99999 !important;
         }
     </style>
     @endpush
@@ -84,8 +76,8 @@
             <div class="">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#groupModal" id="newCategoryButton">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#groupModal"
+                        id="newCategoryButton">
                         Add Account Group
                     </button>
                 </div>
@@ -97,17 +89,36 @@
                             <tr>
                                 <th scope="col">Group Name</th>
                                 <th scope="col">Accounts</th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($groups as $group)
                             <tr>
-                                <td>{{$group->group_name}}</td>
-                                <td>{{$group->pairs}}</td>
+                                <td>{{ $group->name }}</td>
+                                <td>
+                                    @if($group->accounts->isNotEmpty())
+                                    @foreach($group->accounts as $account)
+                                    <span class="badge bg-primary me-1">{{ $account->account_no }}</span>
+                                    @endforeach
+                                    @else
+                                    <span class="text-muted">No accounts</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning editGroupBtn" data-id="{{ $group->id }}"
+                                        data-name="{{ $group->name }}"
+                                        data-accounts="{{ $group->accounts->pluck('id')->implode(',') }}">
+                                        Edit
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
+
+
+
                 </div>
             </div>
 
@@ -116,69 +127,214 @@
     </div>
 
 
-        <!-- Group Modal -->
-        <div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" aria-hidden="true" data-bs-backdrop="static"
+    <!-- Group Modal -->
+    <div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" data-bs-backdrop="static"
         data-bs-keyboard="false">
-            <div class="modal-dialog">
-                <div class="modal-content">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupModalLabel">Add Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="groupForm" action="{{ route('admin.accounts.addpairs') }}" method="POST">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">Group Name</label>
+                            <input type="text" name="group_name" class="form-control" id="groupName"
+                                placeholder="Enter group name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paris" class="form-label">Select Pairs</label>
+                            <select id="paris" name="pairs[]" class="form-select select2" z-index="99999" multiple>
+                                @foreach($records as $accounts)
+                                <option value="{{$accounts->id}}"> {{$accounts->account_no}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" id="submitGroupBtn">Save Group</button>
+                        </div>
+                    </form>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal -->
+    <div class="modal fade" id="editGroupModal" tabindex="-1" aria-labelledby="editGroupModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editGroupForm" method="POST">
+                    @csrf
+                    <input type="hidden" name="id" id="editGroupId">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="groupModalLabel">Add Group</h5>
+                        <h5 class="modal-title" id="editGroupModalLabel">Edit Group</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
                     <div class="modal-body">
-                        <form action="{{ route('admin.accounts.addpairs') }}" method="POST">
-                            @csrf
+                        <div class="mb-3">
+                            <label for="editGroupName" class="form-label">Group Name</label>
+                            <input type="text" name="edit_group_name" class="form-control" id="editGroupName"
+                                placeholder="Enter group name">
+                            <small class="text-danger error-text group_name_error"></small>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="groupName" class="form-label">Group Name</label>
-                                <input type="text" name="group_name" class="form-control" id="groupName"
-                                    placeholder="Enter group name">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="" class="form-label" >Select Pairs</label>
-                                <select id="" name="pairs[]" class="form-select select2" multiple z-index="9999">
-                                    @foreach($records as $accounts)
-                                    <option value="{{$accounts->account_no}}"> {{$accounts->account_no}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Save Group</button>
-                            </div>
-                        </form>
-
+                        <div class="mb-3">
+                            <label class="form-label">Select Pairs</label>
+                            <select name="edit_pairs[]" id="editGroupAccounts" class="form-select select2" multiple>
+                                @foreach($records as $accounts)
+                                <option value="{{ $accounts->id }}">{{ $accounts->account_no }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-danger error-text pairs_error"></small>
+                        </div>
                     </div>
 
-
-                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="updateGroupBtn">Update Group</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+
 
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
     <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
-                   let $select = $('.select2').select2({
-                        dropdownParent: $('#groupModal'), // Ensures dropdown appears inside modal
-                        allowClear: true,
-                        selectOnClose: true,
-                    });
-                    // Prevent dropdown from opening on clear
-                    $select.on('select2:unselecting', function (e) {
-                        $(this).data('unselecting', true);
-                    });
 
-                    $select.on('select2:opening', function (e) {
-                        if ($(this).data('unselecting')) {
-                            $(this).removeData('unselecting');
-                            e.preventDefault();
-                        }
-                    });
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('groupForm');
+            const submitBtn = document.getElementById('submitGroupBtn');
+            const modal = new bootstrap.Modal(document.getElementById('groupModal'));
+
+            form.addEventListener('submit', function (e) {
+                // Disable the button to prevent multiple clicks
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Saving...';
+
+                // Optionally hide the modal immediately
+                modal.hide();
+            });
+        });
+
+$(document).ready(function () {
+     // Initialize Add Group Modal select2
+                 $('#groupModal').on('shown.bs.modal', function () {
+                    let $select = $(this).find('.select2');
+
+                    // Prevent re-initialization
+                    if (!$select.hasClass('select2-hidden-accessible')) {
+                        $select.select2({
+                            dropdownParent: $('#groupModal'),
+                            allowClear: true
+                        });
+
+                        $select.on('select2:unselecting', function (e) {
+                            $(this).data('unselecting', true);
+                        });
+
+                        $select.on('select2:opening', function (e) {
+                            if ($(this).data('unselecting')) {
+                                $(this).removeData('unselecting');
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
+
+                // Initialize Edit Group Modal select2
+                $('#editGroupModal').on('shown.bs.modal', function () {
+                    let $editSelect = $(this).find('.select2');
+                    if (!$editSelect.hasClass('select2-hidden-accessible')) {
+                        $editSelect.select2({
+                            dropdownParent: $('#editGroupModal'),
+                            allowClear: true
+                        });
+
+                        $editSelect.on('select2:unselecting', function (e) {
+                            $(this).data('unselecting', true);
+                        });
+
+                        $editSelect.on('select2:opening', function (e) {
+                            if ($(this).data('unselecting')) {
+                                $(this).removeData('unselecting');
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
+
+    // Open edit modal
+       $(document).on('click', '.editGroupBtn', function () {
+        const groupId = $(this).data('id');
+        const groupName = $(this).data('name');
+        const accounts = $(this).data('accounts')?.toString().split(',') || [];
+
+        // Set form values
+        $('#editGroupId').val(groupId);
+        $('#editGroupName').val(groupName);
+
+        const $select = $('#editGroupAccounts');
+
+        // Reset and set selected options
+        $select.val(null).trigger('change'); // Clear previous selections
+        $select.val(accounts).trigger('change');
+
+        // Set form action dynamically
+        $('#editGroupForm').attr('action', '/admin/accounts/update-group/' + groupId);
+
+        // Show modal
+        const editModal = new bootstrap.Modal(document.getElementById('editGroupModal'));
+        editModal.show();
+    });
+
+    // Submit form via AJAX
+    $('#editGroupForm').on('submit', function (e) {
+        e.preventDefault();
+
+        let formData = new FormData(this);
+        clearErrors();
+
+        $.ajax({
+            type: "POST",
+            url: "{{ route('admin.accounts.updateGroup') }}",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+                $('#editGroupModal').modal('hide');
+                location.reload();
+            },
+            error: function (xhr) {
+                let errors = xhr.responseJSON.errors;
+                $.each(errors, function (key, value) {
+                    $('.' + key + '_error').text(value[0]);
+                });
+            }
+        });
+    });
+
+    function clearErrors() {
+        $('.error-text').text('');
+    }
+});
+
+
     </script>
     @endpush
 </x-admin-layout>

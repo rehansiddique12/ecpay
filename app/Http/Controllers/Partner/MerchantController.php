@@ -25,11 +25,7 @@ class MerchantController extends Controller
         $totalCommissionAll = null;
 
         $user = Auth::guard('partner')->user();
-        // $apis = Api::where('type', 'Admin')
-        //             ->where('parent_id', $user->id)
-        //             ->pluck('name', 'id')->toArray();
-
-        // $apis = DB::table('apis')->pluck('name', 'id')->toArray();
+        
         if($request->filled('search_post'))
         {
             $from_date = $request->input('from_date');
@@ -41,10 +37,7 @@ class MerchantController extends Controller
                         ->whereDate('created_at', $from_date)
                         ->sum('charges');
 
-        // $apiIds = Api::where('type', 'Admin')
-        //     ->where('parent_id', $user->id)
-        //     ->pluck('id')
-        //     ->toArray();
+        
 
 
         $partner_ids = PartnerCommission::where('from_id', $user->id)
@@ -87,6 +80,7 @@ class MerchantController extends Controller
         $pageTitle = "Merchants Summary Report On Date";
         return view('partner.merchant.report_by_date' , compact('pageTitle' , 'from_date' , 'results' , 'apis' , 'totalCommissionAll'));
     }
+    
     public function export_by_date(Request $request)
     {
         $from_date = $request->input('from_date');

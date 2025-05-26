@@ -6,16 +6,18 @@ namespace App\Http\Controllers\Admin;
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Group;
 use App\Models\Gateway;
-use App\Models\Category;
 
+use App\Models\Category;
 use App\Models\AccountGroup;
 use Illuminate\Http\Request;
-use App\Models\AccountGateway;
 
+use App\Models\AccountGateway;
 use App\Models\EWalletAccount;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
+use App\Models\UserLocation;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -32,7 +34,7 @@ class CategoryController extends Controller
 
         $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
             $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        }])->paginate(20);
+        } ,'location'])->paginate(20);
 
         foreach ($data['records'] as $record) {
             $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
@@ -46,8 +48,22 @@ class CategoryController extends Controller
         $pageTitle = 'Add New Account';
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
+        $groups = Group::all();
+        $users_locations=UserLocation::where('status' , 1)->get();
+        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations'));
+    }
 
-        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods'));
+    public function editAccount(Request $request , $id)
+    {
+        $pageTitle = 'Edit New Account';
+        $categories = Category::select('name', 'id')->get();
+        $methods = Gateway::select('name', 'id')->where('status', 1)->get();
+        $groups = Group::all();
+        $users_locations=UserLocation::where('status' , 1)->get();
+
+        $e_wallet_account= EWalletAccount::findOfFail($id);
+
+        return view('admin.accounts.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account'));
     }
 
     public  function  addCategory(Request $request)
@@ -213,5 +229,14 @@ class CategoryController extends Controller
             'success' => true,
             'status' => $category->status,
         ]);
+    }
+
+    public function getAccountsByCategory($category_id)
+    {
+        $accounts = Gateway::where('category_id', $category_id)
+                        ->where('status', 1)
+                        ->get(['id', 'name', 'currency']);
+
+        return response()->json($accounts);
     }
 }
