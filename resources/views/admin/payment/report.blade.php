@@ -186,12 +186,14 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('Date')</th>
+                            <th scope="col">@lang('ID')</th>
+                            <th scope="col">@lang('Date Time')</th>
                             <th scope="col">@lang('Trx Number')</th>
                             <th scope="col">@lang('Partner Trx No')</th>
                             <th scope="col">@lang('Partner Txn Input')</th>
                             <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('Method')</th>
+                            <th scope="col">@lang('Type')</th>
+                            <th scope="col">@lang('Code')</th>
                             <th scope="col">Acc. No.</th>
                             <th scope="col">@lang('Amount')</th>
                             <th scope="col">@lang('Merchant Charge')</th>
@@ -208,7 +210,8 @@
                     <tbody>
                         @forelse($funds as $key => $fund)
                             <tr>
-                                <td data-label="@lang('Date')"> {{ dateTime($fund->created_at, 'd M,Y H:i') }}
+                                <td data-label="@lang('ID')"> {{ $fund->id }} </td>
+                                <td data-label="@lang('Date_Time')"> {{ dateTime($fund->created_at, 'd M,Y H:i') }}
                                 </td>
                                 <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                                     {{ $fund->transaction }}<br>
@@ -246,7 +249,8 @@
                                         {{ optional($fund->api)->name }} <b>({{ optional($fund->api)->acc_type }})</b>
                                     @endif
                                 </td>
-                                <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
+                                <td data-label="@lang('Type')">{{ $fund->gateway?->category?->name ?? 'N/A' }}</td>
+                                <td data-label="@lang('Code')">{{ optional($fund->gateway)->name }}</td>
                                 <td class="font-weight-bold">{{ $fund->sender }}</td>
                                 <td data-label="@lang('Amount')" class="font-weight-bold">
                                     {{ getAmount($fund->amount) }}
@@ -579,214 +583,7 @@
         </div>
     </div>
 
-    {{-- <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-        <div class="card-body">
-            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-            <div class="table-responsive">
-                <table class="categories-show-table table table-hover table-striped table-bordered">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('User Account')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Payable')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Source')</th>
-                            <th scope="col">@lang('Receipt')</th>
-                            @if (adminAccessRoute(config('role.payment_log.access.edit')))
-                            <th scope="col">@lang('Action')</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($funds as $key => $fund)
-                        <tr>
-                            <td data-label="@lang('Date')"> {{ dateTime($fund->updated_at,'d M,Y H:i') }}</td>
-                            <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                {{ $fund->transaction }}<br>
-                                <span class="text text-success">{{ $fund->txn_id }}</span>
 
-                            </td>
-                            <td>{{ $fund->partner_transection_id!=0?$fund->partner_transection_id:'' }}
-                                <br>
-                                {{ !empty($fund->member_id)?$fund->member_id:'' }}
-                            </td>
-                            <td data-label="@lang('Username')">
-                                @if (optional($fund->user)->username != null && optional($fund->user)->username != 'dummyuser')
-                                <a href="{{route('admin.user-edit', $fund->user_id)}}" target="_blank">
-                                    <div class="d-lg-flex d-block align-items-center ">
-                                        <div class="mr-3"><img
-                                                src="{{getFile(config('location.user.path').optional($fund->user)->image) }}"
-                                                alt="user" class="rounded-circle" width="45" height="45"></div>
-                                        <div class="">
-                                            <h5 class="text-dark mb-0 font-16 font-weight-medium">{{
-                                                optional($fund->user)->username }}</h5>
-                                            <span class="text-muted font-14">{{ optional($fund->user)->email }}</span>
-                                        </div>
-                                    </div>
-                                </a>
-                                @elseif($fund->request_source=="Admin Test")
-                                Admin Test
-                                @else
-                                {{ optional($fund->api)->name }} <b>({{ optional($fund->api)->acc_type }})</b>
-                                @endif
-                            </td>
-                            <td class="font-weight-bold">{{ $fund->sender }}</td>
-                            <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
-                            <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($fund->amount ) }}
-                                {{$fund->gateway->currency}}</td>
-                            <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }}
-                                {{$fund->gateway_currency}}</td>
-
-                            <td data-label="@lang('Payable')" class="font-weight-bold">{{ getAmount($fund->amount - $fund->charge)
-                                }} {{$fund->gateway->currency}}</td>
-
-                            <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                @if ($fund->status == 'Pending')
-                                <span class="badge bg-warning"><i
-                                        class="fa fa-circle text-white warning font-12"></i> @lang('Pending')</span>
-                                <br>
-                                <span class="text text-primary">{{ $fund->e_wallet_phone_number }}</span>
-                                @elseif($fund->status == "Complete")
-                                <span class="badge bg-success"><i
-                                        class="fa fa-circle text-white success font-12"></i> @lang('Completed')</span>
-                                <br>
-                                <span class="text text-success">{{ $fund->e_wallet_phone_number
-                                    }}</span>
-                                @elseif($fund->status == "Reject")
-                                <span class="badge bg-danger"><i class="fa fa-circle text-white danger font-12"></i>
-                                    @lang('Rejected')</span>
-                                <br>
-                                <span class="text text-danger"> {{ $fund->e_wallet_phone_number }}</span>
-                                @endif
-                                <br>
-                                {{ $fund->e_wallet_type }}
-                            </td>
-                            <td data-label="@lang('Method')">
-                                {{ optional($fund->api)->website }}
-                                <br>
-                                @if (!empty($fund->request_source))
-                                <span class="text text-dark">({{ $fund->request_source }})</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if (!empty($fund->receipt_image))
-                                <a data-fancybox="images"
-                                    href="{{ getFile(config('location.receipts.path').$fund->receipt_image) }}">
-                                    <h2><i class="fa fa-file"></i></h2>
-                                </a>
-                                @endif
-                            </td>
-
-                            @if (adminAccessRoute(config('role.payment_log.access.edit')))
-                            <td data-label="@lang('Action')">
-                                @php
-                                if($fund->detail){
-                                $details =[];
-                                foreach($fund->detail as $k => $v){
-                                if($v->type == "file"){
-                                $details[kebab2Title($k)] = [
-                                'type' => $v->type,
-                                'field_name' =>
-                                getFile(config('location.deposit.path').date('Y',strtotime($fund->created_at)).'/'.date('m',strtotime($fund->created_at)).'/'.date('d',strtotime($fund->created_at))
-                                .'/'.$v->field_name)
-                                ];
-                                }else{
-                                $details[kebab2Title($k)] =[
-                                'type' => $v->type,
-                                'field_name' => $v->field_name
-                                ];
-                                }
-                                }
-                                }else{
-                                $details = null;
-                                }
-                                @endphp
-
-                                @if ($fund->gateway_id > 999)
-                                <button
-                                    class="edit_button btn {{($fund->status == "Pending") ?  'btn-primary' : 'btn-success'}} text-white  btn-sm"
-                                    data-bs-toggle="modal" data-bs-target="#myModal"
-                                    data-bs-title="{{($fund->status == "Pending") ?  trans('Edit') : trans('Details')}}"
-                                    data-id="{{ $fund->id }}" data-feedback="{{ $fund->feedback }}"
-                                    data-info="{{json_encode($details)}}"
-                                    data-amount="{{ getAmount($fund->amount)}} {{ $basic->currency }}"
-                                    data-username="{{ optional($fund->user)->username }}"
-                                    data-route="{{route('admin.payment.action',$fund->id)}}"
-                                    data-status="{{$fund->status}}">
-
-                                    @if ($fund->status == 'Pending')
-                                    <i class="icon-base ti tabler-pencil me-1"></i>
-                                    @else
-                                    <i class="icon-base ti tabler-eye me-1"></i>
-                                    @endif
-
-                                </button>
-                                @else
-                                -
-                                @endif
-                            </td>
-                            @endif
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="100%">
-                                <p class="text-dark">@lang('No Data Found')</p>
-                            </td>
-                        </tr>
-
-                        @endforelse
-                    </tbody>
-                </table>
-                <div class="mt-5">
-                {{ $funds->appends($_GET)->links('partials.pagination') }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Edit button -->
-    <div class="modal modal-top fade" id="myModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Deposit Information')</h5>
-                </div>
-
-                <form role="form" method="POST" class="actionRoute" action="" enctype="multipart/form-data">
-                    @csrf
-                    @method('put')
-                    <input type="hidden" id="payment_status">
-                    <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
-
-                        <div class="get-feedback">
-
-                        </div>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')</button>
-                        @if (Request::routeIs('admin.payment.pending'))
-                        <div id="showBtns" style="display: none;">
-                            <input type="hidden" class="action_id" name="id">
-                            <input type="hidden" name="status" id="statusInput">
-                           <button type="submit" class="btn btn-primary status-btn" data-status="Complete">@lang('Approve')</button>
-                            <button type="submit" class="btn btn-danger status-btn" data-status="Reject">@lang('Reject')</button>
-                        </div>
-                        @endif
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div> --}}
 
 
     @push('js')
