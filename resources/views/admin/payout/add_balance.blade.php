@@ -139,23 +139,23 @@
             // Allow form to proceed
             return true;
         });
-       let $select = $('.select2').select2({
-                // placeholder: "Select Partner",
-                allowClear: true,
-                selectOnClose: true,
-            });
+        let $select = $('.select2').select2({
+            // placeholder: "Select Partner",
+            allowClear: true,
+            selectOnClose: true,
+        });
 
-            // Prevent dropdown from opening on clear
-            $select.on('select2:unselecting', function (e) {
-                $(this).data('unselecting', true);
-            });
+        // Prevent dropdown from opening on clear
+        $select.on('select2:unselecting', function (e) {
+            $(this).data('unselecting', true);
+        });
 
-            $select.on('select2:opening', function (e) {
-                if ($(this).data('unselecting')) {
-                    $(this).removeData('unselecting');
-                    e.preventDefault();
-                }
-            });
+        $select.on('select2:opening', function (e) {
+            if ($(this).data('unselecting')) {
+                $(this).removeData('unselecting');
+                e.preventDefault();
+            }
+        });
     });
 </script>
 

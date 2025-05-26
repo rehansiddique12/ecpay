@@ -5,7 +5,7 @@
     $currentRoute = Route::currentRouteName();
     @endphp
 
-    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <div class="row ">
@@ -62,10 +62,8 @@
         </div>
     </div>
 
-
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
-
             <div class="">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
@@ -93,15 +91,8 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
     </div>
-
-
-
-
-
 
 
     @push('js')
