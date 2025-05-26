@@ -2237,6 +2237,162 @@ class PayoutRecordController extends Controller
         
         return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account' , 'savedSlots' ,'selectedGroupIds'));
     }
+     public function updateAccount(Request $request , $id)
+    {
+        // dd($request->all());
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'account_id' => 'required|exists:gateways,id',
+
+            // Configuration validation
+            'daily_limit' => 'required|integer|min:0',
+            'daily_limit_withdrawal' => 'required|integer|min:0',
+            'monthly_limit' => 'required|integer|min:0',
+            'monthly_limit_withdrawal' => 'required|integer|min:0',
+            'daily_limit_transaction' => 'required|integer|min:0',
+            'daily_limit_withdrawal_transaction' => 'required|integer|min:0',
+            'monthly_limit_transaction' => 'required|integer|min:0',
+            'monthly_limit_withdrawal_transaction' => 'required|integer|min:0',
+            'max_transaction_per_minute' => 'required|integer|min:0',
+            'max_amount_per_minute' => 'required|integer|min:0',
+
+            // Threshold alerts
+            'deposit_daily_limit_percentage' => 'required|integer|min:1|max:100',
+            'withdrawal_daily_limit_percentage' => 'required|integer|min:1|max:100',
+            'deposit_monthly_limit_percentage' => 'required|integer|min:1|max:100',
+            'withdrawal_monthly_limit_percentage' => 'required|integer|min:1|max:100',
+            'low_balance_amount' => 'required|integer|min:0',
+
+            // Time slots
+            'time_slots' => 'nullable|array',
+            'time_slots.*' => 'string',
+
+            // E-wallet accounts validation
+            'e_wallet_name' => 'required|array',
+            'e_wallet_name.*' => 'required|string',
+            'device_name' => 'required|array',
+            'device_name.*' => 'required|string',
+            'account_number' => 'required|array',
+            'account_number.*' => 'required|string',
+            'account_group' => 'nullable|array',
+            'account_group.*' => 'nullable|array',
+            'account_group.*.*' => 'exists:groups,id',
+            'account_type' => 'required|array',
+            'account_type.*' => 'required|in:Agent,Merchant,Personal',
+            'in_out' => 'required|array',
+            'in_out.*' => 'required|in:Deposit,Withdrawal,Both',
+            'location' => 'nullable|array',
+            'location.*' => 'nullable|exists:user_locations,id',
+            'image' => 'nullable|array',
+            'image.*' => 'nullable|image|mimes:jpeg,png|max:2048',
+
+            'status' => 'nullable|boolean',
+        ]);
+        // dd($request->all());
+        try {
+            DB::beginTransaction();
+
+            // Process time slots
+            $timeSlots = $request->time_slots ?? [];
+            $applyTimeLimit = !empty($timeSlots) ? 1 : 0;
+
+            // Process each e-wallet account
+            foreach ($request->e_wallet_name as $index => $name) {
+                $imagePath = null;
+
+                if ($request->hasFile('image.' . $index)) {
+                    $file = $request->file('image.' . $index);
+
+                    // Define the root-level path
+                    $destinationPath = base_path('assets/uploads/accounts');
+
+                    // Make sure the folder exists
+                    if (!file_exists($destinationPath)) {
+                        mkdir($destinationPath, 0755, true);
+                    }
+
+                    // Generate a unique filename
+                    $imagePath = time() . '_' . $file->getClientOriginalName();
+
+                    $file->move($destinationPath, $imagePath);
+                }
+
+                // Create e-wallet account
+                $account = EWalletAccount::create([
+                    'e_wallet_name' => $name,
+                    'account_no' => $request->account_number[$index],
+                    'type' => $request->account_type[$index],
+                    'account_type' => $request->in_out[$index],
+                    'daily_limit' => $request->daily_limit,
+                    'monthly_limit' => $request->monthly_limit,
+                    'daily_limit_transaction' => $request->daily_limit_transaction,
+                    'monthly_limit_transaction' => $request->monthly_limit_transaction,
+                    'daily_limit_withdrawal' => $request->daily_limit_withdrawal,
+                    'monthly_limit_withdrawal' => $request->monthly_limit_withdrawal,
+                    'daily_limit_withdrawal_transaction' => $request->daily_limit_withdrawal_transaction,
+                    'monthly_limit_withdrawal_transaction' => $request->monthly_limit_withdrawal_transaction,
+                    'deposit_daily_limit_percentage' => $request->deposit_daily_limit_percentage,
+                    'withdrawal_daily_limit_percentage' => $request->withdrawal_daily_limit_percentage,
+                    'deposit_monthly_limit_percentage' => $request->deposit_monthly_limit_percentage,
+                    'withdrawal_monthly_limit_percentage' => $request->withdrawal_monthly_limit_percentage,
+                    'max_transaction_per_minute' => $request->max_transaction_per_minute,
+                    'max_amount_per_minute' => $request->max_amount_per_minute,
+                    'low_balance_amount' => $request->low_balance_amount,
+                    'apply_time_limit' => $applyTimeLimit,
+                    // 'time_slots' => !empty($timeSlots) ? json_encode($timeSlots) : null,
+                    'image' => $imagePath,
+                    'status' => $request->status ?? 0,
+                    'balance' => 0,
+                    'live_balance' => 0,
+                    'daily_received' => 0,
+                    'monthly_received' => 0,
+                    'daily_sent' => 0,
+                    'monthly_sent' => 0,
+                    'send' => 0,
+                    'received' => 0,
+                    'device_name' => $request->device_name[$index],
+                    'location_id' => $request->location[$index],
+                    // 'account_group' => $request->account_group[$index],
+                ]);
+
+                // Attach account groups
+                // $account = EWalletAccount::latest()->first();
+                if (!empty($timeSlots)) {
+                    foreach ($timeSlots as $slot) {
+                        // Split the time slot into from and to times
+                        [$fromTimeStr, $toTimeStr] = explode(' - ', $slot);
+
+                        // Convert to proper TIME format (HH:MM:SS)
+                        $fromTime = date('H:i:s', strtotime($fromTimeStr));
+                        $toTime = date('H:i:s', strtotime($toTimeStr));
+
+                        $slotModel = new EWalletAccountTimeSlot();
+                        $slotModel->e_wallet_account_id = $account->id;
+                        $slotModel->time_saved = $slot;
+                        $slotModel->from_time = $fromTime;
+                        $slotModel->to_time = $toTime;
+                        $slotModel->saveOrFail();
+                    }
+                }
+
+                foreach($request->account_group[$index] as $groupId) {
+                    $new_group=new AccountGroup();
+                    $new_group->account_id = $account->id;
+                    $new_group->group_id = $groupId;
+                    $new_group->save();
+                }
+
+                // $account->groups()->attach($request->account_group[$index]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.account_management.add_account')->with('success', 'E-Wallet accounts created successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Error creating accounts: ' . $e->getMessage());
+        }
+    }
 
 
 
@@ -3117,162 +3273,7 @@ class PayoutRecordController extends Controller
         }
     }
 
-    public function updateAccount(Request $request , $id)
-    {
-        // dd($request->all());
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'account_id' => 'required|exists:gateways,id',
-
-            // Configuration validation
-            'daily_limit' => 'required|integer|min:0',
-            'daily_limit_withdrawal' => 'required|integer|min:0',
-            'monthly_limit' => 'required|integer|min:0',
-            'monthly_limit_withdrawal' => 'required|integer|min:0',
-            'daily_limit_transaction' => 'required|integer|min:0',
-            'daily_limit_withdrawal_transaction' => 'required|integer|min:0',
-            'monthly_limit_transaction' => 'required|integer|min:0',
-            'monthly_limit_withdrawal_transaction' => 'required|integer|min:0',
-            'max_transaction_per_minute' => 'required|integer|min:0',
-            'max_amount_per_minute' => 'required|integer|min:0',
-
-            // Threshold alerts
-            'deposit_daily_limit_percentage' => 'required|integer|min:1|max:100',
-            'withdrawal_daily_limit_percentage' => 'required|integer|min:1|max:100',
-            'deposit_monthly_limit_percentage' => 'required|integer|min:1|max:100',
-            'withdrawal_monthly_limit_percentage' => 'required|integer|min:1|max:100',
-            'low_balance_amount' => 'required|integer|min:0',
-
-            // Time slots
-            'time_slots' => 'nullable|array',
-            'time_slots.*' => 'string',
-
-            // E-wallet accounts validation
-            'e_wallet_name' => 'required|array',
-            'e_wallet_name.*' => 'required|string',
-            'device_name' => 'required|array',
-            'device_name.*' => 'required|string',
-            'account_number' => 'required|array',
-            'account_number.*' => 'required|string',
-            'account_group' => 'nullable|array',
-            'account_group.*' => 'nullable|array',
-            'account_group.*.*' => 'exists:groups,id',
-            'account_type' => 'required|array',
-            'account_type.*' => 'required|in:Agent,Merchant,Personal',
-            'in_out' => 'required|array',
-            'in_out.*' => 'required|in:Deposit,Withdrawal,Both',
-            'location' => 'nullable|array',
-            'location.*' => 'nullable|exists:user_locations,id',
-            'image' => 'nullable|array',
-            'image.*' => 'nullable|image|mimes:jpeg,png|max:2048',
-
-            'status' => 'nullable|boolean',
-        ]);
-        // dd($request->all());
-        try {
-            DB::beginTransaction();
-
-            // Process time slots
-            $timeSlots = $request->time_slots ?? [];
-            $applyTimeLimit = !empty($timeSlots) ? 1 : 0;
-
-            // Process each e-wallet account
-            foreach ($request->e_wallet_name as $index => $name) {
-                $imagePath = null;
-
-                if ($request->hasFile('image.' . $index)) {
-                    $file = $request->file('image.' . $index);
-
-                    // Define the root-level path
-                    $destinationPath = base_path('assets/uploads/accounts');
-
-                    // Make sure the folder exists
-                    if (!file_exists($destinationPath)) {
-                        mkdir($destinationPath, 0755, true);
-                    }
-
-                    // Generate a unique filename
-                    $imagePath = time() . '_' . $file->getClientOriginalName();
-
-                    $file->move($destinationPath, $imagePath);
-                }
-
-                // Create e-wallet account
-                $account = EWalletAccount::create([
-                    'e_wallet_name' => $name,
-                    'account_no' => $request->account_number[$index],
-                    'type' => $request->account_type[$index],
-                    'account_type' => $request->in_out[$index],
-                    'daily_limit' => $request->daily_limit,
-                    'monthly_limit' => $request->monthly_limit,
-                    'daily_limit_transaction' => $request->daily_limit_transaction,
-                    'monthly_limit_transaction' => $request->monthly_limit_transaction,
-                    'daily_limit_withdrawal' => $request->daily_limit_withdrawal,
-                    'monthly_limit_withdrawal' => $request->monthly_limit_withdrawal,
-                    'daily_limit_withdrawal_transaction' => $request->daily_limit_withdrawal_transaction,
-                    'monthly_limit_withdrawal_transaction' => $request->monthly_limit_withdrawal_transaction,
-                    'deposit_daily_limit_percentage' => $request->deposit_daily_limit_percentage,
-                    'withdrawal_daily_limit_percentage' => $request->withdrawal_daily_limit_percentage,
-                    'deposit_monthly_limit_percentage' => $request->deposit_monthly_limit_percentage,
-                    'withdrawal_monthly_limit_percentage' => $request->withdrawal_monthly_limit_percentage,
-                    'max_transaction_per_minute' => $request->max_transaction_per_minute,
-                    'max_amount_per_minute' => $request->max_amount_per_minute,
-                    'low_balance_amount' => $request->low_balance_amount,
-                    'apply_time_limit' => $applyTimeLimit,
-                    // 'time_slots' => !empty($timeSlots) ? json_encode($timeSlots) : null,
-                    'image' => $imagePath,
-                    'status' => $request->status ?? 0,
-                    'balance' => 0,
-                    'live_balance' => 0,
-                    'daily_received' => 0,
-                    'monthly_received' => 0,
-                    'daily_sent' => 0,
-                    'monthly_sent' => 0,
-                    'send' => 0,
-                    'received' => 0,
-                    'device_name' => $request->device_name[$index],
-                    'location_id' => $request->location[$index],
-                    // 'account_group' => $request->account_group[$index],
-                ]);
-
-                // Attach account groups
-                // $account = EWalletAccount::latest()->first();
-                if (!empty($timeSlots)) {
-                    foreach ($timeSlots as $slot) {
-                        // Split the time slot into from and to times
-                        [$fromTimeStr, $toTimeStr] = explode(' - ', $slot);
-
-                        // Convert to proper TIME format (HH:MM:SS)
-                        $fromTime = date('H:i:s', strtotime($fromTimeStr));
-                        $toTime = date('H:i:s', strtotime($toTimeStr));
-
-                        $slotModel = new EWalletAccountTimeSlot();
-                        $slotModel->e_wallet_account_id = $account->id;
-                        $slotModel->time_saved = $slot;
-                        $slotModel->from_time = $fromTime;
-                        $slotModel->to_time = $toTime;
-                        $slotModel->saveOrFail();
-                    }
-                }
-
-                foreach($request->account_group[$index] as $groupId) {
-                    $new_group=new AccountGroup();
-                    $new_group->account_id = $account->id;
-                    $new_group->group_id = $groupId;
-                    $new_group->save();
-                }
-
-                // $account->groups()->attach($request->account_group[$index]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('admin.account_management.add_account')->with('success', 'E-Wallet accounts created successfully');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withInput()->with('error', 'Error creating accounts: ' . $e->getMessage());
-        }
-    }
+   
 
     public function merchant(Request $request)
     {
