@@ -4,15 +4,7 @@
     <style>
         /* Fix for Select2 inside Bootstrap modal */
         .select2-container {
-            z-index: 9999 !important;
-        }
-
-        .select2-dropdown {
-            z-index: 9999 !important;
-        }
-
-        .modal {
-            overflow-y: auto;
+            z-index: 99999 !important;
         }
     </style>
     @endpush
@@ -136,8 +128,8 @@
 
 
     <!-- Group Modal -->
-    <div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" aria-hidden="true"
-        data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="groupModal" tabindex="-1" aria-labelledby="groupModalLabel" data-bs-backdrop="static"
+        data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -156,8 +148,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="" class="form-label">Select Pairs</label>
-                            <select id="" name="pairs[]" class="form-select select2" multiple z-index="9999">
+                            <label for="paris" class="form-label">Select Pairs</label>
+                            <select id="paris" name="pairs[]" class="form-select select2" z-index="99999" multiple>
                                 @foreach($records as $accounts)
                                 <option value="{{$accounts->id}}"> {{$accounts->account_no}}</option>
                                 @endforeach
@@ -224,24 +216,8 @@
     <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
     <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
     <script>
-        let $select = $('.select2').select2({
-                dropdownParent: $('#groupModal'), // Ensures dropdown appears inside modal
-                allowClear: true,
-                selectOnClose: true,
-            });
-            // Prevent dropdown from opening on clear
-            $select.on('select2:unselecting', function (e) {
-                $(this).data('unselecting', true);
-            });
 
-            $select.on('select2:opening', function (e) {
-                if ($(this).data('unselecting')) {
-                    $(this).removeData('unselecting');
-                    e.preventDefault();
-                }
-            });
-
-            document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('groupForm');
             const submitBtn = document.getElementById('submitGroupBtn');
             const modal = new bootstrap.Modal(document.getElementById('groupModal'));
@@ -257,25 +233,74 @@
         });
 
 $(document).ready(function () {
-    $('.select2').select2({
-        dropdownParent: $('#editGroupModal')
-    });
+     // Initialize Add Group Modal select2
+                 $('#groupModal').on('shown.bs.modal', function () {
+                    let $select = $(this).find('.select2');
+
+                    // Prevent re-initialization
+                    if (!$select.hasClass('select2-hidden-accessible')) {
+                        $select.select2({
+                            dropdownParent: $('#groupModal'),
+                            allowClear: true
+                        });
+
+                        $select.on('select2:unselecting', function (e) {
+                            $(this).data('unselecting', true);
+                        });
+
+                        $select.on('select2:opening', function (e) {
+                            if ($(this).data('unselecting')) {
+                                $(this).removeData('unselecting');
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
+
+                // Initialize Edit Group Modal select2
+                $('#editGroupModal').on('shown.bs.modal', function () {
+                    let $editSelect = $(this).find('.select2');
+                    if (!$editSelect.hasClass('select2-hidden-accessible')) {
+                        $editSelect.select2({
+                            dropdownParent: $('#editGroupModal'),
+                            allowClear: true
+                        });
+
+                        $editSelect.on('select2:unselecting', function (e) {
+                            $(this).data('unselecting', true);
+                        });
+
+                        $editSelect.on('select2:opening', function (e) {
+                            if ($(this).data('unselecting')) {
+                                $(this).removeData('unselecting');
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
 
     // Open edit modal
-    $(document).on('click', '.editGroupBtn', function () {
+       $(document).on('click', '.editGroupBtn', function () {
         const groupId = $(this).data('id');
         const groupName = $(this).data('name');
-        const accounts = $(this).data('accounts')?.toString().split(',') ?? [];
+        const accounts = $(this).data('accounts')?.toString().split(',') || [];
 
+        // Set form values
         $('#editGroupId').val(groupId);
         $('#editGroupName').val(groupName);
-        $('#editGroupModalLabel').text('Edit Group');
 
-        // Set selected accounts after modal is open
-        $('#editGroupModal').modal('show');
-        setTimeout(() => {
-            $('#editGroupAccounts').val(accounts).trigger('change');
-        }, 200);
+        const $select = $('#editGroupAccounts');
+
+        // Reset and set selected options
+        $select.val(null).trigger('change'); // Clear previous selections
+        $select.val(accounts).trigger('change');
+
+        // Set form action dynamically
+        $('#editGroupForm').attr('action', '/admin/accounts/update-group/' + groupId);
+
+        // Show modal
+        const editModal = new bootstrap.Modal(document.getElementById('editGroupModal'));
+        editModal.show();
     });
 
     // Submit form via AJAX
