@@ -12,6 +12,7 @@ use App\Models\Payout;
 use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
+use App\Models\Category;
 use App\Models\CCategory;
 use App\Models\Signature;
 use App\Models\AccountLog;
@@ -25,8 +26,8 @@ use Illuminate\Support\Str;
 use App\Models\AccountGroup;
 use App\Models\AdminAccount;
 use Illuminate\Http\Request;
-use App\Models\EWalletCharge;
 // rehan
+use App\Models\EWalletCharge;
 use App\Models\AccountGateway;
 use App\Models\ApiTransaction;
 use App\Models\CronCommission;
@@ -180,6 +181,7 @@ class PayoutRecordController extends Controller
         $newPassword = Str::random(12); // 12-digit alphanumeric password
 
         $api->password = Hash::make($newPassword); // If it's hashed
+        $api->password_string = $newPassword; // If it's hashed
         $api->save();
 
         return response()->json([
@@ -1560,24 +1562,10 @@ class PayoutRecordController extends Controller
 
     public function apis(Request $request)
     {
-        $query = Api::where('type', 'Admin')->select([
-            'id',
-            'name',
-            'username',
-            'acc_type',
-            'website',
-            'api_endpoint_deposit',
-            'api_endpoint_withdrawal',
-            'redirect_url',
-            'api_key',
-            'secret_key',
-            'balance',
-            'min_deposit',
-            'min_withdrawal',
-            'status',
-            'password_string',
-            'sign',
-            'txn_verification'
+        $query = Api::where('type', 'Admin')->where('acc_type','Partner')->select([
+            'id', 'name', 'username', 'acc_type', 'website', 'api_endpoint_deposit',
+            'api_endpoint_withdrawal', 'redirect_url', 'api_key', 'secret_key', 'balance',
+            'min_deposit', 'min_withdrawal', 'status', 'password_string', 'sign', 'txn_verification'
         ]);
 
         // Default to show_all = 1
@@ -1591,6 +1579,27 @@ class PayoutRecordController extends Controller
 
         return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
+
+    public function agentlist(Request $request)
+    {
+        $query = Api::where('type', 'Admin')->where('acc_type','Agent')->select([
+            'id', 'name', 'username', 'balance','status'
+        ]);
+
+        // Default to show_all = 1
+        $showAll = $request->get('show_all', '1');
+
+        $records = $showAll == '1'
+            ? $query->get()
+            : $query->paginate(20);
+
+        $pageTitle = "Agent List";
+        // dd($records);
+
+        return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
+    }
+
+
 
 
     // Partner controller
@@ -1637,33 +1646,33 @@ class PayoutRecordController extends Controller
 
         $api = Api::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'username' => 'required|string|max:100',
-            'email' => 'nullable|email|max:100',
-            'phone' => 'nullable|string|max:20',
-            // 'password' => 'nullable|string|min:6',
-            'website' => 'nullable|string|max:255',
-            'api_endpoint_deposit' => 'nullable|string|max:200',
-            'api_endpoint_withdrawal' => 'nullable|string|max:200',
-            'admin_access' => 'nullable|string',
-            // 'type' => 'required|string|max:50',
-            'api_key' => 'required|string|max:255',
-            // 'last_login' => 'nullable|string|max:50',
-            // 'remember_token' => 'nullable|string|max:100',
-            // 'balance' => 'nullable|numeric',
-            'min_deposit' => 'nullable|numeric',
-            'min_withdrawal' => 'required|numeric',
-            'acc_type' => 'required|string|max:20',
-            // 'parent_id' => 'nullable|integer',
-            'sign' => 'required|boolean',
-            'secret_key' => 'nullable|string|max:255',
-            'txn_verification' => 'required|boolean',
-            'redirect_url' => 'nullable|string|max:500',
-            'timezone' => 'nullable|string|max:255',
-            'status' => 'required|boolean',
-            'category_id' => 'nullable',
-        ]);
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'username' => 'required|string|max:100',
+                'email' => 'nullable|email|max:100',
+                'phone' => 'nullable|string|max:20',
+                'password' => 'nullable|string|min:6',
+                'website' => 'nullable|string|max:255',
+                'api_endpoint_deposit' => 'nullable|string|max:200',
+                'api_endpoint_withdrawal' => 'nullable|string|max:200',
+                'admin_access' => 'nullable|string',
+                // 'type' => 'required|string|max:50',
+                'api_key' => 'required|string|max:255',
+                // 'last_login' => 'nullable|string|max:50',
+                // 'remember_token' => 'nullable|string|max:100',
+                // 'balance' => 'nullable|numeric',
+                'min_deposit' => 'nullable|numeric',
+                'min_withdrawal' => 'required|numeric',
+                'acc_type' => 'required|string|max:20',
+                // 'parent_id' => 'nullable|integer',
+                'sign' => 'required|boolean',
+                'secret_key' => 'nullable|string|max:255',
+                'txn_verification' => 'required|boolean',
+                'redirect_url' => 'nullable|string|max:500',
+                'timezone' => 'nullable|string|max:255',
+                'status' => 'required|boolean',
+                'category_id' => 'nullable',
+            ]);
 
 
         if ($request->filled('password')) {
@@ -1832,6 +1841,61 @@ class PayoutRecordController extends Controller
         ]);
     }
 
+
+    public function agentAdd(Request $request)
+    {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'username' => 'required|string',
+            'status' => 'required',
+            'password' => 'required|string|min:5',
+        ]);
+
+        if ($validator->fails()) {
+            // Return validation errors as JSON
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Permissions list
+        $permissionsArray = [
+            "partner.dashboard", "partner.staff", "partner.storeStaff", "partner.updateStaff",
+            "partner.apis.delete", "partner.payment.report", "partner.payment.report.search",
+            "partner.payment.report.daily", "partner.payment.report.daily.search",
+            "partner.payment.report.all", "partner.payment.report.all.search", "partner.payout-log",
+            "partner.payout-request", "partner.payout-log.search", "partner.payout-action",
+            "partner.payout-report", "partner.payout-report.search", "partner.payout.report.daily",
+            "partner.payout.report.daily.search"
+        ];
+
+        // Create and save API entry
+        Api::create([
+            'name' => $request->name,
+            'username' => $request->username,
+            'email' => '',
+            'phone' => '',
+            'password' => bcrypt($request->password), // Secure password hashing
+            'status' => $request->status,
+            'website' => '',
+            'api_endpoint_deposit' => '',
+            'api_endpoint_withdrawal' => '',
+            'redirect_url' => '',
+            'acc_type' => '',
+            'admin_access' => $permissionsArray,
+            'type' => 'Admin',
+            'balance' => 0,
+            'acc_type' => 'Agent',
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'API Added Successfully',
+        ]);
+    }
+
     /**
      * Generates a unique key for the given column.
      */
@@ -1936,19 +2000,27 @@ class PayoutRecordController extends Controller
     {
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
-        $gateways = Gateway::where('status', 1)->get();
-        // dd($gateways);
+
+        $categories = Category::with(['gateways' => function($query) {
+            $query->where('status', 1);
+        }])->where('status', 1)->get();
+
+
+        $allgateways = Gateway::where('status', 1)->get();
+
+        $gateways = [];
+        foreach ($categories as $category) {
+            foreach ($category->gateways as $gateway) {
+                $gateways[$category->name][] = $gateway->name;
+            }
+        }
+
         $pageTitle = "Manage Commissions";
 
         $records = "";
 
         return view('admin.payout.commission', compact(
-            'records',
-            'pageTitle',
-            'commissions',
-            'cron_commissions',
-            'id',
-            'gateways'
+            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways','categories','allgateways'
         ));
     }
 
@@ -1975,8 +2047,7 @@ class PayoutRecordController extends Controller
         ));
     }
 
-    public function addpartnerCommission(Request $request)
-    {
+    public function addpartnerCommission(Request $request) {
 
         $api = Api::findOrFail($request->user_id);
         $commissions = Commission::where('category_id', $api->category_id)->get();
@@ -2007,6 +2078,8 @@ class PayoutRecordController extends Controller
                     'commission_id' => $commission->id,
                 ]);
             }
+
+
         }
         return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
     }
@@ -2054,6 +2127,7 @@ class PayoutRecordController extends Controller
             'deposit_percentage' => $request->deposit_percentage,
             'withdrawal_percentage' => $request->withdrawal_percentage,
         ]);
+
 
         return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
     }
@@ -2335,6 +2409,7 @@ class PayoutRecordController extends Controller
                 $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
                 $new_commission->settlement_percentage = $request->settlement_percentage[$i];
                 $new_commission->category_id = $request->category_id;
+                $new_commission->category = $request->category[$i];
 
                 $new_commission->type = $types;
                 $new_commission->gateway_id = $gateway_ids; // store as JSON
@@ -2350,6 +2425,7 @@ class PayoutRecordController extends Controller
                 $cron_commission->settlement_percentage = $request->settlement_percentage[$i];
                 $cron_commission->category_id = $request->category_id;
                 $cron_commission->commission_id = $commission_id;
+                $cron_commission->category = $request->category[$i];
 
                 $cron_commission->type = $types;
                 $cron_commission->gateway_id = $gateway_ids;

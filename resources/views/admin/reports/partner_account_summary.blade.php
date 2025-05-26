@@ -86,7 +86,7 @@
                     </table>
                 </div>
                 <div class="card-footer">
-                    {{ $domains->appends($_GET)->links('partials.pagination') }}
+                    {{-- {{ $domains->appends($_GET)->links('partials.pagination') }} --}}
                 </div>
             </div>
         </div>
