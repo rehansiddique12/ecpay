@@ -3373,11 +3373,9 @@ class PayoutRecordController extends Controller
     public function settlements()
 {
     $user = Auth::guard('partner')->user();
-
     if ($user->type !== "Admin") {
         return back()->with('error', 'You have no permission to this page.');
     }
-
     $now = now();
 
     // Calculate total settled amount for current month

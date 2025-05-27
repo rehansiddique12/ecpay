@@ -1,4 +1,5 @@
 <x-partner-layout :title="$pageTitle">
+
     <h1 class="text-center">
         <span class="badge badge-primary">Settlementable Amount: <b>{{ $settlementable_amount }} TK</b></span>
     </h1>
@@ -7,7 +8,6 @@
         <form action="{{ route('partner.settlements.search') }}" method="get">
             <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
             <div class="row justify-content-between align-items-center">
-
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>From Date</label>
@@ -62,7 +62,8 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <br>
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i
+                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     </div>
                 </div>
             </div>
@@ -72,10 +73,10 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-                    <a href="javascript:void(0)" class="btn btn-sm btn-primary mr-2 mb-3 " data-target="#newModal"
-                        data-toggle="modal">
-                        <span>@lang('Add New')</span>
-                    </a>
+                    <button type="button" class="btn btn-primary mb-4 hover:drop-shadow-xl" data-bs-toggle="modal"
+                        data-bs-target="#newModal">
+                        Add New
+                    </button>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
@@ -173,22 +174,17 @@
 
 
     {{-- New MODAL --}}
-    <div id="newModal" class="modal fade show" tabindex="-1" role="dialog">
+    <div id="newModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header modal-colored-header bg-primary">
                     <h5 class="modal-title">@lang('Add New')</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('partner.settlements.add') }}" method="POST">
+                <form action="{{ route('partner.settlements.add') }}" method="POST" id="settlementForm">
                     @csrf
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
-
-
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Source</label>
@@ -204,14 +200,12 @@
                                     <input type="text" class="form-control" name="source_name" required />
                                 </div>
                             </div>
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Account No.</label>
                                     <input type="text" class="form-control" name="account_no" required />
                                 </div>
                             </div>
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Amount</label>
@@ -219,12 +213,12 @@
                                         required />
                                 </div>
                             </div>
-
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                        <button id="submitBtn" type="submit" class="btn btn-primary">@lang('Save')</button>
+                        <button type="button" class="btn btn-dark"
+                            data-bs-dismiss="modal">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -232,12 +226,49 @@
     </div>
 
 
+
     @push('js')
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
         <script>
             "use strict";
-            $(document).ready(function(e) {
 
+            $(document).ready(function() {
 
+                $('#settlementForm').on('submit', function(e) {
+                    e.preventDefault();
+                    let form = $(this);
+                    let submitBtn = $('#submitBtn');
+                    $('.text-danger').text('');
+                    submitBtn.prop('disabled', true).text('Processing...');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: form.attr('action'),
+                        data: form.serialize(),
+                        success: function(response) {
+                            $('#newModal').modal('hide');
+                            location.reload();
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                $.each(errors, function(key, messages) {
+                                    $('.error-' + key).text(messages[0]);
+                                });
+                            } else {
+                                alert('Something went wrong.');
+                            }
+                        },
+                        complete: function() {
+                            submitBtn.prop('disabled', false).text('Save');
+                        }
+                    });
+                });
+
+                // Image Preview
                 $('#image').change(function() {
                     let reader = new FileReader();
                     reader.onload = (e) => {
@@ -246,13 +277,11 @@
                     reader.readAsDataURL(this.files[0]);
                 });
 
-
-            });
-
-            $(document).ready(function() {
-                $('select').select2({
-                    selectOnClose: true
-                });
+                // Select2 init
+                // $('select').select2({
+                //     allowClear: true,
+                //     selectOnClose: true
+                // });
             });
         </script>
     @endpush
