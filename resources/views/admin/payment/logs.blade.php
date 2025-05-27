@@ -699,7 +699,7 @@
             // Allow form to proceed
             return true;
         });
-       let $select = $('.select2').select2({
+            let $select = $('.select2').select2({
                 // placeholder: "Select Partner",
                 allowClear: true,
                 selectOnClose: true,
