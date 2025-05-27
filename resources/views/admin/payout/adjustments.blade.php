@@ -99,19 +99,26 @@
                                     @endif
                                 </td>
                                 <td>{{ $item->created_at }}</td>
+                               
+
+
                                 <td data-label="@lang('Action')">
-                                    <div class="dropdown show ">
-                                        <a class="dropdown-toggle p-3" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-                                        </a>
+                                    {{-- <div class="dropdown show ">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                            data-bs-toggle="dropdown">
+                                            <i class="icon-base ti tabler-dots-vertical"></i>
+                                        </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                                             @if(adminAccessRoute(config('role.adjustments.access.edit')))
-                                            <form action="{{ route('admin.adjustments.approve', $item['id']) }}" method="GET">
-                                                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-check"></i> Approve</button>
+                                            <form action="{{ route('admin.adjustments.approve', $item['id']) }}"
+                                                method="GET">
+                                                <button type="submit" class="btn btn-sm btn-icon edit_button"><i
+                                                        class="fa fa-check"></i> Approve</button>
                                             </form>
+                                            
                                             @endif
                                         </div>
-                                    </div>
+                                    </div> --}}
                                 </td>
 
 

@@ -298,7 +298,42 @@
           </div>
         </div>
       </div>
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editTransactionForm">
+            @csrf
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit Transaction</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editId" name="id">
+            <input type="hidden" id="editType" name="type">
 
+            <div class="mb-3">
+              <label for="editAmount" class="form-label">Amount</label>
+              <input type="number" class="form-control" id="editAmount" name="amount" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="editStatus" class="form-label">Status</label>
+              <select class="form-select" id="editStatus" name="status">
+                <option value="pending">Pending</option>
+                <option value="success">Success</option>
+              </select>
+            </div>
+
+            <!-- Add more fields here if needed -->
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -307,6 +342,23 @@
 
 $(document).ready(function() {
     fetchTransactions();
+
+    $('#editTransactionForm').submit(function (e) {
+    e.preventDefault();
+
+    const id = $('#editId').val();
+    const type = $('#editType').val();
+    const formData = $(this).serialize();
+
+    let url = (type === 'payment')
+        ? "{{ route('admin.update.payment') }}"
+        : "{{ route('admin.update.payout') }}";
+
+    $.post(url, formData, function (res) {
+        $('#editModal').modal('hide');
+        fetchTransactions(); // Refresh the card list
+    }).fail(() => alert('Something went wrong. Please try again.'));
+});
 
 // call every 1 minute
 setInterval(function() {
@@ -325,11 +377,24 @@ setInterval(function() {
                 fetchPendingList(response.pending_list);
                 $('#transactions-container').empty(); // clear previous if needed
                 $.each(response.transactions, function(index, transaction) {
+                    $(document).off('click', '.edit-btn').on('click', '.edit-btn', function () {
+    const transaction = $(this).data('transaction'); // set below
+    $('#editId').val(transaction.id);
+    $('#editType').val(transaction.type);
+    $('#editAmount').val(transaction.amount);
+    $('#editStatus').val(transaction.status);
+    $('#editModal').modal('show');
+});
+
+
+
+                    const currentUserId = response.user_id;
+                    let showAdjustment = transaction.adjusted_by == null ? '' : 'd-none';
                     let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' : 'WITHDRAWL';
                     let statusColor = transaction.status === 'pending' ? 'text-warning' : 'text-success';
-
+                    let showEdit = transaction.adjusted_by == currentUserId ? '' : 'd-none';
                     let card = `
-                        <div class="col">
+                        <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
                             <div class="custom-card p-4">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="d-flex gap-4">
@@ -339,7 +404,7 @@ setInterval(function() {
                                     </div>
                                     <div class="d-flex gap-3 text-white">
                                         <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" aria-label="Close" data-id="${transaction.id}" data-type="${transaction.type}"></button>
                                     </div>
                                 </div>
 
@@ -370,13 +435,14 @@ setInterval(function() {
         style="background-color: blue; color: white;"
         data-partner-id="${transaction.partner_transection_id}">
         Activity
-    </button>
+        </button>
 
                                 </div>
                                 <div class="d-flex gap-4 mt-3">
-                                    <button class="px-4 btn btn-sm" style="background-color: rgb(45, 199, 58); color: white;">Edit</button>
+
+                                    <button class="px-4 btn btn-sm edit-btn ${showEdit}" style="background-color: rgb(45, 199, 58); color: white;" data-transaction='${JSON.stringify(transaction)}'>Edit</button>
                                     <button class="px-4 btn btn-sm" style="background-color: rgb(226, 15, 15); color: white;">Manual Process</button>
-                                    <button class="px-4 btn btn-sm" style="background-color: rgb(124, 3, 180); color: white;">Adjustment</button>
+                                    <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Adjustment</button>
                                 </div>
                             </div>
                         </div>
@@ -636,7 +702,56 @@ function fetchPendingList(pendingList) {
                 }
             });
         }
-    </script>
 
+        $('#transactions-container').on('click', '.btn-close', function () {
+    const id = $(this).data('id');
+    const type = $(this).data('type');
+    const card = $(this).closest('.col');
+
+    $.ajax({
+        url: "{{ route('admin.hideTransaction') }}", // using route name
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            id: id,
+            type: type
+        },
+        success: function (response) {
+            if (response.success) {
+                card.remove();
+            } else {
+                alert(response.message || 'Failed to hide transaction');
+            }
+        },
+        error: function () {
+            alert('Error occurred while hiding the transaction.');
+        }
+    });
+});
+
+$(document).on('click', '.btn-adjustment', function() {
+    const card = $(this).closest('.transaction-card');
+    const id = card.data('id');
+    const type = card.data('type');
+    const adjustmentBtn = $(this);
+    const editBtn = card.find('.edit-btn');
+
+    $.ajax({
+        url: "{{ route('admin.adjust.transaction') }}", // you'll create this route
+        method: 'POST',
+        data: {
+            id: id,
+            type: type,
+            _token: "{{ csrf_token() }}"
+        },
+        success: function() {
+            adjustmentBtn.addClass('d-none');
+            editBtn.removeClass('d-none');
+        }
+    });
+});
+
+
+</script>
     @endpush
 </x-admin-layout>

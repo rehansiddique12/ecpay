@@ -1911,45 +1911,48 @@ class PayoutRecordController extends Controller
 
     public function apisBalanceAdd(Request $request)
     {
-        DB::beginTransaction();
+        DB::beginTransaction(); // Start a transaction
         try {
-            // Determine the amount sign
-            $amount = $this->calculateAmount($request->amount, $request->amount_type);
-            $charges = $this->calculateCharges($request->amount, $request->charges, $request->charges_type);
+            if ($request->amount_type == 2) {
+                $amount = -$request->amount;
+            } else {
+                $amount = $request->amount;
+            }
 
-            // Fetch API partner and update balance with a lock to prevent race conditions
+            $charges = $request->charges;
+            if ($request->charges_type == 2) {
+                $charges = ($request->amount / 100) * $request->charges;
+            }
+
             $api = Api::where('id', $request->partner_id)->lockForUpdate()->firstOrFail();
-            $api->increment('balance', ($amount - $charges));
+            $api->balance += ($amount - $charges);
+            $api->save();
 
-            // Create a new API transaction record
-            $apiTransaction = ApiTransaction::create([
-                'amount' => $amount,
-                'adjustment' => $request->adjustment,
-                'source' => $request->source,
-                'txn' => $request->txn,
-                'reason' => $request->reason,
-                'partner_id' => $request->partner_id,
-                'charges' => $charges
-            ]);
+            $new_api_transaction = new ApiTransaction;
+            $new_api_transaction->amount = $amount;
+            $new_api_transaction->adjustment = $request->adjustment;
+            $new_api_transaction->source = $request->source;
+            $new_api_transaction->txn = $request->txn;
+            $new_api_transaction->reason = $request->reason;
+            $new_api_transaction->partner_id = $request->partner_id;
+            $new_api_transaction->charges = $charges;
+            $new_api_transaction->save();
 
-            // Create transaction log
-            Log::create([
-                'date_time' => now(),
-                'final_amount' => $amount - $charges,
-                'balance' => $api->balance,
-                'transection_type' => 3,
-                'transection_id' => $apiTransaction->id,
-                'partner_id' => $request->partner_id,
-                'source' => 'APIBalanceAdd'
-            ]);
+            $Log = new Log();
+            $Log->date_time = $new_api_transaction->created_at;
+            $Log->final_amount = $amount - $charges;
+            $Log->balance = $api->balance;
+            $Log->transection_type = 3;
+            $Log->transection_id = $new_api_transaction->id;
+            $Log->partner_id = $new_api_transaction->partner_id;
+            $Log->source = 'APIBalanceAdd';
+            $Log->save();
 
-            // Update daily partner summary in bulk
-            $this->updateDailyPartnerSummary($api, $apiTransaction, $amount, $charges);
             DB::commit();
             session()->flash('success', 'Successfully Updated Balance');
             return back();
         } catch (\Exception $e) {
-            DB::rollBack();
+            DB::rollBack(); // Rollback the transaction on error
             session()->flash('error', 'Failed to Update Balance: ' . $e->getMessage());
             return back()->withInput();
         }
@@ -3578,8 +3581,8 @@ class PayoutRecordController extends Controller
                 ->firstOrFail();
 
             if ($Settlement->status == 2) {
-                session()->flash('error', 'Already Rejected Settlement');
-                return back();
+                DB::rollBack();
+                throw new \Exception('Already Rejected Settlement.');
             } else if ($Settlement->status == 1) {
 
                 $Settlement->status = 2;
@@ -3589,6 +3592,7 @@ class PayoutRecordController extends Controller
                 $api->balance += $Settlement->net_amount;
 
                 if (!$api->save()) {
+                    DB::rollBack();
                     throw new \Exception('Failed to save API balance update.');
                 }
                 // dd('hello1');ok
@@ -3625,14 +3629,16 @@ class PayoutRecordController extends Controller
                     $summary_log->save();
                 }
 
-                DB::commit();
+
                 session()->flash('success', 'Successfully Rejected');
             } else {
                 $Settlement->status = 2;
                 $Settlement->save();
+
                 session()->flash('success', 'Successfully Rejected');
             }
 
+            DB::commit();
             return back();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -5093,15 +5099,19 @@ class PayoutRecordController extends Controller
 
     public function workboard(Request $request)
     {
-        $payments = Payment::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', DB::raw("'payment' as type"))
-            ->latest('created_at')
-            ->take(10)
-            ->get();
+        $payments = Payment::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', 'adjusted_by', DB::raw("'payment' as type"))
+    ->latest('created_at')
+    ->where('show_none', 0)
+    ->take(10)
+    ->get();
 
-        $payouts = Payout::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', DB::raw("'payout' as type"))
-            ->latest('created_at')
-            ->take(10)
-            ->get();
+$payouts = Payout::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', 'adjusted_by', DB::raw("'payout' as type"))
+    ->latest('created_at')
+    ->where('show_none', 0)
+    ->take(10)
+    ->get();
+
+
 
         $merged = $payments->merge($payouts);
 
@@ -5116,6 +5126,7 @@ class PayoutRecordController extends Controller
                 'ewallets' => $EWalletAccount,
                 'notifications' => $notifications,
                 'pending_list' => $pending_list,
+                'user_id' => auth()->id(),
             ]);
         }
 
@@ -5123,9 +5134,61 @@ class PayoutRecordController extends Controller
         $pageTitle = "Workboard";
         $apis = Api::get();
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions', 'apis'));
-        $apis = Api::get();
-        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions', 'apis'));
     }
+
+    public function updatePayment(Request $request) {
+        $payment = Payment::findOrFail($request->id);
+        $payment->amount = $request->amount;
+        $payment->status = 'Pending';
+        $payment->save();
+        return response()->json(['success' => true]);
+    }
+
+    public function updatePayout(Request $request) {
+        $payout = Payout::findOrFail($request->id);
+        $payout->amount = $request->amount;
+        $payout->status = 'Pending';
+        $payout->save();
+        return response()->json(['success' => true]);
+    }
+
+
+
+    public function adjustTransaction(Request $request)
+{
+    $model = $request->type === 'payment' ? Payment::class : Payout::class;
+    $record = $model::findOrFail($request->id);
+    $record->adjusted_by = auth()->id();
+    $record->save();
+
+    return response()->json(['success' => true]);
+}
+
+
+    public function hideTransaction(Request $request)
+{
+    $id = $request->input('id');
+    $type = $request->input('type');
+
+    if ($type === 'payment') {
+        $record = Payment::find($id);
+    } elseif ($type === 'payout') {
+        $record = Payout::find($id);
+    } else {
+        return response()->json(['success' => false, 'message' => 'Invalid type'], 400);
+    }
+
+    if ($record) {
+        $record->show_none = 1;
+        $record->save();
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Record not found'], 404);
+}
+
+
+
 
     // Partner Commission
 
@@ -5136,7 +5199,10 @@ class PayoutRecordController extends Controller
         $to_date = $request->to_date ?? now()->toDateString();
 
         // Base query
-        $recordsQuery = PartnerCommission::with('api', 'fromapi')
+        $recordsQuery = PartnerCommission::with([
+            'api:id,name',
+            'fromapi:id,name'
+        ])
             ->where('status', 1)
             ->whereHas('api')
             ->whereHas('fromapi');
@@ -5204,97 +5270,114 @@ class PayoutRecordController extends Controller
 
 
     public function adjustments()
-    {
+{
+    $pageTitle = "Partners Adjustments History";
 
-        $records = Adjustment::with('api')->orderBy('id', 'DESC')->get();
-        $pageTitle = "Partners Adjustments History";
-        $partners = Api::where('type', 'Admin')->get();
+    $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
+    $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
+    $monthyear = Carbon::now()->subMonth()->startOfMonth();
 
-        $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
-        $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
+    // Fetch all Admin partners at once
+    $partners = Api::where('type', 'Admin')->get();
+    $partnerIds = $partners->pluck('id');
 
-        $monthyear = Carbon::now()->copy()->subMonth()->startOfMonth();
-        $currentmonth = date('Y-m-d');
+    // Fetch all payments grouped by api_id
+    $payments = Payment::where('status', 'Complete')
+        ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
+        ->whereIn('api_id', $partnerIds)
+        ->selectRaw('api_id, COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+        ->groupBy('api_id')
+        ->get()
+        ->keyBy('api_id');
+
+    // Fetch all payouts grouped by api_id
+    $payouts = Payout::where('transfer_status', 2)
+        ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
+        ->whereIn('api_id', $partnerIds)
+        ->selectRaw('api_id, COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+        ->groupBy('api_id')
+        ->get()
+        ->keyBy('api_id');
+
+    // Preload all commissions by category for faster access
+    $commissionsByCategory = Commission::orderBy('to_amount', 'desc')->get()->groupBy('category_id');
+
+    $adjustmentsToInsert = [];
+
+    foreach ($partners as $partner) {
+        if ($partner->website === env('APP_WEBSITE')) continue;
+
+        $api_id = $partner->id;
+        $category_id = $partner->category_id;
+
+        if (empty($category_id) || !isset($commissionsByCategory[$category_id])) {
+            continue;
+        }
+
         $total_adjustment_amount = 0;
         $total_payment = 0;
         $total_payout = 0;
 
+        // ===== Payment Side Calculation =====
+        if (isset($payments[$api_id])) {
+            $pay = $payments[$api_id];
+            $commission = $commissionsByCategory[$category_id]
+                ->firstWhere(fn($c) => $pay->fund_sum >= $c->from_amount && $pay->fund_sum <= $c->to_amount)
+                ?? $commissionsByCategory[$category_id]->first(); // fallback to top one
 
-        foreach ($partners as $partner) {
-            $api_id = $partner->id;
-            $website = $partner->website;
-            if ($website != env('APP_WEBSITE')) {
-                $payments_current_month = Payment::where('status', 'Complete')
-                    // ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
-                    ->whereDate('created_at', '>=', $firstDayOfMonth)->whereDate('created_at', '<=', $lastDayOfMonth)
-                    ->where('api_id', $api_id)
-                    ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
-                    ->first();
-                if ($payments_current_month->fund_count > 0) {
+            $charge = $commission ? $commission->deposit_percentage * $pay->fund_sum / 100 : 0;
+            $get_adjustment = $pay->charge_sum - $charge;
 
-
-                    $charge = 0;
-                    $commissions = Commission::where('category_id', $partner->category_id)->where('from_amount', '<=', $payments_current_month->fund_sum)->where('to_amount', '>=', $payments_current_month->fund_sum)->first();
-                    if ($commissions) {
-                        $charge = $commissions->deposit_percentage * $payments_current_month->fund_sum / 100;
-                    } else {
-                        $commissions = Commission::where('category_id', $partner->category_id)->orderBy('to_amount', 'desc')->first();
-                        if ($commissions) {
-                            $charge = $commissions->deposit_percentage * $payments_current_month->fund_sum / 100;
-                        }
-                    }
-
-                    $get_adjustment = $payments_current_month->charge_sum - $charge;
-                    $total_payment = $payments_current_month->fund_sum;
-                    $total_adjustment_amount += $get_adjustment;
-                }
-
-                $funds_current_month = Payout::where('transfer_status', 2)
-                    // ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth]) // Filter by the current month
-                    ->whereDate('created_at', '>=', $firstDayOfMonth)->whereDate('created_at', '<=', $lastDayOfMonth)
-                    ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
-                    ->where('api_id', $api_id)
-                    ->first();
-
-                if ($funds_current_month->fund_count > 0) {
-                    $charge = 0;
-                    $commissions = Commission::where('category_id', $partner->category_id)->where('from_amount', '<=', $funds_current_month->fund_sum)->where('to_amount', '>=', $funds_current_month->fund_sum)->first();
-                    if ($commissions) {
-                        $charge = $commissions->withdrawal_percentage * $funds_current_month->fund_sum / 100;
-                    } else {
-                        $commissions = Commission::where('category_id', $partner->category_id)->orderBy('to_amount', 'desc')->first();
-                        if ($commissions) {
-                            $charge = $commissions->withdrawal_percentage * $funds_current_month->fund_sum / 100;
-                        }
-                    }
-
-                    $get_adjustment = $funds_current_month->charge_sum - $charge;
-                    $total_payout = $funds_current_month->fund_sum;
-                    $total_adjustment_amount += $get_adjustment;
-                }
-
-                if ($total_adjustment_amount > 0) {
-
-                    $adjustments = Adjustment::where('partner_id', $partner->id)
-                        ->whereMonth('month', $monthyear->month)
-                        ->whereYear('month', $monthyear->year)
-                        ->get();
-                    if (!$adjustments) {
-
-                        $adjustment = new Adjustment;
-                        $adjustment->month = $lastDayOfMonth;
-                        $adjustment->adjustment = $total_adjustment_amount;
-                        $adjustment->payment = $total_payment;
-                        $adjustment->payout = $total_payout;
-                        $adjustment->partner_id = $partner->id;
-                        $adjustment->save();
-                    }
-                }
-            }
+            $total_adjustment_amount += $get_adjustment;
+            $total_payment = $pay->fund_sum;
         }
 
-        return view('admin.payout.adjustments', compact('records', 'pageTitle', 'partners'));
+        // ===== Payout Side Calculation =====
+        if (isset($payouts[$api_id])) {
+            $payout = $payouts[$api_id];
+            $commission = $commissionsByCategory[$category_id]
+                ->firstWhere(fn($c) => $payout->fund_sum >= $c->from_amount && $payout->fund_sum <= $c->to_amount)
+                ?? $commissionsByCategory[$category_id]->first();
+
+            $charge = $commission ? $commission->withdrawal_percentage * $payout->fund_sum / 100 : 0;
+            $get_adjustment = $payout->charge_sum - $charge;
+
+            $total_adjustment_amount += $get_adjustment;
+            $total_payout = $payout->fund_sum;
+        }
+
+        // ===== Insert Adjustment If Not Exists =====
+        if ($total_adjustment_amount > 0) {
+            $existing = Adjustment::where('partner_id', $partner->id)
+                ->whereMonth('month', $monthyear->month)
+                ->whereYear('month', $monthyear->year)
+                ->exists();
+
+            if (!$existing) {
+                $adjustmentsToInsert[] = [
+                    'month' => $lastDayOfMonth,
+                    'adjustment' => $total_adjustment_amount,
+                    'payment' => $total_payment,
+                    'payout' => $total_payout,
+                    'partner_id' => $partner->id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+            }
+        }
     }
+
+    // Bulk insert new adjustments
+    if (!empty($adjustmentsToInsert)) {
+        Adjustment::insert($adjustmentsToInsert);
+    }
+
+    // Load records for view
+    $records = Adjustment::with('api')->orderBy('id', 'DESC')->get();
+
+    return view('admin.payout.adjustments', compact('records', 'pageTitle', 'partners'));
+}
+
 
     public function adjustmentSearch(Request $request)
     {
@@ -5369,7 +5452,7 @@ class PayoutRecordController extends Controller
 
     public function apilogs(Request $request)
     {
-        $data = ApiLog::orderBy('id', 'DESC')->paginate(50);
+        $data = ApiLog::orderBy('id', 'DESC')->paginate(20);
         $pageTitle = "API Logs";
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }

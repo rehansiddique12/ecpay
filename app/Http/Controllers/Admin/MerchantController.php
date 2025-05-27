@@ -281,6 +281,8 @@ public function mechantlogs($id){
             return redirect()->back();
         }
 
+        // dd($request->all());
+
         if ($merchant) {
 
             $totalSummary = DB::table('partner_commissions')

@@ -22,4 +22,9 @@ class Gateway extends Model
         return $this->where('id', '>=', 1000);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
 }

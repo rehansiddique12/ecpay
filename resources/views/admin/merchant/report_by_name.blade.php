@@ -21,7 +21,7 @@
             <div class="col-md-3">
                 <div class="form-group">
                     <label>Merchants</label>
-                    <select class="form-select select2" name="transfer_to1" data-allow-clear="true" data-placeholder="Select To Account">
+                    <select class="form-select select2" name="merchant" data-allow-clear="true" data-placeholder="Select To Account">
                                     <option></option>
                         <option value="">Select Merchant</option>
                         @foreach($apis as  $key => $val)

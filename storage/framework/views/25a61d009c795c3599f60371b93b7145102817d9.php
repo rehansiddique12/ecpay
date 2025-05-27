@@ -194,12 +194,14 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col"><?php echo app('translator')->get('Date'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('ID'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Date Time'); ?></th>
                             <th scope="col"><?php echo app('translator')->get('Trx Number'); ?></th>
                             <th scope="col"><?php echo app('translator')->get('Partner Trx No'); ?></th>
                             <th scope="col"><?php echo app('translator')->get('Partner Txn Input'); ?></th>
                             <th scope="col"><?php echo app('translator')->get('Username'); ?></th>
-                            <th scope="col"><?php echo app('translator')->get('Method'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Type'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Code'); ?></th>
                             <th scope="col">Acc. No.</th>
                             <th scope="col"><?php echo app('translator')->get('Amount'); ?></th>
                             <th scope="col"><?php echo app('translator')->get('Merchant Charge'); ?></th>
@@ -216,7 +218,8 @@
                     <tbody>
                         <?php $__empty_1 = true; $__currentLoopData = $funds; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $fund): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <tr>
-                                <td data-label="<?php echo app('translator')->get('Date'); ?>"> <?php echo e(dateTime($fund->created_at, 'd M,Y H:i')); ?>
+                                <td data-label="<?php echo app('translator')->get('ID'); ?>"> <?php echo e($fund->id); ?> </td>
+                                <td data-label="<?php echo app('translator')->get('Date_Time'); ?>"> <?php echo e(dateTime($fund->created_at, 'd M,Y H:i')); ?>
 
                                 </td>
                                 <td data-label="<?php echo app('translator')->get('Trx Number'); ?>" class="font-weight-bold text-uppercase">
@@ -258,7 +261,8 @@
                                         <?php echo e(optional($fund->api)->name); ?> <b>(<?php echo e(optional($fund->api)->acc_type); ?>)</b>
                                     <?php endif; ?>
                                 </td>
-                                <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e(optional($fund->gateway)->name); ?></td>
+                                <td data-label="<?php echo app('translator')->get('Type'); ?>"><?php echo e($fund->gateway?->category?->name ?? 'N/A'); ?></td>
+                                <td data-label="<?php echo app('translator')->get('Code'); ?>"><?php echo e(optional($fund->gateway)->name); ?></td>
                                 <td class="font-weight-bold"><?php echo e($fund->sender); ?></td>
                                 <td data-label="<?php echo app('translator')->get('Amount'); ?>" class="font-weight-bold">
                                     <?php echo e(getAmount($fund->amount)); ?>
@@ -597,7 +601,7 @@
         </div>
     </div>
 
-    
+
 
 
     <?php $__env->startPush('js'); ?>
