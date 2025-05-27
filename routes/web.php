@@ -148,7 +148,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Route::get('/accounts-management/edit-account/{id}', [CategoryController::class, 'editAccount'])->name('account_management.edit_account');
         Route::get('/get-accounts/{category_id}', [CategoryController::class, 'getAccountsByCategory'])->name('get.e_wallet_accounts');
 
-
+        Route::get('/accounts-management/on-off', [CategoryController::class, 'onOffAccount'])->name('account_management.on_off_account');
+        Route::post('/wallet/update-account-type', [CategoryController::class, 'updateAccountType'])->name('wallet.updateAccountType');
 
         Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
 
@@ -313,7 +314,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/user/fundLog/{id}', [UsersController::class, 'funds'])->name('user.fundLog');
         Route::get('/user/payoutLog/{id}', [UsersController::class, 'payoutLog'])->name('user.withdrawal');
         Route::get('user/{user}/kyc', [UsersController::class, 'userKycHistory'])->name('user.userKycHistory');
-        Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
+        //Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
         Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::post('/user/password/{id}', [UsersController::class, 'passwordUpdate'])->name('userPasswordUpdate');
         Route::post('/user/balance-update/{id}', [UsersController::class, 'userBalanceUpdate'])->name('user-balance-update');

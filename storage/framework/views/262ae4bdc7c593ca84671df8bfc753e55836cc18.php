@@ -512,13 +512,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
                     <ul class="menu-sub">
                         <?php if(adminAccessRoute(config('role.payment_log.access.view'))): ?>
-                        <li
-                            class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : ''); ?>">
-                            <a href="<?php echo e(route('admin.payment.log')); ?>" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                <div data-i18n="Deposit Log">Deposit Log</div>
-                            </a>
-                        </li>
+                        
                         <?php endif; ?>
                         <?php if(adminAccessRoute(config('role.payout_manage.access.view'))): ?>
                         <li

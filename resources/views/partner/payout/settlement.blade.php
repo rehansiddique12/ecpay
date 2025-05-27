@@ -1,4 +1,5 @@
 <x-partner-layout :title="$pageTitle">
+
     <h1 class="text-center">
         <span class="badge badge-primary">Settlementable Amount: <b>{{ $settlementable_amount }} TK</b></span>
     </h1>
@@ -7,7 +8,6 @@
         <form action="{{ route('partner.settlements.search') }}" method="get">
             <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
             <div class="row justify-content-between align-items-center">
-
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>From Date</label>
@@ -66,9 +66,9 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-                    <button type="button" class="btn btn-sm btn-primary mr-2 mb-3" data-bs-toggle="modal"
+                    <button type="button" class="btn btn-primary mb-4 hover:drop-shadow-xl" data-bs-toggle="modal"
                         data-bs-target="#newModal">
-                        <span>@lang('Add New')</span>
+                        Add New
                     </button>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
@@ -134,21 +134,17 @@
 
 
     {{-- New MODAL --}}
-    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" data-bs-backdrop="static"
-        data-bs-keyboard="false">
-        <div class="modal-dialog">
+    <div id="newModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title" id="newModalLabel">@lang('Add New')</h5>
+                <div class="modal-header modal-colored-header bg-primary">
+                    <h5 class="modal-title">@lang('Add New')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="addSettlementForm" action="{{ route('partner.settlements.add') }}" method="POST">
+                <form action="{{ route('partner.settlements.add') }}" method="POST" id="settlementForm">
                     @csrf
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
-
-
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Source</label>
@@ -164,26 +160,24 @@
                                     <input type="text" class="form-control" name="source_name" required />
                                 </div>
                             </div>
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Account No.</label>
                                     <input type="text" class="form-control" name="account_no" required />
                                 </div>
                             </div>
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Amount</label>
                                     <input type="number" step="0.01" class="form-control" name="amount" required />
                                 </div>
                             </div>
-
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" id="saveCategoryBtn" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">@lang('Close')</button>
+                        <button id="submitBtn" type="submit" class="btn btn-primary">@lang('Save')</button>
+                        <button type="button" class="btn btn-dark"
+                            data-bs-dismiss="modal">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -191,93 +185,62 @@
     </div>
 
 
+
     @push('js')
-    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        "use strict";
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+        <script>
+            "use strict";
 
             $(document).ready(function() {
-                let $select = $('.select2').select2({
-                    // placeholder: "Select Partner",
-                    allowClear: true,
-                    // selectOnClose: true,
-                });
-                // Prevent dropdown from opening on clear
-                $select.on('select2:unselecting', function (e) {
-                    $(this).data('unselecting', true);
-                });
 
-                $select.on('select2:opening', function (e) {
-                    if ($(this).data('unselecting')) {
-                        $(this).removeData('unselecting');
-                        e.preventDefault();
-                    }
-                });
-
-                $('#addSettlementForm').on('submit', function (e) {
+                $('#settlementForm').on('submit', function(e) {
                     e.preventDefault();
-
                     let form = $(this);
-                    let url = form.attr('action');
-                    let formData = form.serialize();
-
-                    let btn = $('#saveCategoryBtn');
-                    // Clear previous errors
-                    $('.error-text').text('');
-                    // Disable button and show spinner
-                    btn.prop('disabled', true).text('Saving...');
+                    let submitBtn = $('#submitBtn');
+                    $('.text-danger').text('');
+                    submitBtn.prop('disabled', true).text('Processing...');
 
                     $.ajax({
-                        url: url,
                         type: 'POST',
-                        data: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                        url: form.attr('action'),
+                        data: form.serialize(),
+                        success: function(response) {
+                            $('#newModal').modal('hide');
+                            location.reload();
                         },
-                        success: function (response) {
-
-                            if (response.success) {
-                                // Close modal, reset form, show success message
-                                $('#newModal').modal('hide');
-                                form[0].reset();
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: response.message, // Use the message from the response
-                                    timer: 2000, // Auto-close after 2 seconds
-                                    showConfirmButton: false,
-                                    didClose: () => {
-                                        location.reload(); // Reload page after alert closes
-                                    }
+                        error: function(xhr) {
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                $.each(errors, function(key, messages) {
+                                    $('.error-' + key).text(messages[0]);
                                 });
+                            } else {
+                                alert('Something went wrong.');
                             }
-
-                        },
-                        error: function(response) {
-                            var errors = response.responseJSON.errors;
-                            var firstErrorField = null; // Track the first error field
-
-                            // Loop through errors and show them
-                            $.each(errors, function (key, value) {
-                                // Show error next to each field
-                                $('.' + key + '_error').text(value[0]);
-
-                                // Find the first field with an error and focus on it
-                                var $field = $('.' + key); // Find the field by class
-
-                                // Only set firstErrorField if it hasn't been set already
-                                if (!firstErrorField && $field.length) {
-                                    firstErrorField = $field; // Set the first error field
-                                }
-                            });
                         },
                         complete: function() {
-                            btn.prop('disabled', false).text('Save');
+                            submitBtn.prop('disabled', false).text('Save');
                         }
                     });
                 });
 
+                // Image Preview
+                $('#image').change(function() {
+                    let reader = new FileReader();
+                    reader.onload = (e) => {
+                        $('#image_preview_container').attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                });
+
+                // Select2 init
+                // $('select').select2({
+                //     allowClear: true,
+                //     selectOnClose: true
+                // });
             });
     </script>
     @endpush
