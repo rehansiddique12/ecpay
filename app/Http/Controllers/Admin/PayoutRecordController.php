@@ -3210,7 +3210,7 @@ class PayoutRecordController extends Controller
                     $file = $request->file('image.' . $index);
 
                     // Define the root-level path
-                    $destinationPath = base_path('assets/uploads/accounts');
+                    $destinationPath = base_path('assets/uploads/withdraw');
 
                     // Make sure the folder exists
                     if (!file_exists($destinationPath)) {
