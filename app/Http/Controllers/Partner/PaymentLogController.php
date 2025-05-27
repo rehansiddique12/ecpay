@@ -31,19 +31,19 @@ class PaymentLogController extends Controller
         $gateways = Gateway::where('status', 1)
             ->get();
 
-            $user = Auth::guard('partner')->user();
-            $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
-            $website = $main_admin->website;
-            $api_id = $main_admin->id;
+        $user = Auth::guard('partner')->user();
+        $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
+        $website = $main_admin->website;
+        $api_id = $main_admin->id;
 
-            $partnerTimezone = $main_admin->timezone;
+        $partnerTimezone = $main_admin->timezone;
 
         $pageTitle = "Payment Report";
         $domains = Api::where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 0)->where('api_id', $api_id)->orderBy('id', 'DESC')->with('user', 'gateway')
+        $funds = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','gateway.category:id,name'])
         ->paginate(config('basic.paginate'));
 
-        $funds_t = Payment::where('status', '!=', 0)->where('api_id', $api_id)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        $funds_t = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
         return view('partner.payment.report', compact('funds', 'pageTitle','domains','gateways','fund_count','fund_sum'));
@@ -65,103 +65,20 @@ class PaymentLogController extends Controller
         $fund_count = 0;
         $fund_sum = 0;
 
+        if($search['status']=="All"){
+            $search['status'] = "";
+        }
+
         $partnerTimezone = $main_admin->timezone;
         $originalTimezone = $partnerTimezone;
         $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
         $search['from_date'] = Carbon::parse($search['from_date'], $originalTimezone)->setTimezone($targetTimezone);
         $search['to_date'] = Carbon::parse($search['to_date'], $originalTimezone)->setTimezone($targetTimezone);
 
-        // First get the counts and sums in a separate query
-        $aggregates = Payment::where('status', '!=', 0)
-            ->where('api_id', $api_id)
-            ->when($search['name'], function ($query) use ($search) {
-                $query->whereHas('user', function ($subQuery) use ($search) {
-                    $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
-                        ->orWhere('email', 'like', '%' . $search['name'] . '%')
-                        ->orWhere('username', 'like', '%' . $search['name'] . '%');
-                });
-            })
-            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
-                $fromDate = Carbon::parse($search['from_date']);
-                $toDate = Carbon::parse($search['to_date'])->setSecond(59);
-                return $query->where('created_at', '>=', $fromDate)
-                            ->where('created_at', '<=', $toDate);
-            })
-            ->when($search['partner_transection_id'], function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
-                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-                });
-            })
-            ->when($search['status'] != 4, function ($query) use ($search) {
-                if ($search['status'] == 99) {
-                    $query->where('status', 2)
-                          ->where('created_at', '<', Carbon::now()->subMinutes(10));
-                } else if ($search['status'] == 2) {
-                    $query->where('status', 2)
-                          ->where('created_at', '>=', Carbon::now()->subMinutes(10));
-                } else {
-                    $query->where('status', $search['status']);
-                }
-            })
-            ->when($request->account_no, function ($query) use ($request) {
-                $query->where('account_no', 'LIKE', "%{$request->account_no}%");
-            })
-            ->when($request->gateway, function ($query) use ($request) {
-                $query->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
-            })
-            ->selectRaw('COUNT(*) as amount_count, SUM(amount) as amount_sum')
-            ->first();
 
-        if ($aggregates) {
-            $fund_count = $aggregates->amount_count;
-            $fund_sum = round($aggregates->amount_sum, 2);
-        }
+        
 
-        // Then get the paginated results
-        $funds = Payment::where('status', '!=', 0)
-            ->where('api_id', $api_id)
-            ->when($search['name'], function ($query) use ($search) {
-                $query->whereHas('user', function ($subQuery) use ($search) {
-                    $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
-                        ->orWhere('email', 'like', '%' . $search['name'] . '%')
-                        ->orWhere('username', 'like', '%' . $search['name'] . '%');
-                });
-            })
-            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
-                $fromDate = Carbon::parse($search['from_date']);
-                $toDate = Carbon::parse($search['to_date'])->setSecond(59);
-                return $query->where('created_at', '>=', $fromDate)
-                            ->where('created_at', '<=', $toDate);
-            })
-            ->when($search['partner_transection_id'], function ($query) use ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
-                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-                });
-            })
-            ->when($search['status'] != 4, function ($query) use ($search) {
-                if ($search['status'] == 99) {
-                    $query->where('status', 2)
-                          ->where('created_at', '<', Carbon::now()->subMinutes(10));
-                } else if ($search['status'] == 2) {
-                    $query->where('status', 2)
-                          ->where('created_at', '>=', Carbon::now()->subMinutes(10));
-                } else {
-                    $query->where('status', $search['status']);
-                }
-            })
-            ->when($request->account_no, function ($query) use ($request) {
-                $query->where('account_no', 'LIKE', "%{$request->account_no}%");
-            })
-            ->when($request->gateway, function ($query) use ($request) {
-                $query->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
-            })
-            ->with('user', 'gateway')
-            ->orderBy('id', 'DESC')
-            ->paginate(config('basic.paginate'));
+            
 
         if(isset($search['export'])) {
             $exportFunds = Payment::where('status', '!=', 0)
@@ -267,6 +184,62 @@ class PaymentLogController extends Controller
 
             return response()->stream($callback, 200, $headers);
         } else {
+            $aggregates = Payment::where('status', 'like', '%' . $search['status'] . '%')
+        ->where('api_id', $api_id)
+        ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+            $fromDate = Carbon::parse($search['from_date']);
+            $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+            return $query->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate);
+        })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+           
+            ->where(function ($query) use ($request) {
+                $query->where('sender', 'LIKE', "%{$request->account_no}%")
+                      ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+            })
+            ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
+            ->paginate(config('basic.paginate'));
+
+        if (!empty($aggregates) && isset($aggregates[0]->amount_count)) {
+            $fund_count = $aggregates[0]->amount_count;
+            $fund_sum = round($aggregates[0]->amount_sum, 2);
+        }
+
+        // Paginated list of payments
+        $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
+        ->where('api_id', $api_id)
+        ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+            $fromDate = Carbon::parse($search['from_date']);
+            $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+            return $query->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate);
+        })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+           
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
+            ->paginate(config('basic.paginate'));
+            
             $pageTitle = "Search Payment Logs";
             return view('partner.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum'));
         }

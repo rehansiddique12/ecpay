@@ -231,7 +231,7 @@
                                 </td>
 
                                 <td>
-                                    {{-- {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }} --}}
+                                    {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
                                 </td>
 
                                 <td data-label="@lang('Username')">
@@ -246,13 +246,13 @@
                                 <td class="font-weight-bold">{{ $fund->sender }}</td>
                                 <td data-label="@lang('Amount')" class="font-weight-bold">
                                     {{ getAmount($fund->amount) }}
-                                    {{ $fund->gateway->currency }}</td>
+                                    {{ $fund->gateway?->currency }}</td>
                                 <td data-label="@lang('Charge')" class="text-success">
                                     {{ getAmount($fund->charge) }}
-                                    {{ $fund->gateway->currency }}</td>
+                                    {{ $fund->gateway?->currency }}</td>
                                 <td data-label="@lang('Payable')" class="font-weight-bold">
                                     {{ getAmount($fund->amount) - getAmount($fund->charge) }}
-                                    {{ $fund->gateway->currency }}
+                                    {{ $fund->gateway?->currency }}
                                 </td>
 
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
@@ -281,12 +281,7 @@
                                         @php
                                             // Check if the fund has a payment and if completed_source is set
                                             if ($fund->completed_source != 'AdminPanel') {
-                                                // Dynamically assign the class based on completed_source
-                                                // if ($fund->payment->completed_source != "AdminPanel") {
                                                 $classColor = 'bg-success';
-                                                // } else {
-                                                // $classColor = "text-purple purple ";
-                                                // }
                                             } else {
                                                 $classColor = 'bg-primary';
                                             }
@@ -298,7 +293,7 @@
                                             @lang('Completed')</span>
                                         <br>
                                         <span
-                                            class="{{ $classColor }}">{{ optional($fund->payment)->e_wallet_phone_number }}</span>
+                                            class="{{ $classColor }}">{{ $fund->e_wallet_phone_number }}</span>
                                     @elseif($fund->status == 'Reject')
                                         <span class="badge bg-danger"><i
                                                 class="fa fa-circle text-white danger font-12"></i>

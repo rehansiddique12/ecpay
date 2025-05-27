@@ -120,8 +120,7 @@ class PaymentLogController extends Controller
         // $today = Carbon::today();
         $today = date('Y-m-d');
         $domains = Api::select('id', 'name', 'website')->where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 'initiate')->whereDate('created_at', $today)->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id'])->paginate(config('basic.paginate'));
-        
+        $funds = Payment::where('status', '!=', 'initiate')->whereDate('created_at', $today)->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])->paginate(config('basic.paginate'));
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         // dd($funds_t);
         $fund_count = $funds_t->fund_count;
@@ -150,6 +149,8 @@ class PaymentLogController extends Controller
 
 
         // Aggregate totals (COUNT & SUM)
+        $fund_count = 0;
+        $fund_sum = 0;
         $funds_t = Payment::where('status', 'like', '%' . $search['status'] . '%')
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                 return $query->whereDate('created_at', '>=', $search['from_date'])
@@ -171,7 +172,6 @@ class PaymentLogController extends Controller
                       ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
             })
             ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
-            ->with('user', 'gateway')
             ->paginate(config('basic.paginate'));
 
         if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
@@ -204,7 +204,7 @@ class PaymentLogController extends Controller
                 });
             })
             ->orderBy('id', 'DESC')
-            ->with('user', 'gateway')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
             ->paginate(config('basic.paginate'));
 
 
