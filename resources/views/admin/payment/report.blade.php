@@ -31,14 +31,14 @@
                 <div class="col-md-3">
                     <div class="form-group mt-2">
                         <label>From Date</label>
-                        <input type="date" class="form-control" value="{{ request()->from_date }}" name="from_date"
+                        <input type="date" class="form-control" value="{{ $from_date }}" name="from_date"
                             id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-2">
                         <label>To Date</label>
-                        <input type="date" class="form-control" value="{{ request()->to_date }}" name="to_date"
+                        <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="to_date" />
                     </div>
                 </div>
@@ -77,13 +77,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group mt-2">
-                        <label>User</label>
-                        <input type="text" name="name" value="{{ @request()->name }}" class="form-control"
-                            placeholder="@lang('Type Here')">
-                    </div>
-                </div>
+                
 
                 <div class="col-md-3">
                     <div class="form-group mt-2">
@@ -111,8 +105,7 @@
                     </div>
                 </div>
 
-
-                <div class="col-md-12 d-flex justify-content-end align-items-center gap-6">
+                <div class="col-md-3 d-flex justify-content-end align-items-center gap-6">
                     <div class="form-group mt-2">
                         <button type="submit" class="btn  btn-primary mt-2"><i
                                 class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
@@ -123,8 +116,8 @@
                         <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
                      </a>
                     </div>
-
                 </div>
+                
             </div>
         </form>
     </div>

@@ -156,7 +156,7 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         Route::get('/accounts-management/add-gateways', [CategoryController::class, 'gateway'])->name('account_management.gateway');
 
 
-
+        
 
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
@@ -363,6 +363,8 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         Route::get('/payout-report/get-notification', [PayoutRecordController::class, 'getNotification'])->name('payout-report.getnotification');
         Route::get('/payout-request', [PayoutRecordController::class, 'request'])->name('payout-request');
         Route::put('/payout-action/{id}', [PayoutRecordController::class, 'action'])->name('payout-action');
+
+        Route::get('makeatest', [PaymentLogController::class, 'makeatest'])->name('makeatest');
 
         Route::get('payment/apiLog', [PaymentLogController::class, 'apiLog'])->name('payment.apiLog');
         Route::get('payment/apisearch', [PaymentLogController::class, 'apisearch'])->name('payment.apisearch');
