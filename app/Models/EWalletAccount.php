@@ -54,7 +54,7 @@ class EWalletAccount extends Model
 
     public function category()
     {
-        return $this->belongsTo(CCategory::class);
+        return $this->belongsTo(Category::class);
     }
 
     public function group()
@@ -65,10 +65,10 @@ class EWalletAccount extends Model
     {
         return $this->belongsTo(UserLocation::class, 'location_id');
     }
-    
+
     public function timeSlots()
     {
         return $this->hasMany(EWalletAccountTimeSlot::class);
     }
-   
+
 }
