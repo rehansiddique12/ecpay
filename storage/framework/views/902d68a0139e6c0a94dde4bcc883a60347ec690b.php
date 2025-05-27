@@ -1,0 +1,655 @@
+<?php if (isset($component)) { $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040 = $component; } ?>
+<?php $component = App\View\Components\AdminLayout::resolve(['title' => $pageTitle] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
+<?php $component->withName('admin-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(App\View\Components\AdminLayout::class))->getConstructor()): ?>
+<?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+    <?php $__env->startPush('styles'); ?>
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+
+    <style>
+        .left-panel {
+            width: 70%;
+            padding: 10px;
+            margin-top: px;
+            background-color: ;
+            /* Bootstrap red */
+        }
+
+        .right-panel {
+            width: 30%;
+            padding: px;
+            background-color: ;
+        }
+
+        .nav-box {
+            width: 100%;
+            padding: 0.5rem 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .search-box {
+            width: 250px;
+            background-color: transparent;
+            border: 1px solid #ccc;
+            color: #ccc;
+        }
+
+        .btn-purple {
+            background-color: #7367f0;
+        }
+
+        .custom-card {
+            background-color: #504c79;
+            padding: 1rem;
+        }
+
+        .custom-box {
+            background-color: #504c79;
+            height: 5rem;
+        }
+
+        .custom-box1 {
+            background-color: #504c79;
+
+        }
+
+        #closeModal:hover{
+            background-color: rgba(97, 96, 96, 0.137)
+        }
+    </style>
+    <?php $__env->stopPush(); ?>
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h3 style="color: #7367f0"><?php echo e($pageTitle); ?></h3>
+        
+        <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+            <div class="container-fluid  text-white d-flex p-0">
+                <!-- Left Panel -->
+                <div class="left-panel">
+                    <nav class="custom-box1 nav-box d-flex justify-content-between align-items-center text-light">
+                        <div class="d-flex align-items-center">
+                            <p class="mb-0 me-2">SEARCH:</p>
+                            <input type="search" placeholder="TX / Ticket Number"
+                                class="form-control form-control-sm search-box" />
+                        </div>
+                        <button class="btn btn-sm text-white btn-purple" onclick=" $('#transactions-container').empty();">Close All</button>
+                    </nav>
+
+                    <!-- Cards Grid -->
+                    <div class="row row-cols-2 g-2" id="transactions-container" style="margin-top: 1px;">
+                        <!-- Cards will be appended here by JS -->
+                    </div>
+
+
+                    <div class="bg-red-400 mt-4 ">
+                        <p class="text-White font-semibold text-lg">GATEWAY PERFORMACE MONITORING</p>
+                        <div class=" h-full w-full" style="background-color: #504c79">
+                            <p class="text-white fs-5 ms-4 px-2 pt-3" >81% ~ 100%</p>
+                            <div style=" background-color: #7570a0;">
+                                <div class="d-flex gap-5 px-4 pt-4">
+                                <p class="text-White font-semibold text-md">MERCHANT</p>
+                                <p class="text-White font-semibold text-md">SUCCESS RATE</p>
+                                <p class="text-White font-semibold text-md">TOTAL RECEIVED</p>
+                                <p class="text-White font-semibold text-md">TOTAL PROCESSED</p>
+                                <p class="text-White font-semibold text-md">AUTO PROCESS</p>
+                                <p class="text-White font-semibold text-md">MANUAL PROCESS</p>
+                                </div>
+                                <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
+                                <div class="h-16">
+                                    <div class="d-flex gap-10 px-4">
+                                        <p class="text-White ">MERCHANT A</p>
+                                        <p class="text-White">82%</p>
+                                        <p class="text-White" style="margin-left: 4.5rem;">5,834</p>
+                                        <p class="text-White" style="margin-left: 4rem;">5,245</p>
+                                        <p class="text-White" style="margin-left: 4rem;">5,200</p>
+                                        <p class="text-White" style="margin-left: 4rem;">45</p>
+                                    </div>
+                                    <div class="d-flex gap-10 px-4  ">
+                                        <p class="text-White ">MERCHANT B</p>
+                                        <p class="text-White" style="margin-left:">87%</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,482</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,158</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,000</p>
+                                        <p class="text-White" style="margin-left: 4rem;">158</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-white fs-5 ms-4 px-2 mt-3">61% ~ 80%</p>
+                            <div style=" background-color: #7570a0;">
+                                <div class="d-flex gap-5 px-4 pt-4">
+                                <p class="text-White font-semibold text-md">MERCHANT</p>
+                                <p class="text-White font-semibold text-md">SUCCESS RATE</p>
+                                <p class="text-White font-semibold text-md">TOTAL RECEIVED</p>
+                                <p class="text-White font-semibold text-md">TOTAL PROCESSED</p>
+                                <p class="text-White font-semibold text-md">AUTO PROCESS</p>
+                                <p class="text-White font-semibold text-md">MANUAL PROCESS</p>
+                                </div>
+                                <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
+                                <div class="h-16">
+                                    <div class="d-flex gap-10 px-4">
+                                        <p class="text-White ">MERCHANT C</p>
+                                        <p class="text-White">75%</p>
+                                        <p class="text-White" style="margin-left: 4.5rem;">5,834</p>
+                                        <p class="text-White" style="margin-left: 4rem;">5,245</p>
+                                        <p class="text-White" style="margin-left: 4rem;">5,200</p>
+                                        <p class="text-White" style="margin-left: 4rem;">45</p>
+                                    </div>
+                                    <div class="d-flex gap-10 px-4  ">
+                                        <p class="text-White ">MERCHANT D</p>
+                                        <p class="text-White" style="margin-left:">62%</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,482</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,158</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,000</p>
+                                        <p class="text-White" style="margin-left: 4rem;">158</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-white fs-5 ms-4 px-2 mt-3">1% ~60%</p>
+                            <div style=" background-color: #7570a0;">
+                                <div class="d-flex gap-5 px-4 pt-4">
+                                <p class="text-White font-semibold text-md">MERCHANT</p>
+                                <p class="text-White font-semibold text-md">SUCCESS RATE</p>
+                                <p class="text-White font-semibold text-md">TOTAL RECEIVED</p>
+                                <p class="text-White font-semibold text-md">TOTAL PROCESSED</p>
+                                <p class="text-White font-semibold text-md">AUTO PROCESS</p>
+                                <p class="text-White font-semibold text-md">MANUAL PROCESS</p>
+                                </div>
+                                <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
+                                <div class="h-16">
+                                    <div class="d-flex gap-10 px-4">
+                                        <p class="text-White ">MERCHANT E</p>
+                                        <p class="text-White">55%</p>
+                                        <p class="text-White" style="margin-left: 4.5rem;">5,834</p>
+                                        <p class="text-White" style="margin-left: 4rem;">5,245</p>
+                                        <p class="text-White" style="margin-left: 4rem;">5,200</p>
+                                        <p class="text-White" style="margin-left: 4rem;">45</p>
+                                    </div>
+                                    <div class="d-flex gap-10 px-4  ">
+                                        <p class="text-White ">MERCHANT F</p>
+                                        <p class="text-White" style="margin-left:">48%</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,482</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,158</p>
+                                        <p class="text-White" style="margin-left: 4rem;">6,000</p>
+                                        <p class="text-White" style="margin-left: 4rem;">158</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel -->
+                <div class="right-panel">
+                    <div class="bg-[#504c79] w-full py-3  px-4 justify-content-between items-center text-White"
+                    style="margin-top: 3.6rem; background-color: #504c79;">
+                   <div class="d-flex gap-4 mb-3" id="ewallet-buttons">
+                       <!-- Buttons will come here -->
+                   </div>
+                   <div id="ewallet-details">
+                       <!-- Wallet details will appear here -->
+                   </div>
+               </div>
+
+                    <p class="pt-4">NOTIFICATION CENTER</p>
+                    <div id="notifications-container"></div>
+
+                    <p class="pt-4">WITHDRAWAL PENDING LIST (5 MINUTES)</p>
+                    <div id="pending-list-container"></div>
+
+                    <p class="pt-4">Check Balance</p>
+                    <div class="d-flex">
+                        <div class="d-flex align-items-center p-2" style="background-color: #504c79;width:70%">
+                            <p class="mb-0 me-2">SEARCH:</p>
+                            <select name="search" id="api-search" class="form-control" style="width: 70%;">
+                                <option value="">Select</option>
+                                <?php $__currentLoopData = $apis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $api): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($api->id); ?>"><?php echo e($api->username); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+                        <p id="api-balance" class="mt-5 fs-tiny" style="margin-left: 10px;">1,548,200.15 TK</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="modal modal-top fade" id="newModalb" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTopTitle"><?php echo app('translator')->get('Send Callback'); ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addBalanceForm" action="<?php echo e(route('admin.run.deposit.callback')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <div class="modal-body">
+                        <div class="row justify-content-between align-items-center">
+
+
+
+                            <input type="text" hidden id="account_id" class="form-control" name="id">
+
+
+
+                            <div class="col-md-12">
+                                Callback Status
+                                <span id="spinner2" style="display: none;">
+                                    <span class="spinner-border text-primary" role="status">
+                                    </span>
+                                </span>
+                                <span id="tickMark2" style="display: none;">
+                                    <i class="fa fa-check-circle text-success"></i>
+                                </span>
+                                <span id="tickMark3" style="display: none;">
+                                    <i class="fa fa-times-circle text-danger"></i>
+                                </span>
+                                <br>
+                                <br>
+                                <p>Message: <span id="text1"></span></p>
+                                <br>
+                                <div id="apiresponse" style="display: none;">
+                                <h4>Response</h4>
+                                <p>Response Code: <span id="text2"></span></p>
+                                <p>Response Body: </p>
+                                <div style="background-color: black;color:white;padding:10px"><span id="text3"></span></div>
+                                </div>
+
+                            </div>
+
+                            <!-- <br>
+                            <br> -->
+
+                            <!-- <div class="col-md-12">
+                                <button type="button" disabled id="runWithdrawalTest" class="btn btn-primary">Run Withdrawal Test</button>
+
+                            </div> -->
+                        </div>
+
+                    </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal fade" id="activityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Activity Log</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body table-responsive">
+              <table class="table table-bordered table-sm" id="activity-table" style="table-layout: fixed;">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Method</th>
+                    <th>URL</th>
+                    <th style="width: 300px;">Request</th>
+                    <th>Response</th>
+                    <th>Created At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Filled by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    <?php $__env->startPush('js'); ?>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+
+$(document).ready(function() {
+    fetchTransactions();
+
+// call every 1 minute
+setInterval(function() {
+    console.log('Fetching transactions...');
+    fetchTransactions(); // fetch the transactions every 1 minute
+}, 60000); // 60000 ms = 1 minute
+
+    function fetchTransactions() {
+        $.ajax({
+            url: "<?php echo e(route('admin.workboard')); ?>", // your route
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                // Render Transactions
+                fetchNotifications(response.notifications);
+                fetchPendingList(response.pending_list);
+                $('#transactions-container').empty(); // clear previous if needed
+                $.each(response.transactions, function(index, transaction) {
+                    let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' : 'WITHDRAWL';
+                    let statusColor = transaction.status === 'pending' ? 'text-warning' : 'text-success';
+
+                    let card = `
+                        <div class="col">
+                            <div class="custom-card p-4">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-4">
+                                        <p class="text-success fw-semibold mb-1">${typeLabel}</p>
+                                        <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
+                                        <p class="text-white mb-1">${transaction.id }</p>
+                                    </div>
+                                    <div class="d-flex gap-3 text-white">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <button type="button" class="btn-close" aria-label="Close"></button>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-3">
+                                    <p class="mb-0">Order Number: ABCD1234</p>
+                                    <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
+                                </div>
+
+                                <div class="d-flex gap-5 mt-2">
+                                    <p class="mb-0">Account Name: NAGAD</p>
+                                    <p class="">01810665588</p>
+                                </div>
+                                <div>
+                                    <p class="">Location: Office 1</p>
+                                    <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
+                                    <p class="">Updated At: ${new Date(transaction.created_at).toLocaleString()}</p>
+                                    <p class="">Input Transaction Number: CB34653AS1</p>
+                                    <p class="">Verified Transaction Number:</p>
+                                </div>
+
+                                <div class="d-flex gap-4 mt-3">
+                                    <div class="justify-content-center">
+                                        <p class="">Callback Status: Null</p>
+                                    </div>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
+                                    <button
+        class="px-4 btn btn-sm activity-btn"
+        style="background-color: blue; color: white;"
+        data-partner-id="${transaction.partner_transection_id}">
+        Activity
+    </button>
+
+                                </div>
+                                <div class="d-flex gap-4 mt-3">
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(45, 199, 58); color: white;">Edit</button>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(226, 15, 15); color: white;">Manual Process</button>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(124, 3, 180); color: white;">Adjustment</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('#transactions-container').append(card);
+                });
+
+                // Render Ewallets
+                renderEwallets(response.ewallets);
+            }
+        });
+    }
+
+    function renderEwallets(ewallets) {
+    // Group by ewallet name (like bKash, Nagad, Rocket)
+    let ewalletGroups = {};
+
+    ewallets.forEach(function(account) {
+        if (!ewalletGroups[account.e_wallet_name]) {
+            ewalletGroups[account.e_wallet_name] = [];
+        }
+        ewalletGroups[account.e_wallet_name].push(account);
+    });
+
+    let buttonsHtml = '';
+    let accountDetailsHtml = '';
+
+    $.each(ewalletGroups, function(walletName, accounts) {
+        buttonsHtml += `
+            <button class="px-4 btn btn-sm ewallet-btn"
+                    data-wallet="${walletName}"
+                    style="background-color: ${getRandomColor()}; color: white; border: none; cursor: pointer;">
+                ${walletName.toUpperCase()} (${accounts.length})
+            </button>
+        `;
+
+        accounts.forEach(function(account) {
+            accountDetailsHtml += `
+                <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
+                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK
+                </p>
+            `;
+        });
+    });
+
+    $('#ewallet-buttons').html(buttonsHtml);
+    $('#ewallet-details').html(accountDetailsHtml);
+
+    // Use delegated event to toggle visibility
+    $('#ewallet-buttons').off('click').on('click', '.ewallet-btn', function () {
+        let wallet = $(this).data('wallet');
+        let $walletData = $(`.wallet-data[data-wallet="${wallet}"]`);
+
+        if ($walletData.is(':visible')) {
+            $walletData.hide();
+        } else {
+            $('.wallet-data').hide(); // hide all
+            $walletData.show();       // show current
+        }
+    });
+}
+
+    function getRandomColor() {
+        // Optional: Generate a random color for each button
+        const colors = [
+            "rgb(45, 199, 58)",
+            "rgb(226, 213, 30)",
+            "rgb(168, 32, 196)",
+            "rgb(52, 152, 235)",
+            "rgb(255, 99, 71)",
+            "rgb(100, 149, 237)"
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+});
+
+function fetchNotifications(notifications) {
+    $('#notifications-container').empty(); // clear previous
+    $.each(notifications, function(index, notification) {
+        // Calculate the time difference in minutes
+        const createdAt = new Date(notification.created_at); // Assuming created_at is provided in the notification object
+        const currentTime = new Date();
+        const timeDiffInMs = currentTime - createdAt;
+        const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
+
+        // Determine the display text for time difference
+        let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
+
+        let notifHtml = `
+            <div class="w-full py-2 px-2 items-center text-white d-flex justify-content-between"
+                 style="background-color: #504c79;">
+                <p>Warning!! ${notification.e_wallet_name} ${notification.account_no} <br>balance is low.</p>
+                <div>
+                    <button type="button" class="btn-close" style="margin-left: 3rem;" aria-label="Close"></button>
+                    <p>${timeAgo}</p>
+                </div>
+            </div>
+        `;
+        $('#notifications-container').append(notifHtml);
+    });
+}
+
+
+function fetchPendingList(pendingList) {
+    $('#pending-list-container').empty(); // clear previous
+    let currentUser = "<?php echo e(Auth::user()->name); ?>";
+    $.each(pendingList, function(index, item) {
+        let createdAt = new Date(item.created_at);
+        let now = new Date();
+        let diffMs = now - createdAt; // time difference in milliseconds
+        let diffMins = Math.floor(diffMs / 60000); // convert to minutes
+
+        let timeAgo = diffMins > 0 ? `${diffMins} min ago` : 'Just now';
+
+        let pendingHtml = `
+            <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
+                 style="background-color: #504c79;">
+                <div>
+                    <p>${item.id} [Order Number]: ${item.amount} TK</p>
+                    <p>Account: ${item.account_name} ${item.account_number}</p>
+                    <p>Checking by: ${currentUser}</p>
+                </div>
+                <div>
+                    <button class="px-4 btn btn-sm"
+                        style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">Check</button>
+                    <p class="mt-10">${timeAgo}</p>
+                </div>
+            </div>
+        `;
+        $('#pending-list-container').append(pendingHtml);
+    });
+}
+
+
+
+
+</script>
+
+    <script>
+       jQuery(document).off('click', '.activity-btn').on('click', '.activity-btn', function () {
+    var partnerId = jQuery(this).data('partner-id');
+
+    jQuery.ajax({
+        url: '<?php echo e(route("admin.fetchActivityLogs")); ?>',
+        method: 'POST',
+        data: {
+            _token: '<?php echo e(csrf_token()); ?>',
+            partner_transaction_id: partnerId
+        },
+        success: function (response) {
+            var tbody = '';
+            jQuery.each(response.data, function (index, log) {
+                tbody += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${log.request_method}</td>
+                        <td>${log.request_url}</td>
+                        <td>${log.request_payload}</td>
+                        <td>${log.response_payload}</td>
+                        <td>${log.created_at}</td>
+                    </tr>
+                `;
+            });
+
+            jQuery('#activity-table tbody').html(tbody);
+            var modal = new bootstrap.Modal(document.getElementById('activityModal'));
+            modal.show();
+        }
+    });
+});
+
+
+
+        $(document).ready(function (e) {
+
+
+            $('#image').change(function () {
+                let reader = new FileReader();
+                reader.onload = (e) => {
+                    $('#image_preview_container').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(this.files[0]);
+            });
+
+
+        });
+
+        $(document).ready(function () {
+    $('#api-search').select2({
+        width: '100%',
+        selectOnClose: true
+    });
+    $('#api-search').on('change', function () {
+        let apiId = $(this).val();
+
+        if (apiId) {
+            $.ajax({
+                url: 'get-api-balance/' + apiId,
+                type: 'GET',
+                success: function (response) {
+                    // Assuming response has { balance: 1234.56 }
+                    $('#api-balance').text(response.balance + ' TK');
+                },
+                error: function () {
+                    $('#api-balance').text('Error fetching balance');
+                }
+            });
+        } else {
+            $('#api-balance').text('0.00 TK');
+        }
+    });
+
+});
+    </script>
+    <script>
+        function setBalanceItem(itemId) {
+            var account_id = document.getElementById("account_id");
+            account_id.value = itemId;
+
+            jQuery('#spinner2').show();
+            jQuery('#runWithdrawalTest').prop('disabled', true);
+
+            var formData = new FormData(jQuery('#addBalanceForm')[0]); // Get form data
+
+            jQuery.ajax({
+                type: "POST",
+                url: "<?php echo e(route('admin.run.deposit.callback')); ?>",
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                data: formData, // Use FormData object
+                processData: false, // Don't process the data
+                contentType: false, // Don't set contentType
+                success: function(response) {
+                    if (response.status === "success") {
+                        jQuery('#spinner2').hide();
+                        jQuery('#tickMark2').show();
+                        jQuery('#apiresponse').show();
+                    } else {
+                        jQuery('#spinner2').hide();
+                        jQuery('#tickMark3').show();
+                        jQuery('#apiresponse').hide();
+                    }
+
+                    document.getElementById("text1").innerText = response.message;
+                    document.getElementById("text2").innerText = response.code;
+                    document.getElementById("text3").innerText = response.response_payload;
+                },
+                error: function(xhr, status, error) {
+                    jQuery('#spinner2').hide();
+                    jQuery('#tickMark3').show();
+                    jQuery('#apiresponse').hide();
+
+                    document.getElementById("text1").innerText = 'An error occurred while processing your request. Please try again.';
+                    document.getElementById("text2").innerText = '';
+                    document.getElementById("text3").innerText = '';
+                }
+            });
+        }
+    </script>
+
+    <?php $__env->stopPush(); ?>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040)): ?>
+<?php $component = $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040; ?>
+<?php unset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040); ?>
+<?php endif; ?><?php /**PATH C:\xampp\htdocs\ecpay\resources\views/admin/payout/workboard.blade.php ENDPATH**/ ?>

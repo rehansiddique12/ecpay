@@ -1,0 +1,265 @@
+
+<?php $__env->startSection('title'); ?>
+<?php echo app('translator')->get('Add Fund'); ?>
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('content'); ?>
+
+<div class="row g-3 m-4">
+    <?php $__currentLoopData = $gateways; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $gateway): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    
+    <div class="col-lg-2 col-6 col-sm-4 col-md-3">
+        <div class="user-panel">
+            <div class="deposit-box addFund" data-bs-toggle="modal" data-bs-target="#makeDeposit" data-id="<?php echo e($gateway->id); ?>" data-name="<?php echo e($gateway->name); ?>" data-currency="<?php echo e($gateway->currency); ?>" data-gateway="<?php echo e($gateway->code); ?>" data-qr_image="<?php echo e($gateway->qr_image!=''?getFile(config('location.gateway.path').$gateway->qr_image):''); ?>" data-min_amount="<?php echo e(getAmount($gateway->min_amount, $basic->fraction_number)); ?>" data-max_amount="<?php echo e(getAmount($gateway->max_amount,$basic->fraction_number)); ?>" data-percent_charge="<?php echo e(getAmount($gateway->percentage_charge,$basic->fraction_number)); ?>" data-fix_charge="<?php echo e(getAmount($gateway->fixed_charge, $basic->fraction_number)); ?>">
+                <div class="img-box">
+                    <img class="img-fluid" src="<?php echo e(getFile(config('location.gateway.path').$gateway->image)); ?>" alt="<?php echo e($gateway->name); ?>" />
+                    <p><?php echo e(trans($gateway->name)); ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+</div>
+
+<?php $__env->startPush('loadModal'); ?>
+<!-- Deposit Modal -->
+
+<div class="modal fade" id="makeDeposit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="makeDepositLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4><?php echo app('translator')->get('Make Deposit'); ?></h4>
+                <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="general-error"></div>
+            <div class="modal-body">
+                <form>
+                    <div class="payment-form">
+                        <?php if(0 == $totalPayment): ?>
+                        <p class="text-danger depositLimit"></p>
+                        <?php endif; ?>
+                        <input type="hidden" class="gateway" name="gateway" value="">
+                        <div class="form-group mb-30">
+                            <div class="input-box">
+                                <div class="input-group">
+                                    <input type="text" class="amount form-control" required name="amount" autocomplete="off" placeholder="<?php echo app('translator')->get('Amount'); ?>" <?php if($totalPayment !=null): ?> value="<?php echo e($totalPayment); ?>" placeholder="<?php echo app('translator')->get('Amount'); ?>" readonly <?php endif; ?>>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text show-currency"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <pre class="text-danger amount-error"></pre>
+                        </div>
+
+                        <div class="form-group mb-30">
+                            <div class="input-box">
+                                <div class="input-group">
+                                    <input type="text" class="account_no form-control" required name="account_no" autocomplete="off" placeholder="<?php echo app('translator')->get('Sender Phone No.'); ?>">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">Sender Phone No.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <pre class="text-danger account-no-error"></pre>
+                        </div>
+
+                    </div>
+                </form>
+                <div class="payment-info text-center">
+                    <img id="loading" src="<?php echo e(asset('assets/admin/images/loading.gif')); ?>" alt="..." class="w-15" />
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-success checkCalc"><?php echo app('translator')->get('Next'); ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('script'); ?>
+
+<script>
+    $('#loading').hide();
+    "use strict";
+    var id, minAmount, maxAmount, baseSymbol, fixCharge, percentCharge, currency, amount, gateway, name, qr_image;
+    $('.addFund').on('click', function() {
+        id = $(this).data('id');
+        name = $(this).data('name');
+        gateway = $(this).data('gateway');
+        minAmount = $(this).data('min_amount');
+        maxAmount = $(this).data('max_amount');
+        baseSymbol = "<?php echo e(config('basic.currency_symbol')); ?>";
+        fixCharge = $(this).data('fix_charge');
+        percentCharge = $(this).data('percent_charge');
+        currency = $(this).data('currency');
+        qr_image = $(this).data('qr_image');
+        $('.depositLimit').text(`<?php echo app('translator')->get('Transaction Limit:'); ?> <?= $min_deposit ?> - ${maxAmount}  ${baseSymbol}`);
+
+        var depositCharge = `<?php echo app('translator')->get('Charge:'); ?> ${fixCharge} ${baseSymbol}  ${(0 < percentCharge) ? ' + ' + percentCharge + ' % ' : ''}`;
+        $('.depositCharge').text(depositCharge);
+
+        $('.method-name').text(`<?php echo app('translator')->get('Payment By'); ?> ${$(this).data('name')} - ${currency}`);
+        $('.show-currency').text("<?php echo e(config('basic.currency')); ?>");
+        $('.gateway').val(currency);
+
+        // amount
+    });
+
+
+    $(".checkCalc").on('click', function() {
+        const $button = $(this);
+        $button.prop('disabled', true);
+        $('#general-error').html('');
+        $('.payment-form').addClass('d-none');
+        $('#loading').show();
+        $('.modal-backdrop.fade').addClass('show');
+
+        amount = $('.amount').val();
+        account_no = $('.account_no').val();
+        var username = <?= json_encode($username); ?>;
+
+        $.ajax({
+            url: "<?php echo e(route('partner.addFund.request.open')); ?>",
+            type: 'POST',
+            data: {
+                _token: "<?php echo e(csrf_token()); ?>",
+                amount,
+                gateway,
+                account_no,
+                username
+            },
+            success(data) {
+                // console.log(data);
+
+                $('.payment-form').addClass('d-none');
+                $('.checkCalc').closest('.modal-footer').addClass('d-none');
+
+                var htmlData = `
+
+                     <ul class="list-group text-center text-white">
+                        <li class="list-group-item bg-transparent">
+                            <img class="w-100"src="${data.gateway_image}"
+                                style="max-width:100px; max-height:100px; margin:0 auto;"/>
+                        </li>
+                        ${data.qr_image ? `
+                        <li class="list-group-item bg-transparent">
+                            <img class="w-100" src="${data.qr_image}"
+                                style="width: 300px; margin: 0 auto;"/>
+                        </li>` : ''}
+                        <li style="font-size: 18px" class="list-group-item bg-transparent">
+                            <?php echo app('translator')->get('Account No'); ?>:
+                            <strong id="accountNumber">${data.sender}</strong>
+                            <button id="copyButton" class="btn btn-primary btn-sm ml-2">Copy</button>
+                        </li>
+                        <li class="list-group-item bg-transparent">
+                            <?php echo app('translator')->get('Amount'); ?>:
+                            <strong>${data.amount} </strong>
+                        </li>
+
+                        ${(data.isCrypto == true) ? `
+                        <li class="list-group-item bg-transparent">
+                            ${data.conversion_with}
+                        </li>
+                        ` : ``}
+
+                        ${qr_image ? `
+                        <li class="list-group-item bg-transparent">
+
+                            <a href="${data.payment_url}" class="btn btn-success line-h22   btn-block addFund "><?php echo app('translator')->get('Next'); ?></a>
+                        </li>` : `<li class="list-group-item bg-transparent">
+                        <a href="${data.payment_url}" class="btn btn-success line-h22   btn-block addFund "><?php echo app('translator')->get('Pay Now'); ?></a>
+                        </li>`}
+
+
+                        </ul>
+                        `;
+
+                $('.payment-info').html(htmlData)
+            },
+            complete: function() {
+                $('#loading').hide();
+                $button.prop('disabled', false);
+            },
+            error(err) {
+
+                const errors = err.responseJSON;
+                // Clear the general error list
+                $('#general-error').html('');
+
+                // Build a list of errors
+                let errorHtml = '<ul class="text-danger">';
+
+                // Check if 'errors' exist in the response
+                if (errors.errors) {
+                    for (const key in errors.errors) {
+                        errors.errors[key].forEach(message => {
+                            errorHtml += `<li>${message}</li>`;
+                        });
+                    }
+                }
+
+                // Check for general 'error' key in the response
+                if (errors.error) {
+                    errorHtml += `<li>${errors.error}</li>`;
+                }
+
+                // Check for directly returned fields like 'amount' in the response
+                if (errors.amount) {
+                    errors.amount.forEach(message => {
+                        errorHtml += `<li>${message}</li>`;
+                    });
+                }
+
+                errorHtml += '</ul>';
+
+                // Display the errors
+                $('#general-error').html(errorHtml);
+
+                $('.payment-form').removeClass('d-none');
+                $button.prop('disabled', false);
+            }
+        });
+    });
+
+
+    $('.close').on('click', function(e) {
+        $('#loading').hide();
+        $('.payment-form').removeClass('d-none');
+        $('.checkCalc').closest('.modal-footer').removeClass('d-none');
+        $('.payment-info').html(``)
+        $('.amount').val(``);
+        $("#addFundModal").modal("hide");
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        var clipboard = new ClipboardJS('#copyButton', {
+            target: function() {
+                return document.getElementById('accountNumber');
+            }
+        });
+
+
+        clipboard.on('success', function(e) {
+            e.clearSelection();
+            $('#copyButton').text('Copied');
+            $('#copyButton').addClass('disabled');
+            $('#copyButton').prop('disabled', true);
+        });
+
+        clipboard.on('error', function(e) {
+            console.error('Copy failed:', e.action);
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('partner.layouts.open', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\ecpay\resources\views/partner/payout/depositFund.blade.php ENDPATH**/ ?>

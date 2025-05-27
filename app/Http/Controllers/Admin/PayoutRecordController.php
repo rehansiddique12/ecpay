@@ -861,11 +861,11 @@ class PayoutRecordController extends Controller
 
                     $parent_charge = 0;
 
-                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
                     } else {
-                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                         if ($parent_commission) {
                             $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
                         }
@@ -2083,7 +2083,7 @@ class PayoutRecordController extends Controller
                     'parent_id' => $request->partner_id,
                     'user_id' => $request->user_id,
                     'type' => $commission->type,
-                    'gateway_id' => $request->gateway_id,
+                    'gateway_id' => $commission->gateway_id,
                     'commission_id' => $commission->id,
                 ]);
             } else {
@@ -2095,7 +2095,7 @@ class PayoutRecordController extends Controller
                     'parent_id' => $request->partner_id,
                     'user_id' => $request->user_id,
                     'type' => $commission->type,
-                    'gateway_id' => $request->gateway_id,
+                    'gateway_id' => $commission->gateway_id,
                     'commission_id' => $commission->id,
                 ]);
             }
@@ -2615,6 +2615,43 @@ class PayoutRecordController extends Controller
 
 
     public function apisCommissionAdd(Request $request)
+    {
+        
+
+        $count = count($request->from_amount);
+
+        for ($i = 0; $i < $count; $i++) {
+            $new_commission = Commission::where('id', $request->id[$i])->first();
+            if ($new_commission) {
+                $commission_id = $new_commission->id;
+            } else {
+                $new_commission = new Commission;
+            }
+
+            // Convert gateways to JSON (for storage) if selected
+            $gateway_ids = isset($request->settlement_gateway[$i]) ? json_encode($request->settlement_gateway[$i]) : json_encode([]);
+            $types = isset($request->type[$i]) ? json_encode($request->type[$i]) : json_encode([]);
+
+            $new_commission->from_amount = $request->from_amount[$i];
+            $new_commission->to_amount = $request->to_amount[$i];
+            $new_commission->deposit_percentage = $request->deposit_percentage[$i];
+            $new_commission->withdrawal_percentage = $request->withdrawal_percentage[$i];
+            $new_commission->settlement_percentage = $request->settlement_percentage[$i];
+            $new_commission->category_id = $request->category_id;
+            $new_commission->category = $request->category[$i];
+
+            $new_commission->type = $types;
+            $new_commission->gateway_id = $gateway_ids; // store as JSON
+
+            $new_commission->save();
+        }
+
+        session()->flash('success', 'Successfully Updated');
+        return back();
+    }
+
+
+    public function apisCommissionAddold(Request $request)
     {
 
 
@@ -4098,11 +4135,11 @@ class PayoutRecordController extends Controller
 
                 $parent_charge = 0;
 
-                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                 if ($parent_commission) {
                     $parent_charge = $parent_commission->withdrawal_percentage * $request->amount / 100;
                 } else {
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->withdrawal_percentage * $request->amount / 100;
                     }
