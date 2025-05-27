@@ -69,7 +69,12 @@ class PayoutRecordController extends Controller
                 return redirect(route('user.payment'));
             }
             $totalPayment = null;
-            $gateways = Gateway::where('status', 1)->orderBy('sort_by', 'ASC')->get();
+            $gateways = Gateway::where('status', 1)
+            ->whereHas('category', function($query) {
+                $query->where('name', 'ewallet');
+            })
+            ->with('category')
+            ->get();
             // dd($gateways);
             return view('partner.payout.depositFund', compact('totalPayment', 'gateways', 'username', 'min_deposit'));
         } else {
@@ -85,7 +90,12 @@ class PayoutRecordController extends Controller
         if ($open_user && $open_user->type == "Admin") {
             $min_withdrawal = $open_user->min_withdrawal;
             $title = "Payout Money";
-            $gateways = Gateway::whereStatus(1)->get();
+            $gateways = Gateway::where('status', 1)
+            ->whereHas('category', function($query) {
+                $query->where('name', 'ewallet');
+            })
+            ->with('category')
+            ->get();
             return view('partner.payout.moneyopen', compact('title', 'gateways', 'username','min_withdrawal'));
         } else {
             abort(404);

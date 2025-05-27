@@ -172,81 +172,60 @@ $baseUrl = $protocol . '://' . $domain . $path .'/assets/uploads/receipts/';
 @push('js')
 <script>
   function openmodel1(date, gateway, status) {
+  const url = "{{ route('partner.payment.report.detail', ['date' => '__DATE__', 'gateway' => '__GATEWAY__', 'status' => '__STATUS__']) }}"
+    .replace('__DATE__', encodeURIComponent(date))
+    .replace('__GATEWAY__', encodeURIComponent(gateway))
+    .replace('__STATUS__', encodeURIComponent(status));
 
-    // Ajax request to fetch data
-    $.ajax({
-      url: "{{ route('partner.payment.report.detail', ['date' => 'placeholder', 'gateway' => 'placeholder', 'status' => 'placeholder']) }}"
-        .replace('placeholder', date)
-        .replace('placeholder', gateway)
-        .replace('placeholder', status),
-      method: 'GET',
-      success: function(response) {
-        console.log(response);
-        $('#modalContent1').empty();
+  $.ajax({
+    url: url,
+    method: 'GET',
+    success: function(response) {
+      $('#modalContent1').empty();
 
-        // Iterate over the response data and append it to the modal body in a table format
-        var table = $('<table class="table"></table>');
-        var thead = $('<thead class="thead-dark"><tr><th>Date</th><th>Trx Number</th><th>User Account</th><th>Method</th><th>Amount</th><th>Merchant Charge</th><th>Payable</th><th>E-Wallet No</th><th>Type</th><th>Status</th><th>Receipt</th></tr></thead>');
-        var tbody = $('<tbody></tbody>');
+      var table = $('<table class="table table-bordered"></table>');
+      var thead = $('<thead class="thead-dark"><tr><th>Date</th><th>Trx Number</th><th>User Account</th><th>Method</th><th>Amount</th><th>Merchant Charge</th><th>Payable</th><th>E-Wallet No</th><th>Type</th><th>Status</th><th>Receipt</th></tr></thead>');
+      var tbody = $('<tbody></tbody>');
 
-        // Assuming response is an array
-        for (var i = 0; i < response.length; i++) {
-          var row = $('<tr></tr>');
-          var createdAt = new Date(response[i].created_at).toLocaleString('en-GB', {
-            day: 'numeric',
-            month: 'numeric',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: true
-          });
-          row.append('<td>' + createdAt + '</td>');
-          row.append('<td>' + response[i].payment.txn_id + '</td>');
-          row.append('<td>' + response[i].payment.sender + '</td>');
-          row.append('<td>' + response[i].gateway.name + '</td>');
-          row.append('<td>' + response[i].amount + 'TK</td>');
-          row.append('<td>' + response[i].charge + 'TK</td>');
-          row.append('<td>' + response[i].final_amount + 'TK</td>');
-          row.append('<td>' + response[i].payment.e_wallet_phone_number + 'TK</td>');
-          row.append('<td>' + response[i].payment.e_wallet_type + 'TK</td>');
+      response.forEach(function(item) {
+        var createdAt = new Date(item.created_at).toLocaleString('en-GB');
+        var row = $('<tr></tr>');
+        row.append('<td>' + createdAt + '</td>');
+        row.append('<td>' + item.trx_number + '</td>');
+        row.append('<td>' + item.account + '</td>');
+        row.append('<td>' + item.method + '</td>');
+        row.append('<td>' + item.amount + '</td>');
+        row.append('<td>' + item.charge + '</td>');
+        row.append('<td>' + item.payable + '</td>');
+        row.append('<td>' + item.wallet_no + '</td>');
+        row.append('<td>' + item.type + '</td>');
+        row.append('<td>' + item.status + '</td>');
 
-          var statusBadge;
-          if (response[i].status == 1) {
-            statusBadge = '<span class="badge badge-light"><i class="fa fa-circle text-success success font-12"></i> Completed</span>';
-
-          } else if (response[i].status == 2) {
-            statusBadge = '<span class="badge badge-light"><i class="fa fa-circle text-warning success font-12"></i> Pending</span>';
-          } else {
-            statusBadge = '<span class="badge badge-light"><i class="fa fa-circle text-danger danger font-12"></i> Rejected</span>';
-          }
-
-          var baseUrl = "{{$baseUrl}}";
-
-          row.append('<td>' + statusBadge + '</td>');
-          if (response[i].receipt_image && response[i].receipt_image.trim() !== '') {
-            var imageLink = '<a data-fancybox="images" href="' + baseUrl + response[i].receipt_image + '">';
-            imageLink += '<h2><i class="fa fa-file"></i></h2>';
-            imageLink += '</a>';
-            row.append('<td>' + imageLink + '</td>');
-          } else {
-            row.append('<td></td>'); // If receipt_image is empty, you can add an empty cell or customize as needed
-          }
-
-          tbody.append(row);
+        // Handle receipt image
+        if (item.receipt) {
+          row.append('<td><a href="' + '{{ $baseUrl }}' + item.receipt + '" data-fancybox="gallery" data-caption="Receipt"><img src="' + '{{ $baseUrl }}' + item.receipt + '" alt="Receipt" style="height:50px;"/></a></td>');
+        } else {
+          row.append('<td>—</td>');
         }
 
-        table.append(thead);
-        table.append(tbody);
-        $('#modalContent1').append(table);
+        tbody.append(row);
+      });
 
-        // Show the modal
-        $('#myModal1').modal('show');
-      },
-      error: function(error) {
-        console.error('Error fetching data:', error);
-      }
-    });
-  }
+      table.append(thead);
+      table.append(tbody);
+      $('#modalContent1').append(table);
+      $('#myModal1').modal('show');
+    },
+    error: function(err) {
+      console.error("XHR Error:", xhr);
+        console.error("Status:", xhr.status);
+        console.error("Response Text:", xhr.responseText);
+      $('#modalContent1').html('<p class="text-danger">Error loading data.</p>');
+      $('#myModal1').modal('show');
+    }
+  });
+}
+
 </script>
 
 <script>

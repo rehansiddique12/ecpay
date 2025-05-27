@@ -480,15 +480,33 @@ class UsersController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('user_locations', 'location'),
             ],
             'status' => 'required|boolean',
         ]);
 
-        UserLocation::create([
-            'location' => $request->location,
-            'status' => $request->status,
-        ]);
+        $existing = UserLocation::withTrashed()
+        ->where('location', $request->location)
+        ->first();
+
+        if ($existing && is_null($existing->deleted_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The location already exists.'
+            ], 409);
+        }
+
+        if ($existing && !is_null($existing->deleted_at)) {
+            // Restore and update the soft-deleted record
+            $existing->restore();
+            $existing->status = $request->status;
+            $existing->save();
+        } else {
+            // Create a new record
+            UserLocation::create([
+                'location' => $request->location,
+                'status' => $request->status,
+            ]);
+        }
 
         return response()->json(['success' => true]);
     }

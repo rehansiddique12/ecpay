@@ -924,13 +924,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
                     <ul class="menu-sub">
                         @if(adminAccessRoute(config('role.payment_log.access.view')))
-                        <li
+                        {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.log') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Deposit Log">Deposit Log</div>
                             </a>
-                        </li>
+                        </li> --}}
                         @endif
                         @if(adminAccessRoute(config('role.payout_manage.access.view')))
                         <li

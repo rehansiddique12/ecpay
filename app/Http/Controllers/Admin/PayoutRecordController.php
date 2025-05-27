@@ -40,7 +40,8 @@ use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
 use App\Models\TwoStepVerification;
-use Illuminate\Support\Facades\Log;
+use App\Models\Log;
+use Illuminate\Support\Facades\Log as LaravelLog;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -2213,9 +2214,14 @@ class PayoutRecordController extends Controller
 
     public function merchantDelete($id)
     {
-        $account = EWalletAccount::where('id', $id)->delete()
-            ? redirect()->route('admin.ewallet.accounts.details')->with('success', 'Account deleted successfully.')
-            : redirect()->route('admin.ewallet.accounts.details')->with('error', 'Account not found.');
+        $account = EWalletAccount::where('id', $id)->first();
+
+       if($account){
+        $account->delete();
+        return redirect()->back()->with('success', 'Account deleted successfully');
+       }else{
+        return redirect()->back()->with('error', 'Account not found');
+       }     
     }
 
 
@@ -3174,7 +3180,8 @@ class PayoutRecordController extends Controller
 
             // Process time slots
             $timeSlots = $request->time_slots ?? [];
-            $applyTimeLimit = !empty($timeSlots) ? 1 : 0;
+            // $applyTimeLimit = !empty($timeSlots) ? 1 : 0;
+            $applyTimeLimit = 0;
 
             // Process each e-wallet account
             foreach ($request->e_wallet_name as $index => $name) {
