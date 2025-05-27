@@ -554,9 +554,46 @@ $arr = [
             'view' => [
                 'admin.ewallet.accounts.details',
             ],
-            'add' => [],
+            'add' => ['admin.account_management.add_account'],
             'edit' => [],
             'delete' => [],
+        ],
+    ],
+
+    'account_group' => [
+        'label' => 'Account Group',
+        'access' => [
+            'view' => [
+                'admin.account_management.account_group',
+            ],
+            'add' => ['admin.accounts.addpairs'],
+            'edit' => ['admin.accounts.updateGroup'],
+            'delete' => [],
+        ],
+    ],
+
+
+    'gateways' => [
+        'label' => 'Account Management Gateways',
+        'access' => [
+            'view' => [
+                'admin.account_management.gateway',
+            ],
+            'add' => ['admin.deposit.accounts.store'],
+            'edit' => ['admin.deposit.accounts.update'],
+            'delete' => [],
+        ],
+    ],
+
+    'categories' => [
+        'label' => 'Account Management Categories',
+        'access' => [
+            'view' => [
+                'admin.account_management.add_category',
+            ],
+            'add' => ['admin.category.store'],
+            'edit' => ['admin.category.update'],
+            'delete' => ['admin.category.delete'],
         ],
     ],
 
