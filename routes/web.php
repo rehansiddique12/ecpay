@@ -132,7 +132,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/hide-transaction', [PayoutRecordController::class, 'hideTransaction'])->name('hideTransaction');
         Route::post('/adjust-transaction', [PayoutRecordController::class, 'adjustTransaction'])->name('adjust.transaction');
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
-Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
+        Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
 
 
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
@@ -364,13 +364,15 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         Route::get('/payout-request', [PayoutRecordController::class, 'request'])->name('payout-request');
         Route::put('/payout-action/{id}', [PayoutRecordController::class, 'action'])->name('payout-action');
 
+        Route::get('makeatest', [PaymentLogController::class, 'makeatest'])->name('makeatest');
+
         Route::get('payment/apiLog', [PaymentLogController::class, 'apiLog'])->name('payment.apiLog');
         Route::get('payment/apisearch', [PaymentLogController::class, 'apisearch'])->name('payment.apisearch');
         Route::get('payment/apiLogUnclaimed', [PaymentLogController::class, 'apiLogUnclaimed'])->name('payment.apiLogunclaimed');
         Route::get('payment/apiLogUnclaimed/search', [PaymentLogController::class, 'apiLogUnclaimedsearch'])->name('payment.apiLogunclaimed.search');
 
         Route::get('payment/report', [PaymentLogController::class, 'report'])->name('payment.report');
-        Route::get('/admin/reports/export/{from_date?}', [PaymentLogController::class, 'export_by_logs'])->name('merchant_reports.export_by_logs');
+        Route::get('/reports/export/{from_date?}', [PaymentLogController::class, 'export_by_logs'])->name('merchant_reports.export_by_logs');
         Route::get('payment/report/search', [PaymentLogController::class, 'reportSearch'])->name('payment.report.search');
         Route::get('payment/report/daily', [PaymentLogController::class, 'dailyReport'])->name('payment.report.daily');
         Route::get('payment/report/daily/search', [PaymentLogController::class, 'dailyReportSearch'])->name('payment.report.daily.search');
@@ -419,6 +421,7 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
 
 
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
+        Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
 
 
         Route::prefix('commission/categories')->name('commission.categories.')->group(function () {

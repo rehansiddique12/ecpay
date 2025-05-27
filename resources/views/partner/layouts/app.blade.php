@@ -1,24 +1,19 @@
 <!doctype html>
 
-<html
-  lang="en"
-  class="layout-navbar-fixed layout-menu-fixed layout-compact"
-  dir="ltr"
-  data-skin="default"
-  data-assets-path="{{asset('public/assets/')}}"
-  data-template="horizontal-menu-template"
-  data-bs-theme="dark">
-  <head>
+<html lang="en" class="layout-navbar-fixed layout-menu-fixed layout-compact" dir="ltr" data-skin="default"
+    data-assets-path="{{asset('public/assets/')}}" data-template="horizontal-menu-template" data-bs-theme="dark">
+
+<head>
     <meta charset="utf-8" />
     <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
     <title>{{ $title ? 'ECPay System - ' . $title : 'ECPay System' }}</title>
 
 
 
-<meta name="description" content="" />
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{asset('assets/img/favicon/favicon.png')}}" />
@@ -27,8 +22,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
-      rel="stylesheet" />
+        href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
+        rel="stylesheet" />
 
     <link rel="stylesheet" href="{{asset('assets/vendor/fonts/iconify-icons.css')}}" />
 
@@ -50,7 +45,8 @@
     <!-- endbuild -->
 
     <!-- Page CSS -->
-    {{-- <link rel="stylesheet" href="{{asset('assets/vendor/css/pages/page-pricing.css')}}" /> --}}
+    {{--
+    <link rel="stylesheet" href="{{asset('assets/vendor/css/pages/page-pricing.css')}}" /> --}}
 
     <!-- Helpers -->
     <script src="{{asset('assets/vendor/js/helpers.js')}}"></script>
@@ -62,66 +58,74 @@
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="{{asset('assets/js/config.js')}}"></script>
-    @stack('styles')
-  </head>
 
-  <body>
+    @stack('styles')
+    <style>
+            .select2-container--default .select2-selection--single .select2-selection__clear {
+                font-size: 30px !important;
+                /* Default is around 14px */
+                right: 8px;
+                top: 4px;
+            }
+
+            .select2-selection__clear {
+                color: red !important;
+                font-weight: bold;
+            }
+        </style>
+</head>
+
+<body>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
-      <div class="layout-container">
-        <!-- Navbar -->
+        <div class="layout-container">
+            <!-- Navbar -->
 
-        @include('partner.layouts.sidebar')
+            @include('partner.layouts.sidebar')
 
-        <!-- / Navbar -->
+            <!-- / Navbar -->
 
-        <!-- Layout container -->
+            <!-- Layout container -->
 
             <!--/ Content -->
 
             <!-- Footer -->
             <footer class="content-footer footer bg-footer-theme">
-              <div class="container-xxl">
-                <div
-                  class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
-                  <div class="text-body">
-                    ©
-                    <script>
-                      document.write(new Date().getFullYear());
-                    </script>
-                    , made with ❤️ by <a href="https://pixinvent.com" target="_blank" class="footer-link">Pixinvent</a>
-                  </div>
-                  <div class="d-none d-lg-inline-block">
-                    <a href="https://themeforest.net/licenses/standard" class="footer-link me-4" target="_blank"
-                      >License</a
-                    >
-                    <a href="https://themeforest.net/user/pixinvent/portfolio" target="_blank" class="footer-link me-4"
-                      >More Themes</a
-                    >
+                <div class="container-xxl">
+                    <div
+                        class="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
+                        <div class="text-body">
+                            ©
+                            <script>
+                                document.write(new Date().getFullYear());
+                            </script>
+                            , made with ❤️ by <a href="https://pixinvent.com" target="_blank"
+                                class="footer-link">Pixinvent</a>
+                        </div>
+                        <div class="d-none d-lg-inline-block">
+                            <a href="https://themeforest.net/licenses/standard" class="footer-link me-4"
+                                target="_blank">License</a>
+                            <a href="https://themeforest.net/user/pixinvent/portfolio" target="_blank"
+                                class="footer-link me-4">More Themes</a>
 
-                    <a
-                      href="https://demos.pixinvent.com/vuexy-html-admin-template/documentation/"
-                      target="_blank"
-                      class="footer-link me-4"
-                      >Documentation</a
-                    >
+                            <a href="https://demos.pixinvent.com/vuexy-html-admin-template/documentation/"
+                                target="_blank" class="footer-link me-4">Documentation</a>
 
-                    <a href="https://pixinvent.ticksy.com/" target="_blank" class="footer-link d-none d-sm-inline-block"
-                      >Support</a
-                    >
-                  </div>
+                            <a href="https://pixinvent.ticksy.com/" target="_blank"
+                                class="footer-link d-none d-sm-inline-block">Support</a>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </footer>
             <!-- / Footer -->
 
             <div class="content-backdrop fade"></div>
-          </div>
-          <!--/ Content wrapper -->
         </div>
+        <!--/ Content wrapper -->
+    </div>
 
-        <!--/ Layout container -->
-      </div>
+    <!--/ Layout container -->
+    </div>
     </div>
 
     <!-- Overlay -->
@@ -163,5 +167,6 @@
 
     <!-- Page JS -->
     @stack('js')
-  </body>
+</body>
+
 </html>

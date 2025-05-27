@@ -57,10 +57,7 @@ class EWalletAccount extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function group()
-    {
-        return $this->belongsTo(AccountGroup::class, 'account_group_id');
-    }
+
     public function location()
     {
         return $this->belongsTo(UserLocation::class, 'location_id');
@@ -70,5 +67,12 @@ class EWalletAccount extends Model
     {
         return $this->hasMany(EWalletAccountTimeSlot::class);
     }
+
+public function accountGroups()
+    {
+        return $this->hasMany(AccountGroup::class, 'account_id');
+    }
+
+
 
 }

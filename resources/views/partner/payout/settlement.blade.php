@@ -24,22 +24,15 @@
                 </div>
                 <div class="col-md-2"></div>
 
-                <!--<div class="col-md-4">-->
-                <!--    <div class="form-group">-->
-                <!--        <label>User Account No</label>-->
-                <!--        <input type="text" class="form-control" value="{{ @request()->account_no }}" name="account_no"/>-->
-                <!--    </div>-->
-                <!--</div>-->
-
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>E-Wallet</label>
-                        <select name="gateway" class="form-control">
-                            <option value="">All</option>
+                        <select name="gateway" class="form-select">
+                            <option value="">@lang('All')</option>
                             @foreach ($gateways as $gateway)
-                                <option value="{{ $gateway->source_name }}"
-                                    @if (@request()->gateway == $gateway->source_name) selected @endif>{{ $gateway->source_name }}
-                                </option>
+                            <option value="{{ $gateway->source_name }}" @if (@request()->gateway ==
+                                $gateway->source_name) selected @endif>{{ $gateway->source_name }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -48,7 +41,7 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>Status</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="all">@lang('All')</option>
                             <option value="1" @if (@request()->status == '1') selected @endif>@lang('Approved')
                             </option>
@@ -88,77 +81,44 @@
                                     <th scope="col">@lang('Amount')</th>
                                     <th scope="col">@lang('Charges')</th>
                                     <th scope="col">@lang('Net Amount')</th>
-                                    <th scope="col">@lang('Status')</th>
+                                    <th scope="col" class="text-center">@lang('Status')</th>
                                     <th scope="col">Created At</th>
                                     <!--<th>Action</th>-->
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
-                                    <tr>
-                                        <td>{{ $item->source }}</td>
-                                        <td>{{ $item->source_name }}</td>
-                                        <td>{{ $item->account_no }}</td>
-                                        <td>{{ $item->amount }}</td>
-                                        <td>{{ $item->charges }}</td>
-                                        <td>{{ $item->net_amount }}</td>
-                                        <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                            @if ($item->status == 2)
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-danger danger font-12"></i>
-                                                    @lang('Rejected') </span>
-                                            @elseif($item->status == 1)
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-success success font-12"></i>
-                                                    @lang('Approved')</span>
-                                            @else
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-warning success font-12"></i>
-                                                    @lang('Pending')</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ convertToUserTimezone($item->created_at) }}</td>
-                                        <!--<td data-label="@lang('Action')">-->
-                                        <!--    <div class="dropdown show ">-->
-                                        <!--        <a class="dropdown-toggle p-3" href="#" id="dropdownMenuLink" data-toggle="dropdown"-->
-                                        <!--           aria-haspopup="true" aria-expanded="false">-->
-                                        <!--            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>-->
-                                        <!--        </a>-->
-                                        <!--        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">-->
-                                        <!--            <form action="{{ route('admin.apis.delete', $item['id']) }}" method="POST">-->
-                                        <!--                @csrf-->
-                                        <!--                @method('DELETE')-->
-                                        <!--                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-trash"></i> Delete</button>-->
-                                        <!--            </form>-->
-                                        <!--            <button type="button" class="btn btn-sm btn-icon edit_button" data-toggle="modal" data-target="#editModal{{ $item['id'] }}">-->
-                                        <!--                <i class="fa fa-edit"></i> Edit-->
-                                        <!--            </button><br>-->
-                                        <!--            <button type="button" class="btn btn-sm btn-icon edit_button" data-toggle="modal" data-target="#newModalb" onclick="setBalanceItem({{ $item['id'] }})">-->
-                                        <!--                <i class="fa fa-money-bill"></i> Add Balance-->
-                                        <!--            </button>-->
-                                        <!--            <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">-->
-                                        <!--                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-key"></i> Reset QR Code</button>-->
-                                        <!--            </form>-->
-                                        <!--            <form action="{{ route('admin.apis.commission', $item['id']) }}" method="GET">-->
-                                        <!--                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-calculator"></i> Commission %</button>-->
-                                        <!--            </form>-->
-                                        <!--        </div>-->
-                                        <!--    </div>-->
-                                        <!--</td>-->
+                                <tr>
+                                    <td>{{ $item->source }}</td>
+                                    <td>{{ $item->source_name }}</td>
+                                    <td>{{ $item->account_no }}</td>
+                                    <td>{{ $item->amount }}</td>
+                                    <td>{{ $item->charges }}</td>
+                                    <td>{{ $item->net_amount }}</td>
+                                    <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                        @if ($item->status == 2)
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-danger danger font-12"></i>
+                                            @lang('Rejected') </span>
+                                        @elseif($item->status == 1)
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-success success font-12"></i>
+                                            @lang('Approved')</span>
+                                        @else
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-warning success font-12"></i>
+                                            @lang('Pending')</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ convertToUserTimezone($item->created_at) }}</td>
 
-
-
-
-
-
-
-                                    </tr>
+                                </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="100%">
+                                        <p class="text-dark">@lang('No Data Found')</p>
+                                    </td>
+                                </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -188,7 +148,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Source</label>
-                                    <select class="form-control" name="source" required>
+                                    <select class="form-select" name="source" required>
                                         <option value="Bank">Bank</option>
                                         <option value="EWallet">EWallet</option>
                                     </select>
@@ -209,8 +169,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Amount</label>
-                                    <input type="number" step="0.01" class="form-control" name="amount"
-                                        required />
+                                    <input type="number" step="0.01" class="form-control" name="amount" required />
                                 </div>
                             </div>
                         </div>
@@ -283,6 +242,6 @@
                 //     selectOnClose: true
                 // });
             });
-        </script>
+    </script>
     @endpush
 </x-partner-layout>

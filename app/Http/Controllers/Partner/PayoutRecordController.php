@@ -321,17 +321,33 @@ class PayoutRecordController extends Controller
                     $Log->final_amount = $net_amount;
                     $Log->balance = $open_user->balance;
                     $Log->transection_type = 1;
-                    $Log->transection_id = $payment->id;
+                    $Log->transection_id = $order->id;
                     $Log->partner_id = $open_user->id;
                     $Log->source = 'PartnerLink';
                     $Log->save();
+
+
+                    if(empty($order->sender) || $order->sender==0){
+                        $order->sender = $payment->sender;
+                    }
+
+                    $order->txn_id = $payment->txn_id;
+                    $order->date_time = $payment->date_time;
+                    $order->transaction_type = $payment->transaction_type;
+                    $order->ip_address = $payment->ip_address;
+                    $order->e_wallet_type = $payment->e_wallet_type;
+                    $order->mac_address = $payment->mac_address;
+                    $order->fee = $payment->fee;
+                    $order->commission = $payment->commission;
+                    $order->e_wallet_charges = $payment->e_wallet_charges;
+                    $order->payment_received_at = $payment->created_at;
 
 
                     $order->charge = $charge;
                     $order->status = 'Complete';
                     $order->trans_complete_date = Carbon::now();
                     $order->completed_source = 'PartnerLink';
-                    $payment->delete();
+                    // $payment->delete();
 
                     $order->api_id = $api_id;
                     $order->save();
@@ -523,7 +539,7 @@ class PayoutRecordController extends Controller
 
         $txn_verification = "";
 
-        $api_key = API::where('username', $username)->where('status', 1)->where('status', 1)->first();
+        $api_key = API::where('username', $username)->where('status', 1)->first();
         if ($api_key && $api_key->type == "Admin") {
             $source = $api_key->website;
             $api_id = $api_key->id;
@@ -888,9 +904,11 @@ class PayoutRecordController extends Controller
                 }
                 $ewallet = strtolower($order->gateway->code);
 
+                
 
 
-                if ($order->status="Complete") {
+
+                if ($order->status=="Complete") {
                     $processing = 2;
                     $message = "With This Transaction No. Payment Already Completed.";
                     DB::commit();
@@ -909,6 +927,8 @@ class PayoutRecordController extends Controller
                     $logo = asset('assets/images/iframe_rocket_logo.png');
                     $banner = asset('assets/images/Rocket_Background.jpg');
                 }
+
+                
 
                 $fiveMinutesAgo = Carbon::now()->subMinutes(5)->timestamp;
                 if (isset($request->time) && $request->time > $fiveMinutesAgo) {
@@ -1011,15 +1031,21 @@ class PayoutRecordController extends Controller
                             $partner_api_key->balance += $net_amount;
                             $partner_api_key->save();
 
+
+                            
+
                             $Log = new Log();
                             $Log->date_time = $payment_record->updated_at;
                             $Log->final_amount = $net_amount;
                             $Log->balance = $partner_api_key->balance;
                             $Log->transection_type = 1;
-                            $Log->transection_id = $payment_record->id;
+                            $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
                             $Log->source = 'Iframe';
                             $Log->save();
+
+
+                            
                         }
 
                         // if (strpos($payment_record->sender, 'XXXX') !== false && ($payment_record->mac_address=="111.111.11.111" || $payment_record->mac_address=="222.222.22.222")) {
@@ -1027,6 +1053,24 @@ class PayoutRecordController extends Controller
                         //         $payment_record->sender = $order->account_no;
                         //     }
                         // }
+
+
+                        if(empty($order->sender) || $order->sender==0){
+                            $order->sender = $payment_record->sender;
+                        }
+
+                        $order->txn_id = $payment_record->txn_id;
+                        $order->date_time = $payment_record->date_time;
+                        $order->transaction_type = $payment_record->transaction_type;
+                        $order->ip_address = $payment_record->ip_address;
+                        $order->e_wallet_type = $payment_record->e_wallet_type;
+                        $order->mac_address = $payment_record->mac_address;
+                        $order->fee = $payment_record->fee;
+                        $order->commission = $payment_record->commission;
+                        $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                        $order->payment_received_at = $payment_record->created_at;
+
+
 
                         $order->status = 'Complete';
                         $order->trans_complete_date = Carbon::now();
@@ -1046,7 +1090,7 @@ class PayoutRecordController extends Controller
                         // $order->account_no = $payment_record->sender;
                         // $order->payment_id = $payment_record->id;
 
-                        $payment_record->delete();
+                        // $payment_record->delete();
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -1107,6 +1151,7 @@ class PayoutRecordController extends Controller
 
                         DB::commit();
                         $commit = 1;
+
 
                         if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
 
@@ -1338,7 +1383,7 @@ class PayoutRecordController extends Controller
                 $Log->final_amount = $net_amount;
                 $Log->balance = $partner_api_key->balance;
                 $Log->transection_type = 1;
-                $Log->transection_id = $payment_record->id;
+                $Log->transection_id = $order->id;
                 $Log->partner_id = $partner_api_key->id;
                 $Log->source = 'Iframe';
                 $Log->save();
@@ -1362,10 +1407,28 @@ class PayoutRecordController extends Controller
             $order->charge = $charge;
             // $payment_record->partner_transection_id = $order->partner_transection_id;
             // $payment_record->member_id = $order->member_id;
+
+            if(empty($order->sender) || $order->sender==0){
+                $order->sender = $payment_record->sender;
+            }
+
+            $order->txn_id = $payment_record->txn_id;
+            $order->date_time = $payment_record->date_time;
+            $order->transaction_type = $payment_record->transaction_type;
+            $order->ip_address = $payment_record->ip_address;
+            $order->e_wallet_type = $payment_record->e_wallet_type;
+            $order->mac_address = $payment_record->mac_address;
+            $order->fee = $payment_record->fee;
+            $order->commission = $payment_record->commission;
+            $order->e_wallet_charges = $payment_record->e_wallet_charges;
+            $order->payment_received_at = $payment_record->created_at;
+
+
+
             $order->save();
 
 
-           $payment_record->delete();
+        //    $payment_record->delete();
 
             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -1908,7 +1971,7 @@ class PayoutRecordController extends Controller
                             $Log->final_amount = $net_amount;
                             $Log->balance = $partner_api_key->balance;
                             $Log->transection_type = 1;
-                            $Log->transection_id = $payment_record->id;
+                            $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
                             $Log->source = 'Iframe';
                             $Log->save();
@@ -1926,8 +1989,25 @@ class PayoutRecordController extends Controller
                         $order->trans_complete_date = Carbon::now();
                         $order->completed_source = 'Iframe';
                         $order->charge = $charge;
+
+                        if(empty($order->sender) || $order->sender==0){
+                            $order->sender = $payment_record->sender;
+                        }
+
+                        $order->txn_id = $payment_record->txn_id;
+                        $order->date_time = $payment_record->date_time;
+                        $order->transaction_type = $payment_record->transaction_type;
+                        $order->ip_address = $payment_record->ip_address;
+                        $order->e_wallet_type = $payment_record->e_wallet_type;
+                        $order->mac_address = $payment_record->mac_address;
+                        $order->fee = $payment_record->fee;
+                        $order->commission = $payment_record->commission;
+                        $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                        $order->payment_received_at = $payment_record->created_at;
+
+
                         $order->save();
-                        $payment_record->delete();
+                        // $payment_record->delete();
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -3371,65 +3451,57 @@ class PayoutRecordController extends Controller
 
 
     public function settlements()
-{
-    $user = Auth::guard('partner')->user();
-    if ($user->type !== "Admin") {
-        return back()->with('error', 'You have no permission to this page.');
-    }
-    $now = now();
+    {
+        $user = Auth::guard('partner')->user();
 
-    // Calculate total settled amount for current month
-    $monthlyTotal = Settlement::whereYear('created_at', $now->year)
-        ->whereMonth('created_at', $now->month)
-        ->where('partner_id', $user->id)
-        ->where('status', 1)
-        ->sum('amount');
-
-    // Find admin API
-    $api = Api::where([
-        ['api_key', $user->api_key],
-        ['type', 'Admin']
-    ])->first();
-
-    $settlementableAmount = $user->balance;
-    $charge = 0;
-
-    if ($api) {
-        $commission = Commission::where('category_id', $api->category_id)
-            ->where('from_amount', '<=', $monthlyTotal)
-            ->where('to_amount', '>=', $monthlyTotal)
-            ->first();
-
-        if (!$commission) {
-            $commission = Commission::where('category_id', $api->category_id)
-                ->orderByDesc('to_amount')
-                ->first();
+        if ($user->type !== "Admin") {
+            return back()->with('error', 'You have no permission to this page.');
         }
+        $now = now();
+        // Calculate total settled amount for current month
+        $sum = Settlement::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('partner_id', $user->id)
+            ->where('status', '1')
+            ->sum('amount');
 
-        if ($commission) {
-            $charge = ($commission->settlement_percentage / 100) * $user->balance;
-            $settlementableAmount -= $charge;
+        // Find admin API
+        $api_key = Api::where([
+            ['api_key', $user->api_key],
+            ['type', 'Admin']
+        ])->first();
+        $charge = 0;
+        $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        if ($commissions) {
+            $charge = $commissions->settlement_percentage * $user->balance / 100;
+        } else {
+            $commissions = Commission::where('category_id', $api_key->category_id)->orderBy('to_amount', 'desc')->first();
+            if ($commissions) {
+                $charge = $commissions->settlement_percentage * $user->balance / 100;
+            }
         }
+        $settlementableAmount = $user->balance - $charge;
+
+        // All settlements
+        $records = Settlement::where('partner_id', $user->id)
+            ->latest()
+            ->get();
+
+        // Gateway summary
+        $gateways = Settlement::where('partner_id', $user->id)
+            ->select('source_name', \DB::raw('COUNT(*) as count'), \DB::raw('SUM(amount) as total'))
+            ->groupBy('source_name')
+            ->get();
+
+        return view('partner.payout.settlement', [
+            'records' => $records,
+            'gateways' => $gateways,
+            'settlementable_amount' => $settlementableAmount,
+            'pageTitle' => 'Settlements History'
+        ]);
     }
 
-    // All settlements
-    $records = Settlement::where('partner_id', $user->id)
-        ->latest()
-        ->get();
 
-    // Gateway summary
-    $gateways = Settlement::where('partner_id', $user->id)
-        ->select('source_name', \DB::raw('COUNT(*) as count'), \DB::raw('SUM(amount) as total'))
-        ->groupBy('source_name')
-        ->get();
-
-    return view('partner.payout.settlement', [
-        'records' => $records,
-        'gateways' => $gateways,
-        'settlementable_amount' => $settlementableAmount,
-        'pageTitle' => 'Settlements History'
-    ]);
-}
 
 
 public function settlementSearch(Request $request)
@@ -3772,7 +3844,7 @@ public function settlementSearch(Request $request)
                             $Log->final_amount = $net_amount;
                             $Log->balance = $partner_api_key->balance;
                             $Log->transection_type = 1;
-                            $Log->transection_id = $payment_record->id;
+                            $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
                             $Log->source = 'VerifyByPartnerLink';
                             $Log->save();
@@ -3791,8 +3863,25 @@ public function settlementSearch(Request $request)
                         $order->completed_source = 'VerifyByPartnerLink';
                         $order->charge = $charge;
                         $order->sender = $payment_record->sender;
+
+                        if(empty($order->sender) || $order->sender==0){
+                            $order->sender = $payment_record->sender;
+                        }
+
+                        $order->txn_id = $payment_record->txn_id;
+                        $order->date_time = $payment_record->date_time;
+                        $order->transaction_type = $payment_record->transaction_type;
+                        $order->ip_address = $payment_record->ip_address;
+                        $order->e_wallet_type = $payment_record->e_wallet_type;
+                        $order->mac_address = $payment_record->mac_address;
+                        $order->fee = $payment_record->fee;
+                        $order->commission = $payment_record->commission;
+                        $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                        $order->payment_received_at = $payment_record->created_at;
+
+
                         $order->save();
-                        $payment_record->delete();
+                        // $payment_record->delete();
 
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at','>=', $order->created_at)->get();
@@ -4143,6 +4232,100 @@ public function settlementSearch(Request $request)
 
             session()->flash('success', 'Payout request Successfully Submitted. Wait For Confirmation.');
             return redirect()->route('partner.methods.get', ['username' => $username]);
+        }
+    }
+
+    public function storeSettlement(Request $request)
+    {
+        $user = Auth::guard('partner')->user();
+
+        if ($user->type != "Admin") {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You have no permission to this page.'
+            ], 403);
+        }
+
+        // Optional: validate request
+        $validator = Validator::make($request->all(), [
+            'source' => 'required|string|max:255',
+            'source_name' => 'required|string|max:255',
+            'account_no' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $sum = Settlement::whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->where('partner_id', $user->id)
+                ->where('status', '1')
+                ->sum('amount');
+
+            $api_key = Api::where('api_key', $user->api_key)
+                ->where('type', 'Admin')
+                ->first();
+
+            $charge = 0;
+            $commissions = Commission::where('category_id', $api_key->category_id)
+                ->where('from_amount', '<=', $sum)
+                ->where('to_amount', '>=', $sum)
+                ->first();
+
+            if ($commissions) {
+                $charge = $commissions->settlement_percentage * $request->amount / 100;
+            } else {
+                $commissions = Commission::where('category_id', $api_key->category_id)
+                    ->orderBy('to_amount', 'desc')
+                    ->first();
+
+                if ($commissions) {
+                    $charge = $commissions->settlement_percentage * $request->amount / 100;
+                }
+            }
+
+            if ($user->balance < $request->amount + $charge) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You can only enter amount less than your transferable settlement balance.'
+                ], 422);
+            }
+
+            $settlement = new Settlement();
+            $settlement->source = $request->source;
+            $settlement->source_name = $request->source_name;
+            $settlement->account_no = $request->account_no;
+            $settlement->amount = $request->amount;
+            $settlement->charges = $charge;
+            $settlement->net_amount = $request->amount + $charge;
+            $settlement->partner_id = $user->id;
+            $settlement->status = 0;
+            $settlement->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Settlement Saved successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Settlement Error: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while saving the settlement. Please try again.'
+            ], 500);
         }
     }
 
