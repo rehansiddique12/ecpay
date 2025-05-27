@@ -2237,7 +2237,7 @@ class PayoutRecordController extends Controller
         return redirect()->back()->with('success', 'Account deleted successfully');
        }else{
         return redirect()->back()->with('error', 'Account not found');
-       }     
+       }
     }
 
 
@@ -2245,7 +2245,6 @@ class PayoutRecordController extends Controller
 
     public function editAccount($id)
     {
-
         $pageTitle = 'Edit New Account';
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
@@ -2262,7 +2261,7 @@ class PayoutRecordController extends Controller
 
         return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account' , 'savedSlots' ,'selectedGroupIds'));
     }
-     public function updateAccount(Request $request , $id)
+    public function updateAccount(Request $request , $id)
     {
         // dd($request->all());
         $validated = $request->validate([
@@ -2319,31 +2318,41 @@ class PayoutRecordController extends Controller
 
             // Process time slots
             $timeSlots = $request->time_slots ?? [];
-            $applyTimeLimit = !empty($timeSlots) ? 1 : 0;
-
-            // Process each e-wallet account
+            $applyTimeLimit = !empty($timeSlots) ? 0 : 0;
+            $firstAccountId = $request->first_account_id;
             foreach ($request->e_wallet_name as $index => $name) {
-                $imagePath = null;
-
+                // $imagePath = null;
+                // Check if image is uploaded for this index
                 if ($request->hasFile('image.' . $index)) {
                     $file = $request->file('image.' . $index);
-
-                    // Define the root-level path
-                    $destinationPath = base_path('assets/uploads/accounts');
+                    $destinationPath = base_path('assets/uploads/withdraw');
 
                     // Make sure the folder exists
                     if (!file_exists($destinationPath)) {
                         mkdir($destinationPath, 0755, true);
                     }
 
-                    // Generate a unique filename
-                    $imagePath = time() . '_' . $file->getClientOriginalName();
+                    // Check if this is the account being updated (i.e., first_account_id)
+                    $existingImage = null;
+                    if ($index == 0 && $request->first_account_id) {
+                        $existingAccount = EWalletAccount::find($request->first_account_id);
+                        if ($existingAccount && $existingAccount->image) {
+                            $existingImagePath = $destinationPath . '/' . $existingAccount->image;
+                            if (file_exists($existingImagePath)) {
+                                unlink($existingImagePath); // Delete old image
+                            }
+                        }
+                    }
 
+                    // Generate a new unique filename and move the file
+                    $imagePath = time() . '_' . $file->getClientOriginalName();
                     $file->move($destinationPath, $imagePath);
                 }
 
-                // Create e-wallet account
-                $account = EWalletAccount::create([
+                // Prepare account data
+                $accountData = [
+                    'category_id' => $request->category_id,
+                    'gateway_id'=> $request->account_id,
                     'e_wallet_name' => $name,
                     'account_no' => $request->account_number[$index],
                     'type' => $request->account_type[$index],
@@ -2364,55 +2373,67 @@ class PayoutRecordController extends Controller
                     'max_amount_per_minute' => $request->max_amount_per_minute,
                     'low_balance_amount' => $request->low_balance_amount,
                     'apply_time_limit' => $applyTimeLimit,
-                    // 'time_slots' => !empty($timeSlots) ? json_encode($timeSlots) : null,
-                    'image' => $imagePath,
-                    'status' => $request->status ?? 0,
-                    'balance' => 0,
-                    'live_balance' => 0,
-                    'daily_received' => 0,
-                    'monthly_received' => 0,
-                    'daily_sent' => 0,
-                    'monthly_sent' => 0,
-                    'send' => 0,
-                    'received' => 0,
-                    'device_name' => $request->device_name[$index],
-                    'location_id' => $request->location[$index],
-                    // 'account_group' => $request->account_group[$index],
-                ]);
 
-                // Attach account groups
-                // $account = EWalletAccount::latest()->first();
+                    'status' => $request->status ?? 0,
+                    'device_name' => $request->device_name[$index],
+                    'location_id' => $request->location[$index] ?? null,
+                ];
+
+                if(isset($imagePath)   && !empty($imagePath)) {
+                    $accountData['image'] = $imagePath; // Add image path if it exists
+                }
+
+                // First iteration: update existing account
+                if ($index === 0 && $firstAccountId) {
+                    $account = EWalletAccount::findOrFail($firstAccountId);
+                    $account->update($accountData);
+
+                    // Delete existing time slots and groups before re-adding
+                    EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->delete();
+                    AccountGroup::where('account_id', $account->id)->delete();
+                } else {
+                    // Create new account for remaining entries
+                    $account = EWalletAccount::create(array_merge($accountData, [
+                        'balance' => 0,
+                        'live_balance' => 0,
+                        'daily_received' => 0,
+                        'monthly_received' => 0,
+                        'daily_sent' => 0,
+                        'monthly_sent' => 0,
+                        'send' => 0,
+                        'received' => 0,
+                    ]));
+                }
+
+                // Handle time slots
                 if (!empty($timeSlots)) {
                     foreach ($timeSlots as $slot) {
-                        // Split the time slot into from and to times
                         [$fromTimeStr, $toTimeStr] = explode(' - ', $slot);
-
-                        // Convert to proper TIME format (HH:MM:SS)
                         $fromTime = date('H:i:s', strtotime($fromTimeStr));
                         $toTime = date('H:i:s', strtotime($toTimeStr));
 
-                        $slotModel = new EWalletAccountTimeSlot();
-                        $slotModel->e_wallet_account_id = $account->id;
-                        $slotModel->time_saved = $slot;
-                        $slotModel->from_time = $fromTime;
-                        $slotModel->to_time = $toTime;
-                        $slotModel->saveOrFail();
+                        EWalletAccountTimeSlot::create([
+                            'e_wallet_account_id' => $account->id,
+                            'time_saved' => $slot,
+                            'from_time' => $fromTime,
+                            'to_time' => $toTime,
+                        ]);
                     }
                 }
 
-                foreach($request->account_group[$index] as $groupId) {
-                    $new_group=new AccountGroup();
-                    $new_group->account_id = $account->id;
-                    $new_group->group_id = $groupId;
-                    $new_group->save();
+                // Handle account groups
+                if (!empty($request->account_group[$index])) {
+                    foreach ($request->account_group[$index] as $groupId) {
+                        AccountGroup::create([
+                            'account_id' => $account->id,
+                            'group_id' => $groupId,
+                        ]);
+                    }
                 }
-
-                // $account->groups()->attach($request->account_group[$index]);
             }
-
             DB::commit();
 
-            return redirect()->route('admin.account_management.add_account')->with('success', 'E-Wallet accounts created successfully');
+            return redirect()->route('admin.ewallet.accounts.details')->with('success', 'E-Wallet accounts created successfully');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Error creating accounts: ' . $e->getMessage());

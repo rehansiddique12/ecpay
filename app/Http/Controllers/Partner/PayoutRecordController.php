@@ -330,7 +330,7 @@ class PayoutRecordController extends Controller
                     if(empty($order->sender) || $order->sender==0){
                         $order->sender = $payment->sender;
                     }
-                    
+
                     $order->txn_id = $payment->txn_id;
                     $order->date_time = $payment->date_time;
                     $order->transaction_type = $payment->transaction_type;
@@ -1058,7 +1058,7 @@ class PayoutRecordController extends Controller
                         if(empty($order->sender) || $order->sender==0){
                             $order->sender = $payment_record->sender;
                         }
-                        
+
                         $order->txn_id = $payment_record->txn_id;
                         $order->date_time = $payment_record->date_time;
                         $order->transaction_type = $payment_record->transaction_type;
@@ -1411,7 +1411,7 @@ class PayoutRecordController extends Controller
             if(empty($order->sender) || $order->sender==0){
                 $order->sender = $payment_record->sender;
             }
-            
+
             $order->txn_id = $payment_record->txn_id;
             $order->date_time = $payment_record->date_time;
             $order->transaction_type = $payment_record->transaction_type;
@@ -1993,7 +1993,7 @@ class PayoutRecordController extends Controller
                         if(empty($order->sender) || $order->sender==0){
                             $order->sender = $payment_record->sender;
                         }
-                        
+
                         $order->txn_id = $payment_record->txn_id;
                         $order->date_time = $payment_record->date_time;
                         $order->transaction_type = $payment_record->transaction_type;
@@ -3451,67 +3451,57 @@ class PayoutRecordController extends Controller
 
 
     public function settlements()
-{
-    $user = Auth::guard('partner')->user();
+    {
+        $user = Auth::guard('partner')->user();
 
-    if ($user->type !== "Admin") {
-        return back()->with('error', 'You have no permission to this page.');
+        if ($user->type !== "Admin") {
+            return back()->with('error', 'You have no permission to this page.');
+        }
+        $now = now();
+        // Calculate total settled amount for current month
+        $sum = Settlement::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('partner_id', $user->id)
+            ->where('status', '1')
+            ->sum('amount');
+
+        // Find admin API
+        $api_key = Api::where([
+            ['api_key', $user->api_key],
+            ['type', 'Admin']
+        ])->first();
+        $charge = 0;
+        $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
+        if ($commissions) {
+            $charge = $commissions->settlement_percentage * $user->balance / 100;
+        } else {
+            $commissions = Commission::where('category_id', $api_key->category_id)->orderBy('to_amount', 'desc')->first();
+            if ($commissions) {
+                $charge = $commissions->settlement_percentage * $user->balance / 100;
+            }
+        }
+        $settlementableAmount = $user->balance - $charge;
+
+        // All settlements
+        $records = Settlement::where('partner_id', $user->id)
+            ->latest()
+            ->get();
+
+        // Gateway summary
+        $gateways = Settlement::where('partner_id', $user->id)
+            ->select('source_name', \DB::raw('COUNT(*) as count'), \DB::raw('SUM(amount) as total'))
+            ->groupBy('source_name')
+            ->get();
+
+        return view('partner.payout.settlement', [
+            'records' => $records,
+            'gateways' => $gateways,
+            'settlementable_amount' => $settlementableAmount,
+            'pageTitle' => 'Settlements History'
+        ]);
     }
 
-    $now = now();
 
-    // Calculate total settled amount for current month
-    $monthlyTotal = Settlement::whereYear('created_at', $now->year)
-        ->whereMonth('created_at', $now->month)
-        ->where('partner_id', $user->id)
-        ->where('status', 1)
-        ->sum('amount');
-
-    // Find admin API
-    $api = Api::where([
-        ['api_key', $user->api_key],
-        ['type', 'Admin']
-    ])->first();
-
-    $settlementableAmount = $user->balance;
-    $charge = 0;
-
-    if ($api) {
-        $commission = Commission::where('category_id', $api->category_id)
-            ->where('from_amount', '<=', $monthlyTotal)
-            ->where('to_amount', '>=', $monthlyTotal)
-            ->first();
-
-        if (!$commission) {
-            $commission = Commission::where('category_id', $api->category_id)
-                ->orderByDesc('to_amount')
-                ->first();
-        }
-
-        if ($commission) {
-            $charge = ($commission->settlement_percentage / 100) * $user->balance;
-            $settlementableAmount -= $charge;
-        }
-    }
-
-    // All settlements
-    $records = Settlement::where('partner_id', $user->id)
-        ->latest()
-        ->get();
-
-    // Gateway summary
-    $gateways = Settlement::where('partner_id', $user->id)
-        ->select('source_name', \DB::raw('COUNT(*) as count'), \DB::raw('SUM(amount) as total'))
-        ->groupBy('source_name')
-        ->get();
-
-    return view('partner.payout.settlement', [
-        'records' => $records,
-        'gateways' => $gateways,
-        'settlementable_amount' => $settlementableAmount,
-        'pageTitle' => 'Settlements History'
-    ]);
-}
 
 
 public function settlementSearch(Request $request)
@@ -3877,7 +3867,7 @@ public function settlementSearch(Request $request)
                         if(empty($order->sender) || $order->sender==0){
                             $order->sender = $payment_record->sender;
                         }
-                        
+
                         $order->txn_id = $payment_record->txn_id;
                         $order->date_time = $payment_record->date_time;
                         $order->transaction_type = $payment_record->transaction_type;
@@ -4242,6 +4232,100 @@ public function settlementSearch(Request $request)
 
             session()->flash('success', 'Payout request Successfully Submitted. Wait For Confirmation.');
             return redirect()->route('partner.methods.get', ['username' => $username]);
+        }
+    }
+
+    public function storeSettlement(Request $request)
+    {
+        $user = Auth::guard('partner')->user();
+
+        if ($user->type != "Admin") {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You have no permission to this page.'
+            ], 403);
+        }
+
+        // Optional: validate request
+        $validator = Validator::make($request->all(), [
+            'source' => 'required|string|max:255',
+            'source_name' => 'required|string|max:255',
+            'account_no' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $sum = Settlement::whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->where('partner_id', $user->id)
+                ->where('status', '1')
+                ->sum('amount');
+
+            $api_key = Api::where('api_key', $user->api_key)
+                ->where('type', 'Admin')
+                ->first();
+
+            $charge = 0;
+            $commissions = Commission::where('category_id', $api_key->category_id)
+                ->where('from_amount', '<=', $sum)
+                ->where('to_amount', '>=', $sum)
+                ->first();
+
+            if ($commissions) {
+                $charge = $commissions->settlement_percentage * $request->amount / 100;
+            } else {
+                $commissions = Commission::where('category_id', $api_key->category_id)
+                    ->orderBy('to_amount', 'desc')
+                    ->first();
+
+                if ($commissions) {
+                    $charge = $commissions->settlement_percentage * $request->amount / 100;
+                }
+            }
+
+            if ($user->balance < $request->amount + $charge) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You can only enter amount less than your transferable settlement balance.'
+                ], 422);
+            }
+
+            $settlement = new Settlement();
+            $settlement->source = $request->source;
+            $settlement->source_name = $request->source_name;
+            $settlement->account_no = $request->account_no;
+            $settlement->amount = $request->amount;
+            $settlement->charges = $charge;
+            $settlement->net_amount = $request->amount + $charge;
+            $settlement->partner_id = $user->id;
+            $settlement->status = 0;
+            $settlement->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Settlement Saved successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Settlement Error: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while saving the settlement. Please try again.'
+            ], 500);
         }
     }
 

@@ -24,22 +24,15 @@
                 </div>
                 <div class="col-md-2"></div>
 
-                <!--<div class="col-md-4">-->
-                <!--    <div class="form-group">-->
-                <!--        <label>User Account No</label>-->
-                <!--        <input type="text" class="form-control" value="{{ @request()->account_no }}" name="account_no"/>-->
-                <!--    </div>-->
-                <!--</div>-->
-
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>E-Wallet</label>
-                        <select name="gateway" class="form-control">
-                            <option value="">All</option>
+                        <select name="gateway" class="form-select">
+                            <option value="">@lang('All')</option>
                             @foreach ($gateways as $gateway)
-                                <option value="{{ $gateway->source_name }}"
-                                    @if (@request()->gateway == $gateway->source_name) selected @endif>{{ $gateway->source_name }}
-                                </option>
+                            <option value="{{ $gateway->source_name }}" @if (@request()->gateway ==
+                                $gateway->source_name) selected @endif>{{ $gateway->source_name }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -48,7 +41,7 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>Status</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="all">@lang('All')</option>
                             <option value="1" @if (@request()->status == '1') selected @endif>@lang('Approved')
                             </option>
@@ -62,7 +55,8 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <br>
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i
+                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     </div>
                 </div>
             </div>
@@ -72,10 +66,10 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-                    <a href="javascript:void(0)" class="btn btn-sm btn-primary mr-2 mb-3 " data-target="#newModal"
-                        data-toggle="modal">
+                    <button type="button" class="btn btn-sm btn-primary mr-2 mb-3" data-bs-toggle="modal"
+                        data-bs-target="#newModal">
                         <span>@lang('Add New')</span>
-                    </a>
+                    </button>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
@@ -87,77 +81,44 @@
                                     <th scope="col">@lang('Amount')</th>
                                     <th scope="col">@lang('Charges')</th>
                                     <th scope="col">@lang('Net Amount')</th>
-                                    <th scope="col">@lang('Status')</th>
+                                    <th scope="col" class="text-center">@lang('Status')</th>
                                     <th scope="col">Created At</th>
                                     <!--<th>Action</th>-->
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
-                                    <tr>
-                                        <td>{{ $item->source }}</td>
-                                        <td>{{ $item->source_name }}</td>
-                                        <td>{{ $item->account_no }}</td>
-                                        <td>{{ $item->amount }}</td>
-                                        <td>{{ $item->charges }}</td>
-                                        <td>{{ $item->net_amount }}</td>
-                                        <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                            @if ($item->status == 2)
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-danger danger font-12"></i>
-                                                    @lang('Rejected') </span>
-                                            @elseif($item->status == 1)
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-success success font-12"></i>
-                                                    @lang('Approved')</span>
-                                            @else
-                                                <span class="badge badge-light">
-                                                    <i class="fa fa-circle text-warning success font-12"></i>
-                                                    @lang('Pending')</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ convertToUserTimezone($item->created_at) }}</td>
-                                        <!--<td data-label="@lang('Action')">-->
-                                        <!--    <div class="dropdown show ">-->
-                                        <!--        <a class="dropdown-toggle p-3" href="#" id="dropdownMenuLink" data-toggle="dropdown"-->
-                                        <!--           aria-haspopup="true" aria-expanded="false">-->
-                                        <!--            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>-->
-                                        <!--        </a>-->
-                                        <!--        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">-->
-                                        <!--            <form action="{{ route('admin.apis.delete', $item['id']) }}" method="POST">-->
-                                        <!--                @csrf-->
-                                        <!--                @method('DELETE')-->
-                                        <!--                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-trash"></i> Delete</button>-->
-                                        <!--            </form>-->
-                                        <!--            <button type="button" class="btn btn-sm btn-icon edit_button" data-toggle="modal" data-target="#editModal{{ $item['id'] }}">-->
-                                        <!--                <i class="fa fa-edit"></i> Edit-->
-                                        <!--            </button><br>-->
-                                        <!--            <button type="button" class="btn btn-sm btn-icon edit_button" data-toggle="modal" data-target="#newModalb" onclick="setBalanceItem({{ $item['id'] }})">-->
-                                        <!--                <i class="fa fa-money-bill"></i> Add Balance-->
-                                        <!--            </button>-->
-                                        <!--            <form action="{{ route('admin.apis.reset', $item['id']) }}" method="GET">-->
-                                        <!--                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-key"></i> Reset QR Code</button>-->
-                                        <!--            </form>-->
-                                        <!--            <form action="{{ route('admin.apis.commission', $item['id']) }}" method="GET">-->
-                                        <!--                <button type="submit" class="btn btn-sm btn-icon edit_button"><i class="fa fa-calculator"></i> Commission %</button>-->
-                                        <!--            </form>-->
-                                        <!--        </div>-->
-                                        <!--    </div>-->
-                                        <!--</td>-->
+                                <tr>
+                                    <td>{{ $item->source }}</td>
+                                    <td>{{ $item->source_name }}</td>
+                                    <td>{{ $item->account_no }}</td>
+                                    <td>{{ $item->amount }}</td>
+                                    <td>{{ $item->charges }}</td>
+                                    <td>{{ $item->net_amount }}</td>
+                                    <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                        @if ($item->status == 2)
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-danger danger font-12"></i>
+                                            @lang('Rejected') </span>
+                                        @elseif($item->status == 1)
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-success success font-12"></i>
+                                            @lang('Approved')</span>
+                                        @else
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-warning success font-12"></i>
+                                            @lang('Pending')</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ convertToUserTimezone($item->created_at) }}</td>
 
-
-
-
-
-
-
-                                    </tr>
+                                </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="100%">
+                                        <p class="text-dark">@lang('No Data Found')</p>
+                                    </td>
+                                </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -173,16 +134,15 @@
 
 
     {{-- New MODAL --}}
-    <div id="newModal" class="modal fade show" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="newModal" tabindex="-1" aria-labelledby="newModalLabel" data-bs-backdrop="static"
+        data-bs-keyboard="false">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header modal-colored-header bg-primary">
-                    <h5 class="modal-title">@lang('Add New')</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title" id="newModalLabel">@lang('Add New')</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('partner.settlements.add') }}" method="POST">
+                <form id="addSettlementForm" action="{{ route('partner.settlements.add') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
@@ -192,7 +152,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Source</label>
-                                    <select class="form-control" name="source" required>
+                                    <select class="form-select" name="source" required>
                                         <option value="Bank">Bank</option>
                                         <option value="EWallet">EWallet</option>
                                     </select>
@@ -215,16 +175,15 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Amount</label>
-                                    <input type="number" step="0.01" class="form-control" name="amount"
-                                        required />
+                                    <input type="number" step="0.01" class="form-control" name="amount" required />
                                 </div>
                             </div>
 
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">@lang('Save')</button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal">@lang('Close')</button>
+                        <button type="submit" id="saveCategoryBtn" class="btn btn-primary">@lang('Save')</button>
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">@lang('Close')</button>
                     </div>
                 </form>
             </div>
@@ -233,27 +192,93 @@
 
 
     @push('js')
-        <script>
-            "use strict";
-            $(document).ready(function(e) {
-
-
-                $('#image').change(function() {
-                    let reader = new FileReader();
-                    reader.onload = (e) => {
-                        $('#image_preview_container').attr('src', e.target.result);
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                });
-
-
-            });
+    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        "use strict";
 
             $(document).ready(function() {
-                $('select').select2({
-                    selectOnClose: true
+                let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    // selectOnClose: true,
                 });
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function (e) {
+                    $(this).data('unselecting', true);
+                });
+
+                $select.on('select2:opening', function (e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
+                    }
+                });
+
+                $('#addSettlementForm').on('submit', function (e) {
+                    e.preventDefault();
+
+                    let form = $(this);
+                    let url = form.attr('action');
+                    let formData = form.serialize();
+
+                    let btn = $('#saveCategoryBtn');
+                    // Clear previous errors
+                    $('.error-text').text('');
+                    // Disable button and show spinner
+                    btn.prop('disabled', true).text('Saving...');
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                        },
+                        success: function (response) {
+
+                            if (response.success) {
+                                // Close modal, reset form, show success message
+                                $('#newModal').modal('hide');
+                                form[0].reset();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: response.message, // Use the message from the response
+                                    timer: 2000, // Auto-close after 2 seconds
+                                    showConfirmButton: false,
+                                    didClose: () => {
+                                        location.reload(); // Reload page after alert closes
+                                    }
+                                });
+                            }
+
+                        },
+                        error: function(response) {
+                            var errors = response.responseJSON.errors;
+                            var firstErrorField = null; // Track the first error field
+
+                            // Loop through errors and show them
+                            $.each(errors, function (key, value) {
+                                // Show error next to each field
+                                $('.' + key + '_error').text(value[0]);
+
+                                // Find the first field with an error and focus on it
+                                var $field = $('.' + key); // Find the field by class
+
+                                // Only set firstErrorField if it hasn't been set already
+                                if (!firstErrorField && $field.length) {
+                                    firstErrorField = $field; // Set the first error field
+                                }
+                            });
+                        },
+                        complete: function() {
+                            btn.prop('disabled', false).text('Save');
+                        }
+                    });
+                });
+
             });
-        </script>
+    </script>
     @endpush
 </x-partner-layout>

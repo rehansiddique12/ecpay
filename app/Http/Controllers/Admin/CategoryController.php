@@ -34,7 +34,7 @@ class CategoryController extends Controller
 
         $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
             $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        } ,'location'])->paginate(1000);
+        } ,'location' , 'accountGroups.group'])->paginate(1000);
 
         foreach ($data['records'] as $record) {
             $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
@@ -238,5 +238,19 @@ class CategoryController extends Controller
                         ->get(['id', 'name', 'currency']);
 
         return response()->json($accounts);
+    }
+
+    public function toggleStatus(Request $request)
+    {
+        $account = EWalletAccount::find($request->id);
+
+        if (!$account) {
+            return response()->json(['success' => false, 'message' => 'Account not found.']);
+        }
+
+        $account->status = $request->status;
+        $account->save();
+
+        return response()->json(['success' => true, 'message' => 'Status updated.']);
     }
 }
