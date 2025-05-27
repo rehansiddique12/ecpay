@@ -122,7 +122,7 @@ class PaymentLogController extends Controller
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
-          $from_date = date('Y-m-d');
+        $from_date = date('Y-m-d');
 
         return view('admin.payment.report', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum','from_date'));
     }
@@ -214,7 +214,8 @@ class PaymentLogController extends Controller
 
 
         $pageTitle = "Search Payment Logs";
-        return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains'));
+        $from_date = date('Y-m-d');
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains','from_date'));
     }
 
     public function dailyReport()

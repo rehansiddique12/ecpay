@@ -1,13 +1,21 @@
-<x-admin-layout :title="$pageTitle">
-    @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
-    @endpush
+<?php if (isset($component)) { $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040 = $component; } ?>
+<?php $component = App\View\Components\AdminLayout::resolve(['title' => $pageTitle] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
+<?php $component->withName('admin-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(App\View\Components\AdminLayout::class))->getConstructor()): ?>
+<?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+    <?php $__env->startPush('styles'); ?>
+        <link rel="stylesheet" href="<?php echo e(asset('assets/vendor/libs/select2/select2.css')); ?>">
+    <?php $__env->stopPush(); ?>
 
-    @php
+    <?php
         $today = \Carbon\Carbon::today()->toDateString();
         $yesterday = \Carbon\Carbon::yesterday()->toDateString();
         $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
-    @endphp
+    ?>
 
 
     <style>
@@ -27,38 +35,38 @@
             <h4 class="mb-10 text-primary font-weight-medium ">Withdraw</h4>
             <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
                 <button type="button"
-                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
+                    class="btn btn-yellow btn-date-filter <?php echo e(request('from_date') == $today && request('to_date') == $today ? 'active' : ''); ?>"
                     id="btn-today">Today</button>
 
                 <button type="button"
-                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
+                    class="btn btn-yellow btn-date-filter <?php echo e(request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : ''); ?>"
                     id="btn-yesterday">Yesterday</button>
 
                 <button type="button"
-                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
+                    class="btn btn-yellow btn-date-filter <?php echo e(request('from_date') == $last7 && request('to_date') == $today ? 'active' : ''); ?>"
                     id="btn-last7">Last 7 days</button>
             </div>
         </div>
-        <form id="filterForm" action="{{ route('admin.payout-report.search') }}" method="get">
+        <form id="filterForm" action="<?php echo e(route('admin.payout-report.search')); ?>" method="get">
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-3">
                     <div class="form-group mt-3">
                         <label>User</label>
-                        <input type="text" name="name" value="{{ @request()->name }}" class="form-control"
-                            placeholder="@lang('Email/ Username')">
+                        <input type="text" name="name" value="<?php echo e(@request()->name); ?>" class="form-control"
+                            placeholder="<?php echo app('translator')->get('Email/ Username'); ?>">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-3">
                         <label>From Date</label>
-                        <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
+                        <input type="date" class="form-control" value="<?php echo e(@request()->from_date); ?>" name="from_date"
                             id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-3">
                         <label>To Date</label>
-                        <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
+                        <input type="date" class="form-control" value="<?php echo e(@request()->to_date); ?>" name="to_date"
                             id="to_date" />
                     </div>
                 </div>
@@ -67,15 +75,15 @@
                     <div class="form-group mt-3">
                         <label>Transaction No</label>
                         <input type="text" name="partner_transection_id"
-                            value="{{ @request()->partner_transection_id }}" class="form-control"
-                            placeholder="@lang('Transection No.')">
+                            value="<?php echo e(@request()->partner_transection_id); ?>" class="form-control"
+                            placeholder="<?php echo app('translator')->get('Transection No.'); ?>">
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="form-group mt-3">
                         <label>User Account No</label>
-                        <input type="text" class="form-control" value="{{ @request()->account_no }}"
+                        <input type="text" class="form-control" value="<?php echo e(@request()->account_no); ?>"
                             name="account_no" />
                     </div>
                 </div>
@@ -84,10 +92,10 @@
                         <label>E-Wallet</label>
                         <select name="gateway" class="form-select">
                             <option value="">All</option>
-                            @foreach ($gateways as $gateway)
-                                <option value="{{ $gateway->name }}" @if (@request()->gateway == $gateway->name) selected @endif>
-                                    {{ $gateway->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $gateways; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gateway): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($gateway->name); ?>" <?php if(@request()->gateway == $gateway->name): ?> selected <?php endif; ?>>
+                                    <?php echo e($gateway->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                 </div>
@@ -96,12 +104,12 @@
                     <div class="form-group mt-3">
                         <label>Status</label>
                         <select name="status" class="form-select">
-                            <option value="">@lang('All Payment')</option>
-                            <option value="1" @if (@request()->status == '1') selected @endif>@lang('Pending Payment')
+                            <option value=""><?php echo app('translator')->get('All Payment'); ?></option>
+                            <option value="1" <?php if(@request()->status == '1'): ?> selected <?php endif; ?>><?php echo app('translator')->get('Pending Payment'); ?>
                             </option>
-                            <option value="2" @if (@request()->status == '2') selected @endif>@lang('Complete Payment')
+                            <option value="2" <?php if(@request()->status == '2'): ?> selected <?php endif; ?>><?php echo app('translator')->get('Complete Payment'); ?>
                             </option>
-                            <option value="3" @if (@request()->status == '3') selected @endif>@lang('Cancel Payment')
+                            <option value="3" <?php if(@request()->status == '3'): ?> selected <?php endif; ?>><?php echo app('translator')->get('Cancel Payment'); ?>
                             </option>
                         </select>
                     </div>
@@ -113,11 +121,11 @@
                         <select name="domain" class="form-select select2" data-allow-clear="true"
                             data-placeholder="Select Domain">
                             <option></option>
-                            <option value="">@lang('Select Domain')</option>
-                            @foreach ($domains as $domain)
-                                <option value="{{ $domain->id }}" @if (@request()->domain == $domain->id) selected @endif>
-                                    {{ $domain->name }} ===> ( {{ $domain->website }} )</option>
-                            @endforeach
+                            <option value=""><?php echo app('translator')->get('Select Domain'); ?></option>
+                            <?php $__currentLoopData = $domains; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $domain): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($domain->id); ?>" <?php if(@request()->domain == $domain->id): ?> selected <?php endif; ?>>
+                                    <?php echo e($domain->name); ?> ===> ( <?php echo e($domain->website); ?> )</option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                 </div>
@@ -125,12 +133,12 @@
                 <div class="col-md-12 d-flex justify-content-end align-items-center gap-6">
                     <div class="form-group mt-2">
                         <button type="submit" class="btn  btn-primary mt-2"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> <?php echo app('translator')->get('Search'); ?></button>
                     </div>
                     <div class="form-group mt-2">
-                        <a href="{{ route('admin.merchant_reports.export_by_logs_for_WithDrawl', ['from_date' => $from_date]) }}"
+                        <a href="<?php echo e(route('admin.merchant_reports.export_by_logs_for_WithDrawl', ['from_date' => $from_date])); ?>"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> <?php echo app('translator')->get('Export'); ?>
                      </a>
                     </div>
 
@@ -148,10 +156,10 @@
                     <div class="d-flex d-lg-flex d-md-block align-items-center">
                         <div>
                             <div class="d-inline-flex align-items-center">
-                                <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_count }}</h2>
+                                <h2 class="text-dark mb-1 font-weight-medium"><?php echo e($fund_count); ?></h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total
-                                                                                                                                                                            Transactions')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate"><?php echo app('translator')->get('Total
+                                                                                                                                                                            Transactions'); ?>
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
@@ -167,10 +175,10 @@
                     <div class="d-flex d-lg-flex d-md-block align-items-center">
                         <div>
                             <div class="d-inline-flex align-items-center">
-                                <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_sum }}</h2>
+                                <h2 class="text-dark mb-1 font-weight-medium"><?php echo e($fund_sum); ?></h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Withdrawal
-                                                                                                                                                                            Amount')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate"><?php echo app('translator')->get('Total Withdrawal
+                                                                                                                                                                            Amount'); ?>
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
@@ -183,154 +191,7 @@
     </div>
 
 
-    {{-- <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="categories-show-table table table-hover table-striped table-bordered">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('User Account')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Net Amount')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Sent From')</th>
-                            <th scope="col">@lang('Source')</th>
-                            @if (adminAccessRoute(config('role.payout_manage.access.edit')))
-                                <th scope="col">@lang('More')</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($records as $key => $item)
-                            <tr>
-                                <td data-label="@lang('Date')"> {{ dateTime($item->created_at, 'd M,Y H:i') }}
-                                </td>
-                                <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                    {{ $item->trx_id }}<br>
-                                    <span class="text text-success">{{ $item->txn_id }}</span>
-
-                                </td>
-                                <td>{{ $item->partner_transection_id }}
-                                    <br>
-                                    {{ $item->member_id }}
-                                </td>
-                                <td data-label="@lang('Username')">
-                                    @if (optional($item->user)->username != null && optional($item->user)->username != 'dummyuser')
-                                        <a href="{{ route('admin.user-edit', [$item->user_id]) }}">
-                                            <div class="d-lg-flex d-block align-items-center ">
-                                                <div class="mr-3"><img
-                                                        src="{{ getFile(config('location.user.path') . optional($item->user)->image) }}"
-                                                        alt="user" class="rounded-circle" width="45"
-                                                        height="45"></div>
-                                                <div class="">
-                                                    <h5 class="text-dark mb-0 font-16 font-weight-medium">
-                                                        {{ optional($item->user)->username }}</h5>
-                                                    <span
-                                                        class="text-muted font-14">{{ optional($item->user)->email }}</span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    @else
-                                        @if ($item->api)
-                                            {{ optional($item->api)->name }}
-                                            <b>({{ optional($item->api)->acc_type }})</b>
-                                        @else
-                                            Partner Transaction
-                                        @endif
-                                    @endif
-
-                                </td>
-                                <td data-label="@lang('Method')">{{ $item->user_account_no }}</td>
-                                <td>{{ optional($item->gateway)->name }}</td>
-                                <td data-label="@lang('Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->amount) }} {{ $basic->currency_symbol }}</td>
-                                <td data-label="@lang('Charge')" class="text-success">
-                                    {{ getAmount($item->charge, 2) }} {{ $basic->currency_symbol }}</td>
-
-                                <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->amount + $item->charge) }}
-                                    {{ $basic->currency_symbol }}</td>
-
-                                <td data-label="@lang('Status')" class="d-flex flex-column align-items-center">
-                                    @if ($item->transfer_status == 2)
-                                        <span class="badge bg-success mb-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Request Approved')</span>
-                                    @elseif($item->transfer_status == 1)
-                                        <span class="badge bg-warning mb-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Request Pending')</span>
-                                    @elseif($item->transfer_status == 3)
-                                        <span class="badge bg-danger mb-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Request Rejected')</span>
-                                    @endif
-                                    @if ($item->status == 'Complete')
-                                        <span class="badge bg-success mt-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Transferred')</span>
-                                    @elseif($item->status == 'Pending')
-                                        <span class="badge bg-warning mt-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Transfer Pending')</span>
-                                    @elseif($item->status == 'Reject')
-                                        <span class="badge bg-danger mt-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Transfer Rejected')</span>
-                                    @endif
-                                </td>
-                                <td data-label="@lang('Method')">
-                                    {{ $item->e_wallet_phone_number }}
-                                    <br>
-                                    {{ $item->e_wallet_type }}
-                                </td>
-                                <td data-label="@lang('Method')">{{ optional($item->gateway)->name }}</td>
-
-
-                                @if (adminAccessRoute(config('role.payout_manage.access.edit')))
-                                    <td data-label="@lang('More')">
-                                        @php
-                                            $details =
-                                                $item->information != null ? json_encode($item->information) : null;
-                                        @endphp
-                                        <button type="button" class="btn btn-primary btn-icon edit_button"
-                                            data-bs-toggle="modal" data-bs-target="#myModal"
-                                            data-route="{{ route('admin.payout-action', $item->id) }}"
-                                            data-feedback="{{ $item->feedback }}" data-info="{{ $details }}"
-                                            data-id="{{ $item->id }}"
-                                            data-status="{{ $item->transfer_status }}">
-                                            @if (Request::routeIs('admin.payout-request'))
-                                                <i class="icon-base ti tabler-pencil me-1"></i>
-                                            @else
-                                                <i class="icon-base ti tabler-eye me-1"></i>
-                                            @endif
-                                        </button>
-                                    </td>
-                                @endif
-
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
-                                </td>
-                            </tr>
-
-                        @endforelse
-                    </tbody>
-                </table>
-                <div class="mt-5">
-                    {{ $records->appends($_GET)->links('partials.pagination') }}
-                </div>
-            </div>
-        </div>
-    </div> --}}
+    
 
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
@@ -340,101 +201,109 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('ID')</th>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Acc No.')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Net Amount')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Remarks')</th>
-                            <th scope="col">@lang('Sent From')</th>
-                            <th scope="col">@lang('Source')</th>
-                            @if (adminAccessRoute(config('role.payout_manage.access.edit')))
-                                <th scope="col">@lang('More')</th>
-                            @endif
+                            <th scope="col"><?php echo app('translator')->get('ID'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Date'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Trx Number'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Partner Trx Number'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Username'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Method'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Acc No.'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Amount'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Merchant Charge'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Net Amount'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Status'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Remarks'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Sent From'); ?></th>
+                            <th scope="col"><?php echo app('translator')->get('Source'); ?></th>
+                            <?php if(adminAccessRoute(config('role.payout_manage.access.edit'))): ?>
+                                <th scope="col"><?php echo app('translator')->get('More'); ?></th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($records as $key => $item)
+                        <?php $__empty_1 = true; $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <tr>
-                                <td>{{ $item->id }}</td>
-                                <td data-label="@lang('Date')"> {{ dateTime($item->created_at, 'd M,Y H:i') }}
-                                </td>
-                                <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                    {{ $item->trx_id }}<br>
-                                    <span class="text text-success">{{ $item->txn_id }}</span>
+                                <td><?php echo e($item->id); ?></td>
+                                <td data-label="<?php echo app('translator')->get('Date'); ?>"> <?php echo e(dateTime($item->created_at, 'd M,Y H:i')); ?>
 
                                 </td>
-                                <td>{{ $item->partner_transection_id }}
+                                <td data-label="<?php echo app('translator')->get('Trx Number'); ?>" class="font-weight-bold text-uppercase">
+                                    <?php echo e($item->trx_id); ?><br>
+                                    <span class="text text-success"><?php echo e($item->txn_id); ?></span>
+
+                                </td>
+                                <td><?php echo e($item->partner_transection_id); ?>
+
                                     <br>
-                                    {{ $item->member_id }}
-                                </td>
-                                <td data-label="@lang('Username')">
+                                    <?php echo e($item->member_id); ?>
 
-                                    @if ($item->api)
-                                        {{ optional($item->api)->name }} <b>({{ optional($item->api)->acc_type }})</b>
-                                    @else
+                                </td>
+                                <td data-label="<?php echo app('translator')->get('Username'); ?>">
+
+                                    <?php if($item->api): ?>
+                                        <?php echo e(optional($item->api)->name); ?> <b>(<?php echo e(optional($item->api)->acc_type); ?>)</b>
+                                    <?php else: ?>
                                         Partner Transection
-                                    @endif
+                                    <?php endif; ?>
 
                                 </td>
-                                <td>{{ optional($item->gateway)->name }}</td>
-                                <td>{{ $item->user_account_no }}</td>
-                                <td data-label="@lang('Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->amount, 2) }}
-                                    {{ $basic->currency_symbol }}</td>
-                                <td data-label="@lang('Charge')" class="text-success">
-                                    {{ getAmount($item->charge, 2) }} {{ $basic->currency_symbol }}</td>
+                                <td><?php echo e(optional($item->gateway)->name); ?></td>
+                                <td><?php echo e($item->user_account_no); ?></td>
+                                <td data-label="<?php echo app('translator')->get('Amount'); ?>" class="font-weight-bold">
+                                    <?php echo e(getAmount($item->amount, 2)); ?>
 
-                                <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->amount + $item->charge, 2) }} {{ $basic->currency_symbol }}
+                                    <?php echo e($basic->currency_symbol); ?></td>
+                                <td data-label="<?php echo app('translator')->get('Charge'); ?>" class="text-success">
+                                    <?php echo e(getAmount($item->charge, 2)); ?> <?php echo e($basic->currency_symbol); ?></td>
+
+                                <td data-label="<?php echo app('translator')->get('Net Amount'); ?>" class="font-weight-bold">
+                                    <?php echo e(getAmount($item->amount + $item->charge, 2)); ?> <?php echo e($basic->currency_symbol); ?>
+
                                 </td>
 
-                                <td data-label="@lang('Status')" class="text-center">
+                                <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-center">
                                     <div class="d-flex flex-column align-items-center">
-                                        @if ($item->transfer_status == 2)
+                                        <?php if($item->transfer_status == 2): ?>
                                             <span class="badge bg-success mb-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Request Approved')
+                                                <i class="fa fa-circle text-white font-12"></i> <?php echo app('translator')->get('Request Approved'); ?>
                                             </span>
-                                        @elseif($item->transfer_status == 1)
+                                        <?php elseif($item->transfer_status == 1): ?>
                                             <span class="badge bg-warning mb-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Request Pending')
+                                                <i class="fa fa-circle text-white font-12"></i> <?php echo app('translator')->get('Request Pending'); ?>
                                             </span>
-                                        @elseif($item->transfer_status == 3)
+                                        <?php elseif($item->transfer_status == 3): ?>
                                             <span class="badge bg-danger mb-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Request Rejected')
+                                                <i class="fa fa-circle text-white font-12"></i> <?php echo app('translator')->get('Request Rejected'); ?>
                                             </span>
-                                        @endif
+                                        <?php endif; ?>
 
-                                        @if ($item->status == 'Complete')
+                                        <?php if($item->status == 'Complete'): ?>
                                             <span class="badge bg-success mt-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Transferred')
+                                                <i class="fa fa-circle text-white font-12"></i> <?php echo app('translator')->get('Transferred'); ?>
                                             </span>
-                                        @elseif($item->status == 'inititate' || $item->status == 'Pending')
+                                        <?php elseif($item->status == 'inititate' || $item->status == 'Pending'): ?>
                                             <span class="badge bg-warning mt-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Pending')
+                                                <i class="fa fa-circle text-white font-12"></i> <?php echo app('translator')->get('Transfer Pending'); ?>
                                             </span>
-                                        @elseif($item->status == 'Reject')
+                                        <?php elseif($item->status == 'Reject'): ?>
                                             <span class="badge bg-danger mt-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Rejected')
+                                                <i class="fa fa-circle text-white font-12"></i> <?php echo app('translator')->get('Transfer Rejected'); ?>
                                             </span>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
-                                    {{ $item->feedback }}
+                                    <?php echo e($item->feedback); ?>
+
                                 </td>
-                                <td data-label="@lang('Method')">
-                                    {{ $item->e_wallet_phone_number }}
+                                <td data-label="<?php echo app('translator')->get('Method'); ?>">
+                                    <?php echo e($item->e_wallet_phone_number); ?>
+
                                     <br>
-                                    {{ $item->e_wallet_type }}
+                                    <?php echo e($item->e_wallet_type); ?>
+
                                 </td>
-                                <td data-label="@lang('Method')">{{ $item->request_source }}</td>
+                                <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($item->request_source); ?></td>
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -443,58 +312,59 @@
                                         </button>
                                         <div class="dropdown-menu">
                                             <!-- active / deactive button here -->
-                                            @if (adminAccessRoute(config('role.payout_manage.access.edit')))
+                                            <?php if(adminAccessRoute(config('role.payout_manage.access.edit'))): ?>
                                                 <button type="button" class="btn btn-sm edit_button"
                                                     data-bs-toggle="modal" data-bs-target="#newModalb"
-                                                    onclick="setBalanceItem({{ $item->id }})">
+                                                    onclick="setBalanceItem(<?php echo e($item->id); ?>)">
                                                     <i class="icon-base ti tabler-report-money me-1"></i> Send Callback
                                                 </button><br>
-                                                @if (isset($item))
+                                                <?php if(isset($item)): ?>
                                                     <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal"
                                                         data-bs-target="#myModalc" data-title="Edit"
-                                                        data-id="{{ $item->id }}"
-                                                        data-e_wallet_phone_number="{{ $item->e_wallet_phone_number }}">
+                                                        data-id="<?php echo e($item->id); ?>"
+                                                        data-e_wallet_phone_number="<?php echo e($item->e_wallet_phone_number); ?>">
                                                         <i class="icon-base ti tabler-device-mobile  me-1"></i> Change
                                                         E-Wallet No
                                                     </button><br>
-                                                @endif
-                                                @php
+                                                <?php endif; ?>
+                                                <?php
                                                     $details =
                                                         $item->information != null
                                                             ? json_encode($item->information)
                                                             : null;
-                                                @endphp
+                                                ?>
                                                 <button type="button" class="btn btn-sm  edit_button"
                                                     data-bs-toggle="modal" data-bs-target="#myModal"
-                                                    data-route="{{ route('admin.payout-action', $item->id) }}"
-                                                    data-feedback="{{ $item->feedback }}"
-                                                    data-info="{{ $details }}" data-id="{{ $item->id }}"
-                                                    data-status="{{ $item->transfer_status }}"
-                                                    data-statusb="{{ $item->status ? $item->status : '' }}">
-                                                    @if (Request::routeIs('admin.payout-request'))
+                                                    data-route="<?php echo e(route('admin.payout-action', $item->id)); ?>"
+                                                    data-feedback="<?php echo e($item->feedback); ?>"
+                                                    data-info="<?php echo e($details); ?>" data-id="<?php echo e($item->id); ?>"
+                                                    data-status="<?php echo e($item->transfer_status); ?>"
+                                                    data-statusb="<?php echo e($item->status ? $item->status : ''); ?>">
+                                                    <?php if(Request::routeIs('admin.payout-request')): ?>
                                                         <i class="icon-base ti tabler-pencil me-1"></i> Edit
-                                                    @else
+                                                    <?php else: ?>
                                                         <i class="icon-base ti tabler-eye me-1"></i>View
-                                                    @endif
+                                                    <?php endif; ?>
                                                 </button>
-                                            @endif
+                                            <?php endif; ?>
 
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark"><?php echo app('translator')->get('No Data Found'); ?></p>
                                 </td>
                             </tr>
 
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
                 <div class="mt-5">
-                    {{ $records->appends($_GET)->links('partials.pagination') }}
+                    <?php echo e($records->appends($_GET)->links('partials.pagination')); ?>
+
                 </div>
             </div>
         </div>
@@ -504,15 +374,15 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Change E-Wallet No.')</h5>
+                    <h5 class="modal-title" id="modalTopTitle"><?php echo app('translator')->get('Change E-Wallet No.'); ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <?php
                 date_default_timezone_set('Asia/Kuala_Lumpur');
                 ?>
-                <form role="form" method="POST" action="{{ route('admin.payout.update_e_wallet') }}">
-                    @csrf
-                    @method('put')
+                <form role="form" method="POST" action="<?php echo e(route('admin.payout.update_e_wallet')); ?>">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('put'); ?>
                     <div class="modal-body">
                         <ul class="list-group withdraw-detail">
                         </ul>
@@ -523,7 +393,7 @@
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
                             <button type="submit" class="btn btn-primary mt-3" name="status"
-                                value="1">@lang('Change')</button>
+                                value="1"><?php echo app('translator')->get('Change'); ?></button>
                         </div>
                         <input type="hidden" class="action_id" name="id">
                     </div>
@@ -531,7 +401,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
-                        data-bs-dismiss="modal">@lang('Close')</button>
+                        data-bs-dismiss="modal"><?php echo app('translator')->get('Close'); ?></button>
                 </div>
 
             </div>
@@ -542,11 +412,11 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Send Callback')</h5>
+                    <h5 class="modal-title" id="modalTopTitle"><?php echo app('translator')->get('Send Callback'); ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="addBalanceForm" action="{{ route('admin.run.callback') }}" method="POST">
-                    @csrf
+                <form id="addBalanceForm" action="<?php echo e(route('admin.run.callback')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
                             <input type="text" hidden id="account_id" class="form-control" name="id">
@@ -582,39 +452,7 @@
     </div>
 
     <!-- Modal for Edit button -->
-    {{-- <div class="modal modal-top fade" id="myModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Payout Information')</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form role="form" method="POST" class="actionRoute" action=""
-                    enctype="multipart/form-data">
-                    @csrf
-                    @method('put')
-                    <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
-                        <div class="form-group addForm">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')
-                        </button>
-                        @if (Request::routeIs('admin.payout-request'))
-                            <input type="hidden" class="action_id" name="id">
-                            <input type="hidden" name="status" id="statusInput">
-                            <button type="submit" class="btn btn-primary status-btn"
-                                data-status="2">@lang('Approve')</button>
-                            <button type="submit" class="btn btn-danger status-btn"
-                                data-status="3">@lang('Reject')</button>
-                        @endif
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div> --}}
+    
 
 
     <div class="modal modal-top fade" id="myModal" tabindex="-1">
@@ -622,44 +460,44 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Payout Information')</h5>
+                    <h5 class="modal-title" id="modalTopTitle"><?php echo app('translator')->get('Payout Information'); ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form role="form" method="POST" class="actionRoute" id="actionRoutee" action=""
                     enctype="multipart/form-data" onsubmit="submitForm(this)">
-                    @csrf
-                    @method('put')
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('put'); ?>
                     <div class="modal-body">
                         <ul class="list-group withdraw-detail">
                         </ul>
-                        {{-- @if (Request::routeIs('admin.payout-request')) --}}
+                        
                         <div class="form-group addForm">
                         </div>
-                        {{-- @endif --}}
+                        
                     </div>
                     <div class="modal-footer">
                         <input type="hidden" id="status" name="status">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo app('translator')->get('Close'); ?>
                         </button>
 
                         <input type="hidden" class="action_id" name="id">
                         <div id="submit1" style="display: none;">
                             <button type="submit" id="btn2" class="btn btn-primary" name="status"
-                                value="2">@lang('Approve')</button>
+                                value="2"><?php echo app('translator')->get('Approve'); ?></button>
                         </div>
                         <div id="submit2" style="display: none;">
                             <button type="submit" id="btn4" class="btn btn-dark" name="status"
-                                value="4">@lang('Mark As
-                                                                                                                                Complete')</button>
+                                value="4"><?php echo app('translator')->get('Mark As
+                                                                                                                                Complete'); ?></button>
                         </div>
                         <div id="submit4" style="display: none;">
                             <button type="submit" id="btn5" class="btn btn-warning" name="status"
-                                value="5">@lang('Mark
-                                                                                                                                As Pending')</button>
+                                value="5"><?php echo app('translator')->get('Mark
+                                                                                                                                As Pending'); ?></button>
                         </div>
                         <div id="submit3" style="display: none;">
                             <button type="submit" id="btn3" class="btn btn-danger" name="status"
-                                value="3">@lang('Reject')</button>
+                                value="3"><?php echo app('translator')->get('Reject'); ?></button>
                         </div>
                     </div>
                 </form>
@@ -667,8 +505,8 @@
         </div>
     </div>
 
-    @push('js')
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <?php $__env->startPush('js'); ?>
+        <script src="<?php echo e(asset('assets/vendor/libs/select2/select2.js')); ?>"></script>
         <script>
             (function($) {
                 $(document).ready(function() {
@@ -691,7 +529,7 @@
                     $('form').on('submit', function() {
                         const $submitButton = $(this).find('button[type="submit"]');
                         $submitButton.prop('disabled', true).html(
-                            '<i class="fa fa-spinner fa-spin me-1"></i> @lang('Processing...')');
+                            '<i class="fa fa-spinner fa-spin me-1"></i> <?php echo app('translator')->get('Processing...'); ?>');
                         return true;
                     });
 
@@ -748,7 +586,7 @@
                         const status = $this.data('status');
                         const statusb = $this.data('statusb');
                         const info = $this.data('info');
-                        const ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
+                        const ImgPath = "<?php echo e(asset(config('location.withdrawLog.path'))); ?>";
 
                         $(".action_id").val(id);
                         $(".actionRoute").attr('action', $this.data('route'));
@@ -781,16 +619,16 @@
                         // Show remarks dropdown
                         $('.addForm').html(`
                     <div class="form-group">
-                        <label for="feedback">@lang('Remarks')</label>
+                        <label for="feedback"><?php echo app('translator')->get('Remarks'); ?></label>
                         <select class="form-control" name="feedback" id="feedback" required>
-                            <option value="">@lang('Select Feedback')</option>
-                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
-                            <option value="account_limit_over">@lang('Account limit over')</option>
-                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
-                            <option value="nagad_server_down">@lang('Nagad server down')</option>
-                            <option value="bkash_server_down">@lang('bKash server down')</option>
-                            <option value="rocket_server_down">@lang('Rocket server down')</option>
-                            <option value="others">@lang('Others')</option>
+                            <option value=""><?php echo app('translator')->get('Select Feedback'); ?></option>
+                            <option value="invalid_phone_number"><?php echo app('translator')->get('Invalid phone number'); ?></option>
+                            <option value="account_limit_over"><?php echo app('translator')->get('Account limit over'); ?></option>
+                            <option value="kyc_incomplete"><?php echo app('translator')->get('Customer account did not complete KYC'); ?></option>
+                            <option value="nagad_server_down"><?php echo app('translator')->get('Nagad server down'); ?></option>
+                            <option value="bkash_server_down"><?php echo app('translator')->get('bKash server down'); ?></option>
+                            <option value="rocket_server_down"><?php echo app('translator')->get('Rocket server down'); ?></option>
+                            <option value="others"><?php echo app('translator')->get('Others'); ?></option>
                         </select>
                     </div>
                 `);
@@ -849,7 +687,7 @@
                         const formData = new FormData($('#addBalanceForm')[0]);
                         $.ajax({
                             type: "POST",
-                            url: "{{ route('admin.run.callback') }}",
+                            url: "<?php echo e(route('admin.run.callback')); ?>",
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
@@ -883,7 +721,7 @@
 
                     // Notification polling
                     setInterval(function() {
-                        $.get("{{ route('admin.payout-report.getnotification') }}", {
+                        $.get("<?php echo e(route('admin.payout-report.getnotification')); ?>", {
                             letest_record: $('#letest_record').val()
                         }, function(response) {
                             if (response.message === "success") {
@@ -897,8 +735,14 @@
                 });
             })(jQuery);
         </script>
-    @endpush
+    <?php $__env->stopPush(); ?>
 
 
 
-</x-admin-layout>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040)): ?>
+<?php $component = $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040; ?>
+<?php unset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040); ?>
+<?php endif; ?>
+<?php /**PATH C:\xampp\htdocs\subecpaypast\resources\views/admin/payout/report.blade.php ENDPATH**/ ?>

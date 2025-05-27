@@ -373,6 +373,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
         Route::get('/payout-report', [PayoutRecordController::class, 'report'])->name('payout-report');
+        Route::get('/admin/reports/export/{from_date?}', [PayoutRecordController::class, 'export_by_logs_for_WithDrawl'])->name('merchant_reports.export_by_logs_for_WithDrawl');
         Route::get('/payout-report/search', [PayoutRecordController::class, 'reportSearch'])->name('payout-report.search');
         Route::get('payout/report/daily', [PayoutRecordController::class, 'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PayoutRecordController::class, 'dailyReportSearch'])->name('payout.report.daily.search');

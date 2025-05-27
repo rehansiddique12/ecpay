@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MerchantReportExport;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\EWalletAccountTimeSlot;
 use Illuminate\Support\Facades\Session;
@@ -420,11 +421,13 @@ class PayoutRecordController extends Controller
         $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
-        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+        $from_date = date('Y-m-d');
+        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'from_date'));
     }
 
     public function reportSearch(Request $request)
     {
+
         $search = $request->all();
         $domains = Api::where('type', 'Admin')->get();
         $gateways = Gateway::where('status', 1)->get();
@@ -471,7 +474,8 @@ class PayoutRecordController extends Controller
             ->paginate(config('basic.paginate'));
 
         $pageTitle = "Search Payout Logs";
-        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+        $from_date = date('Y-m-d');
+        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum','from_date'));
     }
 
     public function dailyReport()
@@ -692,6 +696,18 @@ class PayoutRecordController extends Controller
         $letest_record = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->first()->id;
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway', 'api')->paginate(config('basic.paginate'));
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
+    }
+
+        public function export_by_logs_for_WithDrawl($from_date)
+    {
+        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new MerchantReportExport($from_date), "merchant_report_by_date_{$sanitizedDate}.csv");
     }
 
     public function request()
@@ -2237,7 +2253,7 @@ class PayoutRecordController extends Controller
         $savedSlots = $e_wallet_account->timeSlots->pluck('time_saved')->toArray();
         $selectedGroupIds = AccountGroup::where('account_id' , $e_wallet_account->id)->pluck('group_id')->toArray();
 
-        
+
         return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account' , 'savedSlots' ,'selectedGroupIds'));
     }
      public function updateAccount(Request $request , $id)
@@ -3276,7 +3292,7 @@ class PayoutRecordController extends Controller
         }
     }
 
-   
+
 
     public function merchant(Request $request)
     {
@@ -3603,12 +3619,12 @@ class PayoutRecordController extends Controller
                     $summary_log->save();
                 }
 
-                
+
                 session()->flash('success', 'Successfully Rejected');
             } else {
                 $Settlement->status = 2;
                 $Settlement->save();
-                
+
                 session()->flash('success', 'Successfully Rejected');
             }
 
