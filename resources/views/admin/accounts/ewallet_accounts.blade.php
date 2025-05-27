@@ -95,6 +95,7 @@
             <div class="col-md-12">
                 <div class="row ">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        @if(adminAccessRoute(config('role.account_management.access.view')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : '' }}">
@@ -103,6 +104,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.account_management.access.add')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : '' }}">
@@ -111,7 +114,8 @@
                                 </a>
                             </button>
                         </div>
-
+                        @endif
+                        @if(adminAccessRoute(config('role.account_group.access.view')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
@@ -120,15 +124,18 @@
                                 </a>
                             </button>
                         </div>
-
-                        <div>
-                            <button
-                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
-                                    <div data-i18n="Gateway">Gateway</div>
-                                </a>
-                            </button>
-                        </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.gateways.access.view')))
+                            <div>
+                                <button
+                                    class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
+                                    <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                        <div data-i18n="Gateway">Gateway</div>
+                                    </a>
+                                </button>
+                            </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.categories.access.view')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : '' }}">
@@ -137,7 +144,7 @@
                                 </a>
                             </button>
                         </div>
-
+                        @endif
 
 
                     </div>

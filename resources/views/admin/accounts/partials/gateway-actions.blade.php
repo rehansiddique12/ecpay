@@ -1,3 +1,4 @@
+ @if(adminAccessRoute(config('role.gateways.access.edit')))
 <a href="#" class="edit-method-btn" data-bs-toggle="modal" data-bs-target="#editMethodModal"
     data-id="{{ $gateway->id }}" data-name="{{ $gateway->name }}" data-currency="{{ $gateway->currency }}"
     data-convention_rate="{{ getAmount($gateway->convention_rate) }}"
@@ -10,6 +11,7 @@
     data-parameters="{{ htmlentities(json_encode($gateway->parameters)) }}">
     <i class="fa fa-edit text-primary me-2 fs-5"></i>
 </a>
+@endif
 
 
 <script>

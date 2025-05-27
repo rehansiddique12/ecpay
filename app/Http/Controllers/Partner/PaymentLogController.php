@@ -474,17 +474,12 @@ class PaymentLogController extends Controller
         $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
 
 
-        $funds = Payment::where('status', '!=', 0)
+        $funds = Payment::where('status', 'like', '%' . $status . '%')
+        ->where('e_wallet_name', 'like', '%' . $gateway . '%')
         ->where('api_id', $api_id)
         ->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)
         ->orderBy('id', 'DESC')
         ->with('user', 'gateway')
-        ->whereHas('payment', function ($query) use ($date, $gateway) {
-            $query->where('e_wallet_name', 'like', '%' . $gateway . '%'); // Add the e_wallet_name condition
-        })
-        ->when($status != -1, function ($query) use ($status) {
-            return $query->where('status', 'like', '%' . $status . '%');
-        })
         ->get()
         ->map(function ($fund) use ($partnerTimezone) {
             $fund->created_at = \Carbon\Carbon::parse($fund->created_at)->timezone($partnerTimezone);
@@ -492,14 +487,9 @@ class PaymentLogController extends Controller
             return $fund;
         });
 
-        $funds_t = Payment::where('status', '!=', 0)->where('api_id', $api_id)->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+        $funds_t = Payment::where('status', 'like', '%' . $status . '%')->where('e_wallet_name', 'like', '%' . $gateway . '%')->where('api_id', $api_id)->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
         ->with('user', 'gateway')
-        ->whereHas('payment', function ($query) use ($date, $gateway) {
-            $query->where('e_wallet_name', 'like', '%' . $gateway . '%'); // Add the e_wallet_name condition
-        })
-        ->when($status != -1, function ($query) use ($status) {
-            return $query->where('status', 'like', '%' . $status . '%');
-        })->first();
+        ->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
 

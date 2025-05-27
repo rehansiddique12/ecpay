@@ -230,7 +230,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-dark">{{ trans('E-Mail') }}:</label>
                             <input class="form-control" name="email" placeholder="Email Address"
-                                value="{{ old('email') }}" required>
+                                value="{{ old('email') }}">
                             <span class="error-text email_error text-danger"></span>
                             <!-- Error container for Email -->
                         </div>
@@ -238,7 +238,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-dark">{{ trans('Phone') }}:</label>
                             <input class="form-control" name="phone" placeholder="{{ trans('Mobile Number') }}"
-                                value="{{ old('phone') }}" required>
+                                value="{{ old('phone') }}">
                             <span class="error-text phone_error text-danger"></span>
                             <!-- Error container for Phone -->
                         </div>

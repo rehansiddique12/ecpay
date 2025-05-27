@@ -196,7 +196,7 @@ class UsersController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:191',
             'username' => 'required|alpha_dash|unique:admins,username',
-            'email' => 'required|email|max:191|unique:admins,email',
+            'email' => 'nullable|email|max:191|unique:admins,email',
             'location' => 'required|exists:user_locations,id',
             'role_type' => [
                 'required',
@@ -247,7 +247,7 @@ class UsersController extends Controller
                 Rule::unique('admins', 'username')->ignore($admin->id),
             ],
             'update-email' => [
-                'required',
+                'nullable',
                 'email',
                 'max:191',
                 Rule::unique('admins', 'email')->ignore($admin->id),
@@ -480,15 +480,33 @@ class UsersController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('user_locations', 'location'),
             ],
             'status' => 'required|boolean',
         ]);
 
-        UserLocation::create([
-            'location' => $request->location,
-            'status' => $request->status,
-        ]);
+        $existing = UserLocation::withTrashed()
+        ->where('location', $request->location)
+        ->first();
+
+        if ($existing && is_null($existing->deleted_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The location already exists.'
+            ], 409);
+        }
+
+        if ($existing && !is_null($existing->deleted_at)) {
+            // Restore and update the soft-deleted record
+            $existing->restore();
+            $existing->status = $request->status;
+            $existing->save();
+        } else {
+            // Create a new record
+            UserLocation::create([
+                'location' => $request->location,
+                'status' => $request->status,
+            ]);
+        }
 
         return response()->json(['success' => true]);
     }

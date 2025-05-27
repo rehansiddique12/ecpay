@@ -9,7 +9,7 @@
         <div class="user-panel">
             <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($min_withdrawal, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->max_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
                 <div class="img-box">
-                    <img class="img-fluid gateway" src="{{ getFile(config('location.withdraw.path').$gateway->image)}}" alt="{{$gateway->name}}">
+                    <img class="img-fluid gateway" src="{{ getFile(config('location.gateway.path').$gateway->image)}}" alt="{{$gateway->name}}">
                 </div>
                 <p>{{trans($gateway->name)}}</p>
             </div>
