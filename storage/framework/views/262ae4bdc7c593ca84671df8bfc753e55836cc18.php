@@ -295,11 +295,6 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </a>
 
                         <ul class="menu-sub">
-                            
-
-                            <?php if(adminAccessRoute(config('role.parent_group.access.view'))): ?>
-                            
-                            <?php endif; ?>
                             <?php if(adminAccessRoute(config('role.work_board.access.view'))): ?>
                             <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.workboard' ? 'active' : ''); ?>">
                                 <a href="<?php echo e(route('admin.workboard')); ?>" class="menu-link">
@@ -308,11 +303,34 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 </a>
                             </li>
                             <?php endif; ?>
+                            <?php if(adminAccessRoute(config('role.partnersbalance.access.add'))): ?>
+                            <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.apis' ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('admin.apis')); ?>" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Merchant List">Merchant Management </div>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+                            <?php if(adminAccessRoute(config('role.partnersbalance.access.add'))): ?>
+                            <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.apis' ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('admin.agent.list')); ?>" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Merchant List">Agent Management </div>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+
+                            
+
+                            
+                            
+                            
+                            
                             <?php if(adminAccessRoute(config('role.manage_staff.access.view'))): ?>
                             <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.users' ? 'active' : ''); ?>">
                                 <a href="<?php echo e(route('admin.users')); ?>" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="All Users">All Users</div>
+                                    <div data-i18n="All Users">User Management</div>
                                 </a>
                             </li>
                             <?php endif; ?>
@@ -331,12 +349,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     <div data-i18n="All Accounts">All Accounts</div>
                                 </a>
                             </li> -->
-                                <li class="menu-item <?php echo e(Request::routeIs('admin.balance.logs') ? 'active' : ''); ?>">
-                                    <a href="<?php echo e(route('admin.balance.logs')); ?>" class="menu-link">
-                                        <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                        <div data-i18n="Account Balance">Account Balance</div>
-                                    </a>
-                                </li>
+                                
 
                                 <li class="menu-item <?php echo e(Request::routeIs('admin.ewallet.accounts') ? 'active' : ''); ?>">
                                     <a href="<?php echo e(route('admin.ewallet.accounts')); ?>" class="menu-link">
@@ -378,14 +391,9 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
                         <?php endif; ?>
                         
-                        <?php if(adminAccessRoute(config('role.account_balance_logs.access.view'))): ?>
-                        <li class="menu-item <?php echo e(Request::routeIs('admin.balance.logs') ? 'active' : ''); ?>">
-                            <a href="<?php echo e(route('admin.balance.logs')); ?>" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Account Balance">Account Balance</div>
-                            </a>
-                        </li>
-                        <?php endif; ?>
+                        
+                        
+                        
                         <?php if(adminAccessRoute(config('role.account_management.access.view'))): ?>
                         <li class="menu-item <?php echo e(Request::routeIs('admin.accounts.management') ? 'active' : ''); ?>">
                             <a href="<?php echo e(route('admin.accounts.management')); ?>" class="menu-link">
@@ -452,22 +460,8 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
                         <?php endif; ?>
-                        <?php if(adminAccessRoute(config('role.partnersbalance.access.add'))): ?>
-                        <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.apis' ? 'active' : ''); ?>">
-                            <a href="<?php echo e(route('admin.apis')); ?>" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Merchant List">Merchant List </div>
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        <?php if(adminAccessRoute(config('role.partnersbalance.access.add'))): ?>
-                        <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.apis' ? 'active' : ''); ?>">
-                            <a href="<?php echo e(route('admin.agent.list')); ?>" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Merchant List">Agent List </div>
-                            </a>
-                        </li>
-                        <?php endif; ?>
+                        
+                       
                         <?php if(adminAccessRoute(config('role.commissions.access.view'))): ?>
                         <li
                             class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : ''); ?>">
@@ -566,13 +560,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
 
-                        <li
-                            class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.report.daily', 'admin.payment.report.daily.search']) ? 'active' : ''); ?>">
-                            <a href="<?php echo e(route('admin.payment.report.daily')); ?>" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Daily Deposit Report">Daily Deposit Report</div>
-                            </a>
-                        </li>
+                        
                         <?php endif; ?>
                         <?php if(adminAccessRoute(config('role.all_reports.access.view'))): ?>
                         <li
@@ -593,13 +581,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
 
 
-                        <li
-                            class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payout.report.daily', 'admin.payout.report.daily.search']) ? 'active' : ''); ?>">
-                            <a href="<?php echo e(route('admin.payout.report.daily')); ?>" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report</div>
-                            </a>
-                        </li>
+                        
                         <?php endif; ?>
                     </ul>
                 </li>

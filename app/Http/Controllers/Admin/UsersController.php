@@ -196,7 +196,7 @@ class UsersController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:191',
             'username' => 'required|alpha_dash|unique:admins,username',
-            'email' => 'required|email|max:191|unique:admins,email',
+            'email' => 'nullable|email|max:191|unique:admins,email',
             'location' => 'required|exists:user_locations,id',
             'role_type' => [
                 'required',
@@ -247,7 +247,7 @@ class UsersController extends Controller
                 Rule::unique('admins', 'username')->ignore($admin->id),
             ],
             'update-email' => [
-                'required',
+                'nullable',
                 'email',
                 'max:191',
                 Rule::unique('admins', 'email')->ignore($admin->id),

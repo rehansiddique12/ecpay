@@ -10,6 +10,14 @@
     <?php $__env->startPush('styles'); ?>
         <link rel="stylesheet" href="<?php echo e(asset('assets/vendor/libs/select2/select2.css')); ?>">
     <?php $__env->stopPush(); ?>
+
+      <?php
+        $today = \Carbon\Carbon::today()->toDateString();
+        $yesterday = \Carbon\Carbon::yesterday()->toDateString();
+        $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
+    ?>
+
+    
     <style>
         .hover:hover {
             background-color: #ffc000;
@@ -27,12 +35,18 @@
         <div class="d-flex d-lg-flex d-md-block align-items-center">
             <h4 class="mb-10 text-primary font-weight-medium ">Deposit</h4>
             <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
-                <button type="button" class="btn btn-yellow btn-date-filter active" id="btn-today">Today</button>
-                <button type="button" class="btn btn-yellow btn-date-filter" id="btn-yesterday">Yesterday</button>
-                <button type="button" class="btn btn-yellow btn-date-filter" id="btn-last7">Last 7 days</button>
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter <?php echo e(request('from_date') == $today && request('to_date') == $today ? 'active' : ''); ?>"
+                    id="btn-today">Today</button>
+
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter <?php echo e(request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : ''); ?>"
+                    id="btn-yesterday">Yesterday</button>
+
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter <?php echo e(request('from_date') == $last7 && request('to_date') == $today ? 'active' : ''); ?>"
+                    id="btn-last7">Last 7 days</button>
             </div>
-
-
         </div>
         <form action="<?php echo e(route('admin.payment.report.search')); ?>" method="get">
             <div class="row justify-content-between align-items-center">

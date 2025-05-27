@@ -12,11 +12,12 @@
     $currentRoute = Route::currentRouteName();
     @endphp
 
-    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+  <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <div class="row ">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        @if(adminAccessRoute(config('role.account_management.access.view')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : '' }}">
@@ -25,6 +26,8 @@
                                 </a>
                             </button>
                         </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.account_management.access.add')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : '' }}">
@@ -33,7 +36,8 @@
                                 </a>
                             </button>
                         </div>
-
+                        @endif
+                        @if(adminAccessRoute(config('role.account_group.access.view')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
@@ -42,15 +46,18 @@
                                 </a>
                             </button>
                         </div>
-
-                        <div>
-                            <button
-                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
-                                    <div data-i18n="Gateway">Gateway</div>
-                                </a>
-                            </button>
-                        </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.gateways.access.view')))
+                            <div>
+                                <button
+                                    class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
+                                    <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                        <div data-i18n="Gateway">Gateway</div>
+                                    </a>
+                                </button>
+                            </div>
+                        @endif
+                        @if(adminAccessRoute(config('role.categories.access.view')))
                         <div>
                             <button
                                 class="btn {{ $currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : '' }}">
@@ -59,7 +66,7 @@
                                 </a>
                             </button>
                         </div>
-
+                        @endif
 
 
                     </div>
@@ -76,10 +83,12 @@
             <div class="">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                    @if(adminAccessRoute(config('role.account_group.access.add')))
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#groupModal"
                         id="newCategoryButton">
                         Add Account Group
                     </button>
+                    @endif
                 </div>
 
 
@@ -106,11 +115,14 @@
                                     @endif
                                 </td>
                                 <td>
+                                    @if(adminAccessRoute(config('role.account_group.access.edit')))
                                     <button class="btn btn-sm btn-warning editGroupBtn" data-id="{{ $group->id }}"
                                         data-name="{{ $group->name }}"
                                         data-accounts="{{ $group->accounts->pluck('id')->implode(',') }}">
                                         Edit
+
                                     </button>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach
