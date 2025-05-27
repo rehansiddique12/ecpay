@@ -121,7 +121,7 @@ class PaymentLogController extends Controller
         $today = date('Y-m-1');
         $domains = Api::select('id', 'name', 'website')->where('type', 'Admin')->get();
         $funds = Payment::where('status', '!=', 'initiate')->whereDate('created_at', $today)->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id'])->paginate(config('basic.paginate'));
-        
+
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         // dd($funds_t);
         $fund_count = $funds_t->fund_count;
@@ -138,9 +138,98 @@ class PaymentLogController extends Controller
         $search = $request->all();
         $fund_count = 0;
         $fund_sum = 0;
-        //$funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        $dateSearch = $request->date_time;
+        $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
+// dd($search);
+        if ($request->input('export') == 1) {
+            // dd('hello');
+            $records = Payout::where('status', '!=', 0)
+                ->when($search['name'], function ($query) use ($search) {
+                    $query->whereHas('user', function ($subQuery) use ($search) {
+                        $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
+                            ->orWhere('email', 'like', '%' . $search['name'] . '%')
+                            ->orWhere('username', 'like', '%' . $search['name'] . '%');
+                    });
+                })
+                ->when($search['date_time'], function ($query) use ($search) {
+                    $query->whereDate('created_at', $search['date_time']);
+                })
+                ->when($search['partner_transection_id'], function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                    })->orWhereHas('payout', function ($subQuery) use ($search) {
+                        $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                    });
+                })
+                ->when($search['status'] != 4, function ($query) use ($search) {
+                    $query->where('status', $search['status']);
+                })
+                ->when($search['domain'], function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->whereHas('payout', function ($subQuery) use ($search) {
+                            $subQuery->where('api_id', $search['domain']);
+                        })->orWhere('api_id', $search['domain']);
+                    });
+                })
+                ->orderBy('id', 'DESC')
+                ->with('user', 'method', 'payout')
+                ->get();
+            // dd($funds);
+            $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Request-Status', 'Transfer-Status', 'E-Wallet-No', 'Website', 'Completed-At'];
+            foreach ($records as $item) {
+                // dd($fund);
+                $user_name = "";
+                $user_type = "";
+                if (optional($item->user)->username != "dummyuser") {
+                    $user_name = optional($item->user)->username;
+                    $user_type = "User";
+                } else {
+                    $user_name = optional($item->api)->name;
+                    $user_type = optional($item->api)->acc_type;
+                }
+                $status = "Pending";
+                $status2 = "Pending";
+                if ($item->status == 2) {
+                    $status = "Approved";
+                } elseif ($item->status == 1) {
+                    $status = "Pending";
+                } elseif ($item->status == 3) {
+                    $status = "Rejected";
+                }
 
-        // Aggregate totals (COUNT & SUM)
+                if ($item->payout->status == "Complete") {
+                    $status2 = "Transfered";
+                } elseif ($item->payout->status == "Pending") {
+                    $status2 = "Transfer Pending";
+                } elseif ($item->payout->status == "Reject") {
+                    $status2 = "Transfer Rejected";
+                }
+
+                $data[] = [$item->created_at, $item->trx_id, optional($item->payout)->txn_id, optional($item->payout)->partner_transection_id, $user_name, $user_type, optional($item->method)->name, $item->user_account_no, getAmount($item->amount), optional($item->payout)->charge, getAmount($item->net_amount), $status, $status2, optional($item->payout)->e_wallet_phone_number, optional($item->payout)->source, optional($item->payout)->date_time];
+            }
+
+            $currentDateTime = date('d_F_Y_h_i_A');
+            $csvFileName = "withdrawal_export_csv_$currentDateTime.csv";
+            $headers = array(
+                "Content-type" => "text/csv",
+                "Content-Disposition" => "attachment; filename=$csvFileName",
+                "Pragma" => "no-cache",
+                "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+                "Expires" => "0"
+            );
+
+            $callback = function () use ($data) {
+                $file = fopen('php://output', 'w');
+                foreach ($data as $row) {
+                    fputcsv($file, $row);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        } else {
         $funds_t = Payment::where('status', '!=', 'initiate')
             ->when($search['name'], function ($query) use ($search) {
                 $query->whereHas('user', function ($subQuery) use ($search) {
@@ -220,6 +309,7 @@ class PaymentLogController extends Controller
         $pageTitle = "Search Payment Logs";
         $from_date = date('Y-m-d');
         return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains','from_date'));
+        }
     }
 
     public function dailyReport()
@@ -903,7 +993,7 @@ class PaymentLogController extends Controller
 
                 $data->status = "Reject";
                 $data->feedback = $request->feedback;
-                
+
                 $data->update();
                 //$user = $data->user;
 
