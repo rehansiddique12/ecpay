@@ -238,7 +238,6 @@ $arr = [
         'label' => 'Payment Request & Log',
         'access' => [
             'view' => [
-                'admin.payment.pending',
                 'admin.payment.log',
                 'admin.payment.search',
             ],
