@@ -951,7 +951,7 @@ class TelegramGroupController extends Controller
                                                                                             $Log->final_amount = $net_amount;
                                                                                             $Log->balance = $api_balance_row->balance;
                                                                                             $Log->transection_type = 1;
-                                                                                            $Log->transection_id = $payment->id;
+                                                                                            $Log->transection_id = $order->id;
                                                                                             $Log->partner_id = $api_balance_row->id;
                                                                                             $Log->source = 'TelegramVerify';
                                                                                             $Log->save();

@@ -187,7 +187,7 @@ class ReportsController extends Controller
 
         // Step 1: Fetch all logs in date range
         $logs = Log::where('partner_id', $api_id)
-            ->whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->whereBetween(DB::raw('created_at'), [$from_date, $to_date])
             ->orderBy('created_at', $orderval)
             ->get();
 

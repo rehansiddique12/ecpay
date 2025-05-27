@@ -715,7 +715,7 @@ class PaymentLogController extends Controller
                     $Log->final_amount = $net_amount;
                     $Log->balance = $partner_api_key->balance;
                     $Log->transection_type = 1;
-                    $Log->transection_id = $payment->id;
+                    $Log->transection_id = $data->id;
                     $Log->partner_id = $partner_api_key->id;
                     $Log->source = 'AdminPanel';
                     $Log->save();
@@ -746,7 +746,7 @@ class PaymentLogController extends Controller
                     $e_wallet_log_save->final_amount = ($data->amount);
                     $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
                     $e_wallet_log_save->transaction_type = 1;
-                    $e_wallet_log_save->transaction_id = $payment->id;
+                    $e_wallet_log_save->transaction_id = $data->id;
                     $e_wallet_log_save->account_id = $account->id;
                     $e_wallet_log_save->source = 'action';
                     $e_wallet_log_save->save();
@@ -1610,7 +1610,7 @@ class PaymentLogController extends Controller
                         $Log->final_amount = $net_amount;
                         $Log->balance = $api_balance_row->balance;
                         $Log->transection_type = 1;
-                        $Log->transection_id = $payment_record->id;
+                        $Log->transection_id = $order->id;
                         $Log->partner_id = $api_balance_row->id;
                         $Log->source = 'APIVerify';
                         $Log->save();
