@@ -2234,7 +2234,7 @@ class PayoutRecordController extends Controller
         $savedSlots = $e_wallet_account->timeSlots->pluck('time_saved')->toArray();
         $selectedGroupIds = AccountGroup::where('account_id' , $e_wallet_account->id)->pluck('group_id')->toArray();
 
-        
+
         return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account' , 'savedSlots' ,'selectedGroupIds'));
     }
      public function updateAccount(Request $request , $id)
@@ -2411,10 +2411,20 @@ class PayoutRecordController extends Controller
     }
 
 
-
-
     public function accountBalanceAdd(Request $request)
     {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'account_id' => 'required|exists:e_wallet_accounts,id',
+            'amount' => 'required|numeric|min:0.01',
+            'type' => 'required|in:plus,minus',
+        ]);
+
+        if ($validator->fails()) {
+            // Return validation errors as JSON for AJAX
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
         DB::beginTransaction();
         try {
             $account = EWalletAccount::where('id', $request->account_id)->lockForUpdate()->firstOrFail();
@@ -2422,57 +2432,65 @@ class PayoutRecordController extends Controller
             $amount = $request->amount;
             $isAddition = $request->type == "plus";
 
-            // Update balance based on transaction type
-            $account->balance += $isAddition ? $amount : -$amount;
+            $finalAmount = $isAddition ? $amount : -$amount;
+
+            // Update balance
+            $account->balance += $finalAmount;
             $account->save();
 
-            // Create EWalletLog entry
+            // Create EWalletLog
             $e_wallet_log = EWalletLog::create([
                 'account_id' => $account->id,
                 'previous_balance' => $previous_balance,
                 'charge' => 0.00,
                 'commission' => 0.00,
-                'amount' => $isAddition ? $amount : -$amount,
-                'final_amount' => $isAddition ? $amount : -$amount,
-                'balance' => ($previous_balance + ($isAddition ? $amount : -$amount)),
+                'amount' => $finalAmount,
+                'final_amount' => $finalAmount,
+                'balance' => $account->balance,
                 'transaction_type' => $isAddition ? 5 : 6,
                 'source' => 'accountBalanceAdd',
             ]);
 
-            // Create AccountLog entry
+            // Create AccountLog
             $transaction = AccountLog::create([
                 'amount' => $amount,
                 'type' => $request->type,
                 'e_wallet_account_id' => $request->account_id,
             ]);
 
-            // Update transaction ID in log
             $e_wallet_log->update(['transaction_id' => $transaction->id]);
 
             DB::commit();
-            session()->flash('success', 'Successfully Updated Balance');
-            return back();
+
+            // Return success for AJAX
+            return response()->json(['success' => true,'message' => 'Successfully Updated Balance'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Failed to Update Balance: ' . $e->getMessage());
-            return back()->withInput();
+
+            return response()->json(['errors' => ['server' => ['Failed to update balance: ' . $e->getMessage()]]], 500);
         }
     }
 
 
-
-
-    public function accountBalanceEdit(Request $request)
+   public function accountBalanceEdit(Request $request)
     {
+        $validated = $request->validate([
+            'account_id' => 'required|exists:e_wallet_accounts,id',
+            'amount' => 'required|numeric',
+            'live_balance' => 'required|numeric',
+        ]);
+
         DB::beginTransaction();
+
         try {
             $account = EWalletAccount::where('id', $request->account_id)->lockForUpdate()->firstOrFail();
             $difference = $request->amount - $account->balance;
             $differenceLive = $request->live_balance - $account->live_balance;
 
             if ($difference == 0 && $differenceLive == 0) {
-                session()->flash('success', 'Same Balance');
-                return back();
+                return response()->json([
+                    'message' => 'Same balance, no changes made.'
+                ], 200);
             }
 
             $type = $difference > 0 ? "plus" : "minus";
@@ -2509,14 +2527,22 @@ class PayoutRecordController extends Controller
             ]);
 
             DB::commit();
-            session()->flash('success', 'Successfully Updated Balance');
-            return back();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Balance updated successfully!'
+            ], 200);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Failed to Update Balance: ' . $e->getMessage());
-            return back()->withInput();
+            return response()->json([
+                'message' => 'Failed to update balance.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
+
+
 
 
 
@@ -3273,7 +3299,7 @@ class PayoutRecordController extends Controller
         }
     }
 
-   
+
 
     public function merchant(Request $request)
     {

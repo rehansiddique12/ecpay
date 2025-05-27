@@ -34,7 +34,7 @@ class CategoryController extends Controller
 
         $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
             $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        } ,'location'])->paginate(20);
+        } ,'location' , 'category'])->paginate(20);
 
         foreach ($data['records'] as $record) {
             $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1

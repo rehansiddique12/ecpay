@@ -40,7 +40,7 @@
                                 </td>
                                 <td>{{ $item['e_wallet_name'] }}</td>
                                 <td>
-                                    {{ $item->category->title ?? 'N/A' }}
+                                    {{ $item->category->name ?? 'N/A' }}
                                 </td>
                                 <td>
                                 </td>
@@ -107,7 +107,7 @@
                                             </button>
 
                                             <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#newModalc" onclick="setBalanceItem({{ $item['id'] }})">
+                                                data-bs-target="#newModalc" onclick="editBalanceItem({{ $item['id'] }}, {{ $item['balance'] }}, {{ $item['live_balance'] }})">
                                                 <i class="icon-base ti tabler-user me-2"></i> Edit Balance
                                             </button>
 
@@ -146,7 +146,7 @@
 
 
 
-<div class="modal modal-top fade" id="newModalb" tabindex="-1">
+<div class="modal modal-top fade" id="newModalb" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -164,6 +164,7 @@
                             <div class="form-group">
                                 <label class="pr-3">Balance</label>
                                 <input type="number" step="0.01" class="form-control" name="amount" required />
+                                <span class="amount_error text-danger error-text"></span>
                             </div>
                         </div>
 
@@ -175,13 +176,14 @@
                                 <br>
                                 <input id="minus" value="minus" type="radio" name="type" />
                                 <label for="minus" class="pr-3">- Subtract Credit</label>
+                                <span class="type_error text-danger error-text" error-text"></span>
                             </div>
                         </div>
 
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">@lang('Add')</button>
+                    <button type="submit" id="submitBalanceBtn" class="btn btn-primary">@lang('Add')</button>
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
                         aria-label="Close">@lang('Close')</button>
                 </div>
@@ -190,7 +192,7 @@
     </div>
 </div>
 
-<div class="modal modal-top fade" id="newModalc" tabindex="-1">
+<div class="modal modal-top fade" id="newModalc" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -222,7 +224,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">@lang('Update')</button>
+                    <button type="submit" id="updateBalanceBtn" class="btn btn-primary">@lang('Update')</button>
                     <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
                         aria-label="Close">@lang('Close')</button>
                 </div>
@@ -233,6 +235,7 @@
 
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('public/assets/js/select2.min.js')}}"></script>
 
 <script>
@@ -341,6 +344,133 @@ function editBalanceItem(itemId, balance, live_balance) {
             }
         });
     });
+
+
+    $(document).ready(function () {
+        $('form[action="{{ route('admin.account.balance.add') }}"]').on('submit', function (e) {
+            e.preventDefault();
+
+            let form = $(this);
+            let formData = form.serialize();
+            let submitBtn = $('#submitBalanceBtn');
+
+            // Disable button and show loading text
+            submitBtn.prop('disabled', true).text('Processing...');
+
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action'),
+                data: formData,
+                success: function (response) {
+                    $('#newModalb').modal('hide');
+                    $('#balanceResponse').html('');
+                    // $('#balanceResponse').html('<div class="alert alert-success">Balance updated successfully!</div>');
+                    if(response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // This runs after the alert is closed (automatically or manually)
+
+                            // Close modal
+
+
+
+                            // Reset form
+                            form[0].reset();
+
+                            // Reload page
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function(response) {
+                    var errors = response.responseJSON.errors;
+                    var firstErrorField = null; // Track the first error field
+
+                    // Loop through errors and show them
+                    $.each(errors, function (key, value) {
+                        // Show error next to each field
+                        $('.' + key + '_error').text(value[0]);
+
+                        // Find the first field with an error and focus on it
+                        var $field = $('.' + key); // Find the field by class
+
+                        // Only set firstErrorField if it hasn't been set already
+                        if (!firstErrorField && $field.length) {
+                            firstErrorField = $field; // Set the first error field
+                        }
+                    });
+                },
+                complete: function () {
+                    // Re-enable button
+                    submitBtn.prop('disabled', false).text('Add');
+                }
+            });
+        });
+
+        $('form[action="{{ route('admin.account.balance.edit') }}"]').on('submit', function (e) {
+            e.preventDefault();
+
+            let form = $(this);
+            let formData = form.serialize();
+            let submitBtn = $('#updateBalanceBtn');
+
+            // Disable the button and change text
+            submitBtn.prop('disabled', true).text('Processing...');
+
+            // Clear previous errors
+            form.find('.text-danger').remove();
+
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action'),
+                data: formData,
+                success: function (response) {
+                    $('#newModalc').modal('hide');
+                    if(response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message || 'Balance updated successfully!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+
+                            form[0].reset();
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function (response) {
+                    if (response.status === 422) {
+                        let errors = response.responseJSON.errors;
+
+                        $.each(errors, function (key, messages) {
+                            let input = form.find('[name="' + key + '"]');
+                            if (input.length) {
+                                input.after('<small class="text-danger">' + messages[0] + '</small>');
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Something went wrong!',
+                        });
+                    }
+                },
+                complete: function () {
+                    submitBtn.prop('disabled', false).text('Update');
+                }
+            });
+        });
+    });
+
+
 </script>
 
 
