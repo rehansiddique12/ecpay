@@ -2213,10 +2213,17 @@ class PayoutRecordController extends Controller
 
     public function merchantDelete($id)
     {
-        $account = EWalletAccount::where('id', $id)->delete()
-            ? redirect()->route('admin.ewallet.accounts.details')->with('success', 'Account deleted successfully.')
-            : redirect()->route('admin.ewallet.accounts.details')->with('error', 'Account not found.');
+        $deleted = EWalletAccount::where('id', $id)->delete();
+
+        if ($deleted) {
+            return redirect()->route('admin.ewallet.accounts.details')
+                            ->with('success', 'Account deleted successfully.');
+        } else {
+            return redirect()->route('admin.ewallet.accounts.details')
+                            ->with('error', 'Account not found.');
+        }
     }
+
 
 
 

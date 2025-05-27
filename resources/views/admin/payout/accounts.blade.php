@@ -85,14 +85,15 @@
                                         <div class="dropdown-menu dropdown-menu-end p-2 shadow-sm">
 
                                             @if(adminAccessRoute(config('role.e_wallet_accounts.access.delete')))
-                                            <form action="{{ route('admin.merchant.delete', $item['id']) }}"
-                                                method="POST" class="mb-1">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="icon-base ti tabler-trash me-2"></i> Delete
-                                                </button>
-                                            </form>
+                                                <form action="{{ route('admin.merchant.delete', $item['id']) }}"
+                                                    method="POST"
+                                                    class="mb-1 delete-account-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="dropdown-item text-danger confirm-delete-btn">
+                                                        <i class="icon-base ti tabler-trash me-2"></i> Delete
+                                                    </button>
+                                                </form>
                                             @endif
 
                                             @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
@@ -240,87 +241,101 @@
 
 <script>
     function setBalanceItem(itemId) {
-    // Find the input field in the modal
-    var balanceInput = document.getElementById("balanceInput");
+        // Find the input field in the modal
+        var balanceInput = document.getElementById("balanceInput");
 
-    // Set the value of the input field to the item id
-    balanceInput.value = itemId;
-}
-
-function editBalanceItem(itemId, balance, live_balance) {
-    // Find the input field in the modal
-    var balanceInput = document.getElementById("balanceInpute");
-    var currentbalance = document.getElementById("currentbalance");
-    var livebalance = document.getElementById("livebalance");
-
-    // Set the value of the input field to the item id
-    balanceInput.value = itemId;
-    currentbalance.value = balance;
-    livebalance.value = live_balance;
-}
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-
-
-    setInterval(function() {
-        const dots = document.querySelectorAll(".dot");
-        dots.forEach(function(dot) {
-            if (dot.style.opacity === "0") {
-                dot.style.opacity = "1";
-            } else {
-                dot.style.opacity = "0";
-            }
-        });
-    }, 700);
-});
-</script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-    // Function to send AJAX request to update live status
-    function updateLiveStatus(itemId) {
-        if (!itemId) return; // Prevent errors if itemId is missing
-
-        const url = "{{ route('admin.update.status', ['id' => '__id__']) }}".replace('__id__', itemId);
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        if (!csrfToken) {
-            console.error('CSRF token missing!');
-            return;
-        }
-
-        fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Ensure data.id exists before updating UI
-                if (data.id !== undefined) {
-                    const statusIndicator = document.getElementById('status-indicator-' + data.id);
-                    if (statusIndicator) {
-                        statusIndicator.className = data.live ? 'dot' : 'reddot';
-                    }
-                }
-            })
-            .catch(error => console.error('AJAX Error:', error));
+        // Set the value of the input field to the item id
+        balanceInput.value = itemId;
     }
 
-    // Run the updateLiveStatus function every 10 seconds
-    setInterval(function() {
-        document.querySelectorAll('[id^="status-indicator-"]').forEach(item => {
-            const itemId = item.id.split('-')[2]; // Extract ID correctly
-            updateLiveStatus(itemId);
+    function editBalanceItem(itemId, balance, live_balance) {
+        // Find the input field in the modal
+        var balanceInput = document.getElementById("balanceInpute");
+        var currentbalance = document.getElementById("currentbalance");
+        var livebalance = document.getElementById("livebalance");
+
+        // Set the value of the input field to the item id
+        balanceInput.value = itemId;
+        currentbalance.value = balance;
+        livebalance.value = live_balance;
+    }
+
+    $(document).on('click', '.confirm-delete-btn', function (e) {
+        e.preventDefault();
+
+        const form = $(this).closest('form');
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This account will be permanently deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
         });
-    }, 10000); // 10 seconds
-});
-</script>
-<script>
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setInterval(function() {
+            const dots = document.querySelectorAll(".dot");
+            dots.forEach(function(dot) {
+                if (dot.style.opacity === "0") {
+                    dot.style.opacity = "1";
+                } else {
+                    dot.style.opacity = "0";
+                }
+            });
+        }, 700);
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Function to send AJAX request to update live status
+        function updateLiveStatus(itemId) {
+            if (!itemId) return; // Prevent errors if itemId is missing
+
+            const url = "{{ route('admin.update.status', ['id' => '__id__']) }}".replace('__id__', itemId);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            if (!csrfToken) {
+                console.error('CSRF token missing!');
+                return;
+            }
+
+            fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Ensure data.id exists before updating UI
+                    if (data.id !== undefined) {
+                        const statusIndicator = document.getElementById('status-indicator-' + data.id);
+                        if (statusIndicator) {
+                            statusIndicator.className = data.live ? 'dot' : 'reddot';
+                        }
+                    }
+                })
+                .catch(error => console.error('AJAX Error:', error));
+        }
+
+        // Run the updateLiveStatus function every 10 seconds
+        setInterval(function() {
+            document.querySelectorAll('[id^="status-indicator-"]').forEach(item => {
+                const itemId = item.id.split('-')[2]; // Extract ID correctly
+                updateLiveStatus(itemId);
+            });
+        }, 10000); // 10 seconds
+    });
+
     $(document).on('change', '.toggle-status', function () {
         let accountId = $(this).data('id');
         let isChecked = $(this).is(':checked');
@@ -344,7 +359,6 @@ function editBalanceItem(itemId, balance, live_balance) {
             }
         });
     });
-
 
     $(document).ready(function () {
         $('form[action="{{ route('admin.account.balance.add') }}"]').on('submit', function (e) {
@@ -469,10 +483,5 @@ function editBalanceItem(itemId, balance, live_balance) {
             });
         });
     });
-
-
 </script>
-
-
-
 @endpush
