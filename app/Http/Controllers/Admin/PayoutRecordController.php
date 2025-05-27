@@ -2237,7 +2237,7 @@ class PayoutRecordController extends Controller
         $savedSlots = $e_wallet_account->timeSlots->pluck('time_saved')->toArray();
         $selectedGroupIds = AccountGroup::where('account_id' , $e_wallet_account->id)->pluck('group_id')->toArray();
 
-        
+
         return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account' , 'savedSlots' ,'selectedGroupIds'));
     }
      public function updateAccount(Request $request , $id)
@@ -3276,7 +3276,7 @@ class PayoutRecordController extends Controller
         }
     }
 
-   
+
 
     public function merchant(Request $request)
     {
@@ -3603,12 +3603,12 @@ class PayoutRecordController extends Controller
                     $summary_log->save();
                 }
 
-                
+
                 session()->flash('success', 'Successfully Rejected');
             } else {
                 $Settlement->status = 2;
                 $Settlement->save();
-                
+
                 session()->flash('success', 'Successfully Rejected');
             }
 
@@ -5073,15 +5073,19 @@ class PayoutRecordController extends Controller
 
     public function workboard(Request $request)
     {
-        $payments = Payment::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', DB::raw("'payment' as type"))
-            ->latest('created_at')
-            ->take(10)
-            ->get();
+        $payments = Payment::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', 'adjusted_by', DB::raw("'payment' as type"))
+    ->latest('created_at')
+    ->where('show_none', 0)
+    ->take(10)
+    ->get();
 
-        $payouts = Payout::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', DB::raw("'payout' as type"))
-            ->latest('created_at')
-            ->take(10)
-            ->get();
+$payouts = Payout::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', 'adjusted_by', DB::raw("'payout' as type"))
+    ->latest('created_at')
+    ->where('show_none', 0)
+    ->take(10)
+    ->get();
+
+
 
         $merged = $payments->merge($payouts);
 
@@ -5096,6 +5100,7 @@ class PayoutRecordController extends Controller
                 'ewallets' => $EWalletAccount,
                 'notifications' => $notifications,
                 'pending_list' => $pending_list,
+                'user_id' => auth()->id(),
             ]);
         }
 
@@ -5103,9 +5108,61 @@ class PayoutRecordController extends Controller
         $pageTitle = "Workboard";
         $apis = Api::get();
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions', 'apis'));
-        $apis = Api::get();
-        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions', 'apis'));
     }
+
+    public function updatePayment(Request $request) {
+        $payment = Payment::findOrFail($request->id);
+        $payment->amount = $request->amount;
+        $payment->status = 'Pending';
+        $payment->save();
+        return response()->json(['success' => true]);
+    }
+
+    public function updatePayout(Request $request) {
+        $payout = Payout::findOrFail($request->id);
+        $payout->amount = $request->amount;
+        $payout->status = 'Pending';
+        $payout->save();
+        return response()->json(['success' => true]);
+    }
+
+
+
+    public function adjustTransaction(Request $request)
+{
+    $model = $request->type === 'payment' ? Payment::class : Payout::class;
+    $record = $model::findOrFail($request->id);
+    $record->adjusted_by = auth()->id();
+    $record->save();
+
+    return response()->json(['success' => true]);
+}
+
+
+    public function hideTransaction(Request $request)
+{
+    $id = $request->input('id');
+    $type = $request->input('type');
+
+    if ($type === 'payment') {
+        $record = Payment::find($id);
+    } elseif ($type === 'payout') {
+        $record = Payout::find($id);
+    } else {
+        return response()->json(['success' => false, 'message' => 'Invalid type'], 400);
+    }
+
+    if ($record) {
+        $record->show_none = 1;
+        $record->save();
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Record not found'], 404);
+}
+
+
+
 
     // Partner Commission
 

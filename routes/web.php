@@ -129,6 +129,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Parant Routs
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
+        Route::post('/hide-transaction', [PayoutRecordController::class, 'hideTransaction'])->name('hideTransaction');
+        Route::post('/adjust-transaction', [PayoutRecordController::class, 'adjustTransaction'])->name('adjust.transaction');
+        Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
+Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
+
+
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
         Route::get('/get-api-balance/{id}', function ($id) {
             $api = \App\Models\Api::find($id);
