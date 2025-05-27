@@ -297,6 +297,7 @@ class PaymentLogController extends Controller
         $pageTitle = "Search Payment Logs";
         return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains','from_date','to_date'));
     }
+}
 
     public function dailyReport()
     {
