@@ -224,7 +224,7 @@
                                 </td>
 
                                 <td>
-                                    {{-- {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }} --}}
+                                    {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
                                 </td>
 
                                 <td data-label="@lang('Username')">

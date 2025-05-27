@@ -117,9 +117,13 @@ class PaymentLogController extends Controller
         $gateways = Gateway::where('status', 1)
             ->get();
         $pageTitle = "Payment Report";
-        $domains = Api::where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        // $today = Carbon::today();
+        $today = date('Y-m-1');
+        $domains = Api::select('id', 'name', 'website')->where('type', 'Admin')->get();
+        $funds = Payment::where('status', '!=', 'initiate')->whereDate('created_at', $today)->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id'])->paginate(config('basic.paginate'));
+        
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        // dd($funds_t);
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
           $from_date = date('Y-m-d');
@@ -890,7 +894,7 @@ class PaymentLogController extends Controller
                 // $this->userPushNotification($user, 'PAYMENT_APPROVED', $msg, $action);
                 session()->flash('success', 'Approve Successfully');
             } elseif ($request->status == 'Reject') {
-
+                dd($request->all());
                 if ($data->status == "Reject") {
                     DB::rollBack();
                     throw new \Exception("This Payment Already Rejected.");
@@ -898,6 +902,7 @@ class PaymentLogController extends Controller
 
                 $data->status = "Reject";
                 $data->feedback = $request->feedback;
+                
                 $data->update();
                 //$user = $data->user;
 
