@@ -36,6 +36,16 @@
                             </button>
                         </div>
                         @endif
+                        @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.on_off_account') }}" class="menu-link">
+                                    <div data-i18n="Add Accounts">On/Off Accounts</div>
+                                </a>
+                            </button>
+                        </div>
+                        @endif
                         @if(adminAccessRoute(config('role.account_group.access.view')))
                         <div>
                             <button
@@ -47,14 +57,14 @@
                         </div>
                         @endif
                         @if(adminAccessRoute(config('role.gateways.access.view')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
-                                        <div data-i18n="Gateway">Gateway</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                    <div data-i18n="Gateway">Gateway</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if(adminAccessRoute(config('role.categories.access.view')))
                         <div>
@@ -371,9 +381,10 @@
 
             <div class="form-group col-md-2 col-12">
                 <label for="">Account Group</label>
-                <select class="form-select select2" name="account_group[__INDEX__][]" multiple data-placeholder="Select Groups" data-allow-clear="true">
+                <select class="form-select select2" name="account_group[__INDEX__][]" multiple
+                    data-placeholder="Select Groups" data-allow-clear="true">
                     @foreach($groups as $group)
-                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                    <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
                 </select>
             </div>

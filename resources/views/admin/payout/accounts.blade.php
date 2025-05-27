@@ -1,151 +1,144 @@
 @push('styles')
 {{-- <script src="{{ asset('public/assets/css/select2.min.css')}}"></script> --}}
 @endpush
-<div class="row">
-    <div class="col-md-12">
-        <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-            <div class="card-body">
-                <h6 style="color: #7367f0">Accounts List</h6>
+
+<h6 style="color: #7367f0">Accounts List</h6>
+
+<div class="table-responsive">
+    <table class=" table table-hover table-striped table-bordered table-sm">
+        <thead class="thead-dark">
+            <tr>
+
+                <th scope="col">Acc Number</th>
+                <th scope="col">Category</th>
+                <th scope="col">Code</th>
+                <th scope="col">Groups</th>
+                <th scope="col">Account Name</th>
+                <th scope="col">Location</th>
+                <th scope="col">Device Name</th>
+                <th scope="col">Live Balance</th>
+                <th>Type</th>
+                <th scope="col">D</th>
+                <th scope="col">W</th>
+                <th scope="col">D</th>
+                <th scope="col">W</th>
+                <th scope="col">Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($records as $key => $item)
+            <tr
+                style="background-color: {{($item['daily_received'] > ($item['daily_limit']*$item['deposit_daily_limit_percentage']/100)) || ($item['monthly_received'] > ($item['monthly_limit']*$item['deposit_monthly_limit_percentage']/100)) || ($item['daily_sent'] > ($item['daily_limit_withdrawal']*$item['withdrawal_daily_limit_percentage']/100)) || ($item['monthly_sent'] > ($item['monthly_limit_withdrawal']*$item['withdrawal_monthly_limit_percentage']/100))?'yellow':''}}">
+
+                <td>
+                    {{ $item['account_no'] }}
+                </td>
+
+                <td>
+                    {{ $item->category->name ?? 'N/A' }}
+                </td>
+                <td>
+                </td>
+                <td>
+                    @if($item->accountGroups->isNotEmpty())
+                    {!! $item->accountGroups->pluck('group.name')->filter()->map(function ($name) {
+                    return '<span class="badge bg-primary me-1">' . e($name) . '</span>';
+                    })->implode(' ') !!}
+                    @else
+                    <span class="text-muted">N/A</span>
+                    @endif
+                </td>
+                <td>{{ $item['e_wallet_name'] }}</td>
+                <td>
+                    {{ $item->location->location ?? '' }}
+                </td>
+
+                <td>{{ $item['device_name']}}</td>
+                <td>{{ $item['live_balance'] }}</td>
+                <td>{{ $item['type'] }} ( {{ $item['account_type'] }} )</td>
+                <td>
+                    {{$item['deposit_daily_limit_percentage']}}
+                </td>
+                <td>
+                    {{$item['withdrawal_daily_limit_percentage']}}
+                </td>
+
+                <td>
+                    {{$item['send']}}
+                </td>
+                <td>
+                    {{$item['received']}}
+                </td>
+                <td class="text-center">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input toggle-status" type="checkbox" data-id="{{ $item->id }}" {{
+                            $item->status == 1 ? 'checked' : '' }}>
+                    </div>
+                </td>
 
 
-                <div class="table-responsive">
-                    <table class=" table table-hover table-striped table-bordered table-sm">
-                        <thead class="thead-dark">
-                            <tr>
+                <td>
+                    <div class="dropdown">
+                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                            <i class="icon-base ti tabler-dots-vertical"></i>
+                        </button>
 
-                                <th scope="col">Acc Number</th>
-                                <th scope="col">Account Name</th>
-                                <th scope="col">Category</th>
-                                <th scope="col">Code</th>
-                                <th scope="col">Group</th>
-                                <th scope="col">Location</th>
-                                <th scope="col">Device Name</th>
-                                <th scope="col">Live Balance</th>
-                                <th>Type</th>
-                                <th scope="col">D</th>
-                                <th scope="col">W</th>
-                                <th scope="col">D</th>
-                                <th scope="col">W</th>
-                                <th scope="col">Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($records as $key => $item)
-                            <tr
-                                style="background-color: {{($item['daily_received'] > ($item['daily_limit']*$item['deposit_daily_limit_percentage']/100)) || ($item['monthly_received'] > ($item['monthly_limit']*$item['deposit_monthly_limit_percentage']/100)) || ($item['daily_sent'] > ($item['daily_limit_withdrawal']*$item['withdrawal_daily_limit_percentage']/100)) || ($item['monthly_sent'] > ($item['monthly_limit_withdrawal']*$item['withdrawal_monthly_limit_percentage']/100))?'yellow':''}}">
+                        <div class="dropdown-menu dropdown-menu-end p-2 shadow-sm">
 
-                                <td>
-                                    {{ $item['account_no'] }}
-                                </td>
-                                <td>{{ $item['e_wallet_name'] }}</td>
-                                <td>
-                                    {{ $item->category->name ?? 'N/A' }}
-                                </td>
-                                <td>
-                                </td>
-                                <td>
-                                    {{ $item->group->group_name ?? 'N/A' }}
-                                </td>
-                                <td>
-                                    {{ $item->location->location ?? 'N/A' }}
-                                </td>
+                            @if(adminAccessRoute(config('role.e_wallet_accounts.access.delete')))
+                            <form action="{{ route('admin.merchant.delete', $item['id']) }}" method="POST"
+                                class="mb-1 delete-account-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="dropdown-item text-danger confirm-delete-btn">
+                                    <i class="icon-base ti tabler-trash me-2"></i> Delete
+                                </button>
+                            </form>
+                            @endif
 
-                                <td>{{ $item['device_name']}}</td>
-                                <td>{{ $item['live_balance'] }}</td>
-                                <td>{{ $item['type'] }}</td>
-                                <td>
-                                    {{$item['deposit_daily_limit_percentage']}}
-                                </td>
-                                <td>
-                                    {{$item['withdrawal_daily_limit_percentage']}}
-                                </td>
+                            @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
+                            <a href="{{ route('admin.accounts.edit', $item->id) }}" class="dropdown-item">
+                                <i class="icon-base ti tabler-pencil me-2"></i> Edit
+                            </a>
 
-                                <td>
-                                    {{$item['send']}}
-                                </td>
-                                <td>
-                                    {{$item['received']}}
-                                </td>
-                                <td class="text-center">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input toggle-status" type="checkbox"
-                                            data-id="{{ $item->id }}" {{ $item->status == 1 ? 'checked' : '' }}>
-                                    </div>
-                                </td>
+                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                data-bs-target="#newModalb" onclick="setBalanceItem({{ $item['id'] }})">
+                                <i class="icon-base ti tabler-currency me-2"></i> Add Balance
+                            </button>
 
+                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                data-bs-target="#newModalc"
+                                onclick="editBalanceItem({{ $item['id'] }}, {{ $item['balance'] }}, {{ $item['live_balance'] }})">
+                                <i class="icon-base ti tabler-user me-2"></i> Edit Balance
+                            </button>
 
-                                <td>
-                                    <div class="dropdown">
-                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                            data-bs-toggle="dropdown">
-                                            <i class="icon-base ti tabler-dots-vertical"></i>
-                                        </button>
+                            <form action="{{ route('admin.accounts.charges', $item->id) }}" method="GET" class="mb-0">
+                                <button type="submit" class="dropdown-item">
+                                    <i class="icon-base ti tabler-calculator me-2"></i> Charges %
+                                </button>
+                            </form>
+                            @endif
 
-                                        <div class="dropdown-menu dropdown-menu-end p-2 shadow-sm">
+                        </div>
+                    </div>
+                </td>
 
-                                            @if(adminAccessRoute(config('role.e_wallet_accounts.access.delete')))
-                                                <form action="{{ route('admin.merchant.delete', $item['id']) }}"
-                                                    method="POST"
-                                                    class="mb-1 delete-account-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="dropdown-item text-danger confirm-delete-btn">
-                                                        <i class="icon-base ti tabler-trash me-2"></i> Delete
-                                                    </button>
-                                                </form>
-                                            @endif
+            </tr>
+            @empty
+            <tr>
+                <td colspan="100%">
+                    <p class="text-dark">@lang('No Data Found')</p>
+                </td>
+            </tr>
 
-                                            @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
-                                            <a href="{{ route('admin.accounts.edit', $item->id) }}"
-                                                class="dropdown-item">
-                                                <i class="icon-base ti tabler-pencil me-2"></i> Edit
-                                            </a>
-
-                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#newModalb" onclick="setBalanceItem({{ $item['id'] }})">
-                                                <i class="icon-base ti tabler-currency me-2"></i> Add Balance
-                                            </button>
-
-                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#newModalc" onclick="editBalanceItem({{ $item['id'] }}, {{ $item['balance'] }}, {{ $item['live_balance'] }})">
-                                                <i class="icon-base ti tabler-user me-2"></i> Edit Balance
-                                            </button>
-
-                                            <form action="{{ route('admin.accounts.charges', $item->id) }}" method="GET"
-                                                class="mb-0">
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="icon-base ti tabler-calculator me-2"></i> Charges %
-                                                </button>
-                                            </form>
-                                            @endif
-
-                                        </div>
-                                    </div>
-                                </td>
-
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
-                                </td>
-                            </tr>
-
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer">
-                    {{ $records->appends($_GET)->links('partials.pagination') }}
-                </div>
-            </div>
-        </div>
-    </div>
-
+            @endforelse
+        </tbody>
+    </table>
 </div>
-
-
+<div class="card-footer">
+    {{ $records->appends($_GET)->links('partials.pagination') }}
+</div>
 
 <div class="modal modal-top fade" id="newModalb" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -482,6 +475,33 @@
                 }
             });
         });
+
+        $(document).on('change', '.toggle-status', function () {
+            let accountId = $(this).data('id');
+            let status = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '{{ route("admin.ewallet-account.toggleStatus") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    id: accountId,
+                    status: status
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('Status updated successfully');
+                    } else {
+                        alert('Failed to update status');
+                    }
+                },
+                error: function () {
+                    alert('Something went wrong.');
+                }
+            });
+        });
+
+
     });
 </script>
 @endpush

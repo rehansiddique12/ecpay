@@ -319,7 +319,7 @@
                                                             {{$value['label']}}</td>
                                                         <td data-label="View">
                                                             @if(!empty($value['access']['view']))
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="{{ implode(',', array_map('trim', $value['access']['view'])) }}"
                                                                 name="access[]" />
                                                             @endif
@@ -328,7 +328,7 @@
                                                             @if(!empty($value['access']['add']))
                                                             {{-- <input type="checkbox" value="{{join("
                                                                 ,",$value['access']['add'])}}" name="access[]" /> --}}
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="{{ implode(',', array_map('trim', $value['access']['add'])) }}"
                                                                 name="access[]" />
                                                             @endif
@@ -337,7 +337,7 @@
                                                             @if(!empty($value['access']['edit']))
                                                             {{-- <input type="checkbox" value="{{join("
                                                                 ,",$value['access']['edit'])}}" name="access[]" /> --}}
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="{{ implode(',', array_map('trim', $value['access']['edit'])) }}"
                                                                 name="access[]" />
                                                             @endif
@@ -347,7 +347,7 @@
                                                             {{-- <input type="checkbox" value="{{join("
                                                                 ,",$value['access']['delete'])}}" name="access[]" />
                                                             --}}
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="{{ implode(',', array_map('trim', $value['access']['delete'])) }}"
                                                                 name="access[]" />
                                                             @endif

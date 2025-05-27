@@ -59,17 +59,18 @@
                 <div class="col-md-5 mt-4">
                     <div class="form-group">
                         <select name="status" class="form-select">
-                            <option value="4" @if (@request()->status == '4') selected @endif>@lang('All Payment')
+                            <option value="All" @if (@request()->status == 'All') selected @endif>@lang('All Payment')
                             </option>
-                            <option value="1" @if (@request()->status == '1') selected @endif>@lang('Complete Payment')
+                            <option value="Complete" @if (@request()->status == 'Complete') selected @endif>@lang('Complete Payment')
                             </option>
-                            <option value="2" @if (@request()->status == '2') selected @endif>@lang('Pending Payment')
+                            <option value="Pending" @if (@request()->status == 'Pending') selected @endif>@lang('Pending
+                                                                                                                                                                            Payment')
                             </option>
-                            <option value="3" @if (@request()->status == '3') selected @endif>@lang('Cancel Payment')
-                            </option>
-                            <option value="99" @if (@request()->status == '99') selected @endif>@lang('Member did not complete')
+                            <option value="Reject" @if (@request()->status == 'Reject') selected @endif>@lang('Cancel
+                                                                                                                                                                            Payment')
                             </option>
                         </select>
+                        
                     </div>
                 </div>
 
@@ -136,119 +137,166 @@
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
 
-            <div class="table-responsive">
-                <table class="categories-show-table table table-hover table-striped table-bordered">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Partner Txn Input')</th>
-                            <th scope="col">@lang('User Account')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Final Amount')</th>
-                            <th scope="col">@lang('E-Wallet')</th>
-                            <th scope="col">Completed At</th>
-                            <th scope="col">@lang('Receipt')</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($funds as $key => $fund)
-                            <tr>
-                                <td data-label="@lang('Date')"> {{ convertToUserTimezone($fund->created_at) }}</td>
-                                <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                    {{ $fund->transaction }}<br>
-                                    <span class="text text-success">{{ $fund->txn_id }}</span>
-
-                                </td>
-                                <td>{{ !empty($fund->partner_transection_id) ? $fund->partner_transection_id : '' }}
-                                    <br>
-                                    {{ !empty($fund->member_id) ? $fund->member_id : '' }}
-                                </td>
-
-                                <td>
-                                    {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
-                                </td>
-
-                                <td class="font-weight-bold">{{ $fund->account_no }}</td>
-                                <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
-                                <td data-label="@lang('Amount')" class="font-weight-bold">
-                                    {{ getAmount($fund->amount) }} {{ $fund->gateway->currency }}</td>
-                                <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }}
-                                    {{ $fund->gateway_currency }}</td>
-
-                                <td data-label="@lang('Payable')" class="font-weight-bold">
-                                    {{ getAmount($fund->final_amount) }} {{ $fund->gateway->currency }}</td>
+            
 
 
 
 
-                                <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                    @if ($fund->status == 2)
-                                        @php
-                                            // Get the time difference between now and the created_at timestamp
-                                            $createdAt = \Carbon\Carbon::parse($fund->created_at);
-                                            $currentTime = \Carbon\Carbon::now();
-                                            $diffInMinutes = $createdAt->diffInMinutes($currentTime);
-                                        @endphp
-
-                                        @if ($diffInMinutes > 10)
-                                            <span class="badge badge-light">
-                                                <i class="fa fa-circle text-danger danger font-12"></i>
-                                                @lang('Member did not complete')
-                                            </span>
-                                        @else
-                                            <span class="badge badge-light">
-                                                <i class="fa fa-circle text-warning warning font-12"></i>
-                                                @lang('Pending')
-                                            </span>
-                                        @endif
-                                        <br>
-                                        <span class="text text-primary">{{ $fund->e_wallet_phone_number }}</span>
-                                    @elseif($fund->status == 1)
-                                        <span class="badge badge-light"><i
-                                                class="fa fa-circle text-success success font-12"></i>
-                                            @lang('Completed')</span>
-                                        <br>
-                                        <span
-                                            class="text text-success">{{ $fund->e_wallet_phone_number }}</span>
-                                    @elseif($fund->status == 3)
-                                        <span class="badge badge-light"><i
-                                                class="fa fa-circle text-danger danger font-12"></i>
-                                            @lang('Rejected')</span>
-                                        <br>
-                                        <span class="text text-danger"> {{ $fund->e_wallet_phone_number }}</span>
-                                    @endif
-                                    <br>
-                                    {{ $fund->e_wallet_type }}
-                                </td>
 
 
-                                <td>{{ convertToUserTimezone($fund->completion_at) }}</td>
 
-                                <td>
-                                    @if (!empty($fund->receipt_image))
-                                        <a data-fancybox="images"
-                                            href="{{ getFile(config('location.receipts.path') . $fund->receipt_image) }}">
-                                            <h2><i class="fa fa-file"></i></h2>
-                                        </a>
-                                    @endif
-                                </td>
 
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                {{ $funds->appends($_GET)->links('partials.pagination') }}
+            <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
+                <div class="card-body">
+        
+                    <div class="table-responsive">
+                        <table class="categories-show-table table table-hover table-striped table-bordered">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th scope="col">@lang('ID')</th>
+                                    <th scope="col">@lang('Date Time')</th>
+                                    <th scope="col">@lang('Trx Number')</th>
+                                    <th scope="col">@lang('Partner Trx No')</th>
+                                    <th scope="col">@lang('Partner Txn Input')</th>
+                                    <th scope="col">@lang('Type')</th>
+                                    <th scope="col">@lang('Code')</th>
+                                    <th scope="col">User Account</th>
+                                    <th scope="col">@lang('Amount')</th>
+                                    <th scope="col">@lang('Merchant Charge')</th>
+                                    <th scope="col">@lang('Final Amount')</th>
+                                    <th scope="col">@lang('Status')</th>
+                                    
+                                    <th scope="col">Completed At</th>
+                                    <th scope="col">@lang('Receipt')</th>
+                                   
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($funds as $key => $fund)
+                                    <tr>
+                                        <td data-label="@lang('ID')"> {{ $fund->id }} </td>
+                                        <td data-label="@lang('Date_Time')"> {{ dateTime($fund->created_at, 'd M,Y H:i') }}
+                                        </td>
+                                        <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
+                                            {{ $fund->transaction }}<br>
+                                            <span class="text text-success">{{ $fund->txn_id }}</span>
+        
+                                        </td>
+                                        <td>{{ !empty($fund->partner_transection_id) ? $fund->partner_transection_id : '' }}
+                                            <br>
+                                            {{ !empty($fund->member_id) ? $fund->member_id : '' }}
+                                        </td>
+        
+                                        <td>
+                                            {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
+                                        </td>
+        
+                                        
+                                        <td data-label="@lang('Type')">{{ $fund->gateway?->category?->name ?? 'N/A' }}</td>
+                                        <td data-label="@lang('Code')">{{ optional($fund->gateway)->name }}</td>
+                                        <td class="font-weight-bold">{{ $fund->sender }}</td>
+                                        <td data-label="@lang('Amount')" class="font-weight-bold">
+                                            {{ getAmount($fund->amount) }}
+                                            {{ $fund->gateway?->currency }}</td>
+                                        <td data-label="@lang('Charge')" class="text-success">
+                                            {{ getAmount($fund->charge) }}
+                                            {{ $fund->gateway?->currency }}</td>
+                                        <td data-label="@lang('Payable')" class="font-weight-bold">
+                                            {{ getAmount($fund->amount) - getAmount($fund->charge) }}
+                                            {{ $fund->gateway?->currency }}
+                                        </td>
+        
+                                        <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                            @if ($fund->status == 'Pending')
+                                                @php
+                                                    // Get the time difference between now and the created_at timestamp
+                                                    $createdAt = \Carbon\Carbon::parse($fund->created_at);
+                                                    $currentTime = \Carbon\Carbon::now();
+                                                    $diffInMinutes = $createdAt->diffInMinutes($currentTime);
+                                                @endphp
+        
+                                                @if ($diffInMinutes > 10 && @request()->status != 'Pending')
+                                                    <span class="badge bg-warning">
+                                                        <i class="fa fa-circle text-white warning font-12"></i>
+                                                        @lang('Member did not complete')
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-info">
+                                                        <i class="fa fa-circle text-white font-12"></i>
+                                                        @lang('Pending')
+                                                    </span>
+                                                @endif
+                                                <br>
+                                                <span class="text text-primary">{{ $fund->e_wallet_phone_number }}</span>
+                                            @elseif($fund->status == 'Complete')
+                                                @php
+                                                    // Check if the fund has a payment and if completed_source is set
+                                                    if ($fund->completed_source != 'AdminPanel') {
+                                                        // Dynamically assign the class based on completed_source
+                                                        // if ($fund->payment->completed_source != "AdminPanel") {
+                                                        $classColor = 'bg-success';
+                                                        // } else {
+                                                        // $classColor = "text-purple purple ";
+                                                        // }
+                                                    } else {
+                                                        $classColor = 'bg-primary';
+                                                    }
+                                                @endphp
+        
+        
+                                                <span class="badge {{ $classColor }}"><i
+                                                        class="fa fa-circle text-white font-12"></i>
+                                                    @lang('Completed')</span>
+                                                <br>
+                                                <span
+                                                    class="{{ $classColor }}">{{ $fund->e_wallet_phone_number }}</span>
+                                            @elseif($fund->status == 'Reject')
+                                                <span class="badge bg-danger"><i
+                                                        class="fa fa-circle text-white danger font-12"></i>
+                                                    @lang('Rejected')</span>
+                                                <br>
+                                                <span class="text text-danger"> {{ $fund->e_wallet_phone_number }}</span>
+                                            @endif
+                                        </td>
+                                        
+                                        <td>{{ $fund->created_at }}</td>
+                                        <td>
+                                            @if (!empty($fund->receipt_image))
+                                                <a data-fancybox="images"
+                                                    href="{{ getFile(config('location.receipts.path') . $fund->receipt_image) }}">
+                                                    <h2><i class="fa fa-file"></i></h2>
+                                                </a>
+                                            @endif
+                                        </td>
+        
+                                        
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="100%">
+                                            <p class="text-dark">@lang('No Data Found')</p>
+                                        </td>
+                                    </tr>
+        
+                                @endforelse
+                            </tbody>
+                        </table>
+                        <div class="mt-5">
+                            {{ $funds->appends($_GET)->links('partials.pagination') }}
+                        </div>
+                    </div>
+                </div>
             </div>
+
+
+
+
+
+
+
+
+
+
         </div>
     </div>
 

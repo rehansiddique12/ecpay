@@ -334,6 +334,7 @@
                         <label>Account Name</label>
                         <input type="text" name="e_wallet_name[]" value="{{ old('e_wallet_name', $e_wallet_account->e_wallet_name ?? '') }}" required class="form-control" required>
                     </div>
+                    <input type="hidden" name="first_account_id" value="{{ $e_wallet_account->id ?? '' }}">
 
                     <div class="form-group col-md-2 col-12">
                         <label>Device Name</label>
@@ -393,6 +394,15 @@
 
                     <div class="form-group col-md-2 col-12">
                         <label>QR</label>
+                        {{-- Show old image preview if exists --}}
+                            @if(!empty($e_wallet_account->image))
+                                <div class="mb-2">
+                                    <img src="{{ asset('assets/uploads/withdraw/' . $e_wallet_account->image) }}"
+                                        alt="QR Code"
+                                        class="img-thumbnail"
+                                        style="max-width: 100px;">
+                                </div>
+                            @endif
                         <input type="file" name="image[]" class="form-control qr-file" accept="image/png, image/jpeg">
                     </div>
 
@@ -410,7 +420,13 @@
                         <label>@lang('Status')</label>
                         <div class="form-check form-switch d-flex align-items-center">
                             <span id="disableText" class="me-12 text-primary">@lang('No')</span>
-                            <input class="form-check-input" type="checkbox" id="statusSwitch" name="status" value="1">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="statusSwitch"
+                                name="status"
+                                value="1"
+                                {{ isset($e_wallet_account) && $e_wallet_account->status == 1 ? 'checked' : '' }}>
                             <span id="enableText" class="ms-2 text-secondary">@lang('Yes')</span>
                         </div>
                     </div>

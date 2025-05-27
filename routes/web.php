@@ -132,7 +132,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/hide-transaction', [PayoutRecordController::class, 'hideTransaction'])->name('hideTransaction');
         Route::post('/adjust-transaction', [PayoutRecordController::class, 'adjustTransaction'])->name('adjust.transaction');
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
-Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
+        Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
 
 
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
@@ -148,7 +148,8 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         // Route::get('/accounts-management/edit-account/{id}', [CategoryController::class, 'editAccount'])->name('account_management.edit_account');
         Route::get('/get-accounts/{category_id}', [CategoryController::class, 'getAccountsByCategory'])->name('get.e_wallet_accounts');
 
-
+        Route::get('/accounts-management/on-off', [CategoryController::class, 'onOffAccount'])->name('account_management.on_off_account');
+        Route::post('/wallet/update-account-type', [CategoryController::class, 'updateAccountType'])->name('wallet.updateAccountType');
 
         Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
 
@@ -313,7 +314,6 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         Route::get('/user/fundLog/{id}', [UsersController::class, 'funds'])->name('user.fundLog');
         Route::get('/user/payoutLog/{id}', [UsersController::class, 'payoutLog'])->name('user.withdrawal');
         Route::get('user/{user}/kyc', [UsersController::class, 'userKycHistory'])->name('user.userKycHistory');
-        // Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
         Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::post('/user/password/{id}', [UsersController::class, 'passwordUpdate'])->name('userPasswordUpdate');
         Route::post('/user/balance-update/{id}', [UsersController::class, 'userBalanceUpdate'])->name('user-balance-update');
@@ -363,6 +363,8 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         Route::get('/payout-report/get-notification', [PayoutRecordController::class, 'getNotification'])->name('payout-report.getnotification');
         Route::get('/payout-request', [PayoutRecordController::class, 'request'])->name('payout-request');
         Route::put('/payout-action/{id}', [PayoutRecordController::class, 'action'])->name('payout-action');
+
+        Route::get('makeatest', [PaymentLogController::class, 'makeatest'])->name('makeatest');
 
         Route::get('payment/apiLog', [PaymentLogController::class, 'apiLog'])->name('payment.apiLog');
         Route::get('payment/apisearch', [PaymentLogController::class, 'apisearch'])->name('payment.apisearch');
@@ -419,6 +421,7 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
 
 
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
+        Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
 
 
         Route::prefix('commission/categories')->name('commission.categories.')->group(function () {

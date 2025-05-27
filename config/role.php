@@ -238,7 +238,6 @@ $arr = [
         'label' => 'Payment Request & Log',
         'access' => [
             'view' => [
-                'admin.payment.pending',
                 'admin.payment.log',
                 'admin.payment.search',
             ],
@@ -643,6 +642,25 @@ $arr = [
             ],
         ],
     ],
+
+    'agents' => [
+        'label' => 'Agent Managements',
+        'access' => [
+            'view' => [
+                'admin.agent.list',
+            ],
+            'add' => [
+
+            ],
+            'edit' => [
+
+            ],
+            'delete' => [
+
+            ],
+        ],
+    ],
+
 
     'partner_login' => [
         'label' => 'Admin Login Partners Access',
