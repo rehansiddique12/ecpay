@@ -643,6 +643,25 @@ $arr = [
         ],
     ],
 
+    'agents' => [
+        'label' => 'Agent Managements',
+        'access' => [
+            'view' => [
+                'admin.agent.list',
+            ],
+            'add' => [
+
+            ],
+            'edit' => [
+
+            ],
+            'delete' => [
+
+            ],
+        ],
+    ],
+
+
     'partner_login' => [
         'label' => 'Admin Login Partners Access',
         'access' => [
