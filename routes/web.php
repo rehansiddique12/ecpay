@@ -132,7 +132,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/hide-transaction', [PayoutRecordController::class, 'hideTransaction'])->name('hideTransaction');
         Route::post('/adjust-transaction', [PayoutRecordController::class, 'adjustTransaction'])->name('adjust.transaction');
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
-Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
+        Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
 
 
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
@@ -156,7 +156,7 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
         Route::get('/accounts-management/add-gateways', [CategoryController::class, 'gateway'])->name('account_management.gateway');
 
 
-        
+
 
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
@@ -421,6 +421,7 @@ Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->
 
 
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
+        Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
 
 
         Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
