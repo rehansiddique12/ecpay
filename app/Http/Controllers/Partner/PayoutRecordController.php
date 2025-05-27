@@ -321,7 +321,7 @@ class PayoutRecordController extends Controller
                     $Log->final_amount = $net_amount;
                     $Log->balance = $open_user->balance;
                     $Log->transection_type = 1;
-                    $Log->transection_id = $payment->id;
+                    $Log->transection_id = $order->id;
                     $Log->partner_id = $open_user->id;
                     $Log->source = 'PartnerLink';
                     $Log->save();
@@ -539,7 +539,7 @@ class PayoutRecordController extends Controller
 
         $txn_verification = "";
 
-        $api_key = API::where('username', $username)->where('status', 1)->where('status', 1)->first();
+        $api_key = API::where('username', $username)->where('status', 1)->first();
         if ($api_key && $api_key->type == "Admin") {
             $source = $api_key->website;
             $api_id = $api_key->id;
@@ -904,9 +904,11 @@ class PayoutRecordController extends Controller
                 }
                 $ewallet = strtolower($order->gateway->code);
 
+                
 
 
-                if ($order->status="Complete") {
+
+                if ($order->status=="Complete") {
                     $processing = 2;
                     $message = "With This Transaction No. Payment Already Completed.";
                     DB::commit();
@@ -925,6 +927,8 @@ class PayoutRecordController extends Controller
                     $logo = asset('assets/images/iframe_rocket_logo.png');
                     $banner = asset('assets/images/Rocket_Background.jpg');
                 }
+
+                
 
                 $fiveMinutesAgo = Carbon::now()->subMinutes(5)->timestamp;
                 if (isset($request->time) && $request->time > $fiveMinutesAgo) {
@@ -1027,15 +1031,21 @@ class PayoutRecordController extends Controller
                             $partner_api_key->balance += $net_amount;
                             $partner_api_key->save();
 
+
+                            
+
                             $Log = new Log();
                             $Log->date_time = $payment_record->updated_at;
                             $Log->final_amount = $net_amount;
                             $Log->balance = $partner_api_key->balance;
                             $Log->transection_type = 1;
-                            $Log->transection_id = $payment_record->id;
+                            $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
                             $Log->source = 'Iframe';
                             $Log->save();
+
+
+                            
                         }
 
                         // if (strpos($payment_record->sender, 'XXXX') !== false && ($payment_record->mac_address=="111.111.11.111" || $payment_record->mac_address=="222.222.22.222")) {
@@ -1141,6 +1151,7 @@ class PayoutRecordController extends Controller
 
                         DB::commit();
                         $commit = 1;
+
 
                         if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
 
@@ -1372,7 +1383,7 @@ class PayoutRecordController extends Controller
                 $Log->final_amount = $net_amount;
                 $Log->balance = $partner_api_key->balance;
                 $Log->transection_type = 1;
-                $Log->transection_id = $payment_record->id;
+                $Log->transection_id = $order->id;
                 $Log->partner_id = $partner_api_key->id;
                 $Log->source = 'Iframe';
                 $Log->save();
@@ -1960,7 +1971,7 @@ class PayoutRecordController extends Controller
                             $Log->final_amount = $net_amount;
                             $Log->balance = $partner_api_key->balance;
                             $Log->transection_type = 1;
-                            $Log->transection_id = $payment_record->id;
+                            $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
                             $Log->source = 'Iframe';
                             $Log->save();
@@ -3833,7 +3844,7 @@ public function settlementSearch(Request $request)
                             $Log->final_amount = $net_amount;
                             $Log->balance = $partner_api_key->balance;
                             $Log->transection_type = 1;
-                            $Log->transection_id = $payment_record->id;
+                            $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
                             $Log->source = 'VerifyByPartnerLink';
                             $Log->save();

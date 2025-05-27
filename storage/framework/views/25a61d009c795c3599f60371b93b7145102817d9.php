@@ -249,27 +249,11 @@
                                 </td>
 
                                 <td>
-                                    <?php echo e(!empty($fund->txn_record) ? $fund->txn_record->txn_no : ''); ?>
-
+                                    
                                 </td>
 
                                 <td data-label="<?php echo app('translator')->get('Username'); ?>">
-                                    <?php if(optional($fund->user)->username && optional($fund->user)->username !== 'dummyuser'): ?>
-                                        <a href="<?php echo e(route('admin.user-edit', $fund->user_id)); ?>" target="_blank">
-                                            <div class="d-lg-flex d-block align-items-center ">
-                                                <div class="mr-3"><img
-                                                        src="<?php echo e(getFile(config('location.user.path') . optional($fund->user)->image)); ?>"
-                                                        alt="user" class="rounded-circle" width="45"
-                                                        height="45"></div>
-                                                <div class="">
-                                                    <h5 class="text-dark mb-0 font-16 font-weight-medium">
-                                                        <?php echo e(optional($fund->user)->username); ?></h5>
-                                                    <span
-                                                        class="text-muted font-14"><?php echo e(optional($fund->user)->email); ?></span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    <?php elseif($fund->source == 'Admin Test'): ?>
+                                    <?php if($fund->source == 'Admin Test'): ?>
                                         Admin Test
                                     <?php else: ?>
                                         <?php echo e(optional($fund->api)->name); ?> <b>(<?php echo e(optional($fund->api)->acc_type); ?>)</b>
@@ -365,35 +349,7 @@
 
                                 <?php if(adminAccessRoute(config('role.payment_log.access.edit'))): ?>
                                     <td data-label="<?php echo app('translator')->get('Action'); ?>">
-                                        <?php
-                                            if ($fund->detail) {
-                                                $details = [];
-                                                foreach ($fund->detail as $k => $v) {
-                                                    if ($v->type == 'file') {
-                                                        $details[kebab2Title($k)] = [
-                                                            'type' => $v->type,
-                                                            'field_name' => getFile(
-                                                                config('location.deposit.path') .
-                                                                    date('Y', strtotime($fund->created_at)) .
-                                                                    '/' .
-                                                                    date('m', strtotime($fund->created_at)) .
-                                                                    '/' .
-                                                                    date('d', strtotime($fund->created_at)) .
-                                                                    '/' .
-                                                                    $v->field_name,
-                                                            ),
-                                                        ];
-                                                    } else {
-                                                        $details[kebab2Title($k)] = [
-                                                            'type' => $v->type,
-                                                            'field_name' => $v->field_name,
-                                                        ];
-                                                    }
-                                                }
-                                            } else {
-                                                $details = null;
-                                            }
-                                        ?>
+                                        
 
                                         
                                         <button
@@ -401,7 +357,7 @@
                                             data-bs-toggle="modal" data-bs-target="#myModal"
                                             data-title="<?php echo e($fund->status == 'Pending' ? trans('Edit') : trans('Details')); ?>"
                                             data-id="<?php echo e($fund->id); ?>" data-feedback="<?php echo e($fund->feedback); ?>"
-                                            data-info="<?php echo e(json_encode($details)); ?>"
+                                            data-info=""
                                             data-amount="<?php echo e(getAmount($fund->amount)); ?> <?php echo e($basic->currency); ?>"
                                             data-username="<?php echo e(optional($fund->user)->username); ?>"
                                             data-route="<?php echo e(route('admin.payment.action', $fund->id)); ?>"
@@ -469,8 +425,6 @@
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('put'); ?>
                     <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
 
                         <div class="get-feedback">
                             <label>Sender Acc. No.</label>
@@ -533,8 +487,7 @@
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('put'); ?>
                     <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
+                       
 
                         <div class="get-feedback">
 
@@ -777,19 +730,6 @@
                     jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
 
                     var details = Object.entries(jQuery(this).data('info'));
-                    var list = [];
-                    details.map(function(item, i) {
-                        if (item[1].type == 'file') {
-                            var singleInfo =
-                                `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
-                        } else {
-                            var singleInfo =
-                                `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
-                        }
-                        list[i] =
-                            ` <li class="list-group-item"><span class="font-weight-bold"> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`;
-                    });
-                    jQuery('.withdraw-detail').html(list);
 
                     if (feedback == '') {
                         var res = `<div class="form-group"><br>
@@ -806,7 +746,7 @@
             });
 
 
-           document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
