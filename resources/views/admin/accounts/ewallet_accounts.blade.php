@@ -115,6 +115,17 @@
                             </button>
                         </div>
                         @endif
+
+                        @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.on_off_account') }}" class="menu-link">
+                                    <div data-i18n="Add Accounts">On/Off Accounts</div>
+                                </a>
+                            </button>
+                        </div>
+                        @endif
                         @if(adminAccessRoute(config('role.account_group.access.view')))
                         <div>
                             <button

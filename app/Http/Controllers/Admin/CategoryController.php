@@ -253,4 +253,33 @@ class CategoryController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Status updated.']);
     }
+
+    public function onOffAccount()
+    {
+        $pageTitle = 'On/Off Account';
+        $records = EWalletAccount::with(['apiHits' => function ($query) {
+            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        } ,'location' , 'accountGroups.group'])->paginate(1000);
+
+        foreach ($records as $record) {
+            $record->live = $record->apiHits ? 1 : 0;
+        }
+        return view('admin.accounts.on_off_account', compact('pageTitle', 'records'));
+    }
+
+    public function updateAccountType(Request $request)
+    {
+        $request->validate([
+        'id' => 'required|exists:e_wallet_accounts,id',
+        'account_type' => 'nullable|in:Deposit,Withdrawal,Both',
+        ]);
+        $wallet = EWalletAccount::findOrFail($request->id);
+        $wallet->account_type = $request->account_type;
+        $wallet->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account type updated successfully!',
+        ]);
+    }
 }
