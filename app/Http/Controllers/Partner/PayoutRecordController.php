@@ -327,11 +327,27 @@ class PayoutRecordController extends Controller
                     $Log->save();
 
 
+                    if(empty($order->sender) || $order->sender==0){
+                        $order->sender = $payment->sender;
+                    }
+                    
+                    $order->txn_id = $payment->txn_id;
+                    $order->date_time = $payment->date_time;
+                    $order->transaction_type = $payment->transaction_type;
+                    $order->ip_address = $payment->ip_address;
+                    $order->e_wallet_type = $payment->e_wallet_type;
+                    $order->mac_address = $payment->mac_address;
+                    $order->fee = $payment->fee;
+                    $order->commission = $payment->commission;
+                    $order->e_wallet_charges = $payment->e_wallet_charges;
+                    $order->payment_received_at = $payment->created_at;
+
+
                     $order->charge = $charge;
                     $order->status = 'Complete';
                     $order->trans_complete_date = Carbon::now();
                     $order->completed_source = 'PartnerLink';
-                    $payment->delete();
+                    // $payment->delete();
 
                     $order->api_id = $api_id;
                     $order->save();
@@ -1028,6 +1044,24 @@ class PayoutRecordController extends Controller
                         //     }
                         // }
 
+
+                        if(empty($order->sender) || $order->sender==0){
+                            $order->sender = $payment_record->sender;
+                        }
+                        
+                        $order->txn_id = $payment_record->txn_id;
+                        $order->date_time = $payment_record->date_time;
+                        $order->transaction_type = $payment_record->transaction_type;
+                        $order->ip_address = $payment_record->ip_address;
+                        $order->e_wallet_type = $payment_record->e_wallet_type;
+                        $order->mac_address = $payment_record->mac_address;
+                        $order->fee = $payment_record->fee;
+                        $order->commission = $payment_record->commission;
+                        $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                        $order->payment_received_at = $payment_record->created_at;
+
+
+
                         $order->status = 'Complete';
                         $order->trans_complete_date = Carbon::now();
                         $order->completed_source = 'Iframe';
@@ -1046,7 +1080,7 @@ class PayoutRecordController extends Controller
                         // $order->account_no = $payment_record->sender;
                         // $order->payment_id = $payment_record->id;
 
-                        $payment_record->delete();
+                        // $payment_record->delete();
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -1362,10 +1396,28 @@ class PayoutRecordController extends Controller
             $order->charge = $charge;
             // $payment_record->partner_transection_id = $order->partner_transection_id;
             // $payment_record->member_id = $order->member_id;
+
+            if(empty($order->sender) || $order->sender==0){
+                $order->sender = $payment_record->sender;
+            }
+            
+            $order->txn_id = $payment_record->txn_id;
+            $order->date_time = $payment_record->date_time;
+            $order->transaction_type = $payment_record->transaction_type;
+            $order->ip_address = $payment_record->ip_address;
+            $order->e_wallet_type = $payment_record->e_wallet_type;
+            $order->mac_address = $payment_record->mac_address;
+            $order->fee = $payment_record->fee;
+            $order->commission = $payment_record->commission;
+            $order->e_wallet_charges = $payment_record->e_wallet_charges;
+            $order->payment_received_at = $payment_record->created_at;
+
+
+
             $order->save();
 
 
-           $payment_record->delete();
+        //    $payment_record->delete();
 
             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -1926,8 +1978,25 @@ class PayoutRecordController extends Controller
                         $order->trans_complete_date = Carbon::now();
                         $order->completed_source = 'Iframe';
                         $order->charge = $charge;
+
+                        if(empty($order->sender) || $order->sender==0){
+                            $order->sender = $payment_record->sender;
+                        }
+                        
+                        $order->txn_id = $payment_record->txn_id;
+                        $order->date_time = $payment_record->date_time;
+                        $order->transaction_type = $payment_record->transaction_type;
+                        $order->ip_address = $payment_record->ip_address;
+                        $order->e_wallet_type = $payment_record->e_wallet_type;
+                        $order->mac_address = $payment_record->mac_address;
+                        $order->fee = $payment_record->fee;
+                        $order->commission = $payment_record->commission;
+                        $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                        $order->payment_received_at = $payment_record->created_at;
+
+
                         $order->save();
-                        $payment_record->delete();
+                        // $payment_record->delete();
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
@@ -3793,8 +3862,25 @@ public function settlementSearch(Request $request)
                         $order->completed_source = 'VerifyByPartnerLink';
                         $order->charge = $charge;
                         $order->sender = $payment_record->sender;
+
+                        if(empty($order->sender) || $order->sender==0){
+                            $order->sender = $payment_record->sender;
+                        }
+                        
+                        $order->txn_id = $payment_record->txn_id;
+                        $order->date_time = $payment_record->date_time;
+                        $order->transaction_type = $payment_record->transaction_type;
+                        $order->ip_address = $payment_record->ip_address;
+                        $order->e_wallet_type = $payment_record->e_wallet_type;
+                        $order->mac_address = $payment_record->mac_address;
+                        $order->fee = $payment_record->fee;
+                        $order->commission = $payment_record->commission;
+                        $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                        $order->payment_received_at = $payment_record->created_at;
+
+
                         $order->save();
-                        $payment_record->delete();
+                        // $payment_record->delete();
 
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at','>=', $order->created_at)->get();

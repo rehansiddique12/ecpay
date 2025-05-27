@@ -571,7 +571,22 @@ class PaymentLogController extends Controller
                 }
                 else
                 {
-                    $payment->delete();
+                    if(empty($data->sender) || $data->sender==0){
+                        $data->sender = $payment->sender;
+                    }
+                    
+                    $data->txn_id = $payment->txn_id;
+                    $data->date_time = $payment->date_time;
+                    $data->transaction_type = $payment->transaction_type;
+                    $data->ip_address = $payment->ip_address;
+                    $data->e_wallet_type = $payment->e_wallet_type;
+                    $data->mac_address = $payment->mac_address;
+                    $data->fee = $payment->fee;
+                    $data->commission = $payment->commission;
+                    $data->e_wallet_charges = $payment->e_wallet_charges;
+                    $data->payment_received_at = $payment->created_at;
+
+                    // $payment->delete();
                 }
                 $payment=$data;
                 //dd($payment);
@@ -1605,7 +1620,24 @@ class PaymentLogController extends Controller
                     $order->trans_complete_date = Carbon::now();
                     $order->completed_source = 'APIVerify';
                     $order->charge = $charge;
-                    $payment_record->delete();
+
+                    if(empty($order->sender) || $order->sender==0){
+                        $order->sender = $payment_record->sender;
+                    }
+                    
+                    $order->txn_id = $payment_record->txn_id;
+                    $order->date_time = $payment_record->date_time;
+                    $order->transaction_type = $payment_record->transaction_type;
+                    $order->ip_address = $payment_record->ip_address;
+                    $order->e_wallet_type = $payment_record->e_wallet_type;
+                    $order->mac_address = $payment_record->mac_address;
+                    $order->fee = $payment_record->fee;
+                    $order->commission = $payment_record->commission;
+                    $order->e_wallet_charges = $payment_record->e_wallet_charges;
+                    $order->payment_received_at = $payment_record->created_at;
+
+
+                    // $payment_record->delete();
                     $order->save();
 
                     DB::commit();
@@ -2075,15 +2107,10 @@ class PaymentLogController extends Controller
                     if ($partner_api_key->txn_verification == 0 || $partner_txn_verification == 1) {
                         if ($order) {
 
-
-
-
-
                             $order->status = 'Complete';
                             $order->trans_complete_date = Carbon::now();
                             $order->completed_source = 'APIWithoutVerify';
-                            $order->partner_transection_id = $order->partner_transection_id;
-                            $order->member_id = $order->member_id;
+                            
                             $order->e_wallet_name = $request->e_wallet_name;
                             $order->amount = $request_amount;
                             $order->sender = $request->sender;
@@ -2094,6 +2121,7 @@ class PaymentLogController extends Controller
                             $order->ip_address = $request->ip();
                             $order->e_wallet_type = $request->e_wallet_type;
                             $order->mac_address = $request->mac_address;
+                            $order->payment_received_at = Carbon::now();
 
                             if ($request->filled('fee')) {
                                 $order->fee = $request->fee;

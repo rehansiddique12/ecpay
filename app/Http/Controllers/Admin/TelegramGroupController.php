@@ -967,8 +967,26 @@ class TelegramGroupController extends Controller
                                                                                     $order->trans_complete_date = Carbon::now();
                                                                                     $order->completed_source = 'Telegram';
                                                                                     $order->charge = $charge;
+
+                                                                                    if(empty($order->sender) || $order->sender==0){
+                                                                                        $order->sender = $payment->sender;
+                                                                                    }
+                                                                                    
+                                                                                    $order->txn_id = $payment->txn_id;
+                                                                                    $order->date_time = $payment->date_time;
+                                                                                    $order->transaction_type = $payment->transaction_type;
+                                                                                    $order->ip_address = $payment->ip_address;
+                                                                                    $order->e_wallet_type = $payment->e_wallet_type;
+                                                                                    $order->mac_address = $payment->mac_address;
+                                                                                    $order->fee = $payment->fee;
+                                                                                    $order->commission = $payment->commission;
+                                                                                    $order->e_wallet_charges = $payment->e_wallet_charges;
+                                                                                    $order->payment_received_at = $payment->created_at;
+
+
+
                                                                                     $order->save();
-                                                                                    $payment->delete();
+                                                                                    // $payment->delete();
                                                                                     
                                                                 
                                                                                     DB::commit();
