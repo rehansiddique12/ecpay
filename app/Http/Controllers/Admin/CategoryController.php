@@ -11,13 +11,14 @@ use App\Models\Gateway;
 
 use App\Models\Category;
 use App\Models\AccountGroup;
-use Illuminate\Http\Request;
+use App\Models\UserLocation;
 
+use Illuminate\Http\Request;
 use App\Models\AccountGateway;
 use App\Models\EWalletAccount;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
-use App\Models\UserLocation;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -27,17 +28,31 @@ class CategoryController extends Controller
     {
         $data['methods'] = Gateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::all();
-
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
 
-        $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
-            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        } ,'location' , 'accountGroups.group'])->paginate(1000);
+        $today = Carbon::today();
+
+        $data['records'] = EWalletAccount::with([
+            'apiHits' => function ($query) {
+                $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+            },
+            'location',
+            'accountGroups.group'
+        ])
+        ->withCount(['payments as today_transaction_count' => function ($query) use ($today) {
+            $query->whereDate('created_at', $today)
+            ->where('status', 'Complete');
+        }])
+        ->withSum(['payments as today_total_deposit' => function ($query) use ($today) {
+            $query->whereDate('created_at', $today)
+            ->where('status', 'Complete');
+        }], 'amount')
+        ->paginate(1000);
 
         foreach ($data['records'] as $record) {
-            $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
+            $record->live = $record->apiHits ? 1 : 0;
         }
 
         return view('admin.accounts.ewallet_accounts', $data);

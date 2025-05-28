@@ -68,9 +68,14 @@ class EWalletAccount extends Model
         return $this->hasMany(EWalletAccountTimeSlot::class);
     }
 
-public function accountGroups()
+    public function accountGroups()
     {
         return $this->hasMany(AccountGroup::class, 'account_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'sender', 'account_no');
     }
 
 
