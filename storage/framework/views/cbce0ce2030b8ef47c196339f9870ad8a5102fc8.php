@@ -7,6 +7,11 @@
 <?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <form action="<?php echo e(route('partner.payout-report.search')); ?>" method="get">
             <div class="row justify-content-between align-items-center">
@@ -20,20 +25,20 @@
                 <input type="text" hidden name="name" value="<?php echo e(@request()->name); ?>" class="form-control"
                     placeholder="<?php echo app('translator')->get('Email/ Username'); ?>">
 
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>From Date</label>
-                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="<?php echo e(@request()->from_date); ?>"
-                            name="from_date" id="datepicker" />
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <input type="text" class="form-control datetimepicker" autocomplete="off" value="<?php echo e($from_date); ?>" name="from_date"
+                                 />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>To Date</label>
-                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="<?php echo e(@request()->to_date); ?>"
-                            name="to_date" id="datepicker" />
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <input type="text" class="form-control datetimepicker" autocomplete="off" value="<?php echo e($to_date); ?>" name="to_date"
+                                />
+                        </div>
                     </div>
-                </div>
 
                 <div class="col-md-3">
                     <div class="form-group">
@@ -178,15 +183,15 @@
 
                                 </td>
                                 <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($item->user_account_no); ?></td>
-                                <td><?php echo e($item->gateway->name); ?></td>
+                                <td><?php echo e($item->e_wallet_name); ?></td>
                                 <td data-label="<?php echo app('translator')->get('Amount'); ?>" class="font-weight-bold">
                                     <?php echo e(getAmount($item->amount)); ?> <?php echo e($basic->currency_symbol); ?></td>
                                 <td data-label="<?php echo app('translator')->get('Charge'); ?>" class="text-success">
                                     <?php echo e($item->charge); ?> <?php echo e($basic->currency_symbol); ?></td>
                                 <!--<td data-label="<?php echo app('translator')->get('Charge'); ?>" class="text-success">-->
                                 <?php
-                                // if(isset($item->payout->charge)){
-                                //     if(!empty($item->payout->source)){
+                                // if(isset($item->charge)){
+                                //     if(!empty($item->source)){
                                 //         echo "5%";
                                 //     }
 
@@ -194,34 +199,29 @@
                                 ?>
                                 <!--</td>-->
                                 <td data-label="<?php echo app('translator')->get('Net Amount'); ?>" class="font-weight-bold">
-                                    <?php echo e(getAmount($item->net_amount)); ?> <?php echo e($basic->currency_symbol); ?></td>
+                                    <?php echo e(getAmount($item->amount + $item->charge)); ?> <?php echo e($basic->currency_symbol); ?></td>
 
                                 <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-lg-center text-right">
-                                    <?php if($item->status == 2): ?>
+                                    <?php if($item->transfer_status == 2): ?>
                                         <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
                                             <?php echo app('translator')->get('Request Approved'); ?></span>
-                                    <?php elseif($item->status == 1): ?>
+                                    <?php elseif($item->transfer_status == 1): ?>
                                         <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
                                             <?php echo app('translator')->get('Request Pending'); ?></span>
-                                    <?php elseif($item->status == 3): ?>
+                                    <?php elseif($item->transfer_status == 3): ?>
                                         <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
                                             <?php echo app('translator')->get('Request Rejected'); ?></span>
                                     <?php endif; ?>
                                     <br>
-                                    <?php if($item->payout): ?>
-                                        <?php if($item->payout->status == 'Complete'): ?>
-                                            <span class="badge badge-light"><i
-                                                    class="fa fa-circle text-success font-12"></i>
-                                                <?php echo app('translator')->get('Transfered'); ?></span>
-                                        <?php elseif($item->payout->status == 'Pending'): ?>
-                                            <span class="badge badge-light"><i
-                                                    class="fa fa-circle text-warning font-12"></i>
-                                                <?php echo app('translator')->get('Transfer Pending'); ?></span>
-                                        <?php elseif($item->payout->status == 'Reject'): ?>
-                                            <span class="badge badge-light"><i
-                                                    class="fa fa-circle text-danger font-12"></i> <?php echo app('translator')->get('Transfer Rejected'); ?></span>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
+                                    <?php if($item->status == "Complete"): ?>
+                                    <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> <?php echo app('translator')->get('Transfered'); ?></span>
+                                <?php elseif($item->status == "Reject"): ?>
+                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> <?php echo app('translator')->get('Transfer Rejected'); ?></span>
+                                <?php else: ?>
+
+                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> <?php echo app('translator')->get('Transfer Pending'); ?></span>
+                                    
+                                <?php endif; ?>
                                 </td>
 
                                 <td><?php echo e($item->feedback); ?></td>
@@ -299,22 +299,32 @@
 
 <?php $__env->startPush('js'); ?>
     <!-- jQuery UI -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <!-- DateTimePicker Add-on -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js">
     </script>
 
 
     <script>
-        (function($) {
-            "use strict";
 
-            $(document).ready(function() {
-                $(document).on("click", '.edit_button', function(e) {
+
+        $(document).ready(function() {
+            // $('select').select2({
+            //     selectOnClose: true
+            // });
+
+            $('.datetimepicker').datetimepicker({
+                format: 'Y-m-d H:i',
+                step: 1,
+                datepicker: true,
+                timepicker: true
+            });
+
+
+            $(document).on("click", '.edit_button', function(e) {
                     var id = $(this).data('id');
                     $(".action_id").val(id);
                     $(".actionRoute").attr('action', $(this).data('route'));
@@ -350,21 +360,6 @@
 
                     $('.withdraw-detail').html(list);
                 });
-            });
-        })(jQuery);
-
-
-        $(document).ready(function() {
-            $('select').select2({
-                selectOnClose: true
-            });
-
-            $('.datetimepicker').datetimepicker({
-                format: 'Y-m-d H:i',
-                step: 1,
-                datepicker: true,
-                timepicker: true
-            });
 
         });
     </script>

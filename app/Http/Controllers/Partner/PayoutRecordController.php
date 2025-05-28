@@ -2698,7 +2698,7 @@ class PayoutRecordController extends Controller
     {
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $log = "View Withdrawal Requests";
@@ -2711,7 +2711,7 @@ class PayoutRecordController extends Controller
             ->where('status', 'Complete')
             ->sum('amount');
 
-        $api_key = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
 
         $charge = 0;
         $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
@@ -2729,9 +2729,9 @@ class PayoutRecordController extends Controller
 
         $pageTitle = "Payout Request";
         $domains = Api::where('type', 'Admin')->where('status', 1)->get();
-        $records = Payout::where('status', 1)
+        $records = Payout::where('transfer_status', 1)
         ->orderBy('id', 'DESC')
-        ->with('user', 'gateway')
+        ->with('gateway')
         ->when($api_id, function ($query) use ($api_id) {
             $query->where('api_id', $api_id);
         })
@@ -2761,11 +2761,11 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $search = $request->all();
-        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
+        $domains = Api::where('type', 'Admin')->get();
         $dateSearch = $request->date_time;
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
 
@@ -2779,14 +2779,7 @@ class PayoutRecordController extends Controller
         $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
         $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
 
-        $records = Payout::where('status', '!=', 0)
-        ->when($search['name'], function ($query) use ($search) {
-            $query->whereHas('user', function ($subQuery) use ($search) {
-                $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
-                    ->orWhere('email', 'like', '%' . $search['name'] . '%')
-                    ->orWhere('username', 'like', '%' . $search['name'] . '%');
-            });
-        })
+        $records = Payout::where('transfer_status', '!=', 0)
         ->when($search['date_time'], function ($query) use ($search, $from_date_to_search, $to_date_to_search) {
             $query->where('created_at', '>=', $from_date_to_search)
                   ->where('created_at', '<=', $to_date_to_search);
@@ -2800,7 +2793,7 @@ class PayoutRecordController extends Controller
             });
         })
         ->when($search['status'] != 4, function ($query) use ($search) {
-            $query->where('status', $search['status']);
+            $query->where('transfer_status', $search['status']);
         })
         ->when($api_id, function ($query) use ($api_id) {
             $query->where('api_id', $api_id);
@@ -2809,12 +2802,14 @@ class PayoutRecordController extends Controller
         ->with('user', 'gateway')
         ->paginate(config('basic.paginate'));
 
+        // dd($records);
+
         $sum = Payout::whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->where('api_id', $api_id)
             ->where('status', 'Complete')
             ->sum('amount');
-        $api_key = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $charge = 0;
         $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->first();
         if ($commissions) {
@@ -2839,15 +2834,30 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
+
+        $from_date = date('Y-m-d 00:00:00');
+        $to_date = date('Y-m-d H:i:s');
+
+
+        $partnerTimezone = $main_user->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $search['from_date'] = Carbon::parse($from_date, $originalTimezone)->setTimezone($targetTimezone);
+        $search['to_date'] = Carbon::parse($to_date, $originalTimezone)->setTimezone($targetTimezone);
+
+        $fromDate = Carbon::parse($search['from_date']);
+        $toDate = Carbon::parse($search['to_date'])->setSecond(59);
 
         $gateways = Gateway::where('status', 1)
             ->get();
         // dd($gateways);
         $pageTitle = "Payout Report";
-        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
-        $records = Payout::where('status', '!=', 0)
+        $domains = Api::where('type', 'Admin')->get();
+        $records = Payout::where('transfer_status', '!=', 0)
+        ->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate)
         ->orderBy('id', 'DESC')
         ->with('user', 'gateway')
         ->when($api_id, function ($query) use ($api_id) {
@@ -2855,7 +2865,9 @@ class PayoutRecordController extends Controller
         })
         ->paginate(config('basic.paginate'));
 
-    $funds_t = Payout::where('status', '!=', 0)
+    $funds_t = Payout::where('transfer_status', '!=', 0)
+    ->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate)
         ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
         ->when($api_id, function ($query) use ($api_id) {
             $query->where('api_id', $api_id);
@@ -2863,7 +2875,7 @@ class PayoutRecordController extends Controller
         ->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
-        return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+        return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum','from_date','to_date'));
     }
 
     public function reportSearch(Request $request)
@@ -2874,15 +2886,19 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
         $search = $request->all();
-        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
+        $domains = Api::where('type', 'Admin')->get();
         $gateways = Gateway::where('status', 1)->get();
 
         $fund_count = 0;
         $fund_sum = 0;
+
+
+        $from_date = $search['from_date'];
+        $to_date = $search['to_date'];
 
 
 
@@ -2892,66 +2908,16 @@ class PayoutRecordController extends Controller
         $search['from_date'] = Carbon::parse($search['from_date'], $originalTimezone)->setTimezone($targetTimezone);
         $search['to_date'] = Carbon::parse($search['to_date'], $originalTimezone)->setTimezone($targetTimezone);
 
-        $funds_t = Payout::when(isset($search['name']), function ($query) use ($search) {
-            return $query->where('trx_id', 'LIKE', $search['name'])
-                ->orWhereHas('user', function ($q) use ($search) {
-                    $q->where('email', 'LIKE', "%{$search['name']}%")
-                        ->orWhere('username', 'LIKE', "%{$search['name']}%");
-                });
-        })
-        ->when(isset($search['status']), function ($query) use ($search) {
-            return $query->where('status', $search['status']);
-        })
-        ->when($api_id, function ($query) use ($api_id) {
-            $query->where('api_id', $api_id);
-        })
-        ->where('status', '!=', 0)
-        ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
-            $fromDate = Carbon::parse($search['from_date']);
-            $toDate = Carbon::parse($search['to_date'])->setSecond(59);
-            return $query->where('created_at', '>=', $fromDate)
-                        ->where('created_at', '<=', $toDate);
-        })
-        ->when(isset($search['partner_transection_id']), function ($query) use ($search) {
-            $query->where(function ($subQuery) use ($search) {
-                $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%')
-                    ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
-                    ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
-                    ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-            });
-        })
-        ->when(isset($search['account_no']), function ($query) use ($search) {
-            return $query->where('user_account_no', 'LIKE', "%{$search['account_no']}%");
-        })
-        ->when(isset($search['gateway']), function ($query) use ($search) {
-            return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
-        })
-        ->select('*')
-        ->selectRaw('COUNT(*) as amount_count, SUM(amount) as amount_sum')
-        ->with('user', 'gateway')
-        ->paginate(config('basic.paginate'));
-
-
-        if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
-            $fund_count = $funds_t[0]->amount_count;
-            $fund_sum = round($funds_t[0]->amount_sum, 2);
-        }
+        
 
         if(isset($search['export'])){
-            $records = Payout::when(isset($search['name']), function ($query) use ($search) {
-                return $query->where('trx_id', 'LIKE', $search['name'])
-                    ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('email', 'LIKE', "%{$search['name']}%")
-                            ->orWhere('username', 'LIKE', "%{$search['name']}%");
-                    });
-            })
-            ->when(isset($search['status']), function ($query) use ($search) {
+            $records = Payout::when(isset($search['status']), function ($query) use ($search) {
                 return $query->where('status', $search['status']);
             })
             ->when($api_id, function ($query) use ($api_id) {
                 $query->where('api_id', $api_id);
             })
-            ->where('status', '!=', 0)
+            ->where('transfer_status', '!=', 0)
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                 $fromDate = Carbon::parse($search['from_date']);
                 $toDate = Carbon::parse($search['to_date'])->setSecond(59);
@@ -2973,7 +2939,7 @@ class PayoutRecordController extends Controller
                 return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
             })
             ->orderBy('id', 'DESC')
-            ->with('user', 'gateway')
+            ->with('gateway')
             ->get();
 
             $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn','Username','User-Type','gateway','User-Account-No','Amount','Charges','Final-Amount','Request-Status','Transfer-Status','E-Wallet-No','Website','Completed-At'];
@@ -2990,23 +2956,23 @@ class PayoutRecordController extends Controller
                 }
                 $status = "Pending";
                 $status2 = "Pending";
-                if($item->status == 2){
+                if($item->transfer_status == 2){
                     $status = "Approved";
-                }elseif($item->status == 1){
+                }elseif($item->transfer_status == 1){
                     $status = "Pending";
-                }elseif($item->status == 3){
+                }elseif($item->transfer_status == 3){
                     $status = "Rejected";
                 }
 
-                if($item->payout->status == "Complete"){
+                if($item->status == "Complete"){
                     $status2 = "Transfered";
-                }elseif($item->payout->status == "Pending"){
+                }elseif($item->status == "Pending"){
                     $status2 = "Transfer Pending";
-                }elseif($item->payout->status == "Reject"){
+                }elseif($item->status == "Reject"){
                     $status2 = "Transfer Rejected";
                 }
 
-                $data[] = [$item->created_at, $item->trx_id,optional($item->payout)->txn_id,optional($item->payout)->partner_transection_id,$user_name,$user_type,optional($item->method)->name,$item->user_account_no,getAmount($item->amount),optional($item->payout)->charge,getAmount($item->net_amount),$status,$status2,optional($item->payout)->e_wallet_phone_number,optional($item->payout)->source,optional($item->payout)->date_time];
+                $data[] = [$item->created_at, $item->trx_id,$item->txn_id,$item->partner_transection_id,$user_name,$user_type,optional($item->method)->name,$item->user_account_no,getAmount($item->amount),$item->charge,getAmount($item->net_amount),$status,$status2,$item->e_wallet_phone_number,$item->source,$item->date_time];
             }
 
             $currentDateTime = date('d_F_Y_h_i_A');
@@ -3032,21 +2998,51 @@ class PayoutRecordController extends Controller
 
             }else{
 
-                $records = Payout::when(isset($search['name']), function ($query) use ($search) {
-                    return $query->where('trx_id', 'LIKE', $search['name'])
-                        ->orWhereHas('user', function ($q) use ($search) {
-                            $q->where('email', 'LIKE', "%{$search['name']}%")
-                                ->orWhere('username', 'LIKE', "%{$search['name']}%");
-                        });
-                })
-                ->when(isset($search['status']), function ($query) use ($search) {
-                    // Simplified status check - assuming payout status is now handled directly in Payout model
+                $funds_t = Payout::when(isset($search['status']), function ($query) use ($search) {
                     return $query->where('status', $search['status']);
                 })
                 ->when($api_id, function ($query) use ($api_id) {
                     $query->where('api_id', $api_id);
                 })
-                ->where('status', '!=', 0)
+                ->where('transfer_status', '!=', 0)
+                ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                    $fromDate = Carbon::parse($search['from_date']);
+                    $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+                    return $query->where('created_at', '>=', $fromDate)
+                                ->where('created_at', '<=', $toDate);
+                })
+                ->when(isset($search['partner_transection_id']), function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                    });
+                })
+                ->when(isset($search['account_no']), function ($query) use ($search) {
+                    return $query->where('user_account_no', 'LIKE', "%{$search['account_no']}%");
+                })
+                ->when(isset($search['gateway']), function ($query) use ($search) {
+                    return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
+                })
+                ->selectRaw('COUNT(*) as amount_count, SUM(amount) as amount_sum')
+                ->with('gateway')
+                ->first();
+        
+        
+                if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
+                    $fund_count = $funds_t[0]->amount_count;
+                    $fund_sum = round($funds_t[0]->amount_sum, 2);
+                }
+
+
+                $records = Payout::when(isset($search['status']), function ($query) use ($search) {
+                    return $query->where('status', $search['status']);
+                })
+                ->when($api_id, function ($query) use ($api_id) {
+                    $query->where('api_id', $api_id);
+                })
+                ->where('transfer_status', '!=', 0)
                 ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                     $fromDate = Carbon::parse($search['from_date']);
                     $toDate = Carbon::parse($search['to_date'])->setSecond(59);
@@ -3068,11 +3064,11 @@ class PayoutRecordController extends Controller
                     return $query->where('e_wallet_name', 'LIKE', "%{$search['gateway']}%");
                 })
                 ->orderBy('id', 'DESC')
-                ->with('user', 'gateway')
+                ->with('gateway')
                 ->paginate(config('basic.paginate'));
 
             $pageTitle = "Search Payout Logs";
-            return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum'));
+            return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum','from_date','to_date'));
 
             }
 
@@ -3085,7 +3081,7 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
 
@@ -3133,7 +3129,7 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $api_id = $main_user->id;
 
 
@@ -3186,7 +3182,7 @@ class PayoutRecordController extends Controller
 
         $user = Auth::guard('partner')->user();
         $website = $user->website;
-        $main_user = Api::where('api_key', $user->api_key)->where('status', 1)->where('type', 'Admin')->first();
+        $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
         $partnerTimezone = $main_user->timezone;
         $api_id = $main_user->id;
 
@@ -3194,7 +3190,7 @@ class PayoutRecordController extends Controller
             ->get();
         // dd($gateways);
         $pageTitle = "Payout Report Detail";
-        $domains = Api::where('type', 'Admin')->where('status', 1)->get();
+        $domains = Api::where('type', 'Admin')->get();
 
         $heading['date'] = $date;
         $heading['gateway'] = $gateway;

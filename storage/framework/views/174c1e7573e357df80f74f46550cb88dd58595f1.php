@@ -125,7 +125,7 @@
                                 <?php endif; ?>
 
                             </td>
-                            <td><?php echo e(optional($item->gateway)->name); ?></td>
+                            <td><?php echo e($item->e_wallet_name); ?></td>
                             <td><?php echo e($item->user_account_no); ?></td>
                             <td data-label="<?php echo app('translator')->get('Amount'); ?>" class="font-weight-bold"><?php echo e(getAmount($item->amount,2 )); ?>
 

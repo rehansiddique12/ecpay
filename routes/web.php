@@ -516,6 +516,9 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payment/report/daily/search', [PartnerPaymentLogController::class,'dailyReportSearch'])->name('payment.report.daily.search');
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
         Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
+
+        Route::put('/payout-action/{id}', [PartnerPayoutRecordController::class, 'action'])->name('payout-action');
+
         Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
         Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');
         Route::get('/payout-report/search', [PartnerPayoutRecordController::class,'reportSearch'])->name('payout-report.search');

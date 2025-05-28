@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\PayoutRecordController;
+use App\Http\Controllers\Admin\TelegramGroupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,3 +41,8 @@ Route::post('/verifyPayment', [PaymentLogController::class, 'verifyPayment']);
 
 
 Route::post('/addPaymentInfo', [PaymentLogController::class, 'addPaymentInfo']);
+
+
+Route::post('/checkBalance', [PaymentController::class, 'checkBalance']);
+
+Route::post('/partner/telegram/webhook', [TelegramGroupController::class, 'telegramwebhook']);

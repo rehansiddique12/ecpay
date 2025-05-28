@@ -99,12 +99,12 @@
                             <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($fund->sender); ?></td>
                             <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e(optional($fund->gateway)->name); ?></td>
                             <td data-label="<?php echo app('translator')->get('Amount'); ?>"
-                                class="font-weight-bold"><?php echo e(getAmount($fund->amount )); ?> <?php echo e($fund->gateway->currency); ?></td>
+                                class="font-weight-bold"><?php echo e(getAmount($fund->amount )); ?> <?php echo e($fund->gateway?->currency); ?></td>
                             <td data-label="<?php echo app('translator')->get('Charge'); ?>"
-                                class="text-success"><?php echo e(getAmount($fund->charge,2)); ?> <?php echo e($fund->gateway->currency); ?></td>
+                                class="text-success"><?php echo e(getAmount($fund->charge,2)); ?> <?php echo e($fund->gateway?->currency); ?></td>
 
                             <td data-label="<?php echo app('translator')->get('Payable'); ?>"
-                                class="font-weight-bold"><?php echo e(getAmount($fund->amount - $fund->charge)); ?> <?php echo e($fund->gateway->currency); ?></td>
+                                class="font-weight-bold"><?php echo e(getAmount($fund->amount - $fund->charge)); ?> <?php echo e($fund->gateway?->currency); ?></td>
 
                                 <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($fund->e_wallet_phone_number); ?></td>
                                 <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($fund->e_wallet_type); ?></td>

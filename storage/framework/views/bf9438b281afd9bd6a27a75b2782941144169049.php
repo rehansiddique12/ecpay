@@ -148,12 +148,12 @@
                             <td class="font-weight-bold"><?php echo e($fund->sender); ?></td>
                             <td data-label="<?php echo app('translator')->get('Amount'); ?>" class="font-weight-bold"><?php echo e(getAmount($fund->amount)); ?>
 
-                                <?php echo e($fund->gateway->currency); ?></td>
+                                <?php echo e($fund->gateway?->currency); ?></td>
                             <td data-label="<?php echo app('translator')->get('Charge'); ?>" class="text-success"><?php echo e(getAmount($fund->charge)); ?>
 
-                                <?php echo e($fund->gateway->currency); ?></td>
+                                <?php echo e($fund->gateway?->currency); ?></td>
                             <td data-label="<?php echo app('translator')->get('Payable'); ?>" class="font-weight-bold">
-                                <?php echo e(getAmount($fund->amount) - getAmount($fund->charge)); ?> <?php echo e($fund->gateway->currency); ?>
+                                <?php echo e(getAmount($fund->amount) - getAmount($fund->charge)); ?> <?php echo e($fund->gateway?->currency); ?>
 
                             </td>
 
@@ -199,7 +199,7 @@
                                 <span class="badge <?php echo e($classColor); ?>"><i class="fa fa-circle text-white font-12"></i>
                                     <?php echo app('translator')->get('Completed'); ?></span>
                                 <br>
-                                <span class="<?php echo e($classColor); ?>"><?php echo e(optional($fund->payment)->e_wallet_phone_number); ?></span>
+                                <span class="<?php echo e($classColor); ?>"><?php echo e($fund->e_wallet_phone_number); ?></span>
                                 <?php elseif($fund->status == "Reject"): ?>
                                 <span class="badge bg-danger"><i class="fa fa-circle text-white danger font-12"></i>
                                     <?php echo app('translator')->get('Rejected'); ?></span>

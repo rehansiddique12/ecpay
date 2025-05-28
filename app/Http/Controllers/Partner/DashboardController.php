@@ -6,7 +6,7 @@ use Illuminate\Support\Carbon;
 use App\Models\PartnerLog;
 use App\Models\Api;
 use App\Models\Payout;
-use App\Models\payment;
+use App\Models\Payment;
 use App\Models\Commission;
 use App\Models\Settlement;
 use App\Models\Subscriber;
@@ -108,7 +108,7 @@ class DashboardController extends Controller
 
 
 
-        $payments = Payment::where('status', '!=', 0)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+        $payments = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)->first();
         $transection_data['total_payment_count'] = $payments->fund_count;
         $transection_data['total_payment_sum'] = round($payments->fund_sum, 2);

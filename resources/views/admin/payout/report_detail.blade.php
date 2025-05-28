@@ -97,7 +97,7 @@
 
                             </td>
                             <td data-label="@lang('Method')">{{ $item->user_account_no }}</td>
-                            <td>{{ optional($item->gateway)->name }}</td>
+                            <td>{{ $item->e_wallet_name }}</td>
                             <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($item->amount ) }} {{
                                 $basic->currency_symbol }}</td>
                             <td data-label="@lang('Charge')" class="text-success">{{ getAmount($item->charge,2) }}

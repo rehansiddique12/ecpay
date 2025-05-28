@@ -106,35 +106,37 @@
 
                             </td>
 
-                            <td><?php echo e($item->name); ?></td>
+                            <td><?php echo e($item->e_wallet_name); ?></td>
                             <td data-label="<?php echo app('translator')->get('Amount'); ?>"
                                 class="font-weight-bold"><?php echo e(getAmount($item->amount )); ?> <?php echo e($basic->currency_symbol); ?></td>
                             <td data-label="<?php echo app('translator')->get('Charge'); ?>"
                                 class="text-success"><?php echo e($item->charge); ?> <?php echo e($basic->currency_symbol); ?></td>
 
                             <td data-label="<?php echo app('translator')->get('Net Amount'); ?>"
-                                class="font-weight-bold"><?php echo e(getAmount($item->net_amount)); ?> <?php echo e($basic->currency_symbol); ?></td>
+                                class="font-weight-bold"><?php echo e(getAmount($item->amount + $item->charge)); ?> <?php echo e($basic->currency_symbol); ?></td>
 
                             <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-lg-center text-right">
-                                <?php if($item->status == 2): ?>
+                                <?php if($item->transfer_status == 2): ?>
                                     <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> <?php echo app('translator')->get('Request Approved'); ?></span>
-                                <?php elseif($item->status == 1): ?>
+                                <?php elseif($item->transfer_status == 1): ?>
                                     <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> <?php echo app('translator')->get('Request Pending'); ?></span>
-                                <?php elseif($item->status == 3): ?>
+                                <?php elseif($item->transfer_status == 3): ?>
                                     <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> <?php echo app('translator')->get('Request Rejected'); ?></span>
                                 <?php endif; ?>
                                 <br>
-                                <?php if($item->payout): ?>
-                                <?php if($item->payout->status == "Complete"): ?>
+                                
+                            </td>
+                            <td data-label="<?php echo app('translator')->get('Method'); ?>">
+                                <?php if($item->status == "Complete"): ?>
                                     <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> <?php echo app('translator')->get('Transfered'); ?></span>
-                                <?php elseif($item->payout->status == "Pending"): ?>
-                                    <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> <?php echo app('translator')->get('Transfer Pending'); ?></span>
-                                <?php elseif($item->payout->status == "Reject"): ?>
-                                    <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> <?php echo app('translator')->get('Transfer Rejected'); ?></span>
-                                <?php endif; ?>
+                                <?php elseif($item->status == "Reject"): ?>
+                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> <?php echo app('translator')->get('Transfer Rejected'); ?></span>
+                                <?php else: ?>
+
+                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> <?php echo app('translator')->get('Transfer Pending'); ?></span>
+                                    
                                 <?php endif; ?>
                             </td>
-                            <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($item->status); ?></td>
                             <td data-label="<?php echo app('translator')->get('Method'); ?>">
                                 <?php echo e($item->e_wallet_phone_number); ?>
 

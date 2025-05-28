@@ -313,6 +313,29 @@ class PaymentController extends Controller
         return $data;
     }
 
+
+    public function checkBalance(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        if ($api_key) {
+            $response = [
+                'balance' => number_format($api_key->balance, 2, '.', ''),
+            ];
+                    return response()->json($response);
+        }
+
+        return response()->json(['message' => 'API not Found'], 404);
+
+    }
+
     public function uploadReceipt(Request $request)
     {
         // dd($request->all());

@@ -130,12 +130,12 @@
                                     <td><?php echo e($item->charges); ?></td>
                                     <td><?php echo e($item->net_amount); ?></td>
                                     <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-lg-center text-right">
-                                        <?php if($item->status == 2): ?>
+                                        <?php if($item->transfer_status == 2): ?>
                                         <span class="badge  bg-danger">
                                             
                                             <?php echo app('translator')->get('Rejected'); ?>
                                         </span>
-                                        <?php elseif($item->status == 1): ?>
+                                        <?php elseif($item->transfer_status == 1): ?>
                                         <span class="badge bg-success">
                                             
                                             <?php echo app('translator')->get('Approved'); ?></span>

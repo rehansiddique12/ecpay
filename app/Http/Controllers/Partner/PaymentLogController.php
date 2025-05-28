@@ -105,88 +105,52 @@ class PaymentLogController extends Controller
             
 
         if(isset($search['export'])) {
-            $exportFunds = Payment::where('status', '!=', 0)
-                ->where('api_id', $api_id)
-                ->when($search['name'], function ($query) use ($search) {
-                    $query->whereHas('user', function ($subQuery) use ($search) {
-                        $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
-                            ->orWhere('email', 'like', '%' . $search['name'] . '%')
-                            ->orWhere('username', 'like', '%' . $search['name'] . '%');
-                    });
-                })
-                ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
-                    $fromDate = Carbon::parse($search['from_date']);
-                    $toDate = Carbon::parse($search['to_date'])->setSecond(59);
-                    return $query->where('created_at', '>=', $fromDate)
-                                ->where('created_at', '<=', $toDate);
-                })
-                ->when($search['partner_transection_id'], function ($query) use ($search) {
-                    $query->where(function ($subQuery) use ($search) {
-                        $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
-                            ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
-                    });
-                })
-                ->when($search['status'] != 4, function ($query) use ($search) {
-                    if ($search['status'] == 99) {
-                        $query->where('status', 2)
-                              ->where('created_at', '<', Carbon::now()->subMinutes(10));
-                    } else if ($search['status'] == 2) {
-                        $query->where('status', 2)
-                              ->where('created_at', '>=', Carbon::now()->subMinutes(10));
-                    } else {
-                        $query->where('status', $search['status']);
-                    }
-                })
-                ->when($request->account_no, function ($query) use ($request) {
-                    $query->where('account_no', 'LIKE', "%{$request->account_no}%");
-                })
-                ->when($request->gateway, function ($query) use ($request) {
-                    $query->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
-                })
-                ->orderBy('id', 'DESC')
-                ->with('user', 'gateway')
+            $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
+        ->where('api_id', $api_id)
+        ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+            $fromDate = Carbon::parse($search['from_date']);
+            $toDate = Carbon::parse($search['to_date'])->setSecond(59);
+            return $query->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate);
+        })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+           
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
                 ->get();
 
-            $data[] = ['Date', 'System Generated Txn', 'Partner Txn', 'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Status', 'E-Wallet-No', 'Website', 'Source', 'Completed-At'];
-            foreach($exportFunds as $fund) {
-                $partner_transection_id = ($fund->partner_transection_id!=0) ? $fund->partner_transection_id : '';
-                $user_name = "";
-                $user_type = "";
-                if(optional($fund->user)->username!="dummyuser") {
-                    $user_name = optional($fund->user)->username;
-                    $user_type = "User";
-                } else {
+                $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'User ID' ,'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Status', 'E-Wallet-No', 'Website', 'Source', 'Completed-At'];
+                foreach ($funds as $fund) {
+                    // dd($fund);
+                    $partner_transection_id = ($fund->partner_transection_id != 0) ? $fund->partner_transection_id : '';
+                    // $user_name = "";
+                    // $user_type = "";
                     $user_name = optional($fund->api)->name;
                     $user_type = optional($fund->api)->acc_type;
-                }
-                $status = "Pending";
-                if($fund->status == 2) {
                     $status = "Pending";
-                } elseif($fund->status == 1) {
-                    $status = "Completed";
-                } elseif($fund->status == 3) {
-                    $status = "Rejected";
+                    if ($fund->status == "Pending") {
+                        $status = "Pending";
+                    } elseif ($fund->status == "Complete") {
+                        $status = "Completed";
+                    } elseif ($fund->status == "Reject") {
+                        $status = "Rejected";
+                    }
+    
+                    $data[] = [$fund->created_at, $fund->transaction, $fund->txn_id, $partner_transection_id, $fund->member_id  , $user_name, $user_type, optional($fund->gateway)->name, $fund->sender, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->amount + $fund->charge), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->request_source, $fund->updated_at];
                 }
-
-                $data[] = [
-                    $fund->created_at,
-                    $fund->transaction,
-                    $partner_transection_id,
-                    $user_name,
-                    $user_type,
-                    optional($fund->gateway)->name,
-                    $fund->account_no,
-                    getAmount($fund->amount),
-                    getAmount($fund->charge),
-                    getAmount($fund->final_amount),
-                    $status,
-                    $fund->e_wallet_phone_number,
-                    optional($fund->api)->website,
-                    $fund->source,
-                    $fund->created_at
-                ];
-            }
 
             $currentDateTime = date('d_F_Y_h_i_A');
             $csvFileName = "deposit_export_csv_$currentDateTime.csv";
@@ -229,7 +193,7 @@ class PaymentLogController extends Controller
                       ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
             })
             ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
-            ->paginate(config('basic.paginate'));
+            ->first();
 
         if (!empty($aggregates) && isset($aggregates[0]->amount_count)) {
             $fund_count = $aggregates[0]->amount_count;

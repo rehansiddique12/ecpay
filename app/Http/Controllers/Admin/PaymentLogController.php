@@ -140,9 +140,179 @@ class PaymentLogController extends Controller
         $search = $request->all();
         $fund_count = 0;
         $fund_sum = 0;
+        //$funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+
+        $from_date = $search['from_date'];
+        $to_date = $search['to_date'];
+
+        if($search['status']=="All"){
+            $search['status'] = "";
+        }
+
+
+        // dd($request->all());
+        //         exit;
+
+
+        // Aggregate totals (COUNT & SUM)
+        $fund_count = 0;
+        $fund_sum = 0;
+
+        if ($request->input('export') == 1) {
+            // dd('hello');
+            $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                            ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+        
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
+            ->get();
+
+
+
+            
+            
+
+                $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'User ID' ,'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Status', 'E-Wallet-No', 'Website', 'Source', 'Completed-At'];
+                foreach ($funds as $fund) {
+                    // dd($fund);
+                    $partner_transection_id = ($fund->partner_transection_id != 0) ? $fund->partner_transection_id : '';
+                    // $user_name = "";
+                    // $user_type = "";
+                    $user_name = optional($fund->api)->name;
+                    $user_type = optional($fund->api)->acc_type;
+                    $status = "Pending";
+                    if ($fund->status == "Pending") {
+                        $status = "Pending";
+                    } elseif ($fund->status == "Complete") {
+                        $status = "Completed";
+                    } elseif ($fund->status == "Reject") {
+                        $status = "Rejected";
+                    }
+    
+                    $data[] = [$fund->created_at, $fund->transaction, $fund->txn_id, $partner_transection_id, $fund->member_id  , $user_name, $user_type, optional($fund->gateway)->name, $fund->sender, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->amount + $fund->charge), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->request_source, $fund->updated_at];
+                }
+
+                
+    
+    
+                $currentDateTime = date('d_F_Y_h_i_A');
+                $csvFileName = "deposit_export_csv_$currentDateTime.csv";
+                $headers = array(
+                    "Content-type" => "text/csv",
+                    "Content-Disposition" => "attachment; filename=$csvFileName",
+                    "Pragma" => "no-cache",
+                    "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+                    "Expires" => "0"
+                );
+    
+                $callback = function () use ($data) {
+                    $file = fopen('php://output', 'w');
+                    foreach ($data as $row) {
+                        fputcsv($file, $row);
+                    }
+                    fclose($file);
+                };
+    
+                return response()->stream($callback, 200, $headers);
+                
+                
+
+
+                
+        }else{
+            $funds_t = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                            ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+            
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where('sender', 'LIKE', "%{$request->account_no}%")
+                    ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+            })
+            ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
+            ->paginate(config('basic.paginate'));
+
+            if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
+                $fund_count = $funds_t[0]->amount_count;
+                $fund_sum = round($funds_t[0]->amount_sum, 2);
+            }
+
+            // Paginated list of payments
+            $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                            ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+        
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
+            ->paginate(config('basic.paginate'));
+        }
+        
+
+
+        $pageTitle = "Search Payment Logs";
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains','from_date','to_date'));
+    }
+
+    public function reportSearchold(Request $request)
+    {
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)->get();
+        $search = $request->all();
+        $fund_count = 0;
+        $fund_sum = 0;
         $dateSearch = $request->date_time;
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
-// dd($search);
+        // dd($search);
         if ($request->input('export') == 1) {
             // dd('hello');
             $records = Payout::where('status', '!=', 0)
@@ -193,23 +363,23 @@ class PaymentLogController extends Controller
                 }
                 $status = "Pending";
                 $status2 = "Pending";
-                if ($item->status == 2) {
+                if ($item->transfer_status == 2) {
                     $status = "Approved";
-                } elseif ($item->status == 1) {
+                } elseif ($item->transfer_status == 1) {
                     $status = "Pending";
-                } elseif ($item->status == 3) {
+                } elseif ($item->transfer_status == 3) {
                     $status = "Rejected";
                 }
 
-                if ($item->payout->status == "Complete") {
+                if ($item->status == "Complete") {
                     $status2 = "Transfered";
-                } elseif ($item->payout->status == "Pending") {
+                } elseif ($item->status == "Pending") {
                     $status2 = "Transfer Pending";
-                } elseif ($item->payout->status == "Reject") {
+                } elseif ($item->status == "Reject") {
                     $status2 = "Transfer Rejected";
                 }
 
-                $data[] = [$item->created_at, $item->trx_id, optional($item->payout)->txn_id, optional($item->payout)->partner_transection_id, $user_name, $user_type, optional($item->method)->name, $item->user_account_no, getAmount($item->amount), optional($item->payout)->charge, getAmount($item->net_amount), $status, $status2, optional($item->payout)->e_wallet_phone_number, optional($item->payout)->source, optional($item->payout)->date_time];
+                $data[] = [$item->created_at, $item->trx_id, $item->txn_id, $item->partner_transection_id, $user_name, $user_type, $item->e_wallet_name, $item->user_account_no, getAmount($item->amount), $item->charge, getAmount($item->net_amount), $status, $status2, $item->e_wallet_phone_number, $item->source, $item->date_time];
             }
 
             $currentDateTime = date('d_F_Y_h_i_A');
@@ -1450,7 +1620,7 @@ class PaymentLogController extends Controller
                 // } elseif ($fund->status == 3) {
                 //     $status = "Rejected";
                 // }
-                $data[] = [$fund->created_at, $fund->transaction, optional($fund->payment)->txn_id, $partner_transection_id, $user_name, $user_type, optional($fund->gateway)->name, $fund->account_no, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->final_amount), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->source, optional($fund->payment)->updated_at];
+                $data[] = [$fund->created_at, $fund->transaction, $fund->txn_id, $partner_transection_id, $user_name, $user_type, optional($fund->gateway)->name, $fund->account_no, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->final_amount), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->source, $fund->updated_at];
             }
 
 

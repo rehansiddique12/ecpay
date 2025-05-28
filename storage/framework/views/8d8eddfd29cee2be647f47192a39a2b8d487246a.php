@@ -105,7 +105,7 @@
 
                             </td>
                             <td data-label="<?php echo app('translator')->get('Method'); ?>"><?php echo e($item->user_account_no); ?></td>
-                            <td><?php echo e(optional($item->gateway)->name); ?></td>
+                            <td><?php echo e($item->e_wallet_name); ?></td>
                             <td data-label="<?php echo app('translator')->get('Amount'); ?>" class="font-weight-bold"><?php echo e(getAmount($item->amount )); ?> <?php echo e($basic->currency_symbol); ?></td>
                             <td data-label="<?php echo app('translator')->get('Charge'); ?>" class="text-success"><?php echo e(getAmount($item->charge,2)); ?>
 
