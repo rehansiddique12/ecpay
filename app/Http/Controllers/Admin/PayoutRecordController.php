@@ -4127,6 +4127,8 @@ class PayoutRecordController extends Controller
             }
 
 
+            $payout->save();
+
             $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()

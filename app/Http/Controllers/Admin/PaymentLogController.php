@@ -16,20 +16,22 @@ use App\Models\EWalletLog;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
+use App\Models\CronCommission;
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use Illuminate\Validation\Rule;
+use App\Models\ParentCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
-use Illuminate\Support\Facades\Http;
 use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
-use App\Http\Controllers\Controller;
 
 class PaymentLogController extends Controller
 {
@@ -2484,9 +2486,22 @@ class PaymentLogController extends Controller
         $acc="01626821906";
         $type="Agent";
 
-        $this->directwebhookddd($source, $acc, $type);
+        // $this->directwebhookddd($source, $acc, $type);
 
-        exit;
+        $cron_commissions = ParentCommission::get();
+            foreach ($cron_commissions as $cron_commission) {
+                $new_commission = Commission::where('id', $cron_commission->commission_id)->first();
+                if($new_commission){
+
+
+                    $cron_commission->from_amount = $new_commission->from_amount;
+                    $cron_commission->to_amount = $new_commission->to_amount;
+                    $cron_commission->type = $new_commission->type;
+                    $cron_commission->gateway_id = $new_commission->gateway_id;
+                    $cron_commission->save();     
+                }
+                
+            }
     }
 
 

@@ -17,7 +17,7 @@
         $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
     ?>
 
-    
+
     <style>
         .hover:hover {
             background-color: #ffc000;
@@ -131,12 +131,11 @@
                     <div class="form-group mt-2">
                         <button type="submit" class="btn  btn-primary mt-2"><i
                                 class="icon-base ti tabler-search me-1"></i> <?php echo app('translator')->get('Search'); ?></button>
-                    </div>
-                    <div class="form-group mt-2">
-                        <a href="<?php echo e(route('admin.merchant_reports.export_by_logs', ['from_date' => $from_date])); ?>"
-                        class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="icon-base ti tabler-download me-1"></i> <?php echo app('translator')->get('Export'); ?>
-                     </a>
+                                <input type="hidden" name="export" id="exportInput" value="">
+
+                                <button type="submit" class="btn waves-effect waves-light btn-success" onclick="document.getElementById('exportInput').value = 1;">
+                                    <i class="fas fa-download"></i> <?php echo app('translator')->get('Export Data'); ?>
+                                </button>
                     </div>
                 </div>
                 
@@ -338,7 +337,7 @@
 
                                 <?php if(adminAccessRoute(config('role.payment_log.access.edit'))): ?>
                                     <td data-label="<?php echo app('translator')->get('Action'); ?>">
-                                        
+
 
                                         
                                         <button
@@ -476,7 +475,7 @@
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('put'); ?>
                     <div class="modal-body">
-                       
+
 
                         <div class="get-feedback">
 

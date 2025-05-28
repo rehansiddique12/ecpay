@@ -31,22 +31,41 @@ class PaymentLogController extends Controller
         $gateways = Gateway::where('status', 1)
             ->get();
 
+            $from_date = date('Y-m-d 00:00:00');
+            $to_date = date('Y-m-d H:i:s');
+            
+
         $user = Auth::guard('partner')->user();
         $main_admin = Api::where('type', 'Admin')->where('api_key', $user->api_key)->first();
         $website = $main_admin->website;
         $api_id = $main_admin->id;
 
+        
+
         $partnerTimezone = $main_admin->timezone;
+        $originalTimezone = $partnerTimezone;
+        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
+        $search['from_date'] = Carbon::parse($from_date, $originalTimezone)->setTimezone($targetTimezone);
+        $search['to_date'] = Carbon::parse($to_date, $originalTimezone)->setTimezone($targetTimezone);
+
+        $fromDate = Carbon::parse($search['from_date']);
+        $toDate = Carbon::parse($search['to_date'])->setSecond(59);
 
         $pageTitle = "Payment Report";
         $domains = Api::where('type', 'Admin')->get();
-        $funds = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','gateway.category:id,name'])
+        $funds = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)
+        ->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate)
+                        ->orderBy('id', 'DESC')->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','gateway.category:id,name'])
         ->paginate(config('basic.paginate'));
 
-        $funds_t = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        $funds_t = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)
+        ->where('created_at', '>=', $fromDate)
+                        ->where('created_at', '<=', $toDate)
+                        ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
         $fund_sum = round($funds_t->fund_sum, 2);
-        return view('partner.payment.report', compact('funds', 'pageTitle','domains','gateways','fund_count','fund_sum'));
+        return view('partner.payment.report', compact('funds', 'pageTitle','domains','gateways','fund_count','fund_sum','from_date','to_date'));
     }
 
     public function reportSearch(Request $request)
@@ -69,11 +88,16 @@ class PaymentLogController extends Controller
             $search['status'] = "";
         }
 
+        $from_date = $search['from_date'];
+        $to_date = $search['to_date'];
+
         $partnerTimezone = $main_admin->timezone;
         $originalTimezone = $partnerTimezone;
         $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
         $search['from_date'] = Carbon::parse($search['from_date'], $originalTimezone)->setTimezone($targetTimezone);
         $search['to_date'] = Carbon::parse($search['to_date'], $originalTimezone)->setTimezone($targetTimezone);
+
+        
 
 
         
@@ -241,7 +265,7 @@ class PaymentLogController extends Controller
             ->paginate(config('basic.paginate'));
             
             $pageTitle = "Search Payment Logs";
-            return view('partner.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum'));
+            return view('partner.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum','from_date','to_date'));
         }
     }
 
