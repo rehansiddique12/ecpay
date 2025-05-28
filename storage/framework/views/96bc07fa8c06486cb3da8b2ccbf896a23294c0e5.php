@@ -1,75 +1,83 @@
-<x-admin-layout :title="$pageTitle">
-    @push('styles')
-    @endpush
-    @php
+<?php if (isset($component)) { $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040 = $component; } ?>
+<?php $component = App\View\Components\AdminLayout::resolve(['title' => $pageTitle] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
+<?php $component->withName('admin-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(App\View\Components\AdminLayout::class))->getConstructor()): ?>
+<?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+    <?php $__env->startPush('styles'); ?>
+    <?php $__env->stopPush(); ?>
+    <?php
     $currentRoute = Route::currentRouteName();
-    @endphp
+    ?>
 
      <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <div class="row ">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
-                        @if(adminAccessRoute(config('role.account_management.access.view')))
+                        <?php if(adminAccessRoute(config('role.account_management.access.view'))): ?>
                         <div>
                             <button
-                                class="btn {{ $currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
+                                class="btn <?php echo e($currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.ewallet.accounts.details')); ?>" class="menu-link">
                                     <div data-i18n="Accounts List">Accounts List</div>
                                 </a>
                             </button>
                         </div>
-                        @endif
-                        @if(adminAccessRoute(config('role.account_management.access.add')))
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.account_management.access.add'))): ?>
                         <div>
                             <button
-                                class="btn {{ $currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.add_account') }}" class="menu-link">
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.add_account')); ?>" class="menu-link">
                                     <div data-i18n="Add Accounts">Add Accounts</div>
                                 </a>
                             </button>
                         </div>
-                        @endif
-                        @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.e_wallet_accounts.access.edit'))): ?>
                         <div>
                             <button
-                                class="btn {{ $currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.on_off_account') }}" class="menu-link">
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.on_off_account')); ?>" class="menu-link">
                                     <div data-i18n="Add Accounts">On/Off Accounts</div>
                                 </a>
                             </button>
                         </div>
-                        @endif
-                        @if(adminAccessRoute(config('role.account_group.access.view')))
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.account_group.access.view'))): ?>
                         <div>
                             <button
-                                class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.account_group') }}" class="menu-link">
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.account_group')); ?>" class="menu-link">
                                     <div data-i18n="Account Group">Account Group</div>
                                 </a>
                             </button>
                         </div>
-                        @endif
-                        @if(adminAccessRoute(config('role.gateways.access.view')))
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.gateways.access.view'))): ?>
                         <div>
                             <button
-                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.gateway')); ?>" class="menu-link">
                                     <div data-i18n="Gateway">Gateway</div>
                                 </a>
                             </button>
                         </div>
-                        @endif
-                        @if(adminAccessRoute(config('role.categories.access.view')))
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.categories.access.view'))): ?>
                         <div>
                             <button
-                                class="btn {{ $currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : '' }}">
-                                <a href="{{ route('admin.account_management.add_category') }}" class="menu-link">
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.add_category')); ?>" class="menu-link">
                                     <div data-i18n="Add Category">Categories</div>
                                 </a>
                             </button>
                         </div>
-                        @endif
+                        <?php endif; ?>
 
 
                     </div>
@@ -83,7 +91,7 @@
         <div class="card-body">
             <div class="">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                    <h3 style="color: #7367f0"><?php echo e($pageTitle); ?></h3>
 
                 </div>
                 <div class="mb-3"> <button type="button" class="btn btn-primary" id="newCategoryButton">
@@ -107,9 +115,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($records as $key => $item)
+                            <?php $__empty_1 = true; $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <td>
-                                {{ $item['e_wallet_name'] }}
+                                <?php echo e($item['e_wallet_name']); ?>
+
 
                             </td>
                             <!-- For Account Status -->
@@ -118,11 +127,12 @@
                                 <div class="d-flex align-items-center justify-content-center">
                                     <div class="form-check form-switch m-0">
                                         <input type="checkbox" class="form-check-input toggle-status"
-                                            id="toggle_{{ $item['id'] }}" data-id="{{ $item['id'] }}" data-type="status"
-                                            {{ in_array($item->status, ['1', 1, true]) ? 'checked' : '' }}>
+                                            id="toggle_<?php echo e($item['id']); ?>" data-id="<?php echo e($item['id']); ?>" data-type="status"
+                                            <?php echo e(in_array($item->status, ['1', 1, true]) ? 'checked' : ''); ?>>
                                     </div>
-                                    <label for="toggle_{{ $item['id'] }}" class="ms-2 mb-0 fw-bold">
-                                        {{ in_array($item->status, ['1', 1, true]) ? 'On' : 'Off' }}
+                                    <label for="toggle_<?php echo e($item['id']); ?>" class="ms-2 mb-0 fw-bold">
+                                        <?php echo e(in_array($item->status, ['1', 1, true]) ? 'On' : 'Off'); ?>
+
                                     </label>
                                 </div>
                             </td>
@@ -132,12 +142,13 @@
                                 <div class="d-flex align-items-center justify-content-center">
                                     <div class="form-check form-switch m-0">
                                         <input type="checkbox" class="form-check-input deposit_action_type_toggle"
-                                            data-id="{{ $item->id }}" data-type="deposit"
-                                            id="deposit-toggle_{{ $item->id }}" {{ in_array($item->account_type,
-                                        ['Deposit', 'Both']) ? 'checked' : '' }}>
+                                            data-id="<?php echo e($item->id); ?>" data-type="deposit"
+                                            id="deposit-toggle_<?php echo e($item->id); ?>" <?php echo e(in_array($item->account_type,
+                                        ['Deposit', 'Both']) ? 'checked' : ''); ?>>
                                     </div>
-                                    <label for="deposit-toggle_{{ $item->id }}" class="ms-2 mb-0 fw-bold">
-                                        {{ in_array($item->account_type, ['Deposit', 'Both']) ? 'On' : 'Off' }}
+                                    <label for="deposit-toggle_<?php echo e($item->id); ?>" class="ms-2 mb-0 fw-bold">
+                                        <?php echo e(in_array($item->account_type, ['Deposit', 'Both']) ? 'On' : 'Off'); ?>
+
                                     </label>
                                 </div>
                             </td>
@@ -147,19 +158,20 @@
                                 <div class="d-flex align-items-center justify-content-center">
                                     <div class="form-check form-switch m-0">
                                         <input type="checkbox" class="form-check-input withdraw_action_type_toggle"
-                                            data-id="{{ $item->id }}" data-type="withdrawal"
-                                            id="withdrawal-toggle_{{ $item->id }}" {{ in_array($item->account_type,
-                                        ['Withdrawal', 'Both']) ? 'checked' : '' }}>
+                                            data-id="<?php echo e($item->id); ?>" data-type="withdrawal"
+                                            id="withdrawal-toggle_<?php echo e($item->id); ?>" <?php echo e(in_array($item->account_type,
+                                        ['Withdrawal', 'Both']) ? 'checked' : ''); ?>>
                                     </div>
-                                    <label for="withdrawal-toggle_{{ $item->id }}" class="ms-2 mb-0 fw-bold">
-                                        {{ in_array($item->account_type, ['Withdrawal', 'Both']) ? 'On' : 'Off' }}
+                                    <label for="withdrawal-toggle_<?php echo e($item->id); ?>" class="ms-2 mb-0 fw-bold">
+                                        <?php echo e(in_array($item->account_type, ['Withdrawal', 'Both']) ? 'On' : 'Off'); ?>
+
                                     </label>
                                 </div>
                             </td>
 
 
                             <td class="text-center">
-                                <input type="checkbox" name="checkbox_{{ $item->id }}" value="{{ $item->id }}">
+                                <input type="checkbox" name="checkbox_<?php echo e($item->id); ?>" value="<?php echo e($item->id); ?>">
                             </td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm">
@@ -168,28 +180,29 @@
                             </td>
 
                             </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark"><?php echo app('translator')->get('No Data Found'); ?></p>
                                 </td>
                             </tr>
 
-                            @endforelse
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
                 <div class="card-footer">
-                    {{ $records->appends($_GET)->links('partials.pagination') }}
+                    <?php echo e($records->appends($_GET)->links('partials.pagination')); ?>
+
                 </div>
             </div>
         </div>
     </div>
 
 
-    @push('js')
+    <?php $__env->startPush('js'); ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
+    <script src="<?php echo e(asset('assets/DataTables/datatables.min.js')); ?>"></script>
     <script>
         $(document).ready(function () {
             $(".deposit_action_type_toggle, .withdraw_action_type_toggle").on("change", function () {
@@ -207,9 +220,9 @@
                     account_type = "";
                 }
                 $.ajax({
-                    url: "{{ route('admin.wallet.updateAccountType') }}",
+                    url: "<?php echo e(route('admin.wallet.updateAccountType')); ?>",
                     method: "POST",
-                    data: { _token: "{{ csrf_token() }}", id: id, account_type: account_type },
+                    data: { _token: "<?php echo e(csrf_token()); ?>", id: id, account_type: account_type },
                     success: function (response) {
                     if(response.success){
                         alert(response.message);
@@ -226,10 +239,10 @@
                 let status = $(this).is(':checked') ? 1 : 0;
 
                 $.ajax({
-                    url: '{{ route("admin.ewallet-account.toggleStatus") }}',
+                    url: '<?php echo e(route("admin.ewallet-account.toggleStatus")); ?>',
                     method: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _token: '<?php echo e(csrf_token()); ?>',
                         id: accountId,
                         status: status
                     },
@@ -251,5 +264,11 @@
 
 
 
-    @endpush
-</x-admin-layout>
+    <?php $__env->stopPush(); ?>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040)): ?>
+<?php $component = $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040; ?>
+<?php unset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040); ?>
+<?php endif; ?>
+<?php /**PATH C:\xampp\htdocs\ecpay\resources\views/admin/accounts/on_off_account.blade.php ENDPATH**/ ?>

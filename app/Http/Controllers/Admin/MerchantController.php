@@ -6,7 +6,7 @@ use App\Models\Log;
 use App\Models\ApiLog;
 use App\Models\Payout;
 use App\Models\Payment;
-use App\Models\CCategory;
+use App\Models\Category;
 use App\Models\Commission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -22,13 +22,13 @@ class MerchantController extends Controller
 {
     $pageTitle = "Merchants Profile";
     $data = Api::findOrFail($id);
-    
+
     $MCommissions= Commission::where('category_id',$data->category_id)->get();
     $ids = $MCommissions->pluck('id')->toArray();
 
     $PartnerCommission= ParentCommission::with('partner')->where('user_id',$id)->whereIn('commission_id',$ids)->get();
-    
-    $categories = CCategory::where('status',1)->get();
+
+    $categories = Category::where('status',1)->get();
     $payments = Payment::selectRaw(
         'DATE(created_at) as completion_date,
          api_id,
