@@ -78,8 +78,6 @@ class LoginController extends Controller
                                 $thirtyDaysAgo = Carbon::now()->subDays(30);
                                 PartnerLog::where('created_at', '<', $thirtyDaysAgo)->delete();
 
-
-
                                 return redirect()->intended(route('partner.dashboard'));
                             }else{
                                 return redirect()->route('partner.login')
@@ -97,14 +95,14 @@ class LoginController extends Controller
 
         if(Auth::guard('partner')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
-                                $ipAddress = $_SERVER['REMOTE_ADDR'];
-                                $user = Auth::guard('partner')->user();
+            $ipAddress = $_SERVER['REMOTE_ADDR'];
+            $user = Auth::guard('partner')->user();
 
-                                $partnerlog = new PartnerLog();
-                                $partnerlog->api_id = $user->id;
-                                $partnerlog->log = "Login Successfully";
-                                $partnerlog->ip_address = $ipAddress;
-                                $partnerlog->save();
+            $partnerlog = new PartnerLog();
+            $partnerlog->api_id = $user->id;
+            $partnerlog->log = "Login Successfully";
+            $partnerlog->ip_address = $ipAddress;
+            $partnerlog->save();
 
 
             return redirect()->intended(route('partner.dashboard'));
