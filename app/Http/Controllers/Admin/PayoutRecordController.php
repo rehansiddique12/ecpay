@@ -4082,17 +4082,15 @@ class PayoutRecordController extends Controller
                 }
             }
 
-            $pending_payout_ids = Payout::where('api_id', $api_key->id)
-                ->where('status', 'Pending')
-                ->pluck('id');
+            
 
 
-            $previous_pending = Payout::where('api_id', $api_key->id)
-                ->where(function ($query) use ($pending_payout_ids) {
-                    $query->where('status', 'Pending')
-                        ->orWhere(function ($subQuery) use ($pending_payout_ids) {
-                            $subQuery->where('status', 'Complete')
-                                ->whereIn('id', $pending_payout_ids);
+                $previous_pending = Payout::where('api_id', $api_key->id)
+                ->where(function($query) {
+                    $query->where('transfer_status', 1)
+                        ->orWhere(function($subQuery) {
+                            $subQuery->where('transfer_status', 2)
+                                    ->where('status', 'Pending');
                         });
                 })
                 ->sum('amount');

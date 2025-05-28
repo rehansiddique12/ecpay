@@ -3334,20 +3334,18 @@ class PayoutRecordController extends Controller
             return back();
         }
 
+        
 
-        $pending_payout_ids = Payout::where('api_id', $open_user->id)
-                ->where('status', 'Pending')
-                ->pluck('id');
-
-            $previous_pending = Payout::where('api_id', $open_user->id)
-                ->where(function ($query) use ($pending_payout_ids) {
-                    $query->whereIn('status', [0, 1])
-                        ->orWhere(function ($subQuery) use ($pending_payout_ids) {
-                            $subQuery->where('status', 2)
-                                    ->whereIn('id', $pending_payout_ids);
-                        });
-                })
-                ->sum('amount');
+        $previous_pending = Payout::where('api_id', $open_user->id)
+        ->where(function($query) {
+            $query->where('transfer_status', 1)
+                  ->orWhere(function($subQuery) {
+                      $subQuery->where('transfer_status', 2)
+                               ->where('status', 'Pending');
+                  });
+        })
+        ->sum('amount');
+    
 
 
 
@@ -4171,16 +4169,12 @@ public function settlementSearch(Request $request)
 
         $PhoneNumber = "";
 
-        $pending_payout_ids = Payout::where('api_id', $open_user->id)
-                ->where('status', 'Pending')
-                ->pluck('id');
-
-            $previous_pending = Payout::where('api_id', $open_user->id)
-                ->where(function ($query) use ($pending_payout_ids) {
-                    $query->whereIn('transfer_status', [0, 1])
-                        ->orWhere(function ($subQuery) use ($pending_payout_ids) {
+                $previous_pending = Payout::where('api_id', $open_user->id)
+                ->where(function($query) {
+                    $query->where('transfer_status', 1)
+                        ->orWhere(function($subQuery) {
                             $subQuery->where('transfer_status', 2)
-                                    ->whereIn('id', $pending_payout_ids);
+                                    ->where('status', 'Pending');
                         });
                 })
                 ->sum('amount');

@@ -364,7 +364,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/payout-request', [PayoutRecordController::class, 'request'])->name('payout-request');
         Route::put('/payout-action/{id}', [PayoutRecordController::class, 'action'])->name('payout-action');
 
-        Route::get('makeatest', [PaymentLogController::class, 'makeatest'])->name('makeatest');
+        Route::get('makeatest/{id?}', [PaymentLogController::class, 'makeatest'])->name('makeatest');
 
         Route::get('payment/apiLog', [PaymentLogController::class, 'apiLog'])->name('payment.apiLog');
         Route::get('payment/apisearch', [PaymentLogController::class, 'apisearch'])->name('payment.apisearch');

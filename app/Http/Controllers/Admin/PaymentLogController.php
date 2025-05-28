@@ -30,6 +30,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
 use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
 
@@ -2676,27 +2677,63 @@ class PaymentLogController extends Controller
     }
 
 
-    public function makeatest(Request $request){
+    public function makeatest($id=0){
         $source = "Rocket";
         $acc="01626821906";
         $type="Agent";
 
         // $this->directwebhookddd($source, $acc, $type);
 
-        $cron_commissions = ParentCommission::get();
-            foreach ($cron_commissions as $cron_commission) {
-                $new_commission = Commission::where('id', $cron_commission->commission_id)->first();
-                if($new_commission){
+            // $cron_commissions = ParentCommission::get();
+            // foreach ($cron_commissions as $cron_commission) {
+            //     $new_commission = Commission::where('id', $cron_commission->commission_id)->first();
+            //     if($new_commission){
 
 
-                    $cron_commission->from_amount = $new_commission->from_amount;
-                    $cron_commission->to_amount = $new_commission->to_amount;
-                    $cron_commission->type = $new_commission->type;
-                    $cron_commission->gateway_id = $new_commission->gateway_id;
-                    $cron_commission->save();     
-                }
+            //         $cron_commission->from_amount = $new_commission->from_amount;
+            //         $cron_commission->to_amount = $new_commission->to_amount;
+            //         $cron_commission->type = $new_commission->type;
+            //         $cron_commission->gateway_id = $new_commission->gateway_id;
+            //         $cron_commission->save();     
+            //     }
+                
+            // }
+
+
+            $previousapiid = $id;
+
+            echo $id;
+
+            // if (!Session::has('previousid')) {
+            //     Session::put('previousid', 10);
+            //     $previousapiid = 10;
+            // } else {
+            //     $previousapiid = Session::get('previousid');
+            // }
+
+            // dd(Session::all());
+
+
+            sleep(2);
+
+            $PendingPayments = PendingPayment::select('id','txn_id')->where('id', '>=', $previousapiid)->limit(5)->get();
+            foreach ($PendingPayments as $PendingPayment) {
+                $previousapiid = $PendingPayment->id;
+
+                // $payment = Payment::select('id','txn_id')->where('txn_id', $PendingPayment->txn_id)->first();
+                // if($payment){
+                //     $PendingPayment->status = 1;
+                //     $PendingPayment->save();     
+                // }
                 
             }
+
+
+            return redirect()->route('admin.makeatest', ['id' => $previousapiid]);
+
+
+
+            exit;
     }
 
 
