@@ -453,7 +453,7 @@
                                                 @endif
 
                                             </td>
-                                            <td>{{ optional($item->method)->name }}</td>
+                                            <td>{{ $item->e_wallet_name }}</td>
                                             <td>{{ $item->user_account_no }}</td>
                                             <td data-label="@lang('Amount')"
                                                 class="font-weight-bold">{{ getAmount($item->amount,2 ) }} {{$basic->currency_symbol}}</td>
@@ -461,7 +461,7 @@
                                                 class="text-success">{{ getAmount($item->charge,2) }} {{$basic->currency_symbol}}</td>
 
                                             <td data-label="@lang('Net Amount')"
-                                                class="font-weight-bold">{{ getAmount($item->net_amount,2) }} {{$basic->currency_symbol}}</td>
+                                                class="font-weight-bold">{{ getAmount($item->amount + $item->charge,2) }} {{$basic->currency_symbol}}</td>
 
                                             <td data-label="@lang('Status')" class="text-lg-center text-right">
                                                 @if($item->transfer_status == 2)

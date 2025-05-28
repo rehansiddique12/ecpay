@@ -379,7 +379,7 @@ class PaymentLogController extends Controller
                     $status2 = "Transfer Rejected";
                 }
 
-                $data[] = [$item->created_at, $item->trx_id, $item->txn_id, $item->partner_transection_id, $user_name, $user_type, $item->e_wallet_name, $item->user_account_no, getAmount($item->amount), $item->charge, getAmount($item->net_amount), $status, $status2, $item->e_wallet_phone_number, $item->source, $item->date_time];
+                $data[] = [$item->created_at, $item->trx_id, $item->txn_id, $item->partner_transection_id, $user_name, $user_type, $item->e_wallet_name, $item->user_account_no, getAmount($item->amount), $item->charge, getAmount($item->amount + $item->charge), $status, $status2, $item->e_wallet_phone_number, $item->source, $item->date_time];
             }
 
             $currentDateTime = date('d_F_Y_h_i_A');
@@ -798,6 +798,7 @@ class PaymentLogController extends Controller
                 if (empty($request->txn_id)) {
                     $request->txn_id = "none";
                     $payment = PendingPayment::where('e_wallet_name', $data->gateway->code)
+                    ->where('status', 0)
                         ->where('amount', $data->amount)
                         ->where('sender', $data->account_no)
                         ->whereDate('date', '=', $formattedDate)
@@ -816,13 +817,23 @@ class PaymentLogController extends Controller
                         throw new \Exception("This Payment Already Completed.");
                     }
 
-                    $payment = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
+                    $payment = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->first();
                     if ($payment) {
                         if ($payment->amount != $data->amount) {
                             throw new \Exception("Wrong TXN.");
                         }
                     }
                 }
+
+
+                if($payment){
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        throw new \Exception("By This Txn no, Payment Already Completed.");
+                    }
+                }
+                    
 
                 if (!$payment) {
                     // $payment = new Payment();
@@ -845,6 +856,10 @@ class PaymentLogController extends Controller
                     $data->e_wallet_charges = $payment->e_wallet_charges;
                     $data->payment_received_at = $payment->created_at;
 
+
+                    $payment->status = 1;
+                    $payment->save();
+                    $payment=null;
                     // $payment->delete();
                 }
                 $payment=$data;
@@ -1786,9 +1801,15 @@ class PaymentLogController extends Controller
 
 
                 DB::beginTransaction();
-                $payment_record = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->lockForUpdate()->first();
+                $payment_record = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->lockForUpdate()->first();
                 if (!$payment_record) {
                     return response()->json(['message' => 'Please Wait! Your Payment is Processing.']);
+                }else{
+                    $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        return response()->json(['message' => 'By This Txn no, Payment Already Completed.']);
+                    }
                 }
 
                 $currentMonth = now()->format('Y-m');
@@ -1896,6 +1917,9 @@ class PaymentLogController extends Controller
                     $order->payment_received_at = $payment_record->created_at;
 
 
+                    $payment_record->status = 1;
+                    $payment_record->save();
+                    $payment_record=null;
                     // $payment_record->delete();
                     $order->save();
 
@@ -2174,6 +2198,7 @@ class PaymentLogController extends Controller
                     return response()->json(['message' => 'Payment Already Added']);
                 }else{
                     $payment_record = PendingPayment::where('e_wallet_name', $request->e_wallet_name)
+                    ->where('status', 0)
                         ->where('amount', $request_amount)
                         ->where('sender', $request->sender)
                         ->where('date_time', '=', $formattedDateTime)
@@ -2190,7 +2215,7 @@ class PaymentLogController extends Controller
                     DB::rollBack();
                     return response()->json(['message' => 'Payment Already Added']);
                 }else{
-                    $payment_record = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
+                    $payment_record = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->first();
                     if ($payment_record) {
                         DB::rollBack();
                         return response()->json(['message' => 'Payment Already Added']);

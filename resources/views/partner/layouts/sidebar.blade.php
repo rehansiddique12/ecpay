@@ -369,13 +369,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
 
-                        <li
+                        {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['partner.payment.report.daily', 'partner.payment.report.daily.search']) ? 'active' : '' }}">
                             <a href="{{ route('partner.payment.report.daily') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                 <div data-i18n="Daily Deposit Report">Daily Deposit Report</div>
                             </a>
-                        </li>
+                        </li> --}}
 
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'partner.payout-request' ? 'active' : '' }}">
@@ -394,13 +394,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
 
 
-                        <li
+                        {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['partner.payout.report.daily', 'partner.payout.report.daily.search']) ? 'active' : '' }}">
                             <a href="{{ route('partner.payout.report.daily') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                 <div data-i18n="Daily Withdrawal Report">Daily Withdrawal Report</div>
                             </a>
-                        </li>
+                        </li> --}}
 
                     </ul>
                 </li>

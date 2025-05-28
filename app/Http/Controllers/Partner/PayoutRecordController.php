@@ -292,6 +292,7 @@ class PayoutRecordController extends Controller
             if ($fund && $user->txn_verification==0) {
                 $order = Payment::where('id', $fund['id'])->first();
                 $payment = PendingPayment::where('e_wallet_name', $gate->code)
+                ->where('status', 0)
                     ->where('amount', $fund['amount'])
                     ->where('sender', $fund['account_no'])
                     ->where('created_at', '>=', Carbon::now()->subHours(2))
@@ -299,6 +300,7 @@ class PayoutRecordController extends Controller
                     ->first();
                     if(!$payment){
                         $payment = PendingPayment::where('e_wallet_name', $gate->code)
+                        ->where('status', 0)
                         ->where('amount', $fund['amount'])
                         ->where('sender', 'LIKE', substr($fund['account_no'], 0, 4) . '%')
                         ->where('sender', 'LIKE', '%' . substr($fund['account_no'], -3))
@@ -312,6 +314,13 @@ class PayoutRecordController extends Controller
                         }
                     }
                 if ($payment) {
+
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        return response()->json(['error' => 'By This Txn no, Payment Already Completed.']);
+                    }
+
                     $net_amount = $reqAmount - $charge;
                     $open_user->balance += $net_amount;
                     $open_user->save();
@@ -347,6 +356,10 @@ class PayoutRecordController extends Controller
                     $order->status = 'Complete';
                     $order->trans_complete_date = Carbon::now();
                     $order->completed_source = 'PartnerLink';
+
+                    $payment->status = 1;
+                    $payment->save();
+                    $payment=null;
                     // $payment->delete();
 
                     $order->api_id = $api_id;
@@ -991,12 +1004,19 @@ class PayoutRecordController extends Controller
 
 
 
-                    $payment_record = PendingPayment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
+                    $payment_record = PendingPayment::where('txn_id', $request->txn)->where('status', 0)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                     if (!$payment_record) {
                         $processing = 1;
                         $message = "Please Wait! Your Payment is Processing.";
                         DB::commit();
                         return view('partner.payout.paymentProcessingIframe', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url'));
+                    }else{
+                        $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
+                        if ($check_payment_txn) {
+                            DB::rollBack();
+                            $message = "By This Txn no, Payment Already Completed.";
+                            return view('partner.payout.paymentProcessingIframe', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url'));
+                        }
                     }
 
                     $charge = 0;
@@ -1099,6 +1119,9 @@ class PayoutRecordController extends Controller
                         // $order->account_no = $payment_record->sender;
                         // $order->payment_id = $payment_record->id;
 
+                        $payment_record->status = 1;
+                        $payment_record->save();
+                        $payment_record=null;
                         // $payment_record->delete();
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
@@ -1335,12 +1358,19 @@ class PayoutRecordController extends Controller
 
 
 
-        $payment_record = PendingPayment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
+        $payment_record = PendingPayment::where('txn_id', $request->txn)->where('status', 0)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
         if (!$payment_record) {
             $processing = 1;
             $message = "Please Wait! Your Payment is Processing.";
             DB::commit();
             return view('partner.payout.paymentProcessingIframe2', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url','txn_id'));
+        }else{
+            $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
+            if ($check_payment_txn) {
+                DB::rollBack();
+                $message = "By This Txn no, Payment Already Completed.";
+                return view('partner.payout.paymentProcessingIframe2', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url','txn_id'));
+            }
         }
 
 
@@ -1436,7 +1466,9 @@ class PayoutRecordController extends Controller
 
             $order->save();
 
-
+            $payment_record->status = 1;
+                        $payment_record->save();
+                        $payment_record=null;
         //    $payment_record->delete();
 
             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
@@ -1921,12 +1953,19 @@ class PayoutRecordController extends Controller
 
 
                     DB::beginTransaction();
-                    $payment_record = PendingPayment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
+                    $payment_record = PendingPayment::where('txn_id', $request->txn)->where('status', 0)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                     if (!$payment_record) {
                         $processing = 1;
                         $message = "Please Wait! Your Payment is Processing.";
                         DB::commit();
                         return view('partner.payout.paymentProcessingIframe2', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url','txn_id'));
+                    }else{
+                        $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
+                        if ($check_payment_txn) {
+                            DB::rollBack();
+                            $message = "By This Txn no, Payment Already Completed.";
+                            return view('partner.payout.paymentProcessingIframe2', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime','url','txn_id'));
+                        }
                     }
 
 
@@ -2016,6 +2055,10 @@ class PayoutRecordController extends Controller
 
 
                         $order->save();
+
+                        $payment_record->status = 1;
+                        $payment_record->save();
+                        $payment_record=null;
                         // $payment_record->delete();
 
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
@@ -2972,7 +3015,7 @@ class PayoutRecordController extends Controller
                     $status2 = "Transfer Rejected";
                 }
 
-                $data[] = [$item->created_at, $item->trx_id,$item->txn_id,$item->partner_transection_id,$user_name,$user_type,optional($item->method)->name,$item->user_account_no,getAmount($item->amount),$item->charge,getAmount($item->net_amount),$status,$status2,$item->e_wallet_phone_number,$item->source,$item->date_time];
+                $data[] = [$item->created_at, $item->trx_id,$item->txn_id,$item->partner_transection_id,$user_name,$user_type,$item->e_wallet_name,$item->user_account_no,getAmount($item->amount),$item->charge,getAmount($item->amount + $item->charge),$status,$status2,$item->e_wallet_phone_number,$item->source,$item->date_time];
             }
 
             $currentDateTime = date('d_F_Y_h_i_A');
@@ -3219,10 +3262,10 @@ class PayoutRecordController extends Controller
         $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
         $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
 
-        $records = Payout::where('status', 'like', '%' . $status . '%')
-        ->where('status', '!=', 0)
+        $records = Payout::where('transfer_status', 'like', '%' . $status . '%')
+        ->where('transfer_status', '!=', 0)
         ->orderBy('id', 'DESC')
-        ->with('user', 'gateway')
+        ->with('gateway')
         ->when($api_id, function ($query) use ($api_id) {
             $query->where('api_id', $api_id);
         })
@@ -3236,19 +3279,19 @@ class PayoutRecordController extends Controller
             return $fund;
         });
 
-    $funds_t = Payout::where('status', '!=', 0)
-        ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
-        ->where('status', 'like', '%' . $status . '%')
-        ->with('user', 'gateway')
-        ->when($api_id, function ($query) use ($api_id) {
-            $query->where('api_id', $api_id);
-        })
-        ->where('created_at', '>=', $from_date_to_search)
-        ->where('created_at', '<=', $to_date_to_search)
-        ->where('e_wallet_name', 'like', '%' . $gateway . '%')
-        ->first();
-        $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+    // $funds_t = Payout::where('status', '!=', 0)
+    //     ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
+    //     ->where('status', 'like', '%' . $status . '%')
+    //     ->with('user', 'gateway')
+    //     ->when($api_id, function ($query) use ($api_id) {
+    //         $query->where('api_id', $api_id);
+    //     })
+    //     ->where('created_at', '>=', $from_date_to_search)
+    //     ->where('created_at', '<=', $to_date_to_search)
+    //     ->where('e_wallet_name', 'like', '%' . $gateway . '%')
+    //     ->first();
+    //     $fund_count = $funds_t->fund_count;
+    //     $fund_sum = round($funds_t->fund_sum, 2);
 
         return response()->json($records);
     }
@@ -3799,11 +3842,17 @@ public function settlementSearch(Request $request)
                     $Txn->save();
                 }
 
-                $payment_record = PendingPayment::where('txn_id', $request->txn)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
+                $payment_record = PendingPayment::where('txn_id', $request->txn)->where('status', 0)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                 if (!$payment_record) {
                     DB::rollBack();
                     session()->put('txn_verified', 1);
                     return back()->with('success', 'Please Wait! Your Payment is Processing.');
+                }else{
+                    $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
+                        if ($check_payment_txn) {
+                            DB::rollBack();
+                            return back()->with('success', 'By This Txn no, Payment Already Completed.');
+                        }
                 }
 
                 $charge = 0;
@@ -3886,6 +3935,9 @@ public function settlementSearch(Request $request)
 
 
                         $order->save();
+                        $payment_record->status = 1;
+                        $payment_record->save();
+                        $payment_record=null;
                         // $payment_record->delete();
 
 
