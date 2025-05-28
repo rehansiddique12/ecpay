@@ -18,6 +18,7 @@ use App\Models\AccountGateway;
 use App\Models\EWalletAccount;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
@@ -34,26 +35,49 @@ class CategoryController extends Controller
 
         $today = Carbon::today();
 
-        $data['records'] = EWalletAccount::with([
-            'apiHits' => function ($query) {
-                $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-            },
-            'location',
-            'accountGroups.group'
-        ])
-        ->withCount(['payments as today_transaction_count' => function ($query) use ($today) {
-            $query->whereDate('created_at', $today)
-            ->where('status', 'Complete');
-        }])
-        ->withSum(['payments as today_total_deposit' => function ($query) use ($today) {
-            $query->whereDate('created_at', $today)
-            ->where('status', 'Complete');
-        }], 'amount')
-        ->paginate(1000);
+        // Payments Subquery
+        $paymentsSubQuery = DB::table('payments')
+            ->selectRaw('
+        e_wallet_phone_number,
+        COUNT(*) as today_transaction_count,
+        SUM(amount) as today_total_deposit
+    ')
+            ->whereDate('created_at', $today)
+            ->where('status', 'Complete')
+            ->groupBy('e_wallet_phone_number');
 
-        foreach ($data['records'] as $record) {
-            $record->live = $record->apiHits ? 1 : 0;
-        }
+        // Payouts Subquery
+        $payoutsSubQuery = DB::table('payouts')
+            ->selectRaw('
+        e_wallet_phone_number,
+        COUNT(*) as today_payout_count,
+        SUM(amount) as today_total_payout
+    ')
+            ->whereDate('created_at', $today)
+            ->where('status', 'Complete')
+            ->groupBy('e_wallet_phone_number');
+
+        $data['records'] = EWalletAccount::leftJoinSub($paymentsSubQuery, 'p', function ($join) {
+            $join->on('e_wallet_accounts.account_no', '=', 'p.e_wallet_phone_number');
+        })
+            ->leftJoinSub($payoutsSubQuery, 'po', function ($join) {
+                $join->on('e_wallet_accounts.account_no', '=', 'po.e_wallet_phone_number');
+            })
+            ->with([
+                'apiHits' => function ($query) {
+                    $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+                },
+                'location',
+                'accountGroups.group'
+            ])
+            ->select(
+                'e_wallet_accounts.*',
+                DB::raw('COALESCE(p.today_transaction_count, 0) as today_transaction_count'),
+                DB::raw('COALESCE(p.today_total_deposit, 0) as today_total_deposit'),
+                DB::raw('COALESCE(po.today_payout_count, 0) as today_payout_count'),
+                DB::raw('COALESCE(po.today_total_payout, 0) as today_total_payout')
+            )
+            ->paginate(1000);
 
         return view('admin.accounts.ewallet_accounts', $data);
     }
@@ -64,21 +88,21 @@ class CategoryController extends Controller
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
-        $users_locations=UserLocation::where('status' , 1)->get();
-        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations'));
+        $users_locations = UserLocation::where('status', 1)->get();
+        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods', 'groups', 'users_locations'));
     }
 
-    public function editAccount(Request $request , $id)
+    public function editAccount(Request $request, $id)
     {
         $pageTitle = 'Edit New Account';
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
-        $users_locations=UserLocation::where('status' , 1)->get();
+        $users_locations = UserLocation::where('status', 1)->get();
 
-        $e_wallet_account= EWalletAccount::findOfFail($id);
+        $e_wallet_account = EWalletAccount::findOfFail($id);
 
-        return view('admin.accounts.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account'));
+        return view('admin.accounts.edit_account', compact('pageTitle', 'categories', 'methods', 'groups', 'users_locations', 'e_wallet_account'));
     }
 
     public  function  addCategory(Request $request)
@@ -212,7 +236,7 @@ class CategoryController extends Controller
                 ->make(true);
         }
         $categories = Category::all();
-        return view('admin.accounts.add_gateway', compact('pageTitle' , 'categories'));
+        return view('admin.accounts.add_gateway', compact('pageTitle', 'categories'));
     }
 
 
@@ -249,8 +273,8 @@ class CategoryController extends Controller
     public function getAccountsByCategory($category_id)
     {
         $accounts = Gateway::where('category_id', $category_id)
-                        ->where('status', 1)
-                        ->get(['id', 'name', 'currency']);
+            ->where('status', 1)
+            ->get(['id', 'name', 'currency']);
 
         return response()->json($accounts);
     }
@@ -274,7 +298,7 @@ class CategoryController extends Controller
         $pageTitle = 'On/Off Account';
         $records = EWalletAccount::with(['apiHits' => function ($query) {
             $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        } ,'location' , 'accountGroups.group'])->paginate(1000);
+        }, 'location', 'accountGroups.group'])->paginate(1000);
 
         foreach ($records as $record) {
             $record->live = $record->apiHits ? 1 : 0;
@@ -285,8 +309,8 @@ class CategoryController extends Controller
     public function updateAccountType(Request $request)
     {
         $request->validate([
-        'id' => 'required|exists:e_wallet_accounts,id',
-        'account_type' => 'nullable|in:Deposit,Withdrawal,Both',
+            'id' => 'required|exists:e_wallet_accounts,id',
+            'account_type' => 'nullable|in:Deposit,Withdrawal,Both',
         ]);
         $wallet = EWalletAccount::findOrFail($request->id);
         $wallet->account_type = $request->account_type;

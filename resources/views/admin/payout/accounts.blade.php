@@ -58,17 +58,17 @@
                 <td>{{ $item['live_balance'] }}</td>
                 <td>{{ $item['type'] }} ( {{ $item['account_type'] }} )</td>
                 <td>
-                   {{$item['today_total_deposit'] ?? 0 }}  / {{$item['daily_limit']}}
+                   {{$item['today_total_deposit'] ? number_format($item['today_total_deposit'] , 2) : 0 }}  / {{$item['daily_limit']}}
                 </td>
                 <td>
-                    {{$item['daily_limit_withdrawal']}}
+                    {{$item['today_total_payout'] ? number_format($item['today_total_payout'] , 2) : 0 }} / {{$item['daily_limit_withdrawal']}}
                 </td>
 
                 <td>
                      {{$item['today_transaction_count']}}  / {{$item['daily_limit_transaction']}}
                 </td>
                 <td>
-                    {{$item['daily_limit_withdrawal_transaction']}}
+                   {{$item['today_payout_count']}} / {{$item['daily_limit_withdrawal_transaction']}}
                 </td>
                 <td class="text-center">
                     <div class="form-check form-switch">
@@ -76,7 +76,6 @@
                             $item->status == 1 ? 'checked' : '' }}>
                     </div>
                 </td>
-
 
                 <td>
                     <div class="dropdown">

@@ -1,24 +1,24 @@
 <div class="dropdown text-center">
-    
-    
+     <?php if(adminAccessRoute(config('role.categories.access.edit')) ||
+    adminAccessRoute(config('role.categories.access.delete'))): ?>
     <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
         <i class="icon-base ti tabler-dots-vertical"></i>
     </button>
 
     <div class="dropdown-menu">
-        
+        <?php if(adminAccessRoute(config('role.categories.access.edit'))): ?>
         <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
             data-id="<?php echo e($category->id); ?>" data-role="<?php echo e($category->name); ?>" data-status="<?php echo e($category->status); ?>">
             <i class="fa fa-edit text-warning me-2"></i> <?php echo app('translator')->get('Edit'); ?>
         </a>
-        
-        
+        <?php endif; ?>
+        <?php if(adminAccessRoute(config('role.categories.access.delete'))): ?>
         <a href="#" class="dropdown-item delete-role" data-id="<?php echo e($category->id); ?>">
             <i class="fa fa-trash text-danger me-2"></i> <?php echo app('translator')->get('Delete'); ?>
-            
+            <?php endif; ?>
         </a>
     </div>
-    
+    <?php endif; ?>
 </div>
 
 <script>
