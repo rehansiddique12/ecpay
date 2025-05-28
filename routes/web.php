@@ -314,7 +314,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/user/fundLog/{id}', [UsersController::class, 'funds'])->name('user.fundLog');
         Route::get('/user/payoutLog/{id}', [UsersController::class, 'payoutLog'])->name('user.withdrawal');
         Route::get('user/{user}/kyc', [UsersController::class, 'userKycHistory'])->name('user.userKycHistory');
-        //Route::get('/bet-history/{user_id?}', [ManageBetController::class, 'betList'])->name('historyBet');
         Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');
         Route::post('/user/password/{id}', [UsersController::class, 'passwordUpdate'])->name('userPasswordUpdate');
         Route::post('/user/balance-update/{id}', [UsersController::class, 'userBalanceUpdate'])->name('user-balance-update');
@@ -373,7 +372,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/apiLogUnclaimed/search', [PaymentLogController::class, 'apiLogUnclaimedsearch'])->name('payment.apiLogunclaimed.search');
 
         Route::get('payment/report', [PaymentLogController::class, 'report'])->name('payment.report');
-        Route::get('/reports/export/{from_date?}', [PaymentLogController::class, 'export_by_logs'])->name('merchant_reports.export_by_logs');
+        Route::get('reports/export/{from_date?}', [PaymentLogController::class, 'export_by_logs'])->name('merchant_reports.export_by_logs');
         Route::get('payment/report/search', [PaymentLogController::class, 'reportSearch'])->name('payment.report.search');
         Route::get('payment/report/daily', [PaymentLogController::class, 'dailyReport'])->name('payment.report.daily');
         Route::get('payment/report/daily/search', [PaymentLogController::class, 'dailyReportSearch'])->name('payment.report.daily.search');
@@ -382,7 +381,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
         Route::get('/payout-report', [PayoutRecordController::class, 'report'])->name('payout-report');
-        Route::get('/admin/reports/export/{from_date?}', [PayoutRecordController::class, 'export_by_logs_for_WithDrawl'])->name('merchant_reports.export_by_logs_for_WithDrawl');
+        Route::get('reports/exportwithdrawl/{from_date?}', [PayoutRecordController::class, 'export_by_logs_for_WithDrawl'])->name('merchant_reports.export_by_logs_for_WithDrawl');
         Route::get('/payout-report/search', [PayoutRecordController::class, 'reportSearch'])->name('payout-report.search');
         Route::get('payout/report/daily', [PayoutRecordController::class, 'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PayoutRecordController::class, 'dailyReportSearch'])->name('payout.report.daily.search');

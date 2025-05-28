@@ -8,14 +8,14 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>From Date</label>
-                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ @request()->from_date }}" name="from_date"
+                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $from_date }}" name="from_date"
                              />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>To Date</label>
-                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ @request()->to_date }}" name="to_date"
+                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $to_date }}" name="to_date"
                             />
                     </div>
                 </div>

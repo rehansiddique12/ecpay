@@ -16,20 +16,22 @@ use App\Models\EWalletLog;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
+use App\Models\CronCommission;
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use Illuminate\Validation\Rule;
+use App\Models\ParentCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
-use Illuminate\Support\Facades\Http;
 use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
-use App\Http\Controllers\Controller;
 
 class PaymentLogController extends Controller
 {
@@ -138,20 +140,106 @@ class PaymentLogController extends Controller
         $search = $request->all();
         $fund_count = 0;
         $fund_sum = 0;
-        //$funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        $dateSearch = $request->date_time;
+        $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
+// dd($search);
+        if ($request->input('export') == 1) {
+            // dd('hello');
+            $records = Payout::where('status', '!=', 0)
+                ->when($search['name'], function ($query) use ($search) {
+                    $query->whereHas('user', function ($subQuery) use ($search) {
+                        $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
+                            ->orWhere('email', 'like', '%' . $search['name'] . '%')
+                            ->orWhere('username', 'like', '%' . $search['name'] . '%');
+                    });
+                })
+                ->when($search['date_time'], function ($query) use ($search) {
+                    $query->whereDate('created_at', $search['date_time']);
+                })
+                ->when($search['partner_transection_id'], function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('trx_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                    })->orWhereHas('payout', function ($subQuery) use ($search) {
+                        $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                            ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                    });
+                })
+                ->when($search['status'] != 4, function ($query) use ($search) {
+                    $query->where('status', $search['status']);
+                })
+                ->when($search['domain'], function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->whereHas('payout', function ($subQuery) use ($search) {
+                            $subQuery->where('api_id', $search['domain']);
+                        })->orWhere('api_id', $search['domain']);
+                    });
+                })
+                ->orderBy('id', 'DESC')
+                ->with('user', 'method', 'payout')
+                ->get();
+            // dd($funds);
+            $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Request-Status', 'Transfer-Status', 'E-Wallet-No', 'Website', 'Completed-At'];
+            foreach ($records as $item) {
+                // dd($fund);
+                $user_name = "";
+                $user_type = "";
+                if (optional($item->user)->username != "dummyuser") {
+                    $user_name = optional($item->user)->username;
+                    $user_type = "User";
+                } else {
+                    $user_name = optional($item->api)->name;
+                    $user_type = optional($item->api)->acc_type;
+                }
+                $status = "Pending";
+                $status2 = "Pending";
+                if ($item->status == 2) {
+                    $status = "Approved";
+                } elseif ($item->status == 1) {
+                    $status = "Pending";
+                } elseif ($item->status == 3) {
+                    $status = "Rejected";
+                }
 
-        $from_date = $search['from_date'];
-        $to_date = $search['to_date'];
+                if ($item->payout->status == "Complete") {
+                    $status2 = "Transfered";
+                } elseif ($item->payout->status == "Pending") {
+                    $status2 = "Transfer Pending";
+                } elseif ($item->payout->status == "Reject") {
+                    $status2 = "Transfer Rejected";
+                }
 
-        if($search['status']=="All"){
-            $search['status'] = "";
-        }
+                $data[] = [$item->created_at, $item->trx_id, optional($item->payout)->txn_id, optional($item->payout)->partner_transection_id, $user_name, $user_type, optional($item->method)->name, $item->user_account_no, getAmount($item->amount), optional($item->payout)->charge, getAmount($item->net_amount), $status, $status2, optional($item->payout)->e_wallet_phone_number, optional($item->payout)->source, optional($item->payout)->date_time];
+            }
 
+            $currentDateTime = date('d_F_Y_h_i_A');
+            $csvFileName = "withdrawal_export_csv_$currentDateTime.csv";
+            $headers = array(
+                "Content-type" => "text/csv",
+                "Content-Disposition" => "attachment; filename=$csvFileName",
+                "Pragma" => "no-cache",
+                "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+                "Expires" => "0"
+            );
 
-        // Aggregate totals (COUNT & SUM)
-        $fund_count = 0;
-        $fund_sum = 0;
-        $funds_t = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            $callback = function () use ($data) {
+                $file = fopen('php://output', 'w');
+                foreach ($data as $row) {
+                    fputcsv($file, $row);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        } else {
+        $funds_t = Payment::where('status', '!=', 'initiate')
+            ->when($search['name'], function ($query) use ($search) {
+                $query->whereHas('user', function ($subQuery) use ($search) {
+                    $subQuery->where('firstname', 'like', '%' . $search['name'] . '%')
+                        ->orWhere('email', 'like', '%' . $search['name'] . '%')
+                        ->orWhere('username', 'like', '%' . $search['name'] . '%');
+                });
+            })
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                 return $query->whereDate('created_at', '>=', $search['from_date'])
                              ->whereDate('created_at', '<=', $search['to_date']);
@@ -163,7 +251,7 @@ class PaymentLogController extends Controller
                         ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-            
+
             ->when($search['website'], function ($query) use ($search) {
                 $query->where('api_id', $search['website']);
             })
@@ -193,7 +281,7 @@ class PaymentLogController extends Controller
                         ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-           
+
             ->when($search['website'], function ($query) use ($search) {
                 $query->where('api_id', $search['website']);
             })
@@ -211,6 +299,7 @@ class PaymentLogController extends Controller
         $pageTitle = "Search Payment Logs";
         return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains','from_date','to_date'));
     }
+}
 
     public function dailyReport()
     {
@@ -574,7 +663,7 @@ class PaymentLogController extends Controller
                     if(empty($data->sender) || $data->sender==0){
                         $data->sender = $payment->sender;
                     }
-                    
+
                     $data->txn_id = $payment->txn_id;
                     $data->date_time = $payment->date_time;
                     $data->transaction_type = $payment->transaction_type;
@@ -908,7 +997,7 @@ class PaymentLogController extends Controller
 
                 $data->status = "Reject";
                 $data->feedback = $request->feedback;
-                
+
                 $data->update();
                 //$user = $data->user;
 
@@ -1624,7 +1713,7 @@ class PaymentLogController extends Controller
                     if(empty($order->sender) || $order->sender==0){
                         $order->sender = $payment_record->sender;
                     }
-                    
+
                     $order->txn_id = $payment_record->txn_id;
                     $order->date_time = $payment_record->date_time;
                     $order->transaction_type = $payment_record->transaction_type;
@@ -2110,7 +2199,7 @@ class PaymentLogController extends Controller
                             $order->status = 'Complete';
                             $order->trans_complete_date = Carbon::now();
                             $order->completed_source = 'APIWithoutVerify';
-                            
+
                             $order->e_wallet_name = $request->e_wallet_name;
                             $order->amount = $request_amount;
                             $order->sender = $request->sender;
@@ -2397,9 +2486,22 @@ class PaymentLogController extends Controller
         $acc="01626821906";
         $type="Agent";
 
-        $this->directwebhookddd($source, $acc, $type);
+        // $this->directwebhookddd($source, $acc, $type);
 
-        exit;
+        $cron_commissions = ParentCommission::get();
+            foreach ($cron_commissions as $cron_commission) {
+                $new_commission = Commission::where('id', $cron_commission->commission_id)->first();
+                if($new_commission){
+
+
+                    $cron_commission->from_amount = $new_commission->from_amount;
+                    $cron_commission->to_amount = $new_commission->to_amount;
+                    $cron_commission->type = $new_commission->type;
+                    $cron_commission->gateway_id = $new_commission->gateway_id;
+                    $cron_commission->save();     
+                }
+                
+            }
     }
 
 
