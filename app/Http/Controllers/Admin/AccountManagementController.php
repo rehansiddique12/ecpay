@@ -290,8 +290,6 @@ class AccountManagementController extends Controller
         }
     }
 
-
-
     public function accountGroup()
     {
         $pageTitle = "Account Group";

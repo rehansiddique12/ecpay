@@ -69,7 +69,7 @@ class DashboardController extends Controller
         $api_id = $main_user->id;
 
         $website = $user->website;
-        $funds_t = Payout::where('status', '!=', 0)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+        $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)
             ->first();
         $transection_data['total_payout_count'] = $funds_t->fund_count;
@@ -78,7 +78,7 @@ class DashboardController extends Controller
 
         $currentDate = Carbon::now()->toDateString();
 
-        $funds_today = Payout::where('status', '!=', 0)
+        $funds_today = Payout::where('status', '!=', 'initiate')
             ->whereDate('created_at', $currentDate) // Filter by today's date
             ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)
@@ -95,7 +95,7 @@ class DashboardController extends Controller
         // Get the last day of the current month
         $lastDayOfMonth = Carbon::now()->endOfMonth()->toDateString();
 
-        $funds_current_month = Payout::where('status', '!=', 0)
+        $funds_current_month = Payout::where('status', '!=', 'initiate')
             ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth]) // Filter by the current month
             ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)
@@ -117,7 +117,7 @@ class DashboardController extends Controller
 
         $currentDate = Carbon::now()->toDateString();
 
-        $payments_today = Payment::where('status', '!=', 0)
+        $payments_today = Payment::where('status', '!=', "initiate")
             ->whereDate('created_at', $currentDate) // Filter by today's date
             ->where('api_id', $api_id)
             ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
@@ -147,7 +147,7 @@ class DashboardController extends Controller
         $sum = Payout::whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->where('api_id', $api_id)
-            ->where('transfer_status', 'Complete')
+            ->where('transfer_status', 2)
             ->sum('amount');
 
         $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
@@ -271,14 +271,10 @@ class DashboardController extends Controller
         $gateway = Gateway::count('id');
         $pieLog = collect();
 
-
-
-
-
-        $data['payout'] = collect(Payout::selectRaw('COUNT(CASE WHEN status = 1  THEN id END) AS pending')
-            ->selectRaw('SUM((CASE WHEN status = 2 AND created_at >= CURDATE()  THEN amount END)) AS todayPayoutAmount')
-            ->selectRaw('SUM((CASE WHEN status = 2 AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN amount END)) AS monthlyPayoutAmount')
-            ->selectRaw('SUM((CASE WHEN status = 2 AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN charge END)) AS monthlyPayoutCharge')
+        $data['payout'] = collect(Payout::selectRaw('COUNT(CASE WHEN status = "Pending"  THEN id END) AS pending')
+            ->selectRaw('SUM((CASE WHEN status = "Complete" AND created_at >= CURDATE()  THEN amount END)) AS todayPayoutAmount')
+            ->selectRaw('SUM((CASE WHEN status = "Complete" AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN amount END)) AS monthlyPayoutAmount')
+            ->selectRaw('SUM((CASE WHEN status = "Complete" AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN charge END)) AS monthlyPayoutCharge')
             ->get()->toArray())->collapse();
 
         $data['latestUser'] = User::latest()->limit(5)->get();

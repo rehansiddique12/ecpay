@@ -7,6 +7,7 @@
 <?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
+
     <h1 class="text-center">
         <span class="badge badge-primary">Settlementable Amount: <b><?php echo e($settlementable_amount); ?> TK</b></span>
     </h1>
@@ -15,7 +16,6 @@
         <form action="<?php echo e(route('partner.settlements.search')); ?>" method="get">
             <h3 style="color: #7367f0"><?php echo e($pageTitle); ?></h3>
             <div class="row justify-content-between align-items-center">
-
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>From Date</label>
@@ -32,23 +32,16 @@
                 </div>
                 <div class="col-md-2"></div>
 
-                <!--<div class="col-md-4">-->
-                <!--    <div class="form-group">-->
-                <!--        <label>User Account No</label>-->
-                <!--        <input type="text" class="form-control" value="<?php echo e(@request()->account_no); ?>" name="account_no"/>-->
-                <!--    </div>-->
-                <!--</div>-->
-
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>E-Wallet</label>
-                        <select name="gateway" class="form-control">
-                            <option value="">All</option>
+                        <select name="gateway" class="form-select">
+                            <option value=""><?php echo app('translator')->get('All'); ?></option>
                             <?php $__currentLoopData = $gateways; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gateway): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <option value="<?php echo e($gateway->source_name); ?>"
-                                    <?php if(@request()->gateway == $gateway->source_name): ?> selected <?php endif; ?>><?php echo e($gateway->source_name); ?>
+                            <option value="<?php echo e($gateway->source_name); ?>" <?php if(@request()->gateway ==
+                                $gateway->source_name): ?> selected <?php endif; ?>><?php echo e($gateway->source_name); ?>
 
-                                </option>
+                            </option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
@@ -57,7 +50,7 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>Status</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-select">
                             <option value="all"><?php echo app('translator')->get('All'); ?></option>
                             <option value="1" <?php if(@request()->status == '1'): ?> selected <?php endif; ?>><?php echo app('translator')->get('Approved'); ?>
                             </option>
@@ -71,7 +64,8 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <br>
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> <?php echo app('translator')->get('Search'); ?></button>
+                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i
+                                class="icon-base ti tabler-search me-1"></i> <?php echo app('translator')->get('Search'); ?></button>
                     </div>
                 </div>
             </div>
@@ -81,10 +75,10 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-                    <a href="javascript:void(0)" class="btn btn-sm btn-primary mr-2 mb-3 " data-target="#newModal"
-                        data-toggle="modal">
-                        <span><?php echo app('translator')->get('Add New'); ?></span>
-                    </a>
+                    <button type="button" class="btn btn-primary mb-4 hover:drop-shadow-xl" data-bs-toggle="modal"
+                        data-bs-target="#newModal">
+                        Add New
+                    </button>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
@@ -96,13 +90,14 @@
                                     <th scope="col"><?php echo app('translator')->get('Amount'); ?></th>
                                     <th scope="col"><?php echo app('translator')->get('Charges'); ?></th>
                                     <th scope="col"><?php echo app('translator')->get('Net Amount'); ?></th>
-                                    <th scope="col"><?php echo app('translator')->get('Status'); ?></th>
+                                    <th scope="col" class="text-center"><?php echo app('translator')->get('Status'); ?></th>
                                     <th scope="col">Created At</th>
                                     <!--<th>Action</th>-->
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php $__empty_1 = true; $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+<<<<<<< HEAD
                                     <tr>
                                         <td><?php echo e($item->source); ?></td>
                                         <td><?php echo e($item->source_name); ?></td>
@@ -153,20 +148,39 @@
                                         <!--        </div>-->
                                         <!--    </div>-->
                                         <!--</td>-->
+=======
+                                <tr>
+                                    <td><?php echo e($item->source); ?></td>
+                                    <td><?php echo e($item->source_name); ?></td>
+                                    <td><?php echo e($item->account_no); ?></td>
+                                    <td><?php echo e($item->amount); ?></td>
+                                    <td><?php echo e($item->charges); ?></td>
+                                    <td><?php echo e($item->net_amount); ?></td>
+                                    <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-lg-center text-right">
+                                        <?php if($item->status == 2): ?>
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-danger danger font-12"></i>
+                                            <?php echo app('translator')->get('Rejected'); ?> </span>
+                                        <?php elseif($item->status == 1): ?>
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-success success font-12"></i>
+                                            <?php echo app('translator')->get('Approved'); ?></span>
+                                        <?php else: ?>
+                                        <span class="badge badge-light">
+                                            <i class="fa fa-circle text-warning success font-12"></i>
+                                            <?php echo app('translator')->get('Pending'); ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo e(convertToUserTimezone($item->created_at)); ?></td>
+>>>>>>> 4dc72d7cfa89c5d71ef80716930b9207ffa7dc69
 
-
-
-
-
-
-
-                                    </tr>
+                                </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <tr>
-                                        <td colspan="100%">
-                                            <p class="text-dark"><?php echo app('translator')->get('No Data Found'); ?></p>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="100%">
+                                        <p class="text-dark"><?php echo app('translator')->get('No Data Found'); ?></p>
+                                    </td>
+                                </tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -182,26 +196,21 @@
 
 
     
-    <div id="newModal" class="modal fade show" tabindex="-1" role="dialog">
+    <div id="newModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header modal-colored-header bg-primary">
                     <h5 class="modal-title"><?php echo app('translator')->get('Add New'); ?></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="<?php echo e(route('partner.settlements.add')); ?>" method="POST">
+                <form action="<?php echo e(route('partner.settlements.add')); ?>" method="POST" id="settlementForm">
                     <?php echo csrf_field(); ?>
                     <div class="modal-body">
                         <div class="row justify-content-between align-items-center">
-
-
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Source</label>
-                                    <select class="form-control" name="source" required>
+                                    <select class="form-select" name="source" required>
                                         <option value="Bank">Bank</option>
                                         <option value="EWallet">EWallet</option>
                                     </select>
@@ -213,27 +222,24 @@
                                     <input type="text" class="form-control" name="source_name" required />
                                 </div>
                             </div>
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Account No.</label>
                                     <input type="text" class="form-control" name="account_no" required />
                                 </div>
                             </div>
-
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Amount</label>
-                                    <input type="number" step="0.01" class="form-control" name="amount"
-                                        required />
+                                    <input type="number" step="0.01" class="form-control" name="amount" required />
                                 </div>
                             </div>
-
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary"><?php echo app('translator')->get('Save'); ?></button>
-                        <button type="button" class="btn btn-dark" data-dismiss="modal"><?php echo app('translator')->get('Close'); ?></button>
+                        <button id="submitBtn" type="submit" class="btn btn-primary"><?php echo app('translator')->get('Save'); ?></button>
+                        <button type="button" class="btn btn-dark"
+                            data-bs-dismiss="modal"><?php echo app('translator')->get('Close'); ?></button>
                     </div>
                 </form>
             </div>
@@ -241,12 +247,49 @@
     </div>
 
 
+
     <?php $__env->startPush('js'); ?>
+        <script src="<?php echo e(asset('assets/vendor/libs/select2/select2.js')); ?>"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
         <script>
             "use strict";
-            $(document).ready(function(e) {
 
+            $(document).ready(function() {
 
+                $('#settlementForm').on('submit', function(e) {
+                    e.preventDefault();
+                    let form = $(this);
+                    let submitBtn = $('#submitBtn');
+                    $('.text-danger').text('');
+                    submitBtn.prop('disabled', true).text('Processing...');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: form.attr('action'),
+                        data: form.serialize(),
+                        success: function(response) {
+                            $('#newModal').modal('hide');
+                            location.reload();
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                $.each(errors, function(key, messages) {
+                                    $('.error-' + key).text(messages[0]);
+                                });
+                            } else {
+                                alert('Something went wrong.');
+                            }
+                        },
+                        complete: function() {
+                            submitBtn.prop('disabled', false).text('Save');
+                        }
+                    });
+                });
+
+                // Image Preview
                 $('#image').change(function() {
                     let reader = new FileReader();
                     reader.onload = (e) => {
@@ -255,15 +298,13 @@
                     reader.readAsDataURL(this.files[0]);
                 });
 
-
+                // Select2 init
+                // $('select').select2({
+                //     allowClear: true,
+                //     selectOnClose: true
+                // });
             });
-
-            $(document).ready(function() {
-                $('select').select2({
-                    selectOnClose: true
-                });
-            });
-        </script>
+    </script>
     <?php $__env->stopPush(); ?>
  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>

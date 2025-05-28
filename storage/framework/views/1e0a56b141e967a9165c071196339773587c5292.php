@@ -328,7 +328,7 @@
                                                             <?php echo e($value['label']); ?></td>
                                                         <td data-label="View">
                                                             <?php if(!empty($value['access']['view'])): ?>
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="<?php echo e(implode(',', array_map('trim', $value['access']['view']))); ?>"
                                                                 name="access[]" />
                                                             <?php endif; ?>
@@ -336,7 +336,7 @@
                                                         <td data-label="Add">
                                                             <?php if(!empty($value['access']['add'])): ?>
                                                             
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="<?php echo e(implode(',', array_map('trim', $value['access']['add']))); ?>"
                                                                 name="access[]" />
                                                             <?php endif; ?>
@@ -344,7 +344,7 @@
                                                         <td data-label="Edit">
                                                             <?php if(!empty($value['access']['edit'])): ?>
                                                             
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="<?php echo e(implode(',', array_map('trim', $value['access']['edit']))); ?>"
                                                                 name="access[]" />
                                                             <?php endif; ?>
@@ -352,7 +352,7 @@
                                                         <td data-label="Delete">
                                                             <?php if(!empty($value['access']['delete'])): ?>
                                                             
-                                                            <input type="checkbox"
+                                                            <input type="checkbox" style="width: 20px; height: 20px;"
                                                                 value="<?php echo e(implode(',', array_map('trim', $value['access']['delete']))); ?>"
                                                                 name="access[]" />
                                                             <?php endif; ?>

@@ -13,11 +13,12 @@
     $currentRoute = Route::currentRouteName();
     ?>
 
-    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <div class="row ">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
+                        <?php if(adminAccessRoute(config('role.account_management.access.view'))): ?>
                         <div>
                             <button
                                 class="btn <?php echo e($currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : ''); ?>">
@@ -26,6 +27,8 @@
                                 </a>
                             </button>
                         </div>
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.account_management.access.add'))): ?>
                         <div>
                             <button
                                 class="btn <?php echo e($currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : ''); ?>">
@@ -34,7 +37,28 @@
                                 </a>
                             </button>
                         </div>
-
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.e_wallet_accounts.access.edit'))): ?>
+                        <div>
+                            <button
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.on_off_account')); ?>" class="menu-link">
+                                    <div data-i18n="Add Accounts">On/Off Accounts</div>
+                                </a>
+                            </button>
+                        </div>
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.account_group.access.view'))): ?>
+                        <div>
+                            <button
+                                class="btn <?php echo e($currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : ''); ?>">
+                                <a href="<?php echo e(route('admin.account_management.account_group')); ?>" class="menu-link">
+                                    <div data-i18n="Account Group">Account Group</div>
+                                </a>
+                            </button>
+                        </div>
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.gateways.access.view'))): ?>
                         <div>
                             <button
                                 class="btn <?php echo e($currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : ''); ?>">
@@ -43,6 +67,8 @@
                                 </a>
                             </button>
                         </div>
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.categories.access.view'))): ?>
                         <div>
                             <button
                                 class="btn <?php echo e($currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : ''); ?>">
@@ -51,6 +77,7 @@
                                 </a>
                             </button>
                         </div>
+                        <?php endif; ?>
 
 
                     </div>
@@ -60,17 +87,18 @@
         </div>
     </div>
 
-
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
 
             <div class="">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 style="color: #7367f0"><?php echo e($pageTitle); ?></h3>
+                    <?php if(adminAccessRoute(config('role.categories.access.add'))): ?>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newModal"
                         id="newCategoryButton">
                         Add Category
                     </button>
+                    <?php endif; ?>
                 </div>
 
                 <table class="categories-show-table table table-hover table-striped table-bordered settable table-sm">

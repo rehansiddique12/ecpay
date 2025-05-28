@@ -111,14 +111,23 @@
 
 
                                 <td data-label="<?php echo app('translator')->get('Action'); ?>">
-                                    
+                                    <div class="dropdown show ">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                            data-bs-toggle="dropdown">
+                                            <i class="icon-base ti tabler-dots-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                            <?php if(adminAccessRoute(config('role.adjustments.access.edit'))): ?>
+                                            <form action="<?php echo e(route('admin.adjustments.approve', $item['id'])); ?>"
+                                                method="GET">
+                                                <button type="submit" class="btn btn-sm btn-icon edit_button"><i
+                                                        class="fa fa-check"></i> Approve</button>
+                                            </form>
+                                            
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </td>
-
-
-
-
-
-
 
                             </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>

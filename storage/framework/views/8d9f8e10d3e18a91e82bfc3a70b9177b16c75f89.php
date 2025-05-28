@@ -1,3 +1,4 @@
+ <?php if(adminAccessRoute(config('role.gateways.access.edit'))): ?>
 <a href="#" class="edit-method-btn" data-bs-toggle="modal" data-bs-target="#editMethodModal"
     data-id="<?php echo e($gateway->id); ?>" data-name="<?php echo e($gateway->name); ?>" data-currency="<?php echo e($gateway->currency); ?>"
     data-convention_rate="<?php echo e(getAmount($gateway->convention_rate)); ?>"
@@ -10,6 +11,7 @@
     data-parameters="<?php echo e(htmlentities(json_encode($gateway->parameters))); ?>">
     <i class="fa fa-edit text-primary me-2 fs-5"></i>
 </a>
+<?php endif; ?>
 
 
 <script>

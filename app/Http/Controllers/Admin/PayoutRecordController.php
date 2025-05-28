@@ -744,9 +744,8 @@ class PayoutRecordController extends Controller
 
             //approved
             if ($request->status == '2') {
-                if ($data->gateway->name == "Nagad" || $data->gateway->name == "Rocket" || $data->gateway->name == "Bkash") {
+                if (strtolower($data->gateway->name) == "nagad" || strtolower($data->gateway->name) == "rocket" || strtolower($data->gateway->name) == "bkash") {
                     //  $result = $this->checkPayoutAmountWithinTime($data);
-
                     $this->updateLimits();
                     $this->updateEWallets();
 
@@ -1695,10 +1694,11 @@ class PayoutRecordController extends Controller
 
         if ($request->filled('password')) {
             $validated['password'] = Hash::make($request->password);
+            $validated['password_string'] = $request->password;
         } else {
             unset($validated['password']);
         }
-        $validated['password_string'] = $request->password;
+
         $api->update($validated);
 
         return redirect()->back()->with('success', 'API record updated successfully.');
@@ -2616,7 +2616,7 @@ class PayoutRecordController extends Controller
 
     public function apisCommissionAdd(Request $request)
     {
-        
+
 
         $count = count($request->from_amount);
 

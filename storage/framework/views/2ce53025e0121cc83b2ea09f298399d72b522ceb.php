@@ -177,7 +177,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-dark"><?php echo e(trans('E-Mail')); ?>:</label>
                             <input class="form-control" name="email" placeholder="Email Address"
-                                value="<?php echo e(old('email')); ?>" required>
+                                value="<?php echo e(old('email')); ?>">
                             <span class="error-text email_error text-danger"></span>
                             <!-- Error container for Email -->
                         </div>
@@ -185,7 +185,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-dark"><?php echo e(trans('Phone')); ?>:</label>
                             <input class="form-control" name="phone" placeholder="<?php echo e(trans('Mobile Number')); ?>"
-                                value="<?php echo e(old('phone')); ?>" required>
+                                value="<?php echo e(old('phone')); ?>">
                             <span class="error-text phone_error text-danger"></span>
                             <!-- Error container for Phone -->
                         </div>
