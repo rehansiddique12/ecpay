@@ -47,6 +47,10 @@ class Kernel extends HttpKernel
         'api_logs_middleware' => [
             \App\Http\Middleware\LogApiRequests::class,
         ],
+
+        'function_track_middleware' => [
+            \App\Http\Middleware\TrackFunctionUsage::class,
+        ],
     ];
 
     /**
