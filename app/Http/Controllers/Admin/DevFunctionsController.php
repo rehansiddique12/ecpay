@@ -22,15 +22,16 @@ use App\Models\DailyPartnerSummaryLog;
 
 class DevFunctionsController extends Controller
 {
-    public  function payoutAction($id , $status)
+    public  function payoutAction($id, $status)
     {
         // $this->validate($request, [
         //     'id' => 'required',
         //     'status' => ['required', Rule::in(['2', '3', '4'])],
         // ]);
+
         DB::beginTransaction();
         try {
-            $data = Payout::where('id', $id)->whereIn('transfer_status', [1, 2,3])->with('user', 'gateway')->lockForUpdate()->first();
+            $data = Payout::where('id', $id)->whereIn('transfer_status', [1, 2, 3])->with('user', 'gateway')->lockForUpdate()->first();
             // 1 in pending // 2 success
             $basic = (object) config('basic');
 
@@ -640,11 +641,44 @@ class DevFunctionsController extends Controller
             if ($commit == 0) {
                 DB::commit();
             }
-            return back();
+            echo 'completed';
+            exit;
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', $e->getMessage());
-            return back();
+            echo '<pre>';
+            print_r($e->getMessage());
+            echo '</pre>';
+            exit;
+
         }
     }
+
+    public function updateLimits()
+    {
+        $todayDate = now()->toDateString();  // Use Carbon for better date handling
+        $thisMonth = now()->month;
+
+        EWalletAccount::where('last_limit_reset', '!=', $todayDate)
+            ->update([
+                'daily_received' => 0,
+                'daily_sent' => 0,
+                'last_limit_reset' => $todayDate
+            ]);
+
+        EWalletAccount::whereMonth('last_limit_reset', '!=', $thisMonth)
+            ->update([
+                'monthly_received' => 0,
+                'monthly_sent' => 0
+            ]);
+    }
+
+    public function convertStringToNumber($string)
+    {
+        if (strpos($string, '.') !== false) {
+            return (float)$string;
+        } else {
+            return (int)$string;
+        }
+    }
+
 }
