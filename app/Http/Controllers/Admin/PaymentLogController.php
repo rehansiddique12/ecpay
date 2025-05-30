@@ -1032,37 +1032,40 @@ class PaymentLogController extends Controller
                     $PartnerCommission->status = 1;
                     $PartnerCommission->save();
                     $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                    $parent_api_key->balance += $PartnerCommission->profit;
-                    $parent_api_key->save();
+                    if($parent_api_key){
+                        $parent_api_key->balance += $PartnerCommission->profit;
+                        $parent_api_key->save();
 
-                    $Log = new Log();
-                    $Log->date_time = $PartnerCommission->created_at;
-                    $Log->final_amount = $PartnerCommission->profit;
-                    $Log->balance = $parent_api_key->balance;
-                    $Log->transection_type = 5;
-                    $Log->transection_id = $PartnerCommission->id;
-                    $Log->partner_id = $PartnerCommission->from_id;
-                    $Log->source = 'AdminPanel';
-                    $Log->save();
+                        $Log = new Log();
+                        $Log->date_time = $PartnerCommission->created_at;
+                        $Log->final_amount = $PartnerCommission->profit;
+                        $Log->balance = $parent_api_key->balance;
+                        $Log->transection_type = 5;
+                        $Log->transection_id = $PartnerCommission->id;
+                        $Log->partner_id = $PartnerCommission->from_id;
+                        $Log->source = 'AdminPanel';
+                        $Log->save();
 
-                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                        $amount_to_update = round($amount_to_update, 2);
-                        // $amount_to_update = floor($amount_to_update * 100) / 100;
-                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                        $DailyPartnerSummary_record->save();
+                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                            $amount_to_update = round($amount_to_update, 2);
+                            // $amount_to_update = floor($amount_to_update * 100) / 100;
+                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                            $DailyPartnerSummary_record->save();
 
-                        $summary_log = new DailyPartnerSummaryLog();
-                        $summary_log->partner_id = $parent_api_key->id;
-                        $summary_log->partner_balance = $parent_api_key->balance;
-                        $summary_log->payment_id = $PartnerCommission->id;
-                        $summary_log->total_amount = $PartnerCommission->profit;
-                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                        $summary_log->source = 'AdminPanel';
-                        $summary_log->save();
+                            $summary_log = new DailyPartnerSummaryLog();
+                            $summary_log->partner_id = $parent_api_key->id;
+                            $summary_log->partner_balance = $parent_api_key->balance;
+                            $summary_log->payment_id = $PartnerCommission->id;
+                            $summary_log->total_amount = $PartnerCommission->profit;
+                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                            $summary_log->source = 'AdminPanel';
+                            $summary_log->save();
+                        }
                     }
+                        
                 }
 
 
@@ -1950,38 +1953,41 @@ class PaymentLogController extends Controller
 
                         DB::beginTransaction();
                         $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                        $parent_api_key->balance += $PartnerCommission->profit;
-                        $parent_api_key->save();
+                        if($parent_api_key){
+                            $parent_api_key->balance += $PartnerCommission->profit;
+                            $parent_api_key->save();
 
-                        $Log = new Log();
-                        $Log->date_time = $PartnerCommission->created_at;
-                        $Log->final_amount = $PartnerCommission->profit;
-                        $Log->balance = $parent_api_key->balance;
-                        $Log->transection_type = 5;
-                        $Log->transection_id = $PartnerCommission->id;
-                        $Log->partner_id = $PartnerCommission->from_id;
-                        $Log->source = 'APIVerify';
-                        $Log->save();
-                        DB::commit();
+                            $Log = new Log();
+                            $Log->date_time = $PartnerCommission->created_at;
+                            $Log->final_amount = $PartnerCommission->profit;
+                            $Log->balance = $parent_api_key->balance;
+                            $Log->transection_type = 5;
+                            $Log->transection_id = $PartnerCommission->id;
+                            $Log->partner_id = $PartnerCommission->from_id;
+                            $Log->source = 'APIVerify';
+                            $Log->save();
+                            DB::commit();
 
-                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                            $amount_to_update = round($amount_to_update, 2);
-                            // $amount_to_update = floor($amount_to_update * 100) / 100;
-                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                            $DailyPartnerSummary_record->save();
+                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                                $amount_to_update = round($amount_to_update, 2);
+                                // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                $DailyPartnerSummary_record->save();
 
-                            $summary_log = new DailyPartnerSummaryLog();
-                            $summary_log->partner_id = $parent_api_key->id;
-                            $summary_log->partner_balance = $parent_api_key->balance;
-                            $summary_log->payment_id = $PartnerCommission->id;
-                            $summary_log->total_amount = $PartnerCommission->profit;
-                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                            $summary_log->source = 'APIVerify';
-                            $summary_log->save();
+                                $summary_log = new DailyPartnerSummaryLog();
+                                $summary_log->partner_id = $parent_api_key->id;
+                                $summary_log->partner_balance = $parent_api_key->balance;
+                                $summary_log->payment_id = $PartnerCommission->id;
+                                $summary_log->total_amount = $PartnerCommission->profit;
+                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                $summary_log->source = 'APIVerify';
+                                $summary_log->save();
+                            }
                         }
+                            
                     }
 
                     if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
@@ -2442,38 +2448,41 @@ class PaymentLogController extends Controller
 
                                 DB::beginTransaction();
                                 $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
-                                $parent_api_key->balance += $PartnerCommission->profit;
-                                $parent_api_key->save();
+                                if($parent_api_key){
+                                    $parent_api_key->balance += $PartnerCommission->profit;
+                                    $parent_api_key->save();
 
-                                $Log = new Log();
-                                $Log->date_time = $PartnerCommission->created_at;
-                                $Log->final_amount = $PartnerCommission->profit;
-                                $Log->balance = $parent_api_key->balance;
-                                $Log->transection_type = 5;
-                                $Log->transection_id = $PartnerCommission->id;
-                                $Log->partner_id = $PartnerCommission->from_id;
-                                $Log->source = 'APIWithoutVerify';
-                                $Log->save();
-                                DB::commit();
+                                    $Log = new Log();
+                                    $Log->date_time = $PartnerCommission->created_at;
+                                    $Log->final_amount = $PartnerCommission->profit;
+                                    $Log->balance = $parent_api_key->balance;
+                                    $Log->transection_type = 5;
+                                    $Log->transection_id = $PartnerCommission->id;
+                                    $Log->partner_id = $PartnerCommission->from_id;
+                                    $Log->source = 'APIWithoutVerify';
+                                    $Log->save();
+                                    DB::commit();
 
-                                $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                                foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                                    $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                    $amount_to_update = round($amount_to_update, 2);
-                                    // $amount_to_update = floor($amount_to_update * 100) / 100;
-                                    $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                                    $DailyPartnerSummary_record->save();
+                                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                                        $amount_to_update = round($amount_to_update, 2);
+                                        // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                        $DailyPartnerSummary_record->save();
 
-                                    $summary_log = new DailyPartnerSummaryLog();
-                                    $summary_log->partner_id = $parent_api_key->id;
-                                    $summary_log->partner_balance = $parent_api_key->balance;
-                                    $summary_log->payment_id = $PartnerCommission->id;
-                                    $summary_log->total_amount = $PartnerCommission->profit;
-                                    $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                                    $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                    $summary_log->source = 'APIWithoutVerify';
-                                    $summary_log->save();
+                                        $summary_log = new DailyPartnerSummaryLog();
+                                        $summary_log->partner_id = $parent_api_key->id;
+                                        $summary_log->partner_balance = $parent_api_key->balance;
+                                        $summary_log->payment_id = $PartnerCommission->id;
+                                        $summary_log->total_amount = $PartnerCommission->profit;
+                                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                        $summary_log->source = 'APIWithoutVerify';
+                                        $summary_log->save();
+                                    }
                                 }
+                                    
                             }
 
                             //curl request only
