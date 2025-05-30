@@ -91,7 +91,14 @@
                         </select>
                     </div>
                 </div>
-                
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>User</label>
+                        <input type="text" name="name" value="{{@request()->name}}" class="form-control"
+                               placeholder="@lang('Type Here')">
+                    </div>
+                </div>
+
 
                 <div class="col-md-3">
                     <div class="form-group mt-2">
@@ -130,7 +137,7 @@
                                 </button>
                     </div>
                 </div>
-                
+
             </div>
         </form>
     </div>

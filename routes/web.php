@@ -133,6 +133,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/adjust-transaction', [PayoutRecordController::class, 'adjustTransaction'])->name('adjust.transaction');
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
         Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
+        Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
+
 
 
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');

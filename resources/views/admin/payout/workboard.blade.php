@@ -313,33 +313,218 @@
             <input type="hidden" id="editType" name="type">
 
             <div class="mb-3">
-              <label for="editAmount" class="form-label">Amount</label>
-              <input type="number" class="form-control" id="editAmount" name="amount" required>
+              <label>Sender Acc. No.</label>
+              <input class="form-control" name="sender" id="editSender" type="text" />
             </div>
 
             <div class="mb-3">
-              <label for="editStatus" class="form-label">Status</label>
-              <select class="form-select" id="editStatus" name="status">
-                <option value="pending">Pending</option>
-                <option value="success">Success</option>
+              <label>E-Wallet No.</label>
+              <input class="form-control" name="e_wallet_phone_number" id="editEwallet" type="text" required />
+            </div>
+
+            <div class="mb-3">
+              <label>Txn No.</label>
+              <input class="form-control" name="txn_id" id="editTxnId" type="text" />
+            </div>
+
+            <div class="mb-3">
+              <label>E-Wallet Type</label>
+              <select class="form-select" name="e_wallet_type" id="editEwalletType">
+                <option value="Personal">Personal</option>
+                <option value="Merchant">Merchant</option>
               </select>
             </div>
 
-            <!-- Add more fields here if needed -->
+            <input type="hidden" name="status" value="Complete" />
+
+            <div class="mb-3">
+              <label>Payment Receiving DateTime</label>
+              <input class="form-control" name="date_time" id="editDateTime" type="datetime-local"
+                value="{{ date('Y-m-d\TH:i') }}" required />
+            </div>
+            <button class="btn btn-primary mt-2">@lang('Approve')</button>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary">Update</button>
-          </div>
+          <form id="editTransactionForm">
+            @csrf
+            <div class="modal-footer">
+                <input type="hidden" id="editrejectId" name="id">
+                <input type="hidden" name="status" value="Reject">
+                <button type="submit" class="btn btn-danger" name="status" value="Reject">@lang('Reject')</button>
+                <button  class="btn btn-primary">Update</button>
+            </div>
         </form>
+
       </div>
     </div>
   </div>
 
+  <div class="modal modal-top fade" id="myModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTopTitle">@lang('Payout Information')</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form role="form" method="POST" class="actionRoute" id="actionRoutee" action=""
+                enctype="multipart/form-data" onsubmit="submitForm(this)">
+                @csrf
+                @method('put')
+                <div class="modal-body">
+                    <ul class="list-group withdraw-detail">
+                    </ul>
+
+                    {{-- @if(Request::routeIs('admin.payout-request')) --}}
+
+                    <div class="form-group addForm">
+
+                    </div>
+                    {{-- @endif --}}
+
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="status" name="status">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')
+                    </button>
+
+                    <input type="hidden" class="action_id" name="id">
+                    <div id="submit1" style="display: none;">
+                        <button type="submit" id="btn2" class="btn btn-primary" name="status"
+                            value="2">@lang('Approve')</button>
+                    </div>
+                    <div id="submit2" style="display: none;">
+                        <button type="submit" id="btn4" class="btn btn-dark" name="status" value="4">@lang('Mark As
+                            Complete')</button>
+                    </div>
+                    <div id="submit4" style="display: none;">
+                        <button type="submit" id="btn5" class="btn btn-warning" name="status" value="5">@lang('Mark
+                            As Pending')</button>
+                    </div>
+                    <div id="submit3" style="display: none;">
+                        <button type="submit" id="btn3" class="btn btn-danger" name="status"
+                            value="3">@lang('Reject')</button>
+                    </div>
+
+                </div>
+
+            </form>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Manual Process Modal -->
+<div class="modal fade" id="manualProcessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="manualProcessForm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Manual Adjustment</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="original_id" id="original_id">
+            <input type="hidden" name="type" id="type">
+
+            <div class="mb-3">
+              <label for="new_amount" class="form-label">Amount</label>
+              <input type="number" class="form-control" id="new_amount" name="new_amount" required>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        (function (jQuery) {
+
+            jQuery(document).ready(function () {
+                jQuery(document).on("click", '.edit_button', function (e) {
+                    var id = jQuery(this).data('id');
+                    jQuery(".action_id").val(id);
+                    jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
+                    // var details = Object.entries(jQuery(this).data('info'));
+                    var list = [];
+                    var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
+                    // details.map(function (item, i) {
+                    //     if (item[1].type == 'file') {
+                    //         var singleInfo = `<br><img src="${ImgPath}/${item[1].field_name}" alt="..." class="w-50">`;
+                    //     } else {
+                    //         var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
+                    //     }
+                    //     list[i] = `<li class="list-group-item"><span class="font-weight-bold">${item[0].replace('_', " ")}</span> : ${singleInfo}</li>`;
+                    // });
+
+                    console.log(jQuery(this).data('status'));
+
+                    if (jQuery(this).data('status') == '2') {
+                        jQuery('#submit1').hide();
+                        jQuery('#submit2').show();
+                        jQuery('#submit3').show();
+                    } else if (jQuery(this).data('status') == '3') {
+                        jQuery('#submit1').hide();
+                        jQuery('#submit2').hide();
+                        jQuery('#submit3').hide();
+                    } else {
+                        jQuery('#submit1').show();
+                        jQuery('#submit2').hide();
+                        jQuery('#submit3').show();
+                    }
+
+                    if (jQuery(this).data('statusb') == 'Complete') {
+                        jQuery('#submit4').show();
+                        jQuery('#submit2').hide();
+                    } else {
+                        jQuery('#submit4').hide();
+                    }
+
+                    // list[details.length + 1] = ``;
+
+                    jQuery('.addForm').html(`
+                    <div class="form-group">
+                        <label for="feedback">@lang('Remarks')</label>
+                        <select class="form-control" name="feedback" id="feedback">
+                            <option value="">@lang('Select Feedback')</option>
+                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
+                            <option value="account_limit_over">@lang('Account limit over')</option>
+                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
+                            <option value="nagad_server_down">@lang('Nagad server down')</option>
+                            <option value="bkash_server_down">@lang('bKash server down')</option>
+                            <option value="rocket_server_down">@lang('Rocket server down')</option>
+                            <option value="others">@lang('Others')</option>
+                        </select>
+                    </div>
+                `);
+
+                    jQuery('.withdraw-detail').html(list);
+                });
+            });
+
+            jQuery(document).on("click", '.edit_buttonc', function (e) {
+                var id = jQuery(this).data('id');
+                var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
+
+                jQuery(".action_id").val(id);
+                jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
+            });
+
+        })(jQuery);
+
+
+    </script>
 <script>
-
-
 $(document).ready(function() {
     fetchTransactions();
 
@@ -379,10 +564,15 @@ setInterval(function() {
                 $.each(response.transactions, function(index, transaction) {
                     $(document).off('click', '.edit-btn').on('click', '.edit-btn', function () {
     const transaction = $(this).data('transaction'); // set below
+    console.log(transaction);
     $('#editId').val(transaction.id);
+    $('#editrejectId').val(transaction.id);
     $('#editType').val(transaction.type);
-    $('#editAmount').val(transaction.amount);
-    $('#editStatus').val(transaction.status);
+    $('#editSender').val(transaction.sender || '');
+    $('#editEwallet').val(transaction.e_wallet_phone_number || '');
+    $('#editTxnId').val(transaction.txn_id || '');
+    $('#editEwalletType').val(transaction.e_wallet_type || 'Personal');
+    $('#editDateTime').val(transaction.date_time || new Date().toISOString().slice(0, 16));
     $('#editModal').modal('show');
 });
 
@@ -393,6 +583,36 @@ setInterval(function() {
                     let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' : 'WITHDRAWL';
                     let statusColor = transaction.status === 'pending' ? 'text-warning' : 'text-success';
                     let showEdit = transaction.adjusted_by == currentUserId ? '' : 'd-none';
+                    let editButton = '';
+
+if (transaction.type === 'payment') {
+    editButton = `
+        <button class="px-4 btn btn-sm edit-btn ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;">
+            Edit
+        </button>`;
+} else if (transaction.type === 'payout') {
+    const details = transaction.information ? JSON.stringify(transaction.information).replace(/"/g, '&quot;') : '';
+    const feedback = transaction.feedback || '';
+    const status = transaction.transfer_status || '';
+    const statusb = transaction.status || '';
+
+    // Use a route pattern or inject it via JavaScript context if needed
+    const payoutRoute = `/admin/payout-action/${transaction.id}`; // Must match your Laravel route
+
+    editButton = `
+        <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
+            data-bs-toggle="modal"
+            data-bs-target="#myModal"
+            data-route="${payoutRoute}"
+            data-feedback="${feedback}"
+            data-info="${details}"
+            data-id="${transaction.id}"
+            data-status="${status}"
+            data-statusb="${statusb}">
+            Edit P
+        </button>`;
+}
+
                     let card = `
                         <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
                             <div class="custom-card p-4">
@@ -439,9 +659,14 @@ setInterval(function() {
 
                                 </div>
                                 <div class="d-flex gap-4 mt-3">
+                                    ${editButton}
+                                    <button class="px-4 btn btn-sm manual-process-btn"
+    style="background-color: rgb(226, 15, 15); color: white;"
+    data-id="${transaction.id}"
+    data-type="${transaction.type}">
+    Manual Process
+</button>
 
-                                    <button class="px-4 btn btn-sm edit-btn ${showEdit}" style="background-color: rgb(45, 199, 58); color: white;" data-transaction='${JSON.stringify(transaction)}'>Edit</button>
-                                    <button class="px-4 btn btn-sm" style="background-color: rgb(226, 15, 15); color: white;">Manual Process</button>
                                     <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Adjustment</button>
                                 </div>
                             </div>
@@ -735,6 +960,7 @@ $(document).on('click', '.btn-adjustment', function() {
     const type = card.data('type');
     const adjustmentBtn = $(this);
     const editBtn = card.find('.edit-btn');
+    const edit_button = card.find('.edit_button');
 
     $.ajax({
         url: "{{ route('admin.adjust.transaction') }}", // you'll create this route
@@ -747,11 +973,50 @@ $(document).on('click', '.btn-adjustment', function() {
         success: function() {
             adjustmentBtn.addClass('d-none');
             editBtn.removeClass('d-none');
+            edit_button.removeClass('d-none');
         }
     });
 });
 
 
+$(document).on('click', '.manual-process-btn', function () {
+    const id = $(this).data('id');
+    const type = $(this).data('type');
+
+    $('#original_id').val(id);
+    $('#type').val(type);
+    $('#manualProcessModal').modal('show');
+});
+
+$('#manualProcessForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const originalId = $('#original_id').val();
+    const newAmount = $('#new_amount').val();
+    const type = $('#type').val();
+
+    $.ajax({
+        url: "{{ route('admin.manual-process') }}", // Replace with your actual route
+        method: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            original_id: originalId,
+            new_amount: newAmount,
+            type: type
+        },
+        success: function (response) {
+            $('#manualProcessModal').modal('hide');
+            alert('New record added successfully!');
+            // Optional: reload or update your data table here
+        },
+        error: function (xhr) {
+            alert('Something went wrong. Please try again.');
+        }
+    });
+});
+
 </script>
+
+
     @endpush
 </x-admin-layout>
