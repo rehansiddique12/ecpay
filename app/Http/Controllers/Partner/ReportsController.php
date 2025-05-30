@@ -702,7 +702,7 @@ class ReportsController extends Controller
             //dd($totalDeposits);
 
             foreach ($deposits as $deposit) {
-                $data[$count]['txn_created_at'] = $deposit->completion_at;
+                $data[$count]['txn_created_at'] = $deposit->created_at;
                 $data[$count]['updated_at'] =  $deposit->trans_complete_date;
                 $data[$count]['transection_id'] = $deposit->id;
                 $data[$count]['partner_transection_id'] =  $deposit->partner_transection_id;

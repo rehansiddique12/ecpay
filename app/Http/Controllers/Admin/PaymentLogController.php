@@ -16,20 +16,23 @@ use App\Models\EWalletLog;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
+use App\Models\CronCommission;
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use Illuminate\Validation\Rule;
+use App\Models\ParentCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
-use Illuminate\Support\Facades\Http;
 use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
-use App\Http\Controllers\Controller;
 
 class PaymentLogController extends Controller
 {
@@ -138,9 +141,179 @@ class PaymentLogController extends Controller
         $search = $request->all();
         $fund_count = 0;
         $fund_sum = 0;
+        //$funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+
+        $from_date = $search['from_date'];
+        $to_date = $search['to_date'];
+
+        if($search['status']=="All"){
+            $search['status'] = "";
+        }
+
+
+        // dd($request->all());
+        //         exit;
+
+
+        // Aggregate totals (COUNT & SUM)
+        $fund_count = 0;
+        $fund_sum = 0;
+
+        if ($request->input('export') == 1) {
+            // dd('hello');
+            $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                            ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+        
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
+            ->get();
+
+
+
+            
+            
+
+                $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'User ID' ,'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Status', 'E-Wallet-No', 'Website', 'Source', 'Completed-At'];
+                foreach ($funds as $fund) {
+                    // dd($fund);
+                    $partner_transection_id = ($fund->partner_transection_id != 0) ? $fund->partner_transection_id : '';
+                    // $user_name = "";
+                    // $user_type = "";
+                    $user_name = optional($fund->api)->name;
+                    $user_type = optional($fund->api)->acc_type;
+                    $status = "Pending";
+                    if ($fund->status == "Pending") {
+                        $status = "Pending";
+                    } elseif ($fund->status == "Complete") {
+                        $status = "Completed";
+                    } elseif ($fund->status == "Reject") {
+                        $status = "Rejected";
+                    }
+    
+                    $data[] = [$fund->created_at, $fund->transaction, $fund->txn_id, $partner_transection_id, $fund->member_id  , $user_name, $user_type, optional($fund->gateway)->name, $fund->sender, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->amount + $fund->charge), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->request_source, $fund->updated_at];
+                }
+
+                
+    
+    
+                $currentDateTime = date('d_F_Y_h_i_A');
+                $csvFileName = "deposit_export_csv_$currentDateTime.csv";
+                $headers = array(
+                    "Content-type" => "text/csv",
+                    "Content-Disposition" => "attachment; filename=$csvFileName",
+                    "Pragma" => "no-cache",
+                    "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+                    "Expires" => "0"
+                );
+    
+                $callback = function () use ($data) {
+                    $file = fopen('php://output', 'w');
+                    foreach ($data as $row) {
+                        fputcsv($file, $row);
+                    }
+                    fclose($file);
+                };
+    
+                return response()->stream($callback, 200, $headers);
+                
+                
+
+
+                
+        }else{
+            $funds_t = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                            ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+            
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where('sender', 'LIKE', "%{$request->account_no}%")
+                    ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+            })
+            ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
+            ->paginate(config('basic.paginate'));
+
+            if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
+                $fund_count = $funds_t[0]->amount_count;
+                $fund_sum = round($funds_t[0]->amount_sum, 2);
+            }
+
+            // Paginated list of payments
+            $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
+            ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
+                return $query->whereDate('created_at', '>=', $search['from_date'])
+                            ->whereDate('created_at', '<=', $search['to_date']);
+            })
+            ->when($search['partner_transection_id'], function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                });
+            })
+        
+            ->when($search['website'], function ($query) use ($search) {
+                $query->where('api_id', $search['website']);
+            })
+            ->where(function ($query) use ($request) {
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
+            ->paginate(config('basic.paginate'));
+        }
+        
+
+
+        $pageTitle = "Search Payment Logs";
+        return view('admin.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum', 'domains','from_date','to_date'));
+    }
+
+    public function reportSearchold(Request $request)
+    {
+        $domains = Api::where('type', 'Admin')->get();
+        $gateways = Gateway::where('status', 1)->get();
+        $search = $request->all();
+        $fund_count = 0;
+        $fund_sum = 0;
         $dateSearch = $request->date_time;
         $date = preg_match("/^[0-9]{2,4}\-[0-9]{1,2}\-[0-9]{1,2}$/", $dateSearch);
-// dd($search);
+        // dd($search);
         if ($request->input('export') == 1) {
             // dd('hello');
             $records = Payout::where('status', '!=', 0)
@@ -184,23 +357,23 @@ class PaymentLogController extends Controller
                 }
                 $status = "Pending";
                 $status2 = "Pending";
-                if ($item->status == 2) {
+                if ($item->transfer_status == 2) {
                     $status = "Approved";
-                } elseif ($item->status == 1) {
+                } elseif ($item->transfer_status == 1) {
                     $status = "Pending";
-                } elseif ($item->status == 3) {
+                } elseif ($item->transfer_status == 3) {
                     $status = "Rejected";
                 }
 
-                if ($item->payout->status == "Complete") {
+                if ($item->status == "Complete") {
                     $status2 = "Transfered";
-                } elseif ($item->payout->status == "Pending") {
+                } elseif ($item->status == "Pending") {
                     $status2 = "Transfer Pending";
-                } elseif ($item->payout->status == "Reject") {
+                } elseif ($item->status == "Reject") {
                     $status2 = "Transfer Rejected";
                 }
 
-                $data[] = [$item->created_at, $item->trx_id, optional($item->payout)->txn_id, optional($item->payout)->partner_transection_id, $user_name, $user_type, optional($item->method)->name, $item->user_account_no, getAmount($item->amount), optional($item->payout)->charge, getAmount($item->net_amount), $status, $status2, optional($item->payout)->e_wallet_phone_number, optional($item->payout)->source, optional($item->payout)->date_time];
+                $data[] = [$item->created_at, $item->trx_id, $item->txn_id, $item->partner_transection_id, $user_name, $user_type, $item->e_wallet_name, $item->user_account_no, getAmount($item->amount), $item->charge, getAmount($item->amount + $item->charge), $status, $status2, $item->e_wallet_phone_number, $item->source, $item->date_time];
             }
 
             $currentDateTime = date('d_F_Y_h_i_A');
@@ -619,6 +792,7 @@ class PaymentLogController extends Controller
                 if (empty($request->txn_id)) {
                     $request->txn_id = "none";
                     $payment = PendingPayment::where('e_wallet_name', $data->gateway->code)
+                    ->where('status', 0)
                         ->where('amount', $data->amount)
                         ->where('sender', $data->account_no)
                         ->whereDate('date', '=', $formattedDate)
@@ -637,13 +811,23 @@ class PaymentLogController extends Controller
                         throw new \Exception("This Payment Already Completed.");
                     }
 
-                    $payment = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
+                    $payment = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->first();
                     if ($payment) {
                         if ($payment->amount != $data->amount) {
                             throw new \Exception("Wrong TXN.");
                         }
                     }
                 }
+
+
+                if($payment){
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        throw new \Exception("By This Txn no, Payment Already Completed.");
+                    }
+                }
+                    
 
                 if (!$payment) {
                     // $payment = new Payment();
@@ -666,6 +850,10 @@ class PaymentLogController extends Controller
                     $data->e_wallet_charges = $payment->e_wallet_charges;
                     $data->payment_received_at = $payment->created_at;
 
+
+                    $payment->status = 1;
+                    $payment->save();
+                    $payment=null;
                     // $payment->delete();
                 }
                 $payment=$data;
@@ -1441,7 +1629,7 @@ class PaymentLogController extends Controller
                 // } elseif ($fund->status == 3) {
                 //     $status = "Rejected";
                 // }
-                $data[] = [$fund->created_at, $fund->transaction, optional($fund->payment)->txn_id, $partner_transection_id, $user_name, $user_type, optional($fund->gateway)->name, $fund->account_no, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->final_amount), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->source, optional($fund->payment)->updated_at];
+                $data[] = [$fund->created_at, $fund->transaction, $fund->txn_id, $partner_transection_id, $user_name, $user_type, optional($fund->gateway)->name, $fund->account_no, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->final_amount), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->source, $fund->updated_at];
             }
 
 
@@ -1607,9 +1795,15 @@ class PaymentLogController extends Controller
 
 
                 DB::beginTransaction();
-                $payment_record = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->lockForUpdate()->first();
+                $payment_record = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->lockForUpdate()->first();
                 if (!$payment_record) {
                     return response()->json(['message' => 'Please Wait! Your Payment is Processing.']);
+                }else{
+                    $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        return response()->json(['message' => 'By This Txn no, Payment Already Completed.']);
+                    }
                 }
 
                 $currentMonth = now()->format('Y-m');
@@ -1717,6 +1911,9 @@ class PaymentLogController extends Controller
                     $order->payment_received_at = $payment_record->created_at;
 
 
+                    $payment_record->status = 1;
+                    $payment_record->save();
+                    $payment_record=null;
                     // $payment_record->delete();
                     $order->save();
 
@@ -1995,6 +2192,7 @@ class PaymentLogController extends Controller
                     return response()->json(['message' => 'Payment Already Added']);
                 }else{
                     $payment_record = PendingPayment::where('e_wallet_name', $request->e_wallet_name)
+                    ->where('status', 0)
                         ->where('amount', $request_amount)
                         ->where('sender', $request->sender)
                         ->where('date_time', '=', $formattedDateTime)
@@ -2011,7 +2209,7 @@ class PaymentLogController extends Controller
                     DB::rollBack();
                     return response()->json(['message' => 'Payment Already Added']);
                 }else{
-                    $payment_record = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
+                    $payment_record = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->first();
                     if ($payment_record) {
                         DB::rollBack();
                         return response()->json(['message' => 'Payment Already Added']);
@@ -2472,14 +2670,81 @@ class PaymentLogController extends Controller
     }
 
 
-    public function makeatest(Request $request){
+    public function makeatest($id=0){
         $source = "Rocket";
         $acc="01626821906";
         $type="Agent";
 
-        $this->directwebhookddd($source, $acc, $type);
+        // $this->directwebhookddd($source, $acc, $type);
 
-        exit;
+            // $cron_commissions = ParentCommission::get();
+            // foreach ($cron_commissions as $cron_commission) {
+            //     $new_commission = Commission::where('id', $cron_commission->commission_id)->first();
+            //     if($new_commission){
+
+
+            //         $cron_commission->from_amount = $new_commission->from_amount;
+            //         $cron_commission->to_amount = $new_commission->to_amount;
+            //         $cron_commission->type = $new_commission->type;
+            //         $cron_commission->gateway_id = $new_commission->gateway_id;
+            //         $cron_commission->save();     
+            //     }
+                
+            // }
+
+
+            // dd(Session::all());
+
+            // if (!Session::has('previousid')) {
+            //     Session::put('previousid', 0);
+            //     $request->session()->put('aaaaaa', 'xxxxx');
+            //     $previousid = 0;
+            // } else {
+            //     $request->session()->put('aaaaaa', 'nnnnn');
+            //     $previousid = Session::get('previousid');
+            // }
+
+            // dd(Session::all());
+
+            $previousid = $id;
+
+            $txnIds = PendingPayment::pluck('txn_id');
+            $paymentTxnIds = Payment::whereIn('txn_id', $txnIds)->where('txn_id','!=','none')
+                        ->pluck('txn_id')
+                        ->unique()
+                        ->toArray();
+                        $commaSeparated = '';
+                        foreach ($paymentTxnIds as $key => $paymentTxnId) {
+                            $commaSeparated .= $paymentTxnId;
+
+                            // Add comma if it's not the last element
+                            if ($key !== array_key_last($paymentTxnIds)) {
+                                $commaSeparated .= ',';
+                            }
+                            
+                        }            
+
+            
+            dd($commaSeparated);
+
+
+            $PendingPayments = PendingPayment::select('id','txn_id')->where('id', '>=', $previousid)->limit(100)->get();
+            dd($txnIds);
+            foreach ($PendingPayments as $PendingPayment) {
+                $previousid = $PendingPayment->id;
+                // Session::put('previousid', $PendingPayment->id);
+                $payment = Payment::select('id','txn_id')->where('txn_id', $PendingPayment->txn_id)->first();
+                if($payment){
+                    $PendingPayment->status = 1;
+                    $PendingPayment->save();     
+                }
+                
+            }
+
+
+            return view('admin.payment.makeatest', compact('previousid'));
+
+            exit;
     }
 
 

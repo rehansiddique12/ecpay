@@ -11,7 +11,6 @@ $isPartnerActive = in_array(Route::currentRouteName(), [
 'admin.transfer.balance',
 'admin.settlements',
 'admin.settlements.search',
-'admin.apis',
 'admin.api.commissions',
 'admin.api.post.commissions',
 'admin.adjustments',
@@ -91,7 +90,8 @@ Request::routeIs('');
 $isMainActive = in_array(Route::currentRouteName(), [
 'admin.dashboard',
 'admin.staff',
-//'admin.groups',
+'admin.apis',
+'admin.agent.list',
 'admin.parant',
 'admin.workboard',
 'admin.users',
@@ -303,7 +303,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 </a>
                             </li>
                             <?php endif; ?>
-                            <?php if(adminAccessRoute(config('role.partnersbalance.access.add'))): ?>
+                            <?php if(adminAccessRoute(config('role.partners.access.view'))): ?>
                             <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.apis' ? 'active' : ''); ?>">
                                 <a href="<?php echo e(route('admin.apis')); ?>" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -311,8 +311,8 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 </a>
                             </li>
                             <?php endif; ?>
-                            <?php if(adminAccessRoute(config('role.partnersbalance.access.add'))): ?>
-                            <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.apis' ? 'active' : ''); ?>">
+                            <?php if(adminAccessRoute(config('role.agents.access.view'))): ?>
+                            <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.agent.list' ? 'active' : ''); ?>">
                                 <a href="<?php echo e(route('admin.agent.list')); ?>" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Merchant List">Agent Management </div>
@@ -325,7 +325,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             
                             
                             
-                            
+
                             <?php if(adminAccessRoute(config('role.manage_staff.access.view'))): ?>
                             <li class="menu-item <?php echo e(Route::currentRouteName() == 'admin.users' ? 'active' : ''); ?>">
                                 <a href="<?php echo e(route('admin.users')); ?>" class="menu-link">
@@ -460,8 +460,8 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li>
                         <?php endif; ?>
-                        
-                       
+
+
                         <?php if(adminAccessRoute(config('role.commissions.access.view'))): ?>
                         <li
                             class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : ''); ?>">
@@ -512,7 +512,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
                     <ul class="menu-sub">
                         <?php if(adminAccessRoute(config('role.payment_log.access.view'))): ?>
-                        
+                        <li
+                            class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : ''); ?>">
+                            <a href="<?php echo e(route('admin.payment.log')); ?>" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                                <div data-i18n="Deposit Log">Deposit Log</div>
+                            </a>
+                        </li>
                         <?php endif; ?>
                         <?php if(adminAccessRoute(config('role.payout_manage.access.view'))): ?>
                         <li
@@ -526,7 +532,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         <?php if(adminAccessRoute(config('role.api_payment_log.access.view'))): ?>
                        <?php if(auth()->user()->username=="dev"): ?>
 
-                       
+
                         <li
                             class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.apiLog', 'admin.payment.apisearch']) ? 'active' : ''); ?>">
                             <a href="<?php echo e(route('admin.payment.apiLog')); ?>" class="menu-link">
@@ -534,7 +540,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Api Deposit Log">Api Deposit Log</div>
                             </a>
                         </li>
-                        
+
 
                         <li
                             class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.apiLogunclaimed', 'admin.payment.apiLogunclaimed.search']) ? 'active' : ''); ?>">
@@ -786,4 +792,4 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
             </div>
         </div>
-<?php /**PATH C:\xampp\htdocs\subecpaypast\resources\views/admin/layouts/sidebar.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\ecpay\resources\views/admin/layouts/sidebar.blade.php ENDPATH**/ ?>

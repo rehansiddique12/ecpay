@@ -9,7 +9,6 @@ class Authenticate extends Middleware
 {
     protected function redirectTo($request)
     {
-
         // Check if the route prefix is 'admin'
         if (trim(request()->route()->getPrefix(), '/') == 'admin') {
             // Check if the user is not authenticated using the 'admin' guard

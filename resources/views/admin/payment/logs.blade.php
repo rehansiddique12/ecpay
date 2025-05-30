@@ -137,11 +137,11 @@
                             <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
                             <td class="font-weight-bold">{{ $fund->sender }}</td>
                             <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($fund->amount) }}
-                                {{$fund->gateway->currency}}</td>
+                                {{$fund->gateway?->currency}}</td>
                             <td data-label="@lang('Charge')" class="text-success">{{ getAmount($fund->charge) }}
-                                {{$fund->gateway->currency}}</td>
+                                {{$fund->gateway?->currency}}</td>
                             <td data-label="@lang('Payable')" class="font-weight-bold">
-                                {{ getAmount($fund->amount) - getAmount($fund->charge) }} {{$fund->gateway->currency}}
+                                {{ getAmount($fund->amount) - getAmount($fund->charge) }} {{$fund->gateway?->currency}}
                             </td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
@@ -186,7 +186,7 @@
                                 <span class="badge {{ $classColor }}"><i class="fa fa-circle text-white font-12"></i>
                                     @lang('Completed')</span>
                                 <br>
-                                <span class="{{ $classColor }}">{{ optional($fund->payment)->e_wallet_phone_number
+                                <span class="{{ $classColor }}">{{ $fund->e_wallet_phone_number
                                     }}</span>
                                 @elseif($fund->status == "Reject")
                                 <span class="badge bg-danger"><i class="fa fa-circle text-white danger font-12"></i>

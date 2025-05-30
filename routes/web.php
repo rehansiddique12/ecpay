@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AccountManagementController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DevFunctionsController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Admin\ManualGatewayController;
@@ -114,6 +115,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/', [LoginController::class, 'showLoginForm'])->name('loginfrom');
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
+
+    Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
 
     Route::group(['middleware' => ['auth:admin']], function () {
         // Route::resource('roles',RoleController::class);
@@ -366,7 +369,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/payout-request', [PayoutRecordController::class, 'request'])->name('payout-request');
         Route::put('/payout-action/{id}', [PayoutRecordController::class, 'action'])->name('payout-action');
 
-        Route::get('makeatest', [PaymentLogController::class, 'makeatest'])->name('makeatest');
+        Route::get('makeatest/{id?}', [PaymentLogController::class, 'makeatest'])->name('makeatest');
 
         Route::get('payment/apiLog', [PaymentLogController::class, 'apiLog'])->name('payment.apiLog');
         Route::get('payment/apisearch', [PaymentLogController::class, 'apisearch'])->name('payment.apisearch');
@@ -449,7 +452,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::post('/', [PartnerLoginController::class, 'login'])->name('login');
     });
 
-    Route::group(['middleware' => ['auth:partner']], function () {
+    Route::group(['middleware' => ['auth:partner' , 'permission_partner']], function () {
         Route::get('/dashboard', [PartnerDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/twoFA', [PartnerDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [PartnerDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
@@ -518,6 +521,9 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payment/report/daily/search', [PartnerPaymentLogController::class,'dailyReportSearch'])->name('payment.report.daily.search');
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
         Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
+
+        Route::put('/payout-action/{id}', [PartnerPayoutRecordController::class, 'action'])->name('payout-action');
+
         Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
         Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');
         Route::get('/payout-report/search', [PartnerPayoutRecordController::class,'reportSearch'])->name('payout-report.search');

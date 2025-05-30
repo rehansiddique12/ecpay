@@ -776,9 +776,26 @@ class TelegramGroupController extends Controller
                                                                 /////////////////////////////////
                                                                 
                                                                 DB::beginTransaction();
-                                                                $payment = PendingPayment::where('txn_id', $txnId)->lockForUpdate()->first();
+                                                                $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
                                                                 if($payment){
                                                                     if($payment){
+
+                                                                            $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                                                                            if ($check_payment_txn) {
+                                                                                DB::rollBack();
+
+                                                                                $message = "By This Txn no, Payment Already Completed.";
+
+                                                                                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                    'chat_id' => $TG_message['chat']['id'],
+                                                                                    'text' => $message,
+                                                                                    'parse_mode' => 'Markdown',
+                                                                                    'reply_to_message_id' => $TG_message['message_id']
+                                                                                ]);
+
+                                                                                $image_processed=1;
+                                                                                return response()->json(['status' => 'success'], 200);
+                                                                            }
                                                                         // Add amount validation
                                                                         if(isset($amount) && $amount > 0) {
                                                                             $expectedAmount = $deposit->amount;
@@ -889,11 +906,11 @@ class TelegramGroupController extends Controller
 
                                                                                     $parent_charge = 0;
 
-                                                                                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                                                                                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                                                                                     if ($parent_commission) {
                                                                                         $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
                                                                                     } else {
-                                                                                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                                                                                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                                                                                         if ($parent_commission) {
                                                                                             $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
                                                                                         }
@@ -986,6 +1003,10 @@ class TelegramGroupController extends Controller
 
 
                                                                                     $order->save();
+
+                                                                                    $payment->status = 1;
+                                                                                    $payment->save();
+                                                                                    $payment=null;
                                                                                     // $payment->delete();
                                                                                     
                                                                 

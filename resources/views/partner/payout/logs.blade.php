@@ -96,35 +96,37 @@
                                 {{ $item->member_id }}
                             </td>
 
-                            <td>{{ $item->name }}</td>
+                            <td>{{ $item->e_wallet_name }}</td>
                             <td data-label="@lang('Amount')"
                                 class="font-weight-bold">{{ getAmount($item->amount ) }} {{ $basic->currency_symbol }}</td>
                             <td data-label="@lang('Charge')"
                                 class="text-success">{{ $item->charge }} {{ $basic->currency_symbol }}</td>
 
                             <td data-label="@lang('Net Amount')"
-                                class="font-weight-bold">{{ getAmount($item->net_amount) }} {{ $basic->currency_symbol }}</td>
+                                class="font-weight-bold">{{ getAmount($item->amount + $item->charge) }} {{ $basic->currency_symbol }}</td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                @if($item->status == 2)
+                                @if($item->transfer_status == 2)
                                     <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Request Approved')</span>
-                                @elseif($item->status == 1)
+                                @elseif($item->transfer_status == 1)
                                     <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Request Pending')</span>
-                                @elseif($item->status == 3)
+                                @elseif($item->transfer_status == 3)
                                     <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Request Rejected')</span>
                                 @endif
                                 <br>
-                                @if($item->payout)
-                                @if($item->payout->status == "Complete")
+                                
+                            </td>
+                            <td data-label="@lang('Method')">
+                                @if($item->status == "Complete")
                                     <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Transfered')</span>
-                                @elseif($item->payout->status == "Pending")
-                                    <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Transfer Pending')</span>
-                                @elseif($item->payout->status == "Reject")
-                                    <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Transfer Rejected')</span>
-                                @endif
+                                @elseif($item->status == "Reject")
+                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Transfer Rejected')</span>
+                                @else
+
+                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Transfer Pending')</span>
+                                    
                                 @endif
                             </td>
-                            <td data-label="@lang('Method')">{{ $item->status }}</td>
                             <td data-label="@lang('Method')">
                                 {{ $item->e_wallet_phone_number }}
                                 <br>

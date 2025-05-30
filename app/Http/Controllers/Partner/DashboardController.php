@@ -6,7 +6,7 @@ use Illuminate\Support\Carbon;
 use App\Models\PartnerLog;
 use App\Models\Api;
 use App\Models\Payout;
-use App\Models\payment;
+use App\Models\Payment;
 use App\Models\Commission;
 use App\Models\Settlement;
 use App\Models\Subscriber;
@@ -69,7 +69,7 @@ class DashboardController extends Controller
         $api_id = $main_user->id;
 
         $website = $user->website;
-        $funds_t = Payout::where('status', '!=', 0)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+        $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)
             ->first();
         $transection_data['total_payout_count'] = $funds_t->fund_count;
@@ -78,7 +78,7 @@ class DashboardController extends Controller
 
         $currentDate = Carbon::now()->toDateString();
 
-        $funds_today = Payout::where('status', '!=', 0)
+        $funds_today = Payout::where('status', '!=', 'initiate')
             ->whereDate('created_at', $currentDate) // Filter by today's date
             ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)
@@ -95,7 +95,7 @@ class DashboardController extends Controller
         // Get the last day of the current month
         $lastDayOfMonth = Carbon::now()->endOfMonth()->toDateString();
 
-        $funds_current_month = Payout::where('status', '!=', 0)
+        $funds_current_month = Payout::where('status', '!=', 'initiate')
             ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth]) // Filter by the current month
             ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)
@@ -105,10 +105,7 @@ class DashboardController extends Controller
         $transection_data['total_payout_sum_current_month'] = round($funds_current_month->fund_sum ?? 0, 2);
         $transection_data['total_payout_charge_current_month'] = round($funds_current_month->charge_sum ?? 0, 2);
 
-
-
-
-        $payments = Payment::where('status', '!=', 0)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+        $payments = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)->first();
         $transection_data['total_payment_count'] = $payments->fund_count;
         $transection_data['total_payment_sum'] = round($payments->fund_sum, 2);
@@ -117,7 +114,7 @@ class DashboardController extends Controller
 
         $currentDate = Carbon::now()->toDateString();
 
-        $payments_today = Payment::where('status', '!=', 0)
+        $payments_today = Payment::where('status', '!=', "initiate")
             ->whereDate('created_at', $currentDate) // Filter by today's date
             ->where('api_id', $api_id)
             ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
@@ -147,7 +144,7 @@ class DashboardController extends Controller
         $sum = Payout::whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->where('api_id', $api_id)
-            ->where('transfer_status', 'Complete')
+            ->where('transfer_status', 2)
             ->sum('amount');
 
         $api_key = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
@@ -166,20 +163,16 @@ class DashboardController extends Controller
         $withdrawal_able_amount = $user->balance - $charge;
         $transection_data['withdrawal_able_amount'] = round($withdrawal_able_amount ?? 0, 2);
 
-
         //settlement
         $settlement_total_records = Settlement::where('partner_id', $user->id)->where('status', 1)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charges) as charge_sum')->first();
         $transection_data['total_settlement_count'] = $settlement_total_records->fund_count ?? 0;
         $transection_data['total_settlement_sum'] = round($settlement_total_records->fund_sum ?? 0, 2);
         $transection_data['total_settlement_charge'] = round($settlement_total_records->charge_sum ?? 0, 2);
 
-
-
         $settlement_total_records_daily = Settlement::where('partner_id', $user->id)->where('status', 1)->whereDate('created_at', $currentDate)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charges) as charge_sum')->first();
         $transection_data['total_settlement_count_daily'] = $settlement_total_records_daily->fund_count ?? 0;
         $transection_data['total_settlement_sum_daily'] = round($settlement_total_records_daily->fund_sum ?? 0, 2);
         $transection_data['total_settlement_charge_daily'] = round($settlement_total_records_daily->charge_sum ?? 0, 2);
-
 
         $settlement_total_records_monthly = Settlement::where('partner_id', $user->id)->where('status', 1)->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charges) as charge_sum')->first();
         $transection_data['total_settlement_count_current_month'] = $settlement_total_records_monthly->fund_count ?? 0;
@@ -196,19 +189,17 @@ class DashboardController extends Controller
         $data['userRecord'] = 10;
 
 
-        $data['tickets'] = collect(Ticket::where('created_at', '>', Carbon::now()->subDays(30))
-            ->selectRaw('count(CASE WHEN status = 3  THEN status END) AS closed')
-            ->selectRaw('count(CASE WHEN status = 2  THEN status END) AS replied')
-            ->selectRaw('count(CASE WHEN status = 1  THEN status END) AS answered')
-            ->selectRaw('count(CASE WHEN status = 0  THEN status END) AS pending')
-            ->get()->toArray())->collapse();
+        // $data['tickets'] = collect(Ticket::where('created_at', '>', Carbon::now()->subDays(30))
+        //     ->selectRaw('count(CASE WHEN status = 3  THEN status END) AS closed')
+        //     ->selectRaw('count(CASE WHEN status = 2  THEN status END) AS replied')
+        //     ->selectRaw('count(CASE WHEN status = 1  THEN status END) AS answered')
+        //     ->selectRaw('count(CASE WHEN status = 0  THEN status END) AS pending')
+        //     ->get()->toArray())->collapse();
 
-
-
-        $dailyInvestAmo = $this->dayList();
-        $dailyInvest = $this->dayList();
-        $dailyReturn = $this->dayList();
-        $dailyRefund = $this->dayList();
+        // $dailyInvestAmo = $this->dayList();
+        // $dailyInvest = $this->dayList();
+        // $dailyReturn = $this->dayList();
+        // $dailyRefund = $this->dayList();
         // BetInvest::whereMonth('created_at', Carbon::now()->month)
         //     ->select(
         //         DB::raw('sum(invest_amount) as total_Amount'),
@@ -225,9 +216,9 @@ class DashboardController extends Controller
         //         $dailyRefund->put($item['date'], round($item['Refund_Amount'], 2));
         //     });
 
-        $statistics['investment'] = $dailyInvest;
-        $statistics['return'] = $dailyReturn;
-        $statistics['refund'] = $dailyRefund;
+        // $statistics['investment'] = $dailyInvest;
+        // $statistics['return'] = $dailyReturn;
+        // $statistics['refund'] = $dailyRefund;
 
         $dailyDeposit = $this->dayList(); // Pre-filled with all days
 
@@ -271,14 +262,10 @@ class DashboardController extends Controller
         $gateway = Gateway::count('id');
         $pieLog = collect();
 
-
-
-
-
-        $data['payout'] = collect(Payout::selectRaw('COUNT(CASE WHEN status = 1  THEN id END) AS pending')
-            ->selectRaw('SUM((CASE WHEN status = 2 AND created_at >= CURDATE()  THEN amount END)) AS todayPayoutAmount')
-            ->selectRaw('SUM((CASE WHEN status = 2 AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN amount END)) AS monthlyPayoutAmount')
-            ->selectRaw('SUM((CASE WHEN status = 2 AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN charge END)) AS monthlyPayoutCharge')
+        $data['payout'] = collect(Payout::selectRaw('COUNT(CASE WHEN status = "Pending"  THEN id END) AS pending')
+            ->selectRaw('SUM((CASE WHEN status = "Complete" AND created_at >= CURDATE()  THEN amount END)) AS todayPayoutAmount')
+            ->selectRaw('SUM((CASE WHEN status = "Complete" AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN amount END)) AS monthlyPayoutAmount')
+            ->selectRaw('SUM((CASE WHEN status = "Complete" AND created_at >=  DATE_SUB(CURRENT_DATE() , INTERVAL DAYOFMONTH(CURRENT_DATE)-1 DAY) THEN charge END)) AS monthlyPayoutCharge')
             ->get()->toArray())->collapse();
 
         $data['latestUser'] = User::latest()->limit(5)->get();

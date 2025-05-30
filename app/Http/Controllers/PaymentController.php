@@ -270,11 +270,11 @@ class PaymentController extends Controller
 
                 $parent_charge = 0;
 
-                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                 if ($parent_commission) {
                     $parent_charge = $parent_commission->deposit_percentage * $request->amount / 100;
                 } else {
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $request->amount / 100;
                     }
@@ -311,6 +311,29 @@ class PaymentController extends Controller
         $data['qr_image'] = $account->image ? (env('APP_URL') . config('location.withdraw.path') . $account->image) : '';
 
         return $data;
+    }
+
+
+    public function checkBalance(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+        if ($api_key) {
+            $response = [
+                'balance' => number_format($api_key->balance, 2, '.', ''),
+            ];
+                    return response()->json($response);
+        }
+
+        return response()->json(['message' => 'API not Found'], 404);
+
     }
 
     public function uploadReceipt(Request $request)
