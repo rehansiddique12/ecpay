@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AccountManagementController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DevFunctionsController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Admin\ManualGatewayController;
@@ -114,6 +115,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/', [LoginController::class, 'showLoginForm'])->name('loginfrom');
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
+
+    Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
 
     Route::group(['middleware' => ['auth:admin']], function () {
         // Route::resource('roles',RoleController::class);
