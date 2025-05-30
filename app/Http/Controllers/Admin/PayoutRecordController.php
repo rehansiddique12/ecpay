@@ -984,7 +984,7 @@ class PayoutRecordController extends Controller
                                 $summary_log->save();
                             }
                         }
-                            
+
                     }
 
 
@@ -1203,7 +1203,7 @@ class PayoutRecordController extends Controller
                                     $summary_log->save();
                                 }
                             }
-                            
+
                         }
 
 
@@ -4090,7 +4090,7 @@ class PayoutRecordController extends Controller
                 }
             }
 
-            
+
 
 
                 $previous_pending = Payout::where('api_id', $api_key->id)
@@ -4569,7 +4569,7 @@ class PayoutRecordController extends Controller
                             $summary_log->save();
                         }
                     }
-                    
+
                 }
 
                 $account = EWalletAccount::where('e_wallet_name', $payout->e_wallet_name)
@@ -4793,7 +4793,7 @@ class PayoutRecordController extends Controller
                                         $summary_log->save();
                                     }
                                 }
-                                
+
                             }
 
 
@@ -5049,7 +5049,7 @@ class PayoutRecordController extends Controller
                                         $summary_log->save();
                                     }
                                 }
-                                
+
                             }
 
                             $account = EWalletAccount::where('e_wallet_name', $payout_data->e_wallet_name)
@@ -5214,6 +5214,7 @@ class PayoutRecordController extends Controller
         // Duplicate record and update amount
         $new = $original->replicate();
         $new->amount = $request->new_amount;
+        $new->txn_id = $request->txn_amount;
         $new->save();
 
         return response()->json(['success' => true, 'message' => 'Record duplicated successfully.']);

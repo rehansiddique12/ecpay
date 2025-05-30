@@ -432,6 +432,11 @@
               <label for="new_amount" class="form-label">Amount</label>
               <input type="number" class="form-control" id="new_amount" name="new_amount" required>
             </div>
+
+            <div class="mb-3">
+                <label for="txn_amount" class="form-label">Txn Number</label>
+                <input type="number" class="form-control" id="txn_amount" name="txn_amount" required>
+              </div>
           </div>
 
           <div class="modal-footer">
@@ -551,6 +556,37 @@ setInterval(function() {
     fetchTransactions(); // fetch the transactions every 1 minute
 }, 60000); // 60000 ms = 1 minute
 
+$('#manualProcessForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const originalId = $('#original_id').val();
+    const newAmount = $('#new_amount').val();
+    const txnamount = $('#txn_amount').val();
+    const type = $('#type').val();
+
+    $.ajax({
+        url: "{{ route('admin.manual-process') }}", // Replace with your actual route
+        method: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            original_id: originalId,
+            new_amount: newAmount,
+            txn_amount: txnamount,
+            type: type
+        },
+        success: function (response) {
+            $('#manualProcessModal').modal('hide');
+            alert('New record added successfully!');
+            $('#manualProcessModal').find('input').val('');
+            fetchTransactions();
+            // Optional: reload or update your data table here
+        },
+        error: function (xhr) {
+            alert('Something went wrong. Please try again.');
+        }
+    });
+});
+
     function fetchTransactions() {
         $.ajax({
             url: "{{ route('admin.workboard') }}", // your route
@@ -664,10 +700,10 @@ if (transaction.type === 'payment') {
     style="background-color: rgb(226, 15, 15); color: white;"
     data-id="${transaction.id}"
     data-type="${transaction.type}">
-    Manual Process
+    Adjustment
 </button>
 
-                                    <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Adjustment</button>
+                                    <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Manual Process</button>
                                 </div>
                             </div>
                         </div>
@@ -988,32 +1024,7 @@ $(document).on('click', '.manual-process-btn', function () {
     $('#manualProcessModal').modal('show');
 });
 
-$('#manualProcessForm').on('submit', function (e) {
-    e.preventDefault();
 
-    const originalId = $('#original_id').val();
-    const newAmount = $('#new_amount').val();
-    const type = $('#type').val();
-
-    $.ajax({
-        url: "{{ route('admin.manual-process') }}", // Replace with your actual route
-        method: "POST",
-        data: {
-            _token: "{{ csrf_token() }}",
-            original_id: originalId,
-            new_amount: newAmount,
-            type: type
-        },
-        success: function (response) {
-            $('#manualProcessModal').modal('hide');
-            alert('New record added successfully!');
-            // Optional: reload or update your data table here
-        },
-        error: function (xhr) {
-            alert('Something went wrong. Please try again.');
-        }
-    });
-});
 
 </script>
 
