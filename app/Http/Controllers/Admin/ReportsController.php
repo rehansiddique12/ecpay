@@ -402,131 +402,207 @@ class ReportsController extends Controller
 
 
     public function partner_account_balance_summary(Request $request)
-{
-    $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
-    $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d');
+    {
+        $this->add_daily_partner_summary();
+        exit;
 
-    $domainsQuery = Api::where('type', 'Admin')
-        ->where(function ($query) {
-            $query->where('website', '!=', env('APP_WEBSITE'))
-                  ->orWhereNull('website');
-        });
 
-    if ($request->filled('website') && !empty($request->website)) {
-        $domainsQuery->where('id', $request->website);
+        $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
+        $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d');
+
+        $domainsQuery = Api::where('type', 'Admin')
+            ->where(function ($query) {
+                $query->where('website', '!=', env('APP_WEBSITE'))
+                    ->orWhereNull('website');
+            });
+
+        if ($request->filled('website') && !empty($request->website)) {
+            $domainsQuery->where('id', $request->website);
+        }
+
+        $partners = $domainsQuery->get();
+        $partnerIds = $partners->pluck('id')->toArray();
+
+        $dates = collect();
+        for ($date = strtotime($from_date); $date <= strtotime($to_date); $date = strtotime('+1 day', $date)) {
+            $dates->push(date('Y-m-d', $date));
+        }
+
+        // Preload data in bulk (grouped by date and api_id or partner_id)
+        $deposits = Payment::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->where('status', 'Complete')
+            ->whereIn('api_id', $partnerIds)
+            ->selectRaw("DATE(created_at) as date, api_id, SUM(amount) as deposit_amount, SUM(charge) as deposit_charges")
+            ->groupBy(DB::raw('DATE(created_at)'), 'api_id')
+            ->get()
+            ->keyBy(fn($item) => $item->date . '-' . $item->api_id);
+
+        $withdrawals = Payout::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->where('status', 'Complete')
+            ->whereIn('api_id', $partnerIds)
+            ->selectRaw("DATE(created_at) as date, api_id, SUM(amount) as withdrawal_amount, SUM(charge) as withdrawal_charges")
+            ->groupBy(DB::raw('DATE(created_at)'), 'api_id')
+            ->get()
+            ->keyBy(fn($item) => $item->date . '-' . $item->api_id);
+
+        $settlements = Settlement::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->where('status', 1)
+            ->whereIn('partner_id', $partnerIds)
+            ->selectRaw("DATE(created_at) as date, partner_id, SUM(amount) as settlement_amount, SUM(charges) as settlement_charges")
+            ->groupBy(DB::raw('DATE(created_at)'), 'partner_id')
+            ->get()
+            ->keyBy(fn($item) => $item->date . '-' . $item->partner_id);
+
+        $adjustments = ApiTransaction::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->whereIn('partner_id', $partnerIds)
+            ->selectRaw("DATE(created_at) as date, partner_id, SUM(amount) as adjustment_amount, SUM(charges) as adjustment_charges")
+            ->groupBy(DB::raw('DATE(created_at)'), 'partner_id')
+            ->get()
+            ->keyBy(fn($item) => $item->date . '-' . $item->partner_id);
+
+        $commissions = PartnerCommission::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
+            ->where('status', 1)
+            ->whereIn('from_id', $partnerIds)
+            ->selectRaw("DATE(created_at) as date, from_id, SUM(profit) as commission_amount")
+            ->groupBy(DB::raw('DATE(created_at)'), 'from_id')
+            ->get()
+            ->keyBy(fn($item) => $item->date . '-' . $item->from_id);
+
+        $openingBalances = DailyPartnerSummary::whereIn('api_id', $partnerIds)
+            ->whereBetween(DB::raw('DATE(created_at)'), [date('Y-m-d', strtotime($from_date . ' -1 day')), $to_date])
+            ->select('api_id', 'closing_balance', DB::raw('DATE(created_at) as date'))
+            ->get()
+            ->keyBy(fn($item) => $item->date . '-' . $item->api_id);
+
+        $data = [];
+        $count = 0;
+
+        foreach ($dates as $date) {
+            $prevDate = date('Y-m-d', strtotime($date . ' -1 day'));
+
+            foreach ($partners as $partner) {
+                $key = $date . '-' . $partner->id;
+                $prevKey = $prevDate . '-' . $partner->id;
+
+                $deposit = $deposits[$key] ?? (object)['deposit_amount' => 0, 'deposit_charges' => 0];
+                $withdrawal = $withdrawals[$key] ?? (object)['withdrawal_amount' => 0, 'withdrawal_charges' => 0];
+                $settlement = $settlements[$key] ?? (object)['settlement_amount' => 0, 'settlement_charges' => 0];
+                $adjustment = $adjustments[$key] ?? (object)['adjustment_amount' => 0, 'adjustment_charges' => 0];
+                $commission = $commissions[$key] ?? (object)['commission_amount' => 0];
+
+                $opening_balance = $openingBalances[$prevKey]->closing_balance ?? 0.00;
+                $today_opening_balance = $openingBalances[$key]->closing_balance ?? 0.00;
+
+                $total_charges = $deposit->deposit_charges + $withdrawal->withdrawal_charges + $settlement->settlement_charges + $adjustment->adjustment_charges;
+
+                $closing_balance = $opening_balance + $adjustment->adjustment_amount - $adjustment->adjustment_charges + $commission->commission_amount + $deposit->deposit_amount - $deposit->deposit_charges - $withdrawal->withdrawal_amount - $withdrawal->withdrawal_charges - $settlement->settlement_amount - $settlement->settlement_charges;
+
+                $differance = number_format($closing_balance - $today_opening_balance, 2);
+
+                $data[] = [
+                    'id' => $partner->id,
+                    'partner' => $partner->name,
+                    'date' => $date,
+                    'opening_balance' => $opening_balance,
+                    'deposit_amount' => $deposit->deposit_amount,
+                    'deposit_charges' => $deposit->deposit_charges,
+                    'withdrawal_amount' => $withdrawal->withdrawal_amount,
+                    'withdrawal_charges' => $withdrawal->withdrawal_charges,
+                    'settlement_amount' => $settlement->settlement_amount,
+                    'settlement_charges' => $settlement->settlement_charges,
+                    'adjustment' => $adjustment->adjustment_amount,
+                    'adjustment_charges' => $adjustment->adjustment_charges,
+                    'commission' => $commission->commission_amount,
+                    'total_charges' => $total_charges,
+                    'closing_balance' => $closing_balance,
+                    'today_opening_balance' => $today_opening_balance,
+                    'differance' => $differance,
+                    'current_balance' => $partner->balance,
+                ];
+            }
+        }
+
+        $pageTitle = "Partner Account Balance Summary Creations";
+        $domains = Api::where('type', 'Admin')
+            ->where(function ($query) {
+                $query->where('website', '!=', env('APP_WEBSITE'))
+                    ->orWhereNull('website');
+            })->get();
+
+        return view('admin.reports.partner_account_balance_summary', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
     }
 
-    $partners = $domainsQuery->get();
-    $partnerIds = $partners->pluck('id')->toArray();
+    public function add_daily_partner_summary()
+    {
+        $timezone = config('app.timezone');
+        //$now = Carbon::now($timezone);
+        $now = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-28 00:00:00', $timezone);
+        $date = $now->subDay()->toDateString();
+        //dd($now);
+        $EndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' 23:59:00', $timezone);
+        
+        $oneDayBefore = $now->subDay()->toDateString();
+        $oneDayBeforeEndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $oneDayBefore . ' 23:59:00', $timezone);
 
-    $dates = collect();
-    for ($date = strtotime($from_date); $date <= strtotime($to_date); $date = strtotime('+1 day', $date)) {
-        $dates->push(date('Y-m-d', $date));
-    }
+        // dd($oneDayBeforeEndOfDay);
+        // exit;
+        $domains = Api::where('type', 'Admin')
+            ->where(function($query) {
+                $query->where('website', '!=', env('APP_WEBSITE'))
+                    ->orWhereNull('website');
+            })
+            ->get();
+        foreach ($domains as $key => $domain) {
+            $deposit = Payment::whereDate('created_at', $date)
+                ->where('status', 'Complete')
+                ->where('api_id', $domain->id)
+                ->selectRaw('COALESCE(SUM(amount), 0) as deposit_amount, COALESCE(SUM(charge), 0) as deposit_charges')
+                ->first();
 
-    // Preload data in bulk (grouped by date and api_id or partner_id)
-    $deposits = Payment::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
-        ->where('status', 'Complete')
-        ->whereIn('api_id', $partnerIds)
-        ->selectRaw("DATE(created_at) as date, api_id, SUM(amount) as deposit_amount, SUM(charge) as deposit_charges")
-        ->groupBy(DB::raw('DATE(created_at)'), 'api_id')
-        ->get()
-        ->keyBy(fn($item) => $item->date . '-' . $item->api_id);
+            $withdrawal = Payout::whereDate('created_at', $date)
+                ->where('status', 'Complete')
+                ->where('api_id', $domain->id)
+                ->selectRaw('COALESCE(SUM(amount), 0) as withdrawal_amount, COALESCE(SUM(charge), 0) as withdrawal_charges')
+                ->first();
 
-    $withdrawals = Payout::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
-        ->where('status', 'Complete')
-        ->whereIn('api_id', $partnerIds)
-        ->selectRaw("DATE(created_at) as date, api_id, SUM(amount) as withdrawal_amount, SUM(charge) as withdrawal_charges")
-        ->groupBy(DB::raw('DATE(created_at)'), 'api_id')
-        ->get()
-        ->keyBy(fn($item) => $item->date . '-' . $item->api_id);
+            $Settlement = Settlement::where('partner_id', $domain->id)->where('status', 1)->whereDate('created_at', $date)->selectRaw('COALESCE(SUM(amount), 0) as settlement_amount, COALESCE(SUM(charges), 0) as settlement_charges')->first();
+            $adjustment = ApiTransaction::where('partner_id', $domain->id)->whereDate('created_at', $date)->selectRaw('COALESCE(SUM(amount), 0) as adjustment_amount, COALESCE(SUM(charges), 0) as adjustment_charges')->first();
+            $PartnerCommission = PartnerCommission::where('from_id', $domain->id)->where('status', 1)->whereDate('created_at', $date)->selectRaw('COALESCE(SUM(profit), 0) as commission_amount')->first();
+            
+            $data[$key]['deposit_amount'] = $deposit->deposit_amount;
+            $data[$key]['deposit_charges'] = $deposit->deposit_charges;
+            $data[$key]['withdrawal_amount'] = $withdrawal->withdrawal_amount;
+            $data[$key]['withdrawal_charges'] = $withdrawal->withdrawal_charges;
+            $data[$key]['settlement_amount'] = $Settlement->settlement_amount;
+            $data[$key]['settlement_charges'] = $Settlement->settlement_charges;
+            $data[$key]['adjustment'] = $adjustment->adjustment_amount;
+            $data[$key]['adjustment_charges'] = $adjustment->adjustment_charges;
+            $data[$key]['commission'] = $PartnerCommission->commission_amount;
 
-    $settlements = Settlement::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
-        ->where('status', 1)
-        ->whereIn('partner_id', $partnerIds)
-        ->selectRaw("DATE(created_at) as date, partner_id, SUM(amount) as settlement_amount, SUM(charges) as settlement_charges")
-        ->groupBy(DB::raw('DATE(created_at)'), 'partner_id')
-        ->get()
-        ->keyBy(fn($item) => $item->date . '-' . $item->partner_id);
+            $record =  DailyPartnerSummary::where('api_id', $domain->id)->whereDate('created_at', $oneDayBefore)->first();
+            if (!$record) {
+                $add_previous_record = new DailyPartnerSummary();
+                $add_previous_record->api_id = $domain->id;
+                $closing_balance = $domain->balance - $data[$key]['deposit_amount'] - $data[$key]['adjustment'] + $data[$key]['adjustment_charges'] - $data[$key]['commission'] + $data[$key]['deposit_charges'] + $data[$key]['withdrawal_amount'] + $data[$key]['withdrawal_charges'] + $data[$key]['settlement_amount'] + $data[$key]['settlement_charges'];
+                $add_previous_record->closing_balance = $closing_balance;
+                $add_previous_record->created_at = $oneDayBeforeEndOfDay;
+                $add_previous_record->updated_at = $oneDayBeforeEndOfDay;
+                $add_previous_record->save();
+            } else {
+                $closing_balance = $record->closing_balance;
+            }
 
-    $adjustments = ApiTransaction::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
-        ->whereIn('partner_id', $partnerIds)
-        ->selectRaw("DATE(created_at) as date, partner_id, SUM(amount) as adjustment_amount, SUM(charges) as adjustment_charges")
-        ->groupBy(DB::raw('DATE(created_at)'), 'partner_id')
-        ->get()
-        ->keyBy(fn($item) => $item->date . '-' . $item->partner_id);
+            $data[$key]['closing_balance'] = $closing_balance + $data[$key]['adjustment'] - $data[$key]['adjustment_charges'] + $data[$key]['commission'] + $data[$key]['deposit_amount'] - $data[$key]['deposit_charges'] - $data[$key]['withdrawal_amount'] - $data[$key]['withdrawal_charges'] - $data[$key]['settlement_amount'] - $data[$key]['settlement_charges'];
 
-    $commissions = PartnerCommission::whereBetween(DB::raw('DATE(created_at)'), [$from_date, $to_date])
-        ->where('status', 1)
-        ->whereIn('from_id', $partnerIds)
-        ->selectRaw("DATE(created_at) as date, from_id, SUM(profit) as commission_amount")
-        ->groupBy(DB::raw('DATE(created_at)'), 'from_id')
-        ->get()
-        ->keyBy(fn($item) => $item->date . '-' . $item->from_id);
-
-    $openingBalances = DailyPartnerSummary::whereIn('api_id', $partnerIds)
-        ->whereBetween(DB::raw('DATE(created_at)'), [date('Y-m-d', strtotime($from_date . ' -1 day')), $to_date])
-        ->select('api_id', 'closing_balance', DB::raw('DATE(created_at) as date'))
-        ->get()
-        ->keyBy(fn($item) => $item->date . '-' . $item->api_id);
-
-    $data = [];
-    $count = 0;
-
-    foreach ($dates as $date) {
-        $prevDate = date('Y-m-d', strtotime($date . ' -1 day'));
-
-        foreach ($partners as $partner) {
-            $key = $date . '-' . $partner->id;
-            $prevKey = $prevDate . '-' . $partner->id;
-
-            $deposit = $deposits[$key] ?? (object)['deposit_amount' => 0, 'deposit_charges' => 0];
-            $withdrawal = $withdrawals[$key] ?? (object)['withdrawal_amount' => 0, 'withdrawal_charges' => 0];
-            $settlement = $settlements[$key] ?? (object)['settlement_amount' => 0, 'settlement_charges' => 0];
-            $adjustment = $adjustments[$key] ?? (object)['adjustment_amount' => 0, 'adjustment_charges' => 0];
-            $commission = $commissions[$key] ?? (object)['commission_amount' => 0];
-
-            $opening_balance = $openingBalances[$prevKey]->closing_balance ?? 0.00;
-            $today_opening_balance = $openingBalances[$key]->closing_balance ?? 0.00;
-
-            $total_charges = $deposit->deposit_charges + $withdrawal->withdrawal_charges + $settlement->settlement_charges + $adjustment->adjustment_charges;
-
-            $closing_balance = $opening_balance + $adjustment->adjustment_amount - $adjustment->adjustment_charges + $commission->commission_amount + $deposit->deposit_amount - $deposit->deposit_charges - $withdrawal->withdrawal_amount - $withdrawal->withdrawal_charges - $settlement->settlement_amount - $settlement->settlement_charges;
-
-            $differance = number_format($closing_balance - $today_opening_balance, 2);
-
-            $data[] = [
-                'id' => $partner->id,
-                'partner' => $partner->name,
-                'date' => $date,
-                'opening_balance' => $opening_balance,
-                'deposit_amount' => $deposit->deposit_amount,
-                'deposit_charges' => $deposit->deposit_charges,
-                'withdrawal_amount' => $withdrawal->withdrawal_amount,
-                'withdrawal_charges' => $withdrawal->withdrawal_charges,
-                'settlement_amount' => $settlement->settlement_amount,
-                'settlement_charges' => $settlement->settlement_charges,
-                'adjustment' => $adjustment->adjustment_amount,
-                'adjustment_charges' => $adjustment->adjustment_charges,
-                'commission' => $commission->commission_amount,
-                'total_charges' => $total_charges,
-                'closing_balance' => $closing_balance,
-                'today_opening_balance' => $today_opening_balance,
-                'differance' => $differance,
-                'current_balance' => $partner->balance,
-            ];
+            $DailyPartnerSummary = new DailyPartnerSummary();
+            $DailyPartnerSummary->api_id = $domain->id;
+            $DailyPartnerSummary->closing_balance = $data[$key]['closing_balance'];
+            $DailyPartnerSummary->actual_balance = $domain->balance;
+            $DailyPartnerSummary->created_at = $EndOfDay;
+            $DailyPartnerSummary->updated_at = $EndOfDay;
+            $DailyPartnerSummary->save();
         }
     }
-
-    $pageTitle = "Partner Account Balance Summary Creations";
-    $domains = Api::where('type', 'Admin')
-        ->where(function ($query) {
-            $query->where('website', '!=', env('APP_WEBSITE'))
-                  ->orWhereNull('website');
-        })->get();
-
-    return view('admin.reports.partner_account_balance_summary', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
-}
 
 
 
