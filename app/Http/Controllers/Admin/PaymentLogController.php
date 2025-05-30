@@ -2700,38 +2700,56 @@ class PaymentLogController extends Controller
             // }
 
 
-            $previousapiid = $id;
-
-            echo $id;
+            // dd(Session::all());
 
             // if (!Session::has('previousid')) {
-            //     Session::put('previousid', 10);
-            //     $previousapiid = 10;
+            //     Session::put('previousid', 0);
+            //     $request->session()->put('aaaaaa', 'xxxxx');
+            //     $previousid = 0;
             // } else {
-            //     $previousapiid = Session::get('previousid');
+            //     $request->session()->put('aaaaaa', 'nnnnn');
+            //     $previousid = Session::get('previousid');
             // }
 
             // dd(Session::all());
 
+            $previousid = $id;
 
-            sleep(2);
+            $txnIds = PendingPayment::pluck('txn_id');
+            $paymentTxnIds = Payment::whereIn('txn_id', $txnIds)->where('txn_id','!=','none')
+                        ->pluck('txn_id')
+                        ->unique()
+                        ->toArray();
+                        $commaSeparated = '';
+                        foreach ($paymentTxnIds as $key => $paymentTxnId) {
+                            $commaSeparated .= $paymentTxnId;
 
-            $PendingPayments = PendingPayment::select('id','txn_id')->where('id', '>=', $previousapiid)->limit(5)->get();
+                            // Add comma if it's not the last element
+                            if ($key !== array_key_last($paymentTxnIds)) {
+                                $commaSeparated .= ',';
+                            }
+                            
+                        }            
+
+            
+            dd($commaSeparated);
+
+
+            $PendingPayments = PendingPayment::select('id','txn_id')->where('id', '>=', $previousid)->limit(100)->get();
+            dd($txnIds);
             foreach ($PendingPayments as $PendingPayment) {
-                $previousapiid = $PendingPayment->id;
-
-                // $payment = Payment::select('id','txn_id')->where('txn_id', $PendingPayment->txn_id)->first();
-                // if($payment){
-                //     $PendingPayment->status = 1;
-                //     $PendingPayment->save();     
-                // }
+                $previousid = $PendingPayment->id;
+                // Session::put('previousid', $PendingPayment->id);
+                $payment = Payment::select('id','txn_id')->where('txn_id', $PendingPayment->txn_id)->first();
+                if($payment){
+                    $PendingPayment->status = 1;
+                    $PendingPayment->save();     
+                }
                 
             }
 
 
-            return redirect()->route('admin.makeatest', ['id' => $previousapiid]);
-
-
+            return view('admin.payment.makeatest', compact('previousid'));
 
             exit;
     }

@@ -26,23 +26,33 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/direct/webhook/{source}/{acc}/{type}', [PaymentLogController::class, 'directwebhook']);
 
 Route::get('/paymentGateway', [PaymentController::class, 'paymentGateway']);
-Route::post('/paymentGatewayInfo', [PaymentController::class, 'paymentGatewayInfo']);
-Route::post('/uploadReceipt', [PaymentController::class, 'uploadReceipt']);
+
+
 Route::post('/lastPaymentDetail', [PaymentController::class, 'lastPaymentDetail']);
 Route::get('/payoutGateway', [PayoutRecordController::class, 'payoutGateway']);
 
-Route::post('/addPayout', [PayoutRecordController::class, 'addPayout']);
+
 Route::post('/lastPayoutDetail', [PayoutRecordController::class, 'lastPayoutDetail']);
 Route::get('/allPayoutInfo', [PayoutRecordController::class, 'allPayoutInfo']);
-Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
-Route::post('/rejectPayoutInfo', [PayoutRecordController::class, 'rejectPayoutInfo']);
 
-Route::post('/verifyPayment', [PaymentLogController::class, 'verifyPayment']);
+
+
+
 
 
 Route::post('/addPaymentInfo', [PaymentLogController::class, 'addPaymentInfo']);
 
 
-Route::post('/checkBalance', [PaymentController::class, 'checkBalance']);
+
 
 Route::post('/partner/telegram/webhook', [TelegramGroupController::class, 'telegramwebhook']);
+
+Route::middleware('api_logs_middleware')->group(function () {
+    Route::post('/verifyPayment', [PaymentLogController::class, 'verifyPayment']);
+    Route::post('/paymentGatewayInfo', [PaymentController::class, 'paymentGatewayInfo']);
+    Route::post('/uploadReceipt', [PaymentController::class, 'uploadReceipt']);
+    Route::post('/rejectPayoutInfo', [PayoutRecordController::class, 'rejectPayoutInfo']);
+    Route::post('/addPayout', [PayoutRecordController::class, 'addPayout']);
+    Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
+    Route::post('/checkBalance', [PaymentController::class, 'checkBalance']);
+});

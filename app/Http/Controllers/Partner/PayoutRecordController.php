@@ -2955,7 +2955,7 @@ class PayoutRecordController extends Controller
 
         if(isset($search['export'])){
             $records = Payout::when(isset($search['status']), function ($query) use ($search) {
-                return $query->where('status', $search['status']);
+                return $query->where('transfer_status', $search['status']);
             })
             ->when($api_id, function ($query) use ($api_id) {
                 $query->where('api_id', $api_id);
@@ -3042,7 +3042,7 @@ class PayoutRecordController extends Controller
             }else{
 
                 $funds_t = Payout::when(isset($search['status']), function ($query) use ($search) {
-                    return $query->where('status', $search['status']);
+                    return $query->where('transfer_status', $search['status']);
                 })
                 ->when($api_id, function ($query) use ($api_id) {
                     $query->where('api_id', $api_id);
