@@ -587,7 +587,7 @@ setInterval(function() {
 
 if (transaction.type === 'payment') {
     editButton = `
-        <button class="px-4 btn btn-sm edit-btn ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;">
+        <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
             Edit
         </button>`;
 } else if (transaction.type === 'payout') {
