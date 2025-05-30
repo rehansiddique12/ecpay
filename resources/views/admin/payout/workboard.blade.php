@@ -472,7 +472,7 @@
                     //     list[i] = `<li class="list-group-item"><span class="font-weight-bold">${item[0].replace('_', " ")}</span> : ${singleInfo}</li>`;
                     // });
 
-                    console.log(jQuery(this).data('status'));
+                    //console.log(jQuery(this).data('status'));
 
                     if (jQuery(this).data('status') == '2') {
                         jQuery('#submit1').hide();
@@ -632,9 +632,8 @@ if (transaction.type === 'payment') {
     const status = transaction.transfer_status || '';
     const statusb = transaction.status || '';
 
-    // Use a route pattern or inject it via JavaScript context if needed
-    const payoutRoute = `/admin/payout-action/${transaction.id}`; // Must match your Laravel route
-
+    const payoutActionRouteTemplate = "{{ route('admin.payout-action', ['id' => ':id']) }}";
+    const payoutRoute = payoutActionRouteTemplate.replace(':id', transaction.id);
     editButton = `
         <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
             data-bs-toggle="modal"

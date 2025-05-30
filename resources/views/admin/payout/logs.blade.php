@@ -602,9 +602,7 @@
 
 <script>
             $(document).on("click", '.edit_button', function (e) {
-                alert('hello');
                 var id = $(this).data('id');
-                alert(id);
                 $(".action_id").val(id);
                 $(".actionRoute").attr('action', $(this).data('route'));
 
