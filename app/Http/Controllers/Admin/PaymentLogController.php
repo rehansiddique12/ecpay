@@ -324,8 +324,8 @@ class PaymentLogController extends Controller
                             ->orWhere('username', 'like', '%' . $search['name'] . '%');
                     });
                 })
-                ->when($search['date_time'], function ($query) use ($search) {
-                    $query->whereDate('created_at', $search['date_time']);
+                ->when(!empty($search['from_date']) && !empty($search['to_date']), function ($query) use ($search) {
+                    $query->whereBetween('created_at', [$search['from_date'], $search['to_date']]);
                 })
                 ->when($search['partner_transection_id'], function ($query) use ($search) {
                     $query->where(function ($subQuery) use ($search) {
@@ -338,13 +338,6 @@ class PaymentLogController extends Controller
                 })
                 ->when($search['status'] != 4, function ($query) use ($search) {
                     $query->where('status', $search['status']);
-                })
-                ->when($search['domain'], function ($query) use ($search) {
-                    $query->where(function ($subQuery) use ($search) {
-                        $subQuery->whereHas('payout', function ($subQuery) use ($search) {
-                            $subQuery->where('api_id', $search['domain']);
-                        })->orWhere('api_id', $search['domain']);
-                    });
                 })
                 ->orderBy('id', 'DESC')
                 ->with('user', 'method', 'payout')
