@@ -5222,23 +5222,37 @@ class PayoutRecordController extends Controller
 
     public function workboard(Request $request)
     {
-        $payments = Payment::select('id', 'amount','sender','e_wallet_phone_number','txn_id','e_wallet_type','e_wallet_phone_number','status', 'created_at', 'partner_transection_id', 'adjusted_by', DB::raw("'payment' as type"))
-    ->latest('created_at')
-    ->where('show_none', 0)
-    ->take(10)
-    ->get();
+        $query = $request->input('search');
 
-$payouts = Payout::select('id', 'amount', 'status', 'created_at', 'partner_transection_id', 'adjusted_by', DB::raw("'payout' as type"))
-    ->latest('created_at')
-    ->where('show_none', 0)
-    ->take(10)
-    ->get();
+        $payments = Payment::select(
+            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type',
+            'e_wallet_phone_number', 'status', 'created_at', 'partner_transection_id',
+            'adjusted_by', DB::raw("'payment' as type")
+        )
+        ->latest('created_at')
+        ->where('show_none', 0)
+        ->when($query, function ($q) use ($query) {
+            $q->where('txn_id', '=', $query);
+        })
+        ->take(10)
+        ->get();
 
+    $payouts = Payout::select(
+            'id', 'amount', 'status', 'created_at', 'partner_transection_id',
+            'adjusted_by', DB::raw("'payout' as type")
+        )
+        ->latest('created_at')
+        ->where('show_none', 0)
+        ->when($query, function ($q) use ($query) {
+            $q->where('partner_transection_id', '=', $query);
+        })
+        ->take(10)
+        ->get();
 
 
         $merged = $payments->merge($payouts);
-
         $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
+
         $EWalletAccount = EWalletAccount::where('status', 1)->get();
         $notifications = EWalletAccount::where('live_balance', '<', '1000')->take(5)->get();
         $pending_list = Payout::where('created_at', '<=', Carbon::now()->subMinutes(5))->take(5)->get();
@@ -5253,7 +5267,6 @@ $payouts = Payout::select('id', 'amount', 'status', 'created_at', 'partner_trans
             ]);
         }
 
-        // Normal page load
         $pageTitle = "Workboard";
         $apis = Api::get();
         return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions', 'apis'));
