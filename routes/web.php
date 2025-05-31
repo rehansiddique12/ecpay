@@ -116,7 +116,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/', [LoginController::class, 'login'])->name('login');
     });
 
-    Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
+    //Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
 
     Route::group(['middleware' => ['auth:admin']], function () {
         // Route::resource('roles',RoleController::class);
