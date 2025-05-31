@@ -5215,6 +5215,7 @@ class PayoutRecordController extends Controller
         $new = $original->replicate();
         $new->amount = $request->new_amount;
         $new->txn_id = $request->txn_amount;
+        $new->status = 'Complete';
         $new->save();
 
         return response()->json(['success' => true, 'message' => 'Record duplicated successfully.']);
@@ -5278,7 +5279,6 @@ class PayoutRecordController extends Controller
             'id' => 'required',
             'status' => ['required', Rule::in(['Complete', 'Reject'])],
         ]);
-        // dd($request->all());
                 DB::beginTransaction();
         try {
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();

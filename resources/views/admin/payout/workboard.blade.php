@@ -349,14 +349,15 @@
                         </div>
                         <button class="btn btn-primary mt-2">@lang('Approve')</button>
                     </div>
-                    <form id="editTransactionForm">
+                </form>
+                    <form id="editTransactionForm1">
                         @csrf
                         <div class="modal-footer">
                             <input type="hidden" id="editrejectId" name="id">
                             <input type="hidden" name="status" value="Reject">
-                            <button type="submit" class="btn btn-danger" name="status"
-                                value="Reject">@lang('Reject')</button>
-                            <button class="btn btn-primary">Update</button>
+                            <input type="hidden" id="editrejectType" name="type">
+                            <button type="submit" class="btn btn-danger"
+                                >@lang('Reject')</button>
                         </div>
                     </form>
 
@@ -558,6 +559,23 @@
                 }).fail(() => alert('Something went wrong. Please try again.'));
             });
 
+            $('#editTransactionForm1').submit(function (e) {
+                e.preventDefault();
+
+                const id = $('#editrejectId').val();
+                const type = $('#editrejectType').val();
+                const formData = $(this).serialize();
+
+                let url = (type === 'payment') ?
+                    "{{ route('admin.update.payment') }}" :
+                    "{{ route('admin.update.payout') }}";
+
+                $.post(url, formData, function (res) {
+                    $('#editModal').modal('hide');
+                    fetchTransactions(); // Refresh the card list
+                }).fail(() => alert('Something went wrong. Please try again.'));
+            });
+
             // call every 1 minute
             setInterval(function () {
                 console.log('Fetching transactions...');
@@ -627,6 +645,7 @@
                                     $('#editId').val(transaction.id);
                                     $('#editrejectId').val(transaction.id);
                                     $('#editType').val(transaction.type);
+                                    $('#editrejectType').val(transaction.type);
                                     $('#editSender').val(transaction.sender || '');
                                     $('#editEwallet').val(transaction
                                         .e_wallet_phone_number || '');
