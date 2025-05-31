@@ -403,8 +403,8 @@ class ReportsController extends Controller
 
     public function partner_account_balance_summary(Request $request)
     {
-        $this->add_daily_partner_summary();
-        exit;
+        // $this->add_daily_partner_summary();
+        // exit;
 
 
         $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
@@ -532,14 +532,129 @@ class ReportsController extends Controller
         return view('admin.reports.partner_account_balance_summary', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
     }
 
+
     public function add_daily_partner_summary()
+{
+    $timezone = config('app.timezone');
+    $now = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-27 00:00:00', $timezone);
+    $date = $now->subDay()->toDateString();
+    $EndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-27 23:59:00', $timezone);
+    $oneDayBefore = $now->subDay()->toDateString();
+    $oneDayBeforeEndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $oneDayBefore . ' 23:59:00', $timezone);
+
+    $domains = Api::where('type', 'Admin')
+        ->where(function($query) {
+            $query->where('website', '!=', env('APP_WEBSITE'))
+                  ->orWhereNull('website');
+        })
+        ->get()
+        ->keyBy('id');
+
+    $domainIds = $domains->keys();
+
+    // Fetch all required data in bulk
+    $deposits = Payment::whereDate('created_at', $date)
+        ->where('status', 'Complete')
+        ->whereIn('api_id', $domainIds)
+        ->groupBy('api_id')
+        ->selectRaw('api_id, COALESCE(SUM(amount), 0) as deposit_amount, COALESCE(SUM(charge), 0) as deposit_charges')
+        ->get()
+        ->keyBy('api_id');
+
+    $withdrawals = Payout::whereDate('created_at', $date)
+        ->where('status', 'Complete')
+        ->whereIn('api_id', $domainIds)
+        ->groupBy('api_id')
+        ->selectRaw('api_id, COALESCE(SUM(amount), 0) as withdrawal_amount, COALESCE(SUM(charge), 0) as withdrawal_charges')
+        ->get()
+        ->keyBy('api_id');
+
+    $settlements = Settlement::where('status', 1)
+        ->whereDate('created_at', $date)
+        ->whereIn('partner_id', $domainIds)
+        ->groupBy('partner_id')
+        ->selectRaw('partner_id, COALESCE(SUM(amount), 0) as settlement_amount, COALESCE(SUM(charges), 0) as settlement_charges')
+        ->get()
+        ->keyBy('partner_id');
+
+    $adjustments = ApiTransaction::whereDate('created_at', $date)
+        ->whereIn('partner_id', $domainIds)
+        ->groupBy('partner_id')
+        ->selectRaw('partner_id, COALESCE(SUM(amount), 0) as adjustment_amount, COALESCE(SUM(charges), 0) as adjustment_charges')
+        ->get()
+        ->keyBy('partner_id');
+
+    $commissions = PartnerCommission::where('status', 1)
+        ->whereDate('created_at', $date)
+        ->whereIn('from_id', $domainIds)
+        ->groupBy('from_id')
+        ->selectRaw('from_id, COALESCE(SUM(profit), 0) as commission_amount')
+        ->get()
+        ->keyBy('from_id');
+
+    foreach ($domains as $id => $domain) {
+        $balance = $domain->balance ?? 0;
+
+        $deposit = $deposits[$id] ?? (object)['deposit_amount' => 0, 'deposit_charges' => 0];
+        $withdrawal = $withdrawals[$id] ?? (object)['withdrawal_amount' => 0, 'withdrawal_charges' => 0];
+        $settlement = $settlements[$id] ?? (object)['settlement_amount' => 0, 'settlement_charges' => 0];
+        $adjustment = $adjustments[$id] ?? (object)['adjustment_amount' => 0, 'adjustment_charges' => 0];
+        $commission = $commissions[$id] ?? (object)['commission_amount' => 0];
+
+        $record = DailyPartnerSummary::where('api_id', $id)->whereDate('created_at', $oneDayBefore)->first();
+        
+        if (!$record) {
+            $prevClosing = $balance 
+                - $deposit->deposit_amount 
+                - $adjustment->adjustment_amount 
+                + $adjustment->adjustment_charges 
+                - $commission->commission_amount 
+                + $deposit->deposit_charges 
+                + $withdrawal->withdrawal_amount 
+                + $withdrawal->withdrawal_charges 
+                + $settlement->settlement_amount 
+                + $settlement->settlement_charges;
+
+            DailyPartnerSummary::create([
+                'api_id' => $id,
+                'closing_balance' => $prevClosing,
+                'created_at' => $oneDayBeforeEndOfDay,
+                'updated_at' => $oneDayBeforeEndOfDay,
+            ]);
+        } else {
+            $prevClosing = $record->closing_balance;
+        }
+
+        $closing = $prevClosing
+            + $adjustment->adjustment_amount 
+            - $adjustment->adjustment_charges 
+            + $commission->commission_amount 
+            + $deposit->deposit_amount 
+            - $deposit->deposit_charges 
+            - $withdrawal->withdrawal_amount 
+            - $withdrawal->withdrawal_charges 
+            - $settlement->settlement_amount 
+            - $settlement->settlement_charges;
+
+        DailyPartnerSummary::create([
+            'api_id' => $id,
+            'closing_balance' => $closing,
+            'actual_balance' => $balance,
+            'created_at' => $EndOfDay,
+            'updated_at' => $EndOfDay,
+        ]);
+    }
+}
+
+
+    public function add_daily_partner_summary_old()
     {
         $timezone = config('app.timezone');
         //$now = Carbon::now($timezone);
         $now = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-28 00:00:00', $timezone);
         $date = $now->subDay()->toDateString();
         //dd($now);
-        $EndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' 23:59:00', $timezone);
+        $EndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-28 23:59:00', $timezone);
         
         $oneDayBefore = $now->subDay()->toDateString();
         $oneDayBeforeEndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $oneDayBefore . ' 23:59:00', $timezone);
