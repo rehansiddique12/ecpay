@@ -69,7 +69,7 @@
                         <div class="d-flex align-items-center">
                             <p class="mb-0 me-2">SEARCH:</p>
                             <input type="search" id="transaction-search" placeholder="TX / Ticket Number"
-    class="form-control form-control-sm search-box" />
+                                class="form-control form-control-sm search-box" />
 
                         </div>
                         <button class="btn btn-sm text-white btn-purple"
@@ -350,16 +350,15 @@
                         <button class="btn btn-primary mt-2">@lang('Approve')</button>
                     </div>
                 </form>
-                    <form id="editTransactionForm1">
-                        @csrf
-                        <div class="modal-footer">
-                            <input type="hidden" id="editrejectId" name="id">
-                            <input type="hidden" name="status" value="Reject">
-                            <input type="hidden" id="editrejectType" name="type">
-                            <button type="submit" class="btn btn-danger"
-                                >@lang('Reject')</button>
-                        </div>
-                    </form>
+                <form id="editTransactionForm1">
+                    @csrf
+                    <div class="modal-footer">
+                        <input type="hidden" id="editrejectId" name="id">
+                        <input type="hidden" name="status" value="Reject">
+                        <input type="hidden" id="editrejectType" name="type">
+                        <button type="submit" class="btn btn-danger">@lang('Reject')</button>
+                    </div>
+                </form>
 
             </div>
         </div>
@@ -460,9 +459,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-
-
-
         (function (jQuery) {
 
             jQuery(document).ready(function () {
@@ -614,23 +610,24 @@
             });
 
             $('#transaction-search').on('keydown', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault(); // Optional: prevent form submission if inside a form
-        const searchValue = $(this).val();
-        $('#transactions-container').empty();
-        fetchTransactions(searchValue);
-    }
-});
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Optional: prevent form submission if inside a form
+                    const searchValue = $(this).val();
+                    $('#transactions-container').empty();
+                    fetchTransactions(searchValue);
+                }
+            });
 
 
-            function fetchTransactions(search = '') {
+            function fetchTransactions(search = '', source = 'all') {
                 $.ajax({
                     url: "{{ route('admin.workboard') }}", // your route
                     method: "GET",
                     dataType: "json",
                     data: {
-            search: search
-        },
+                        search: search,
+                        source: source // add source here
+                    },
                     success: function (response) {
                         // Render Transactions
                         fetchNotifications(response.notifications);
@@ -640,7 +637,7 @@
                             $(document).off('click', '.edit-btn').on('click', '.edit-btn',
                                 function () {
                                     const transaction = $(this).data(
-                                    'transaction'); // set below
+                                        'transaction'); // set below
                                     console.log(transaction);
                                     $('#editId').val(transaction.id);
                                     $('#editrejectId').val(transaction.id);
@@ -672,9 +669,9 @@
 
                             if (transaction.type === 'payment') {
                                 editButton = `
-        <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
-            Edit
-        </button>`;
+                    <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
+                        Edit
+                    </button>`;
                             } else if (transaction.type === 'payout') {
                                 const details = transaction.information ? JSON.stringify(
                                         transaction.information).replace(/"/g, '&quot;') :
@@ -685,20 +682,20 @@
 
                                 // Use a route pattern or inject it via JavaScript context if needed
                                 const payoutRoute =
-                                `/admin/payout-action/${transaction.id}`; // Must match your Laravel route
+                                    `/admin/payout-action/${transaction.id}`; // Must match your Laravel route
 
                                 editButton = `
-        <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
-            data-bs-toggle="modal"
-            data-bs-target="#myModal"
-            data-route="${payoutRoute}"
-            data-feedback="${feedback}"
-            data-info="${details}"
-            data-id="${transaction.id}"
-            data-status="${status}"
-            data-statusb="${statusb}">
-            Edit P
-        </button>`;
+                    <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
+                        data-bs-toggle="modal"
+                        data-bs-target="#myModal"
+                        data-route="${payoutRoute}"
+                        data-feedback="${feedback}"
+                        data-info="${details}"
+                        data-id="${transaction.id}"
+                        data-status="${status}"
+                        data-statusb="${statusb}">
+                        Edit P
+                    </button>`;
                             }
 
                             let card = `
@@ -769,6 +766,10 @@
                 });
             }
 
+            $(document).on('fetchTransactions', function (e, searchValue, source) {
+    fetchTransactions(searchValue, source);
+});
+
             function renderEwallets(ewallets) {
                 // Group by ewallet name (like bKash, Nagad, Rocket)
                 let ewalletGroups = {};
@@ -837,7 +838,7 @@
             $.each(notifications, function (index, notification) {
                 // Calculate the time difference in minutes
                 const createdAt = new Date(notification
-                .created_at); // Assuming created_at is provided in the notification object
+                    .created_at); // Assuming created_at is provided in the notification object
                 const currentTime = new Date();
                 const timeDiffInMs = currentTime - createdAt;
                 const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
@@ -861,32 +862,63 @@
 
 
         function fetchPendingList(pendingList) {
-            $('#pending-list-container').empty(); // clear previous
+            $('#pending-list-container').empty();
             let currentUser = "{{ Auth::user()->name }}";
+            let currentUserId = "{{ Auth::id() }}"; // for updating `adjusted_by`
+
             $.each(pendingList, function (index, item) {
                 let createdAt = new Date(item.created_at);
                 let now = new Date();
-                let diffMs = now - createdAt; // time difference in milliseconds
-                let diffMins = Math.floor(diffMs / 60000); // convert to minutes
-
+                let diffMs = now - createdAt;
+                let diffMins = Math.floor(diffMs / 60000);
                 let timeAgo = diffMins > 0 ? `${diffMins} min ago` : 'Just now';
 
                 let pendingHtml = `
-            <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
-                 style="background-color: #504c79;">
-                <div>
-                    <p>${item.id} [Order Number]: ${item.amount} TK</p>
-                    <p>Account: ${item.account_name} ${item.account_number}</p>
-                    <p>Checking by: ${currentUser}</p>
-                </div>
-                <div>
-                    <button class="px-4 btn btn-sm"
-                        style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">Check</button>
-                    <p class="mt-10">${timeAgo}</p>
-                </div>
+        <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
+             style="background-color: #504c79;">
+            <div>
+                <p>${item.id} [Order Number]:${item.user_account_no}  ${item.amount} TK</p>
+                <p>Account: ${item.e_wallet_name}</p>
+                <p>Checking by: ${currentUser}</p>
             </div>
-        `;
+            <div>
+                <button class="px-4 btn btn-sm check-btn"
+                    data-txn="${item.txn_id}"
+                    style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">
+                    Check
+                </button>
+                <p class="mt-10">${timeAgo}</p>
+            </div>
+        </div>
+    `;
                 $('#pending-list-container').append(pendingHtml);
+            });
+
+            // Attach click handler after rendering
+            $('.check-btn').on('click', function () {
+                let txnId = $(this).data('txn');
+                alert(txnId);
+                $('#transaction-search').val(txnId); // set in search input
+
+                // Update adjusted_by
+                $.ajax({
+                    url: 'update-adjusted-by', // your route
+                    type: 'POST',
+                    data: {
+                        txn_id: txnId,
+                        adjusted_by: currentUserId,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        // Re-run the search
+                        $('#transactions-container').empty();
+                        $(document).trigger('fetchTransactions', [txnId, 'payout']);
+                        alert('done');
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
             });
         }
 

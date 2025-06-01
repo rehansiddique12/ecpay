@@ -5224,7 +5224,12 @@ class PayoutRecordController extends Controller
     public function workboard(Request $request)
     {
         $query = $request->input('search');
+        $source = $request->input('source', 'all');
 
+
+    $payments = collect();
+    $payouts = collect();
+    if ($source === 'all' || $source === 'payment') {
         $payments = Payment::select(
             'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type',
             'e_wallet_phone_number', 'status', 'created_at', 'partner_transection_id',
@@ -5237,7 +5242,9 @@ class PayoutRecordController extends Controller
         })
         ->take(10)
         ->get();
+    }
 
+    if ($source === 'all' || $source === 'payout') {
     $payouts = Payout::select(
             'id', 'amount', 'status', 'created_at', 'partner_transection_id',
             'adjusted_by', DB::raw("'payout' as type")
@@ -5245,10 +5252,11 @@ class PayoutRecordController extends Controller
         ->latest('created_at')
         ->where('show_none', 0)
         ->when($query, function ($q) use ($query) {
-            $q->where('partner_transection_id', '=', $query);
+            $q->where('txn_id', '=', $query);
         })
         ->take(10)
         ->get();
+    }
 
 
         $merged = $payments->merge($payouts);
