@@ -5230,15 +5230,18 @@ class PayoutRecordController extends Controller
     $payments = collect();
     $payouts = collect();
     if ($source === 'all' || $source === 'payment') {
-        $payments = Payment::select(
-            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type',
-            'e_wallet_phone_number', 'status', 'created_at', 'partner_transection_id',
+        $payments = Payment::with('txn_record')->select(
+            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type','callback',
+            'e_wallet_phone_number','sender','e_wallet_name', 'status', 'created_at','updated_at', 'partner_transection_id',
             'adjusted_by', DB::raw("'payment' as type")
         )
         ->latest('created_at')
         ->where('show_none', 0)
         ->when($query, function ($q) use ($query) {
-            $q->where('txn_id', '=', $query);
+            $q->where(function ($subQuery) use ($query) {
+                $subQuery->where('txn_id', '=', $query)
+                         ->orWhere('partner_transection_id', '=', $query);
+            });
         })
         ->take(10)
         ->get();
@@ -5252,7 +5255,10 @@ class PayoutRecordController extends Controller
         ->latest('created_at')
         ->where('show_none', 0)
         ->when($query, function ($q) use ($query) {
-            $q->where('txn_id', '=', $query);
+            $q->where(function ($subQuery) use ($query) {
+                $subQuery->where('txn_id', '=', $query)
+                         ->orWhere('partner_transection_id', '=', $query);
+            });
         })
         ->take(10)
         ->get();
@@ -5263,8 +5269,14 @@ class PayoutRecordController extends Controller
         $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
 
         $EWalletAccount = EWalletAccount::where('status', 1)->get();
-        $notifications = EWalletAccount::where('live_balance', '<', '1000')->take(5)->get();
-        $pending_list = Payout::where('created_at', '<=', Carbon::now()->subMinutes(5))->take(5)->get();
+        $notifications = EWalletAccount::where('live_balance', '<', '1000')
+        ->orderBy('id', 'desc')
+        ->take(5)->get();
+        $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
+        ->orderBy('id', 'desc')
+        ->take(5)
+        ->get();
+
 
         if ($request->ajax()) {
             return response()->json([
