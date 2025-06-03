@@ -17,7 +17,7 @@ class SendCallback extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'app:send_callback';
 
     /**
      * The console command description.

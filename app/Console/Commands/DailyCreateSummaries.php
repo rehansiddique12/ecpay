@@ -23,7 +23,7 @@ class DailyCreateSummaries extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'app:daily-creat-summaries';
 
     /**
      * The console command description.
