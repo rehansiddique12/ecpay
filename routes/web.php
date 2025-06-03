@@ -137,6 +137,15 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
         Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
         Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
+        Route::post('/update-adjusted-by', function (Illuminate\Http\Request $request) {
+            $txnId = $request->txn_id;
+            $adjustedBy = $request->adjusted_by;
+
+            \App\Models\Payment::where('txn_id', $txnId)->update(['adjusted_by' => $adjustedBy]);
+
+            return response()->json(['success' => true]);
+        });
+
 
 
 
@@ -594,4 +603,3 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
 
 
 
-    

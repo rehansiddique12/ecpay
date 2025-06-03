@@ -459,6 +459,34 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        let transactionInterval;
+
+function startTransactionInterval() {
+    $(document).trigger('fetchTransactions');
+    if (!transactionInterval) {
+        transactionInterval = setInterval(function () {
+            console.log('Auto Fetching transactions...');
+            $(document).trigger('fetchTransactions');
+        }, 60000); // every 60 seconds
+    }
+}
+
+function stopTransactionInterval() {
+    if (transactionInterval) {
+        clearInterval(transactionInterval);
+        transactionInterval = null;
+        console.log('Auto-fetching stopped.');
+    }
+}
+
+$('#transaction-search').on('input', function () {
+    const value = $(this).val().trim();
+
+    if (value === '') {
+        startTransactionInterval();  // resume when field is cleared
+    }
+});
+
         (function (jQuery) {
 
             jQuery(document).ready(function () {
@@ -537,6 +565,7 @@
     <script>
         $(document).ready(function () {
             fetchTransactions();
+            startTransactionInterval();
 
             $('#editTransactionForm').submit(function (e) {
                 e.preventDefault();
@@ -572,11 +601,6 @@
                 }).fail(() => alert('Something went wrong. Please try again.'));
             });
 
-            // call every 1 minute
-            setInterval(function () {
-                console.log('Fetching transactions...');
-                fetchTransactions(); // fetch the transactions every 1 minute
-            }, 60000); // 60000 ms = 1 minute
 
             $('#manualProcessForm').on('submit', function (e) {
                 e.preventDefault();
@@ -697,6 +721,10 @@
                         Edit P
                     </button>`;
                             }
+                            let inputTxnNo = transaction.txn_record && transaction.txn_record.txn_no
+    ? transaction.txn_record.txn_no
+    : '-';
+    let callbackValue = transaction.callback != 0 ? transaction.callback : null;
 
                             let card = `
                         <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
@@ -714,25 +742,25 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ABCD1234</p>
+                                    <p class="mb-0">Order Number: ${transaction.partner_transection_id }</p>
                                     <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
                                 </div>
 
                                 <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: NAGAD</p>
-                                    <p class="">01810665588</p>
+                                    <p class="mb-0">Account Name: ${transaction.e_wallet_name }</p>
+                                    <p class="">${transaction.sender }</p>
                                 </div>
                                 <div>
                                     <p class="">Location: Office 1</p>
                                     <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
-                                    <p class="">Updated At: ${new Date(transaction.created_at).toLocaleString()}</p>
-                                    <p class="">Input Transaction Number: CB34653AS1</p>
-                                    <p class="">Verified Transaction Number:</p>
+                                    <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
+                                    <p class="">Input Transaction Number: ${inputTxnNo}</p>
+                                    <p class="">Verified Transaction Number:${transaction.txn_id }</p>
                                 </div>
 
                                 <div class="d-flex gap-4 mt-3">
                                     <div class="justify-content-center">
-                                        <p class="">Callback Status: Null</p>
+                                        <p class="">Callback Status: ${callbackValue !== null ? callbackValue : 'N/A'}</p>
                                     </div>
                                     <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
                                     <button
@@ -838,7 +866,7 @@
             $.each(notifications, function (index, notification) {
                 // Calculate the time difference in minutes
                 const createdAt = new Date(notification
-                    .created_at); // Assuming created_at is provided in the notification object
+                    .updated_at); // Assuming created_at is provided in the notification object
                 const currentTime = new Date();
                 const timeDiffInMs = currentTime - createdAt;
                 const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
@@ -867,7 +895,7 @@
             let currentUserId = "{{ Auth::id() }}"; // for updating `adjusted_by`
 
             $.each(pendingList, function (index, item) {
-                let createdAt = new Date(item.created_at);
+                let createdAt = new Date(item.updated_at);
                 let now = new Date();
                 let diffMs = now - createdAt;
                 let diffMins = Math.floor(diffMs / 60000);
@@ -877,13 +905,13 @@
         <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
              style="background-color: #504c79;">
             <div>
-                <p>${item.id} [Order Number]:${item.user_account_no}  ${item.amount} TK</p>
+                <p>Order Number:${item.partner_transection_id}  ${item.amount} TK</p>
                 <p>Account: ${item.e_wallet_name}</p>
                 <p>Checking by: ${currentUser}</p>
             </div>
             <div>
                 <button class="px-4 btn btn-sm check-btn"
-                    data-txn="${item.txn_id}"
+                    data-txn="${item.partner_transection_id}"
                     style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">
                     Check
                 </button>
@@ -897,7 +925,6 @@
             // Attach click handler after rendering
             $('.check-btn').on('click', function () {
                 let txnId = $(this).data('txn');
-                alert(txnId);
                 $('#transaction-search').val(txnId); // set in search input
 
                 // Update adjusted_by
@@ -913,7 +940,13 @@
                         // Re-run the search
                         $('#transactions-container').empty();
                         $(document).trigger('fetchTransactions', [txnId, 'payout']);
-                        alert('done');
+                        stopTransactionInterval();
+
+    if (!$('#transaction-search').val().trim()) {
+        $(document).trigger('fetchTransactions');
+        startTransactionInterval();
+    }
+
                     },
                     error: function (xhr) {
                         console.error(xhr.responseText);
