@@ -6081,9 +6081,16 @@ class PayoutRecordController extends Controller
 
     public function apilogs(Request $request)
     {
-        $data = ApiLog::orderBy('id', 'DESC')->paginate(20);
+        $data = ApiLog::where('type', 'API')->orderBy('id', 'DESC')->paginate(20);
         $pageTitle = "API Logs";
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
+    }
+
+    public function functionlogs(Request $request)
+    {
+        $data = ApiLog::where('type', 'Function')->orderBy('id', 'DESC')->paginate(20);
+        $pageTitle = "API Logs";
+        return view('admin.payout.functionLogs', compact('data', 'pageTitle'));
     }
 
 

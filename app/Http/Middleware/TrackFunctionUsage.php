@@ -109,13 +109,14 @@ class TrackFunctionUsage
     private function logFunctionUsage($method, $url, $controller, $function, $requestData, $responseData)
     {
         try {
-            DB::table('function_logs')->insert([
-                'method' => $method,
-                'url' => $url,
+            DB::table('api_logs')->insert([
+                'request_method' => $method,
+                'request_url' => $url,
                 'controller' => $controller,
                 'function' => $function,
-                'request_data' => json_encode($requestData, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR),
-                'response_data' => json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR),
+                'request_payload' => json_encode($requestData, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR),
+                'response_payload' => json_encode($responseData, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR),
+                'type' => 'Function',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

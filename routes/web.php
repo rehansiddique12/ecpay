@@ -146,10 +146,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
             return response()->json(['success' => true]);
         });
 
-
-
-
-        Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
+        
         Route::get('/get-api-balance/{id}', function ($id) {
             $api = \App\Models\Api::find($id);
             return response()->json(['balance' => $api ? $api->balance : 0]);
@@ -227,6 +224,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/partner/balance', [PayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
         Route::get('partner/balance/search', [PayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
+        Route::get('transections/functionlogs', [PayoutRecordController::class, 'functionlogs'])->name('transections.functionlogs');
 
         // rehan Payment type route:
         Route::get('/type', [PaymentTypeController::class, 'type'])->name('type');

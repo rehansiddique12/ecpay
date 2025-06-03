@@ -902,6 +902,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="API Logs ">API Logs </div>
                             </a>
                         </li>
+                        <li
+                            class="menu-item {{ Route::currentRouteName() == 'admin.transections.functionlogs' ? 'active' : '' }}">
+                            <a href="{{ route('admin.transections.functionlogs') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="API Logs ">Function Logs </div>
+                            </a>
+                        </li>
                         @endif
                         {{-- <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
