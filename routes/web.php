@@ -558,13 +558,13 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 });
 
 
-// Route::middleware(['function_track_middleware'])->group(function () {
+Route::middleware(['function_track_middleware'])->group(function () {
 
     Route::get('iframe/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection'])->name('iframe.open');
     Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
     Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection3'])->name('iframe.direct');
     
-// });
+});
 
 
 
