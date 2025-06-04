@@ -461,31 +461,31 @@
     <script>
         let transactionInterval;
 
-function startTransactionInterval() {
-    $(document).trigger('fetchTransactions');
-    if (!transactionInterval) {
-        transactionInterval = setInterval(function () {
-            console.log('Auto Fetching transactions...');
+        function startTransactionInterval() {
             $(document).trigger('fetchTransactions');
-        }, 60000); // every 60 seconds
-    }
-}
+            if (!transactionInterval) {
+                transactionInterval = setInterval(function () {
+                    console.log('Auto Fetching transactions...');
+                    $(document).trigger('fetchTransactions');
+                }, 60000); // every 60 seconds
+            }
+        }
 
-function stopTransactionInterval() {
-    if (transactionInterval) {
-        clearInterval(transactionInterval);
-        transactionInterval = null;
-        console.log('Auto-fetching stopped.');
-    }
-}
+        function stopTransactionInterval() {
+            if (transactionInterval) {
+                clearInterval(transactionInterval);
+                transactionInterval = null;
+                console.log('Auto-fetching stopped.');
+            }
+        }
 
-$('#transaction-search').on('input', function () {
-    const value = $(this).val().trim();
+        $('#transaction-search').on('input', function () {
+            const value = $(this).val().trim();
 
-    if (value === '') {
-        startTransactionInterval();  // resume when field is cleared
-    }
-});
+            if (value === '') {
+                startTransactionInterval(); // resume when field is cleared
+            }
+        });
 
         (function (jQuery) {
 
@@ -497,14 +497,6 @@ $('#transaction-search').on('input', function () {
                     // var details = Object.entries(jQuery(this).data('info'));
                     var list = [];
                     var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
-                    // details.map(function (item, i) {
-                    //     if (item[1].type == 'file') {
-                    //         var singleInfo = `<br><img src="${ImgPath}/${item[1].field_name}" alt="..." class="w-50">`;
-                    //     } else {
-                    //         var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
-                    //     }
-                    //     list[i] = `<li class="list-group-item"><span class="font-weight-bold">${item[0].replace('_', " ")}</span> : ${singleInfo}</li>`;
-                    // });
 
                     console.log(jQuery(this).data('status'));
 
@@ -637,15 +629,14 @@ $('#transaction-search').on('input', function () {
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Optional: prevent form submission if inside a form
                     const searchValue = $(this).val();
-                    $('#transactions-container').empty();
-                    fetchTransactions(searchValue);
+
+                    fetchrecords(searchValue);
                 }
             });
 
-
-            function fetchTransactions(search = '', source = 'all') {
+            function fetchrecords(search = '', source = 'all') {
                 $.ajax({
-                    url: "{{ route('admin.workboard') }}", // your route
+                    url: "{{ route('admin.fetchrecords') }}", // your route
                     method: "GET",
                     dataType: "json",
                     data: {
@@ -653,16 +644,12 @@ $('#transaction-search').on('input', function () {
                         source: source // add source here
                     },
                     success: function (response) {
-                        // Render Transactions
-                        fetchNotifications(response.notifications);
-                        fetchPendingList(response.pending_list);
-                        $('#transactions-container').empty(); // clear previous if needed
+                          localStorage.setItem('transactions', JSON.stringify(response.transactions));
                         $.each(response.transactions, function (index, transaction) {
                             $(document).off('click', '.edit-btn').on('click', '.edit-btn',
                                 function () {
                                     const transaction = $(this).data(
                                         'transaction'); // set below
-                                    console.log(transaction);
                                     $('#editId').val(transaction.id);
                                     $('#editrejectId').val(transaction.id);
                                     $('#editType').val(transaction.type);
@@ -690,6 +677,8 @@ $('#transaction-search').on('input', function () {
                             let showEdit = transaction.adjusted_by == currentUserId ? '' :
                                 'd-none';
                             let editButton = '';
+                            let typeClass = transaction.type === 'payment' ?
+                                'text-success' : 'text-primary';
 
                             if (transaction.type === 'payment') {
                                 editButton = `
@@ -721,17 +710,24 @@ $('#transaction-search').on('input', function () {
                         Edit P
                     </button>`;
                             }
-                            let inputTxnNo = transaction.txn_record && transaction.txn_record.txn_no
-    ? transaction.txn_record.txn_no
-    : '-';
-    let callbackValue = transaction.callback != 0 ? transaction.callback : null;
+                            let inputTxnNo = transaction.txn_record && transaction
+                                .txn_record.txn_no ?
+                                transaction.txn_record.txn_no :
+                                '-';
+                            let callbackValue = transaction.callback != 0 ? 'Send' : null;
+                            let apiName = transaction.api ? transaction.api.name : 'N/A';
+                            let locationName = transaction.e_wallet_account && transaction
+                                .e_wallet_account.location ?
+                                transaction.e_wallet_account.location.location :
+                                'N/A';
+
 
                             let card = `
                         <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
                             <div class="custom-card p-4">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="d-flex gap-4">
-                                        <p class="text-success fw-semibold mb-1">${typeLabel}</p>
+                                        <p class="${typeClass} fw-semibold mb-1">${typeLabel}</p>
                                         <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
                                         <p class="text-white mb-1">${transaction.id }</p>
                                     </div>
@@ -751,7 +747,7 @@ $('#transaction-search').on('input', function () {
                                     <p class="">${transaction.sender }</p>
                                 </div>
                                 <div>
-                                    <p class="">Location: Office 1</p>
+                                    <p class="">Location: ${locationName}</p>
                                     <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
                                     <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
                                     <p class="">Input Transaction Number: ${inputTxnNo}</p>
@@ -761,6 +757,7 @@ $('#transaction-search').on('input', function () {
                                 <div class="d-flex gap-4 mt-3">
                                     <div class="justify-content-center">
                                         <p class="">Callback Status: ${callbackValue !== null ? callbackValue : 'N/A'}</p>
+                                        <p class="">Merchant  : ${apiName}</p>
                                     </div>
                                     <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
                                     <button
@@ -785,18 +782,34 @@ $('#transaction-search').on('input', function () {
                             </div>
                         </div>
                     `;
-                            $('#transactions-container').append(card);
-                        });
+                    $('#transactions-container').prepend(card);
 
-                        // Render Ewallets
+                        });
+                    }
+                });
+            }
+
+
+            function fetchTransactions(search = '', source = 'all') {
+                $.ajax({
+                    url: "{{ route('admin.workboard') }}", // your route
+                    method: "GET",
+                    dataType: "json",
+                    data: {
+                        search: search,
+                        source: source // add source here
+                    },
+                    success: function (response) {
+                        fetchNotifications(response.notifications);
+                        fetchPendingList(response.pending_list);
                         renderEwallets(response.ewallets);
                     }
                 });
             }
 
-            $(document).on('fetchTransactions', function (e, searchValue, source) {
-    fetchTransactions(searchValue, source);
-});
+            $(document).on('fetchrecords', function (e, searchValue, source) {
+                fetchrecords(searchValue, source);
+            });
 
             function renderEwallets(ewallets) {
                 // Group by ewallet name (like bKash, Nagad, Rocket)
@@ -824,7 +837,7 @@ $('#transaction-search').on('input', function () {
                     accounts.forEach(function (account) {
                         accountDetailsHtml += `
                 <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
-                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK
+                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK (${account.account_type})
                 </p>
             `;
                     });
@@ -908,10 +921,11 @@ $('#transaction-search').on('input', function () {
                 <p>Order Number:${item.partner_transection_id}  ${item.amount} TK</p>
                 <p>Account: ${item.e_wallet_name}</p>
                 <p>Checking by: ${currentUser}</p>
-            </div>
-            <div>
+</div>
+<div>
+
                 <button class="px-4 btn btn-sm check-btn"
-                    data-txn="${item.partner_transection_id}"
+                    data-txn="${item.partner_transection_id}" data-id="${item.id}"
                     style="background-color: rgb(45, 199, 58); margin-left: 2rem; color: white; border: none; cursor: pointer;">
                     Check
                 </button>
@@ -925,6 +939,11 @@ $('#transaction-search').on('input', function () {
             // Attach click handler after rendering
             $('.check-btn').on('click', function () {
                 let txnId = $(this).data('txn');
+                let id = $(this).data('id');
+                let txnDiv = $(this).closest('div'); // The current div
+                txnDiv.hide(); // Hide the current div
+
+                txnDiv.prev().hide();
                 $('#transaction-search').val(txnId); // set in search input
 
                 // Update adjusted_by
@@ -932,20 +951,19 @@ $('#transaction-search').on('input', function () {
                     url: 'update-adjusted-by', // your route
                     type: 'POST',
                     data: {
-                        txn_id: txnId,
+                        id: id,
+                        txnId: txnId,
                         adjusted_by: currentUserId,
                         _token: "{{ csrf_token() }}"
                     },
                     success: function (response) {
-                        // Re-run the search
-                        $('#transactions-container').empty();
-                        $(document).trigger('fetchTransactions', [txnId, 'payout']);
+                        $(document).trigger('fetchrecords', [txnId, 'payout']);
                         stopTransactionInterval();
 
-    if (!$('#transaction-search').val().trim()) {
-        $(document).trigger('fetchTransactions');
-        startTransactionInterval();
-    }
+                        if (!$('#transaction-search').val().trim()) {
+                            $(document).trigger('fetchrecords');
+                            startTransactionInterval();
+                        }
 
                     },
                     error: function (xhr) {

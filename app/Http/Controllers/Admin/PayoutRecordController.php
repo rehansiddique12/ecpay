@@ -5223,6 +5223,32 @@ class PayoutRecordController extends Controller
 
     public function workboard(Request $request)
     {
+        $EWalletAccount = EWalletAccount::where('status', 1)->get();
+        $notifications = EWalletAccount::where('live_balance', '<', '1000')
+        ->orderBy('id', 'desc')
+        ->take(5)->get();
+        $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
+        ->where('status','Pending')
+        ->where('check_by', 0)
+        ->orderBy('id', 'desc')
+        ->take(5)
+        ->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'ewallets' => $EWalletAccount,
+                'notifications' => $notifications,
+                'pending_list' => $pending_list,
+                'user_id' => auth()->id(),
+            ]);
+        }
+
+        $pageTitle = "Workboard";
+        $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'apis'));
+    }
+
+    public function fetchrecords(Request $request){
         $query = $request->input('search');
         $source = $request->input('source', 'all');
 
@@ -5230,9 +5256,9 @@ class PayoutRecordController extends Controller
     $payments = collect();
     $payouts = collect();
     if ($source === 'all' || $source === 'payment') {
-        $payments = Payment::with('txn_record')->select(
-            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type','callback',
-            'e_wallet_phone_number','sender','e_wallet_name', 'status', 'created_at','updated_at', 'partner_transection_id',
+        $payments = Payment::with('txn_record','api','eWalletAccount.location')->select(
+            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type','callback','api_id',
+            'sender','e_wallet_name', 'status', 'created_at','updated_at', 'partner_transection_id',
             'adjusted_by', DB::raw("'payment' as type")
         )
         ->latest('created_at')
@@ -5267,30 +5293,10 @@ class PayoutRecordController extends Controller
 
         $merged = $payments->merge($payouts);
         $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
-
-        $EWalletAccount = EWalletAccount::where('status', 1)->get();
-        $notifications = EWalletAccount::where('live_balance', '<', '1000')
-        ->orderBy('id', 'desc')
-        ->take(5)->get();
-        $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
-        ->orderBy('id', 'desc')
-        ->take(5)
-        ->get();
-
-
-        if ($request->ajax()) {
-            return response()->json([
-                'transactions' => $mergedTransactions,
-                'ewallets' => $EWalletAccount,
-                'notifications' => $notifications,
-                'pending_list' => $pending_list,
-                'user_id' => auth()->id(),
-            ]);
-        }
-
-        $pageTitle = "Workboard";
-        $apis = Api::get();
-        return view('admin.payout.workboard', compact('pageTitle', 'mergedTransactions', 'apis'));
+        return response()->json([
+            'transactions' => $mergedTransactions,
+            'user_id' => auth()->id(),
+        ]);
     }
 
     public function updatePayment(Request $request) {
