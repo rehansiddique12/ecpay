@@ -107,7 +107,8 @@ class PayoutRecordController extends Controller
                 $record->live = 1;
             }
         }
-        $pageTitle = "All Accounts";
+        // $pageTitle = "All Accounts";
+        $pageTitle = __('accounts.all_accounts');
         return view('admin.payout.ewallet_accounts', compact('records', 'pageTitle', 'accounts'));
     }
 

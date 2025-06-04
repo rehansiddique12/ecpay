@@ -1,0 +1,53 @@
+<?php
+
+return [
+    // Telegram Groups
+    'manage_telegram_groups' => 'Urus Kumpulan Telegram',
+    'id' => 'ID',
+    'partner' => 'Rakan Kongsi',
+    'group_name' => 'Nama Kumpulan',
+    'group_id' => 'ID Kumpulan',
+    'status' => 'Status',
+    'action' => 'Tindakan',
+    'delete' => 'Padam',
+    'edit' => 'Edit',
+    'select_partner' => 'Pilih Rakan Kongsi',
+    'active' => 'Aktif',
+    'inactive' => 'Tidak Aktif',
+    'update' => 'Kemaskini',
+    'close' => 'Tutup',
+    'edit_record' => 'Edit Rekod',
+
+    // E-Wallet Test
+    'all_accounts' => 'Semua Akaun',
+    'e_wallet_account_no' => 'No. Akaun E-Wallet',
+    'e_wallet_name' => 'Nama E-Wallet',
+    'type' => 'Jenis',
+    'live_status' => 'Status Langsung',
+    'test_account' => 'Akaun Ujian',
+    'activate' => 'Aktifkan',
+    'deactivate' => 'Nyahaktifkan',
+    'no_data_found' => 'Tiada Data Dijumpai',
+    'admin_e_wallet_testing_accounts' => 'Akaun Ujian E-Wallet Admin',
+    'add_admin_account' => 'Tambah Akaun Admin',
+    'ewallet_test' => 'Ujian E-Wallet',
+    'admin_account_no' => 'No. Akaun Admin',
+    'amount' => 'Jumlah',
+    'run_test' => 'Jalankan Ujian',
+    'withdrawal' => 'Pengeluaran',
+    'deposit' => 'Deposit',
+    'account_no' => 'No. Akaun',
+    'nagad' => 'Nagad',
+    'rocket' => 'Rocket',
+    'bkash' => 'bKash',
+    'add' => 'Tambah',
+    
+    // SweetAlert
+    'confirm_delete_title' => 'Adakah anda pasti?',
+    'confirm_delete_text' => 'Tindakan ini tidak boleh diundur!',
+    'confirm_delete_button' => 'Ya, padamkannya!',
+    'cancel_button' => 'Batal',
+    'deleted_title' => 'Telah Dipadam!',
+    'error_title' => 'Ralat!',
+    'error_message' => 'Terdapat ralat semasa memadam peranan.',
+];

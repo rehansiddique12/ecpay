@@ -592,6 +592,12 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
     Route::post('partner/withdraw/preview/transection', [PartnerPayoutRecordController::class, 'payoutRequestSubmitTransection'])->name('partner.payout.submit.transection');
 
 
-
+    Route::get('/admin/lang/{locale}', function ($locale) {
+        if (in_array($locale, ['en', 'ms'])) {
+            Session::put('locale', $locale);
+        }
+        return redirect()->back();
+    })->name('lang.switch');
+    
 
     
