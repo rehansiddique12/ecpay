@@ -2254,7 +2254,7 @@ class PayoutRecordController extends Controller
 
     public function editAccount($id)
     {
-        $pageTitle = 'Edit New Account';
+        $pageTitle = __('accounts.edit_new_account');
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
