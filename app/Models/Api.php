@@ -13,7 +13,7 @@ class Api extends Authenticatable
 {
     use Notifiable, HasRoles ,SoftDeletes;
     protected $dates = ['deleted_at'];
-    protected $guard_name = 'admin';
+    protected $guard_name = 'partner';
 
     protected $guarded = ['id'];
     protected $hidden = [
