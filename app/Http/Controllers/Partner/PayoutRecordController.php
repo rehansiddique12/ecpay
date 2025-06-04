@@ -1650,6 +1650,8 @@ class PayoutRecordController extends Controller
 
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
+        $data['account_type'] = "";
+        
         $remainingTime = 600;
         $amount = str_replace(',', '', $amount);
         $data = [
@@ -1793,7 +1795,7 @@ class PayoutRecordController extends Controller
 
         $data['gate_id'] = $gate->id;
         $data['phone_number'] = "Loading...";
-        $data['account_type'] = "";
+        
 
         // setting for theme style
         return view('partner.payout.process_transection2', compact('ewallet_to_show','data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -3353,7 +3355,7 @@ class PayoutRecordController extends Controller
         $basic = (object)config('basic');
         $method = Gateway::where('id', $request->gateway)->where('status', 1)->firstOrFail();
 
-        
+
 
         $authWallet = $open_user;
 
