@@ -96,11 +96,11 @@
                                     <td>{{ $item->charges }}</td>
                                     <td>{{ $item->net_amount }}</td>
                                     <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                        @if ($item->transfer_status == 2)
+                                        @if ($item->status == 2)
                                         <span class="badge badge-light">
                                             <i class="fa fa-circle text-danger danger font-12"></i>
                                             @lang('Rejected') </span>
-                                        @elseif($item->transfer_status == 1)
+                                        @elseif($item->status == 1)
                                         <span class="badge badge-light">
                                             <i class="fa fa-circle text-success success font-12"></i>
                                             @lang('Approved')</span>

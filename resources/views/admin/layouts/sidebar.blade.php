@@ -98,6 +98,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
 'admin.deposit.manual.index',
 ]);
 
+use Illuminate\Support\Facades\App;
+
+$currentLocale = App::getLocale();
+$languages = [
+'en' => 'English',
+'ms' => 'Malaysian',
+];
+
 @endphp
 
 
@@ -137,66 +145,56 @@ $isMainActive = in_array(Route::currentRouteName(), [
                 </li>
                 <!-- /Search -->
 
-                {{-- <li class="nav-item dropdown-language dropdown">
-                    <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
-                        href="javascript:void(0);" data-bs-toggle="dropdown">
-                        <i class="icon-base ti tabler-language icon-22px text-heading"></i>
+                <!-- Language -->
+                @if (adminAccessRoute(config('role.language.access.view')))
+                <li class="nav-item dropdown-language dropdown">
+                    {{-- <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
+                        --}} <a class="nav-link dropdown-toggle btn btn-text-secondary rounded-pill" href="#"
+                        data-bs-toggle="dropdown">
+                        {{ $languages[$currentLocale] ?? 'Select Language' }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
+                        @foreach ($languages as $code => $label)
                         <li>
-                            <a class="dropdown-item" href="javascript:void(0);" data-language="en"
-                                data-text-direction="ltr">
-                                <span>English</span>
+                            <a class="dropdown-item" href="{{ route('lang.switch', ['locale' => $code]) }}"
+                                data-language="{{ $code }}" data-text-direction="ltr">
+                                <span>{{ $label }}</span>
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0);" data-language="fr"
-                                data-text-direction="ltr">
-                                <span>French</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0);" data-language="ar"
-                                data-text-direction="rtl">
-                                <span>Arabic</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0);" data-language="de"
-                                data-text-direction="ltr">
-                                <span>German</span>
-                            </a>
-                        </li>
+                        @endforeach
                     </ul>
-                </li> --}}
+                </li>
                 <!--/ Language -->
+                @endif
+
 
                 <!-- Style Switcher -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
                         id="nav-theme" href="javascript:void(0);" data-bs-toggle="dropdown">
                         <i class="icon-base ti tabler-sun icon-22px theme-icon-active text-heading"></i>
-                        <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
+                        <span class="d-none ms-2" id="nav-theme-text">{{ __('sidebar.toggle_theme') }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
                         <li>
                             <button type="button" class="dropdown-item align-items-center active"
                                 data-bs-theme-value="light" aria-pressed="false">
-                                <span><i class="icon-base ti tabler-sun icon-22px me-3" data-icon="sun"></i>Light</span>
+                                <span><i class="icon-base ti tabler-sun icon-22px me-3" data-icon="sun"></i>{{
+                                    __('sidebar.light') }}</span>
                             </button>
                         </li>
                         <li>
                             <button type="button" class="dropdown-item align-items-center" data-bs-theme-value="dark"
                                 aria-pressed="true">
                                 <span><i class="icon-base ti tabler-moon-stars icon-22px me-3"
-                                        data-icon="moon-stars"></i>Dark</span>
+                                        data-icon="moon-stars"></i>{{ __('sidebar.dark') }}</span>
                             </button>
                         </li>
                         <li>
                             <button type="button" class="dropdown-item align-items-center" data-bs-theme-value="system"
                                 aria-pressed="false">
                                 <span><i class="icon-base ti tabler-device-desktop-analytics icon-22px me-3"
-                                        data-icon="device-desktop-analytics"></i>System</span>
+                                        data-icon="device-desktop-analytics"></i>{{ __('sidebar.system') }}</span>
                             </button>
                         </li>
                     </ul>
@@ -588,14 +586,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.profile') }}">
-                                <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
-                                    Profile</span>
+                                <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">{{
+                                    __('sidebar.my_profile') }}</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.password') }}">
-                                <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
-                                    class="align-middle">Password</span>
+                                <i class="icon-base ti tabler-settings me-3 icon-md"></i><span class="align-middle">{{
+                                    __('sidebar.password') }}</span>
                             </a>
                         </li>
                         {{-- <li>
@@ -629,7 +627,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     @csrf
                                     <button type="submit"
                                         class="btn btn-sm btn-danger btn-block d-flex align-items-center">
-                                        <small class="align-middle">Logout</small>
+                                        <small class="align-middle">{{ __('sidebar.logout') }}</small>
                                         <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
                                     </button>
                                 </form>
@@ -655,44 +653,46 @@ $isMainActive = in_array(Route::currentRouteName(), [
                     <li class="menu-item {{ $isMainActive ? 'active open' : '' }}">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>
-                            <div data-i18n="Main">Main</div>
+                            <div data-i18n="Main">{{ __('sidebar.main') }}</div>
                         </a>
 
                         <ul class="menu-sub">
-                            @if(adminAccessRoute(config('role.work_board.access.view')))
+                            @if (adminAccessRoute(config('role.work_board.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.workboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.workboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="WorkBoard">WorkBoard</div>
+                                    <div data-i18n="WorkBoard">{{ __('sidebar.workBoard') }}</div>
                                 </a>
                             </li>
                             @endif
-                            @if(adminAccessRoute(config('role.partners.access.view')))
+                            @if (adminAccessRoute(config('role.partners.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.apis' ? 'active' : '' }}">
                                 <a href="{{ route('admin.apis') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Merchant List">Merchant Management </div>
+                                    <div data-i18n="Merchant List">{{ __('sidebar.merchant_management') }}</div>
                                 </a>
                             </li>
                             @endif
-                            @if(adminAccessRoute(config('role.agents.access.view')))
+                            @if (adminAccessRoute(config('role.agents.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.agent.list' ? 'active' : '' }}">
                                 <a href="{{ route('admin.agent.list') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Merchant List">Agent Management </div>
+                                    <div data-i18n="Merchant List">{{ __('sidebar.agent_management') }} </div>
                                 </a>
                             </li>
                             @endif
 
-                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                            {{-- <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
                                     <div data-i18n="Dashboards">Dashboard</div>
                                 </a>
                             </li> --}}
 
-                            {{-- @if(adminAccessRoute(config('role.parent_group.access.view'))) --}}
-                            {{-- <li class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
+                            {{-- @if (adminAccessRoute(config('role.parent_group.access.view'))) --}}
+                            {{-- <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.parant' ? 'active' : '' }}">
                                 <a href="{{ route('admin.parant') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="Partner Group">Partner Group</div>
@@ -700,11 +700,11 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </li> --}}
                             {{-- @endif --}}
 
-                            @if(adminAccessRoute(config('role.manage_staff.access.view')))
+                            @if (adminAccessRoute(config('role.manage_staff.access.view')))
                             <li class="menu-item {{ Route::currentRouteName() == 'admin.users' ? 'active' : '' }}">
                                 <a href="{{ route('admin.users') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="All Users">User Management</div>
+                                    <div data-i18n="All Users">{{ __('sidebar.user_management') }}</div>
                                 </a>
                             </li>
                             @endif
@@ -762,7 +762,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                 <li class="menu-item {{ $isAccountsActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-layout-sidebar"></i>
-                        <div data-i18n="Accounts">Accounts</div>
+                        <div data-i18n="Accounts">{{ __('sidebar.accounts') }}</div>
                     </a>
 
                     <ul class="menu-sub">
@@ -772,11 +772,11 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Add Accounts">Add Accounts</div>
                             </a>
                         </li> --}}
-                        @if(adminAccessRoute(config('role.telegram_group.access.view')))
+                        @if (adminAccessRoute(config('role.telegram_group.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.groups' ? 'active' : '' }}">
                             <a href="{{ route('admin.groups') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="TelegramGroup">TelegramGroup</div>
+                                <div data-i18n="TelegramGroup">{{ __('sidebar.telegramGroup') }}</div>
                             </a>
                         </li>
                         @endif
@@ -786,7 +786,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="All Accounts">All Accounts</div>
                             </a>
                         </li> --}}
-                        {{-- @if(adminAccessRoute(config('role.account_balance_logs.access.view'))) --}}
+                        {{-- @if (adminAccessRoute(config('role.account_balance_logs.access.view'))) --}}
                         {{-- <li class="menu-item {{ Request::routeIs('admin.balance.logs') ? 'active' : '' }}">
                             <a href="{{ route('admin.balance.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
@@ -794,19 +794,20 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li> --}}
                         {{-- @endif --}}
-                        @if(adminAccessRoute(config('role.account_management.access.view')))
+                        @if (adminAccessRoute(config('role.account_management.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.accounts.management') ? 'active' : '' }}">
                             <a href="{{ route('admin.accounts.management') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Account Management">Account Management</div>
+                                <div data-i18n="Account Management">{{ __('sidebar.account_management') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.e_wallet_accounts_test.access.view')))
+                        @if (adminAccessRoute(config('role.e_wallet_accounts_test.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="E-Wallet Test">E-Wallet Test </div>
+                                <div data-i18n="E-Wallet Test">{{ __('sidebar.e_wallet_test') }} </div>
                             </a>
                         </li>
                         @endif
@@ -818,7 +819,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                 <li class="menu-item {{ $isPartnerActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
-                        <div data-i18n="Partner">Partner</div>
+                        <div data-i18n="Partner">{{ __('sidebar.partner') }}</div>
                     </a>
 
                     <ul class="menu-sub">
@@ -830,76 +831,78 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 <div data-i18n="Manage Commision">Manage Commision</div>
                             </a>
                         </li> --}}
-                        @if(adminAccessRoute(config('role.commission_category.access.view')))
+                        @if (adminAccessRoute(config('role.commission_category.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.commission.categories.index' ? 'active' : '' }}">
                             <a href="{{ route('admin.commission.categories.index') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                <div data-i18n="Commision Category">Commission Category</div>
+                                <div data-i18n="Commision Category">{{ __('sidebar.commission_category') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partners.access.edit')))
+                        @if (adminAccessRoute(config('role.partners.access.edit')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.apis.balance.add.get' ? 'active' : '' }}">
                             <a href="{{ route('admin.apis.balance.add') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                <div data-i18n="Add Balance/Adjustment">Add Balance/Adjustment</div>
+                                <div data-i18n="Add Balance/Adjustment">{{ __('sidebar.add_balance_adjustment') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.ewallet_transfer_balance.access.view')))
+                        @if (adminAccessRoute(config('role.ewallet_transfer_balance.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transfer.balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.transfer.balance') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Transfer Balance">Transfer Balance</div>
+                                <div data-i18n="Transfer Balance">{{ __('sidebar.transfer_balance') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.settlements.access.view')))
+                        @if (adminAccessRoute(config('role.settlements.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.settlements', 'admin.settlements.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.settlements') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-calendar"></i>
-                                <div data-i18n="Partner Settelment">Partner Settlement</div>
+                                <div data-i18n="Partner Settelment">{{ __('sidebar.partner_settlement') }}</div>
                             </a>
                         </li>
                         @endif
 
 
-                        @if(adminAccessRoute(config('role.commissions.access.view')))
+                        @if (adminAccessRoute(config('role.commissions.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.api.commissions', 'admin.api.post.commissions']) ? 'active' : '' }}">
                             <a href="{{ route('admin.api.commissions') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Commission">Partner Commission</div>
+                                <div data-i18n="Partner Commission">{{ __('sidebar.partner_commission') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.adjustments.access.view')))
+                        @if (adminAccessRoute(config('role.adjustments.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.adjustments' ? 'active' : '' }}">
                             <a href="{{ route('admin.adjustments') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Monthly Adjustments ">Monthly Adjustments </div>
+                                <div data-i18n="Monthly Adjustments ">{{ __('sidebar.monthly_adjustments') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partner_balance.access.view')))
+                        @if (adminAccessRoute(config('role.partner_balance.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.partner.balance', 'admin.partner.balance.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.partner.balance') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Adjustments">Adjustments</div>
+                                <div data-i18n="Adjustments">{{ __('sidebar.adjustments') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.api_logs.access.view')))
+                        @if (adminAccessRoute(config('role.api_logs.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.transections.apilogs' ? 'active' : '' }}">
                             <a href="{{ route('admin.transections.apilogs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="API Logs ">API Logs </div>
+                                <div data-i18n="API Logs ">{{ __('sidebar.api_logs') }}</div>
                             </a>
                         </li>
                         <li
@@ -926,37 +929,35 @@ $isMainActive = in_array(Route::currentRouteName(), [
                 <li class="menu-item {{ $isTransactionActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
-                        <div data-i18n="Transactions">Transactions</div>
+                        <div data-i18n="Transactions">{{ __('sidebar.transactions') }}</div>
                     </a>
 
                     <ul class="menu-sub">
-                        @if(adminAccessRoute(config('role.payment_log.access.view')))
+                        @if (adminAccessRoute(config('role.payment_log.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.log') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                <div data-i18n="Deposit Log">Deposit Log</div>
+                                <div data-i18n="Deposit Log">{{ __('sidebar.deposit_log') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.payout_manage.access.view')))
+                        @if (adminAccessRoute(config('role.payout_manage.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout-log', 'admin.payout-log.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout-log') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Withdrawl Log">Withdrawal Log</div>
+                                <div data-i18n="Withdrawl Log">{{ __('sidebar.withdrawal_log') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.api_payment_log.access.view')))
-                       @if(auth()->user()->username=="dev")
-
-
+                        @if (adminAccessRoute(config('role.api_payment_log.access.view')))
+                        @if (auth()->user()->username == 'dev')
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLog', 'admin.payment.apisearch']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLog') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Api Deposit Log">Api Deposit Log</div>
+                                <div data-i18n="Api Deposit Log">{{ __('sidebar.api_deposit_log') }}</div>
                             </a>
                         </li>
 
@@ -965,17 +966,17 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLogunclaimed', 'admin.payment.apiLogunclaimed.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLogunclaimed') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Unclaimed Payment">Unclaimed Payment</div>
+                                <div data-i18n="Unclaimed Payment">{{ __('sidebar.unclaimed_payment') }}</div>
                             </a>
                         </li>
                         @endif
                         @endif
-                        @if(adminAccessRoute(config('role.deposit_report.access.view')))
+                        @if (adminAccessRoute(config('role.deposit_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report', 'admin.payment.report.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Deposit Report">Deposit Report</div>
+                                <div data-i18n="Deposit Report">{{ __('sidebar.deposit_report') }}</div>
                             </a>
                         </li>
 
@@ -987,21 +988,21 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             </a>
                         </li> --}}
                         @endif
-                        @if(adminAccessRoute(config('role.all_reports.access.view')))
+                        @if (adminAccessRoute(config('role.all_reports.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.report.all', 'admin.payment.report.all.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.report.all') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="All Report">All Report</div>
+                                <div data-i18n="All Report">{{ __('sidebar.all_report') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.withdrawal_reports.access.view')))
+                        @if (adminAccessRoute(config('role.withdrawal_reports.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout-report', 'admin.payout-report.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payout-report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Withdrawal Report">Withdrawal Report</div>
+                                <div data-i18n="Withdrawal Report">{{ __('sidebar.withdrawal_report') }}</div>
                             </a>
                         </li>
 
@@ -1022,160 +1023,170 @@ $isMainActive = in_array(Route::currentRouteName(), [
                 <li class="menu-item {{ $isReportsActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
-                        <div data-i18n="Reports">Reports</div>
+                        <div data-i18n="Reports">{{ __('sidebar.reports') }}</div>
                     </a>
                     <ul class="menu-sub">
-                        @if(adminAccessRoute(config('role.live_e_wallet_balance_report.access.view')))
+                        @if (adminAccessRoute(config('role.live_e_wallet_balance_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.live_ewallet_balance' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.live_ewallet_balance') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Live E-Wallet Balance">Live E-Wallet Balance</div>
+                                <div data-i18n="Live E-Wallet Balance">{{ __('sidebar.live_ewallet_balance') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.daily_e_wallet_summary.access.view')))
+                        @if (adminAccessRoute(config('role.daily_e_wallet_summary.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_ewallet_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.daily_ewallet_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Daily E-Wallet Summary">Daily E-Wallet Summary </div>
+                                <div data-i18n="Daily E-Wallet Summary">{{ __('sidebar.daily_ewallet_summary') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.daily_transaction_summary.access.view')))
+                        @if (adminAccessRoute(config('role.daily_transaction_summary.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.daily_transection_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.daily_transection_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Daily Transection Summary">Daily Transection Summary </div>
+                                <div data-i18n="Daily Transection Summary">
+                                    {{ __('sidebar.daily_transection_summary') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.merchant_charges_summary_report.access.view')))
+                        @if (adminAccessRoute(config('role.merchant_charges_summary_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.reports.merchant_charges_summary', 'admin.reports.merchant_charges_summary.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.merchant_charges_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Merchant Charges Summary">Merchant Charges Summary</div>
+                                <div data-i18n="Merchant Charges Summary">
+                                    {{ __('sidebar.merchant_charges_summary') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partner_account_summary.access.view')))
+                        @if (adminAccessRoute(config('role.partner_account_summary.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Account Summary">Partner Account Summary </div>
+                                <div data-i18n="Partner Account Summary">
+                                    {{ __('sidebar.partner_account_summary') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partner_account_balance_summary_creation.access.view')))
+                        @if (adminAccessRoute(config('role.partner_account_balance_summary_creation.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_balance_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Account Balance Summary Creations">Partner Account Balance
-                                    Summary Creations </div>
+                                <div data-i18n="Partner Account Balance Summary Creations">
+                                    {{ __('sidebar.partner_account_balance_summary_creation') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partner_account_balance_summary_completions.access.view')))
+                        @if (adminAccessRoute(config('role.partner_account_balance_summary_completions.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.partner_account_balance_summary_completions' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.partner_account_balance_summary_completions') }}"
                                 class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Account Balance Summary Completions">Partner Account
-                                    Balance Summary Completions </div>
+                                <div data-i18n="Partner Account Balance Summary Completions">
+                                    {{ __('sidebar.partner_account_balance_summary_completions') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.revenue_center_report.access.view')))
+                        @if (adminAccessRoute(config('role.revenue_center_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.revenue_center' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.revenue_center') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Revenue Center">Revenue Center </div>
+                                <div data-i18n="Revenue Center"> {{ __('sidebar.revenue_center') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partner_balance_log.access.view')))
+                        @if (adminAccessRoute(config('role.partner_balance_log.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.logs' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Balance Logs">Partner Balance Logs </div>
+                                <div data-i18n="Partner Balance Logs">{{ __('sidebar.partner_balance_log') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.partner_balance_reports.access.view')))
+                        @if (adminAccessRoute(config('role.partner_balance_reports.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.cal') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Balance R1">Partner Balance R1 </div>
+                                <div data-i18n="Partner Balance R1">{{ __('sidebar.partner_balance_report1') }}
+                                </div>
                             </a>
                         </li>
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.cal2' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.cal2') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Partner Balance R2">Partner Balance R2 </div>
+                                <div data-i18n="Partner Balance R2">{{ __('sidebar.partner_balance_report2') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.master_report.access.view')))
+                        @if (adminAccessRoute(config('role.master_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.reports.master_report' ? 'active' : '' }}">
                             <a href="{{ route('admin.reports.master_report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Master Report">Master Report </div>
+                                <div data-i18n="Master Report">{{ __('sidebar.master_report') }}
+                                </div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.gateway_performance_report.access.view')))
+                        @if (adminAccessRoute(config('role.gateway_performance_report.access.view')))
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.payment.payment_gateway_report' ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.payment_gateway_report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Gateway Performance Report">Gateway Performance Report </div>
+                                <div data-i18n="Gateway Performance Report">
+                                    {{ __('sidebar.gateway_performance_report') }}</div>
                             </a>
                         </li>
                         @endif
-                        @if(adminAccessRoute(config('role.payment_type.access.view')))
+                        @if (adminAccessRoute(config('role.payment_type.access.view')))
                         <li class="menu-item {{ Route::currentRouteName() == 'admin.type' ? 'active' : '' }}">
                             <a href="{{ route('admin.type') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Payment Type">Payment Type </div>
+                                <div data-i18n="Payment Type">{{ __('sidebar.payment_type') }}</div>
                             </a>
                         </li>
                         @endif
                     </ul>
                 </li>
-                @if(adminAccessRoute(config('role.merchant_reports.access.view')))
+                @if (adminAccessRoute(config('role.merchant_reports.access.view')))
                 <li class="menu-item {{ $isMerchantReportsActive ? 'active open' : '' }}">
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-users"></i>
-                        <div data-i18n="Merchant Reports">Merchant Reports</div>
+                        <div data-i18n="Merchant Reports">{{ __('sidebar.merchant_reports') }}</div>
                     </a>
                     <ul class="menu-sub">
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_date' ? 'active' : '' }}">
                             <a href="{{ route('admin.merchant_reports.by_date') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Summary By Date">Summary By Date</div>
+                                <div data-i18n="Summary By Date">{{ __('sidebar.summary_by_date') }}</div>
                             </a>
                         </li>
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_name' ? 'active' : '' }}">
                             <a href="{{ route('admin.merchant_reports.by_name') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Summary By Name">Summary By Name </div>
+                                <div data-i18n="Summary By Name">{{ __('sidebar.summary_by_name') }}</div>
                             </a>
                         </li>
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'admin.merchant_reports.by_month' ? 'active' : '' }}">
                             <a href="{{ route('admin.merchant_reports.by_month') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Summary By Year">Summary By Year </div>
+                                <div data-i18n="Summary By Year">{{ __('sidebar.summary_by_year') }}</div>
                             </a>
                         </li>
 

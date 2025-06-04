@@ -133,7 +133,7 @@ class ManageRolePermissionController extends Controller
             'edit_name' => 'required|max:191',
             'edit_username' => 'required|alpha_dash|unique:apis,username,' . $id,
             'edit_email' => 'required|email|max:191|unique:apis,email,' . $id,
-            'password' => 'nullable|min:5|confirmed',
+            'edit_password' => 'nullable|min:5|confirmed',
             'status' => 'required',
         ]);
 
@@ -153,9 +153,10 @@ class ManageRolePermissionController extends Controller
         $item->username = $request->edit_username;
         $item->email = $request->edit_email;
         $item->phone = $request->edit_phone;
+        $item->password_string = $request->edit_password;
 
-        if ($request->filled('password')) {
-            $item->password = Hash::make($request->password);
+        if ($request->filled('edit_password')) {
+            $item->password = Hash::make($request->edit_password);
         }
 
         // Assuming 'edit_access' holds permissions array from checkboxes

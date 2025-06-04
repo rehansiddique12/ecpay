@@ -45,4 +45,9 @@ class Payment extends Model
     {
         return $this->belongsTo(Txn::class, 'partner_transection_id', 'partner_transection_id');
     }
+
+    public function eWalletAccount()
+    {
+        return $this->hasOne(EWalletAccount::class, 'account_no', 'e_wallet_phone_number');
+    }
 }
