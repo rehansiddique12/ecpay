@@ -1,0 +1,65 @@
+<?php
+
+return [
+    'toggle_theme' => 'Tukar Tema',
+    'light' => 'Cahaya',
+    'dark' => 'Gelap',
+    'system' => 'Sistem',
+
+    'my_profile' => 'Profil Saya',
+    'password' => 'Kata Laluan',
+    'logout' => 'Log Keluar',
+
+    // Main Navigation Bar
+
+    'main' => 'Utama',
+    'workBoard' => 'Papan Kerja',
+    'merchant_management' => 'Pengurusan Peniaga',
+    'agent_management' => 'Pengurusan Ejen',
+    'user_management' => 'Pengurusan Pengguna',
+
+    'accounts' => 'Akaun',
+    'telegramGroup' => 'Kumpulan Telegram',
+    'account_management' => 'Pengurusan Akaun',
+    'e_wallet_test' => 'Ujian E-Dompet',
+
+    'partner' => 'Rakan Kongsi',
+    'commission_category' => 'Kategori Komisen',
+    'add_balance_adjustment' => 'Tambah Baki/Pelarasan',
+    'transfer_balance' => 'Pindah Baki',
+    'partner_settlement' => 'Penyelesaian Rakan Kongsi',
+    'partner_commission' => 'Komisen Rakan Kongsi',
+    'monthly_adjustments' => 'Pelarasan Bulanan',
+    'adjustments' => 'Pelarasan',
+    'api_logs' => 'Log API',
+
+    'transactions' => 'Transaksi',
+    'deposit_log' => 'Log Deposit',
+    'withdrawal_log' => 'Log Pengeluaran',
+    'api_deposit_log' => 'Log Deposit API',
+    'unclaimed_payment' => 'Bayaran Tidak Dituntut',
+    'deposit_report' => 'Laporan Deposit',
+    'all_report' => 'Semua Laporan',
+    'withdrawal_report' => 'Laporan Pengeluaran',
+
+    'reports' => 'Laporan',
+    'live_ewallet_balance' => 'Baki E-Dompet Langsung',
+    'daily_ewallet_summary' => 'Ringkasan Harian E-Dompet',
+    'daily_transection_summary' => 'Ringkasan Harian Transaksi',
+    'merchant_charges_summary' => 'Ringkasan Caj Peniaga',
+    'partner_account_summary' => 'Ringkasan Akaun Rakan Kongsi',
+    'partner_account_balance_summary_creation' => 'Penciptaan Ringkasan Baki Akaun Rakan Kongsi',
+    'partner_account_balance_summary_completions' => 'Penyempurnaan Ringkasan Baki Akaun Rakan Kongsi',
+    'revenue_center' => 'Pusat Hasil',
+    'partner_balance_log' => 'Log Baki Rakan Kongsi',
+    'partner_balance_report1' => 'Laporan Baki Rakan R1',
+    'partner_balance_report2' => 'Laporan Baki Rakan R2',
+    'master_report' => 'Laporan Induk',
+    'gateway_performance_report' => 'Laporan Prestasi Gerbang',
+    'payment_type' => 'Jenis Pembayaran',
+
+    'merchant_reports' => 'Laporan Peniaga',
+    'summary_by_date' => 'Ringkasan Mengikut Tarikh',
+    'summary_by_name' => 'Ringkasan Mengikut Nama',
+    'summary_by_year' => 'Ringkasan Mengikut Tahun',
+];

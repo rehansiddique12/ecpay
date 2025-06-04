@@ -84,7 +84,7 @@ class CategoryController extends Controller
 
     public function addAccount(Request $request)
     {
-        $pageTitle = 'Add New Account';
+        $pageTitle = __('accounts.add_new_account');
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
@@ -94,7 +94,7 @@ class CategoryController extends Controller
 
     public function editAccount(Request $request, $id)
     {
-        $pageTitle = 'Edit New Account';
+        $pageTitle = __('accounts.edit_new_account');
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
@@ -213,7 +213,7 @@ class CategoryController extends Controller
 
     public function gateway()
     {
-        $pageTitle = 'Gateways';
+        $pageTitle = __('accounts.gateways');
         if (request()->ajax()) {
             $gateways = Gateway::orderBy('id', 'DESC');
 
@@ -295,7 +295,7 @@ class CategoryController extends Controller
 
     public function onOffAccount()
     {
-        $pageTitle = 'On/Off Account';
+        $pageTitle = __('accounts.on_off_account');
         $records = EWalletAccount::with(['apiHits' => function ($query) {
             $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
         }, 'location', 'accountGroups.group'])->paginate(1000);

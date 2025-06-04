@@ -122,12 +122,12 @@
                                     <td>{{ $item->charges }}</td>
                                     <td>{{ $item->amount + $item->charge }}</td>
                                     <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                        @if ($item->transfer_status == 2)
+                                        @if ($item->status == 2)
                                         <span class="badge  bg-danger">
                                             {{-- <i class="fa fa-circle text-white font-12"></i> --}}
                                             @lang('Rejected')
                                         </span>
-                                        @elseif($item->transfer_status == 1)
+                                        @elseif($item->status == 1)
                                         <span class="badge bg-success">
                                             {{-- <i class="fa fa-circle text-white font-12"></i> --}}
                                             @lang('Approved')</span>
