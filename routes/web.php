@@ -132,15 +132,22 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Parant Routs
         Route::get('/parent', [ParentController::class, 'parant'])->name('parant');
         Route::get('/workboard', [PayoutRecordController::class, 'workboard'])->name('workboard');
+        Route::get('/fetchrecords', [PayoutRecordController::class, 'fetchrecords'])->name('fetchrecords');
         Route::post('/hide-transaction', [PayoutRecordController::class, 'hideTransaction'])->name('hideTransaction');
         Route::post('/adjust-transaction', [PayoutRecordController::class, 'adjustTransaction'])->name('adjust.transaction');
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
         Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
         Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
+        Route::post('/update-adjusted-by', function (Illuminate\Http\Request $request) {
+            $txnId = $request->txnId;
+            $adjustedBy = $request->adjusted_by;
+
+            \App\Models\Payout::where('partner_transection_id', $txnId)->update(['adjusted_by' => $adjustedBy,'check_by' => $adjustedBy]);
+
+            return response()->json(['success' => true]);
+        });
 
 
-
-        Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
         Route::get('/get-api-balance/{id}', function ($id) {
             $api = \App\Models\Api::find($id);
             return response()->json(['balance' => $api ? $api->balance : 0]);
@@ -218,6 +225,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/partner/balance', [PayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
         Route::get('partner/balance/search', [PayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
+        Route::get('transections/functionlogs', [PayoutRecordController::class, 'functionlogs'])->name('transections.functionlogs');
 
         // rehan Payment type route:
         Route::get('/type', [PaymentTypeController::class, 'type'])->name('type');
@@ -558,13 +566,13 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 });
 
 
-// Route::middleware(['function_track_middleware'])->group(function () {
+Route::middleware(['function_track_middleware'])->group(function () {
 
     Route::get('iframe/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection'])->name('iframe.open');
     Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
     Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection3'])->name('iframe.direct');
-    
-// });
+
+});
 
 
 
@@ -600,4 +608,3 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
     })->name('lang.switch');
     
 
-    

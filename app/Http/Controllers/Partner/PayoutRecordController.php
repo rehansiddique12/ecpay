@@ -540,6 +540,10 @@ class PayoutRecordController extends Controller
         $data = [];
         $message = "";
         $ewalletee = strtolower($ewallet);
+
+        $logo = "";
+        $banner = "";
+
         if ($ewalletee == 'bkash') {
             $logo = asset('assets/images/ifram_bkash_logo.png');
             $banner = asset('assets/images/bKash_Background.jpg');
@@ -644,7 +648,7 @@ class PayoutRecordController extends Controller
         $amount = str_replace(',', '', $amount);
         $gate = Gateway::where('code', $ewallet)->where('status', 1)->first();
         if(!$gate){
-            $message = "Wrong E-Wallet Name!";
+            $message = "Wrong E-Wallet OR E-Wallet Disabled by Admin!";
             return view('partner.payout.process_transection', compact('data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
@@ -1646,6 +1650,8 @@ class PayoutRecordController extends Controller
 
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
+        $data['account_type'] = "";
+        
         $remainingTime = 600;
         $amount = str_replace(',', '', $amount);
         $data = [
@@ -1665,6 +1671,10 @@ class PayoutRecordController extends Controller
         $banner = "";
         $txn_verification = "";
         $ewalletee = strtolower($ewallet);
+
+        $logo = "";
+        $ewallet_to_show = "";
+
         if ($ewalletee == 'bkash') {
             $logo = asset('assets/images/ifram2_bkash_logo.png');
             $ewallet_to_show = "bKash";
@@ -1766,6 +1776,11 @@ class PayoutRecordController extends Controller
 
         $gate = Gateway::where('code', $ewallet)->where('status', 1)->first();
 
+        if(!$gate){
+            $message = "Wrong E-Wallet OR E-Wallet Disabled by Admin!";
+            return view('partner.payout.process_transection2', compact('ewallet_to_show','data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+        }
+
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
             return view('partner.payout.process_transection2', compact('ewallet_to_show','data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -1780,7 +1795,7 @@ class PayoutRecordController extends Controller
 
         $data['gate_id'] = $gate->id;
         $data['phone_number'] = "Loading...";
-        $data['account_type'] = "";
+        
 
         // setting for theme style
         return view('partner.payout.process_transection2', compact('ewallet_to_show','data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -2479,6 +2494,11 @@ class PayoutRecordController extends Controller
 
 
         $gate = Gateway::where('code', $ewallet)->where('status', 1)->first();
+
+        if(!$gate){
+            $message = "Wrong E-Wallet OR E-Wallet Disabled by Admin!";
+            return response()->json(['message' => $message], 404);
+        }
 
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
@@ -3334,6 +3354,8 @@ class PayoutRecordController extends Controller
 
         $basic = (object)config('basic');
         $method = Gateway::where('id', $request->gateway)->where('status', 1)->firstOrFail();
+
+
 
         $authWallet = $open_user;
 
