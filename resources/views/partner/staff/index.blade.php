@@ -104,7 +104,7 @@
                                 <!-- Password -->
                                 <div class="form-group col-md-6">
                                     <label class="text-dark">{{ __('Password') }}:</label>
-                                    <input type="password" name="password" placeholder="Password" autocomplete="off"
+                                    <input type="password" name="edit_password" placeholder="Password" autocomplete="off"
                                         class="form-control">
                                 </div>
 

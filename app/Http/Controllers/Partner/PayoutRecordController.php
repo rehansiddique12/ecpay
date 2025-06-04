@@ -1650,8 +1650,8 @@ class PayoutRecordController extends Controller
 
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
-        $data['account_type'] = "";
         
+
         $remainingTime = 600;
         $amount = str_replace(',', '', $amount);
         $data = [
@@ -1663,6 +1663,9 @@ class PayoutRecordController extends Controller
             'member_id' => $member_id,
             'phone_number' => ''
         ];
+
+
+        $data['account_type'] = "";
 
         $data_jsaon =  json_encode($data);
         LaravelLog::info('processTransection2:'.$data_jsaon);

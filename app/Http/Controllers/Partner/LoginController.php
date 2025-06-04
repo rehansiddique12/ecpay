@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Carbon\Carbon;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\Models\PartnerLog;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Services\GoogleAuthenticatorService;
 use App\Models\Api;
 use App\Models\TwoStepVerification;
-use Illuminate\Support\Facades\Hash;
+
 
 class LoginController extends Controller
 {
@@ -53,6 +52,10 @@ class LoginController extends Controller
         $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         $partner = Api::where($fieldType, $input['username'])->first();
+        // echo '<pre>';
+        // print_r($partner->password);
+        // echo '</pre>';
+        // dd(Hash::check($input['password'], $partner->password ));
         if ($partner && Hash::check($input['password'], $partner->password)) {
 
             $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)
@@ -92,7 +95,6 @@ class LoginController extends Controller
             }
 
         }
-
         if(Auth::guard('partner')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
             $ipAddress = $_SERVER['REMOTE_ADDR'];
@@ -108,7 +110,7 @@ class LoginController extends Controller
             return redirect()->intended(route('partner.dashboard'));
         }else{
             return redirect()->route('partner.login')
-                ->with('error','Email-Address And Password Are Wrong.');
+                ->with('error','Email-Address And Password Are Wrong else.');
         }
 
     }

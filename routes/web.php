@@ -1,36 +1,37 @@
 <?php
 
-use App\Http\Controllers\Admin\AccountManagementController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\DevFunctionsController;
-use App\Http\Controllers\Admin\LoginController;
-use App\Http\Controllers\Admin\ManageRolePermissionController;
-use App\Http\Controllers\Admin\ManualGatewayController;
-use App\Http\Controllers\Admin\MerchantController;
-use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
-use App\Http\Controllers\Admin\ParentController;
-use App\Http\Controllers\Admin\PaymentLogController;
-use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogController;
-use App\Http\Controllers\Admin\PaymentMethodController;
-use App\Http\Controllers\Admin\PaymentTypeController;
-use App\Http\Controllers\Admin\PayoutRecordController;
-use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
-use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
-use App\Http\Controllers\Partner\SummaryReportController as PartnerSummaryReportController;
-use App\Http\Controllers\Admin\ReportsController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\TelegramGroupController;
-use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
-use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CCategoryController;
-use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManageRolePermissionController;
-use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\LoginController;
+use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\ParentController;
+use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Admin\PaymentLogController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PaymentTypeController;
+use App\Http\Controllers\Admin\DevFunctionsController;
+use App\Http\Controllers\Admin\PayoutRecordController;
+use App\Http\Controllers\Admin\ManualGatewayController;
+use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\TelegramGroupController;
+use App\Http\Controllers\Admin\AccountManagementController;
+use App\Http\Controllers\Admin\ManageRolePermissionController;
+use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
+use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
+use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
+use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogController;
+use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 // rehan
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Partner\SummaryReportController as PartnerSummaryReportController;
+use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManageRolePermissionController;
 
 /*```php
 // No code was selected, so I'll provide a general improvement suggestion.
@@ -606,5 +607,5 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
         }
         return redirect()->back();
     })->name('lang.switch');
-    
+
 
