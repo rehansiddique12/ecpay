@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Api;
+use App\Models\Log;
 use App\Models\Fund;
 use App\Models\Group;
 use App\Models\ApiHit;
@@ -12,6 +13,7 @@ use App\Models\Payout;
 use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Models\Category;
 use App\Models\CCategory;
 use App\Models\Signature;
@@ -24,15 +26,16 @@ use App\Http\Traits\Upload;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
 use App\Models\AccountGroup;
+// rehan
 use App\Models\AdminAccount;
 use App\Models\UserLocation;
-// rehan
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
 use App\Models\AccountGateway;
 use App\Models\ApiTransaction;
 use App\Models\CronCommission;
 use App\Models\EWalletAccount;
+use App\Models\PendingPayment;
 use App\Models\EWalletTransfer;
 use Illuminate\Validation\Rule;
 use App\Models\ParentCommission;
@@ -40,8 +43,6 @@ use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
 use App\Models\TwoStepVerification;
-use App\Models\Log;
-use Illuminate\Support\Facades\Log as LaravelLog;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -50,11 +51,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\EWalletAccountTimeSlot;
+use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Session;
 use App\Exports\PartnerCommissionExport;
 use Illuminate\Support\Facades\Validator;
-use Stevebauman\Purify\Facades\Purify;
-use App\Models\PendingPayment;
+use Illuminate\Support\Facades\Log as LaravelLog;
 
 
 class PayoutRecordController extends Controller
@@ -752,62 +753,84 @@ class PayoutRecordController extends Controller
                     $this->updateLimits();
                     $this->updateEWallets();
 
+                    $Setting = Setting::where('name', 'last_account_active')->first();
+
+                    $now = Carbon::now();
+                    $startOfToday = $now->copy()->startOfDay();
+                    $startOfMonth = $now->copy()->startOfMonth();
+                    $oneMinuteAgo = $now->copy()->subMinute();
+
+                    // Query
+                    $results = Payout::selectRaw('
+                            e_wallet_phone_number,
+                            COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
+                            COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS today_count,
+                            COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS month_count,
+                            COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
+                            SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                        ', [
+                            $Setting->value,
+                            $startOfToday,
+                            $startOfMonth,
+                            $oneMinuteAgo,
+                            $oneMinuteAgo
+                        ])
+                        ->where('e_wallet_name', $data->gateway->name)
+                        ->whereNotNull('e_wallet_phone_number')
+                        ->where('e_wallet_phone_number', '!=', '')
+                        ->groupBy('e_wallet_phone_number')
+                        ->get();
+
+
+                        // ->where('created_at', '>=', $startOfMonth)
+
+                        $all_accounts = [];
+
+                        foreach($results as $result){
+                            $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
+                            $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
+                            $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
+                            $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
+                            $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
+                        }
+
                     $current_time = Carbon::now('Asia/Dhaka');
                     $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
-                        ->where('type', 'Agent')
                         ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
                         ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
                         ->where('status', 1)
                         ->where('max_withdrawal_amount', '>=', $data->amount)
                         ->whereIn('account_type', ['Withdrawal', 'Both'])
-                        ->where(function ($query) use ($current_time) {
-                            $query->where('apply_time_limit', 0)
-                                ->orWhere(function ($query) use ($current_time) {
-                                    $query->where('apply_time_limit', 1)
-                                        ->where('from_time', '<=', $current_time)
-                                        ->where('to_time', '>=', $current_time);
-                                });
+                        ->with('timeSlots')
+                        ->get()
+                        ->filter(function ($single_account) use ($all_accounts, $current_time) {
+                            $phone = $single_account->account_no;
+
+                            // Check all transaction limits
+                            $validTransactionLimits = isset($all_accounts[$phone]) &&
+                                $single_account->daily_limit_withdrawal_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
+                                $single_account->monthly_limit_withdrawal_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
+                                $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0);
+
+                            // Check if at least one time slot matches
+
+                            $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                                $from = Carbon::parse($slot->from_time);
+                                $to = Carbon::parse($slot->to_time);
+                            
+                                return $current_time->between($from, $to);
+                            });
+                            
+
+                            return $validTransactionLimits && $validTimeSlot;
                         })
-                        ->orderBy('daily_sent', 'asc')
+                        ->sortBy(function ($single_account) use ($all_accounts) {
+                            return $all_accounts[$single_account->account_no]['counts_for_round_robin'] ?? 0;
+                        })
+                        ->values()
                         ->first();
-                    if (!$account) {
-                        $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
-                            ->where('type', 'Merchant')
-                            ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
-                            ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
-                            ->where('status', 1)
-                            ->where('max_withdrawal_amount', '>=', $data->amount)
-                            ->whereIn('account_type', ['Withdrawal', 'Both'])
-                            ->where(function ($query) use ($current_time) {
-                                $query->where('apply_time_limit', 0)
-                                    ->orWhere(function ($query) use ($current_time) {
-                                        $query->where('apply_time_limit', 1)
-                                            ->where('from_time', '<=', $current_time)
-                                            ->where('to_time', '>=', $current_time);
-                                    });
-                            })
-                            ->orderBy('daily_sent', 'asc')
-                            ->first();
-                        if (!$account) {
-                            $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
-                                ->where('type', 'Personal')
-                                ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
-                                ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
-                                ->where('status', 1)
-                                ->where('max_withdrawal_amount', '>=', $data->amount)
-                                ->whereIn('account_type', ['Withdrawal', 'Both'])
-                                ->where(function ($query) use ($current_time) {
-                                    $query->where('apply_time_limit', 0)
-                                        ->orWhere(function ($query) use ($current_time) {
-                                            $query->where('apply_time_limit', 1)
-                                                ->where('from_time', '<=', $current_time)
-                                                ->where('to_time', '>=', $current_time);
-                                        });
-                                })
-                                ->orderBy('daily_sent', 'asc')
-                                ->first();
-                        }
-                    }
+                   
 
                     if (!$account) {
                         DB::rollBack();
@@ -3992,64 +4015,149 @@ class PayoutRecordController extends Controller
                 $this->updateEWallets();
 
 
+                $Setting = Setting::where('name', 'last_account_active')->first();
 
 
 
-                $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                    ->where('type', 'Agent')
-                    ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
-                    ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
-                    ->where('status', 1)
-                    ->where('max_withdrawal_amount', '>=', $request->amount)
-                    ->whereIn('account_type', ['Withdrawal', 'Both'])
-                    ->where(function ($query) use ($current_time) {
-                        $query->where('apply_time_limit', 0)
-                            ->orWhere(function ($query) use ($current_time) {
-                                $query->where('apply_time_limit', 1)
-                                    ->where('from_time', '<=', $current_time)
-                                    ->where('to_time', '>=', $current_time);
-                            });
-                    })
-                    ->orderBy('daily_sent', 'asc')
-                    ->first();
-                if (!$account) {
+
+
+                $now = Carbon::now();
+                $startOfToday = $now->copy()->startOfDay();
+                $startOfMonth = $now->copy()->startOfMonth();
+                $oneMinuteAgo = $now->copy()->subMinute();
+
+                // Query
+                $results = Payout::selectRaw('
+                        e_wallet_phone_number,
+                        COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
+                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS today_count,
+                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS month_count,
+                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
+                        SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                    ', [
+                        $Setting->value,
+                        $startOfToday,
+                        $startOfMonth,
+                        $oneMinuteAgo,
+                        $oneMinuteAgo
+                    ])
+                    ->where('e_wallet_name', $request->e_wallet_name)
+                    ->whereNotNull('e_wallet_phone_number')
+                    ->where('e_wallet_phone_number', '!=', '')
+                    ->groupBy('e_wallet_phone_number')
+                    ->get();
+
+
+                    // ->where('created_at', '>=', $startOfMonth)
+
+                    $all_accounts = [];
+
+                    foreach($results as $result){
+                        $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
+                        $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
+                        $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
+                        $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
+                        $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
+                    }
+                    
+
+
+
                     $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                        ->where('type', 'Merchant')
                         ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
                         ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
                         ->where('status', 1)
                         ->where('max_withdrawal_amount', '>=', $request->amount)
                         ->whereIn('account_type', ['Withdrawal', 'Both'])
-                        ->where(function ($query) use ($current_time) {
-                            $query->where('apply_time_limit', 0)
-                                ->orWhere(function ($query) use ($current_time) {
-                                    $query->where('apply_time_limit', 1)
-                                        ->where('from_time', '<=', $current_time)
-                                        ->where('to_time', '>=', $current_time);
-                                });
+                        ->with('timeSlots')
+                        ->get()
+                        ->filter(function ($single_account) use ($all_accounts, $current_time) {
+                            $phone = $single_account->account_no;
+
+                            // Check all transaction limits
+                            $validTransactionLimits = isset($all_accounts[$phone]) &&
+                                $single_account->daily_limit_withdrawal_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
+                                $single_account->monthly_limit_withdrawal_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
+                                $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0);
+
+                            // Check if at least one time slot matches
+
+                            $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                                $from = Carbon::parse($slot->from_time);
+                                $to = Carbon::parse($slot->to_time);
+                            
+                                return $current_time->between($from, $to);
+                            });
+                            
+
+                            return $validTransactionLimits && $validTimeSlot;
                         })
-                        ->orderBy('daily_sent', 'asc')
+                        ->sortBy(function ($single_account) use ($all_accounts) {
+                            return $all_accounts[$single_account->account_no]['counts_for_round_robin'] ?? 0;
+                        })
+                        ->values()
                         ->first();
-                    if (!$account) {
-                        $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                            ->where('type', 'Personal')
-                            ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
-                            ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
-                            ->where('status', 1)
-                            ->where('max_withdrawal_amount', '>=', $request->amount)
-                            ->whereIn('account_type', ['Withdrawal', 'Both'])
-                            ->where(function ($query) use ($current_time) {
-                                $query->where('apply_time_limit', 0)
-                                    ->orWhere(function ($query) use ($current_time) {
-                                        $query->where('apply_time_limit', 1)
-                                            ->where('from_time', '<=', $current_time)
-                                            ->where('to_time', '>=', $current_time);
-                                    });
-                            })
-                            ->orderBy('daily_sent', 'asc')
-                            ->first();
-                    }
-                }
+
+
+
+
+
+                // $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+                //     ->where('type', 'Agent')
+                //     ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                //     ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
+                //     ->where('status', 1)
+                //     ->where('max_withdrawal_amount', '>=', $request->amount)
+                //     ->whereIn('account_type', ['Withdrawal', 'Both'])
+                //     ->where(function ($query) use ($current_time) {
+                //         $query->where('apply_time_limit', 0)
+                //             ->orWhere(function ($query) use ($current_time) {
+                //                 $query->where('apply_time_limit', 1)
+                //                     ->where('from_time', '<=', $current_time)
+                //                     ->where('to_time', '>=', $current_time);
+                //             });
+                //     })
+                //     ->orderBy('daily_sent', 'asc')
+                //     ->first();
+                // if (!$account) {
+                //     $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+                //         ->where('type', 'Merchant')
+                //         ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                //         ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
+                //         ->where('status', 1)
+                //         ->where('max_withdrawal_amount', '>=', $request->amount)
+                //         ->whereIn('account_type', ['Withdrawal', 'Both'])
+                //         ->where(function ($query) use ($current_time) {
+                //             $query->where('apply_time_limit', 0)
+                //                 ->orWhere(function ($query) use ($current_time) {
+                //                     $query->where('apply_time_limit', 1)
+                //                         ->where('from_time', '<=', $current_time)
+                //                         ->where('to_time', '>=', $current_time);
+                //                 });
+                //         })
+                //         ->orderBy('daily_sent', 'asc')
+                //         ->first();
+                //     if (!$account) {
+                //         $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+                //             ->where('type', 'Personal')
+                //             ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                //             ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
+                //             ->where('status', 1)
+                //             ->where('max_withdrawal_amount', '>=', $request->amount)
+                //             ->whereIn('account_type', ['Withdrawal', 'Both'])
+                //             ->where(function ($query) use ($current_time) {
+                //                 $query->where('apply_time_limit', 0)
+                //                     ->orWhere(function ($query) use ($current_time) {
+                //                         $query->where('apply_time_limit', 1)
+                //                             ->where('from_time', '<=', $current_time)
+                //                             ->where('to_time', '>=', $current_time);
+                //                     });
+                //             })
+                //             ->orderBy('daily_sent', 'asc')
+                //             ->first();
+                //     }
+                // }
 
 
 
