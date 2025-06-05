@@ -201,6 +201,15 @@ class PayoutRecordController extends Controller
         $eWalletAccount = EWalletAccount::findOrFail($id);
         $eWalletAccount->status = !$eWalletAccount->status;
         $eWalletAccount->save();
+
+        if($eWalletAccount->status==1){
+
+            $Setting = Setting::where('name', 'last_account_active')->first();
+            $Setting->value = Carbon::now();
+            $Setting->save();
+        }
+
+
         return redirect()->back()->with('success', 'Status toggled successfully');
     }
 
@@ -3406,6 +3415,10 @@ class PayoutRecordController extends Controller
 
                 // $account->groups()->attach($request->account_group[$index]);
             }
+
+            $Setting = Setting::where('name', 'last_account_active')->first();
+            $Setting->value = Carbon::now();
+            $Setting->save();
 
             DB::commit();
 
