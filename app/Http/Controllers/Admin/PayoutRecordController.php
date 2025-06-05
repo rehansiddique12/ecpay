@@ -2277,7 +2277,7 @@ class PayoutRecordController extends Controller
 
     public function editAccount($id)
     {
-        $pageTitle = 'Edit New Account';
+        $pageTitle = __('accounts.edit_new_account');
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
@@ -5338,7 +5338,7 @@ class PayoutRecordController extends Controller
         ->take(5)->get();
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
         ->where('status','Pending')
-        ->where('check_by', 0)
+        // ->where('check_by', 0)
         ->orderBy('id', 'desc')
         ->take(5)
         ->get();
@@ -5359,7 +5359,7 @@ class PayoutRecordController extends Controller
 
     public function fetchrecords(Request $request){
         $query = $request->input('search');
-        $source = $request->input('source', 'all');
+        $source = $request->input('source');
 
 
     $payments = collect();

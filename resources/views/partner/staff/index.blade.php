@@ -424,7 +424,7 @@
                 { data: 'email', name: 'email' },
                 { data: 'phone', name: 'phone' },
                 { data: 'status', name: 'status', orderable: false },
-                @if(adminAccessRoute(config('role.manage_staff.access.edit')))
+                @if(partnerAccessRoute(config('role.manage_staff.access.edit')))
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 @endif
             ],

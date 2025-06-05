@@ -24,7 +24,6 @@ class PartnerAuthorizeMiddleware
         $list = collect(config('rolep'))->pluck(['access'])->flatten();
         $filtered = $list->intersect($user->admin_access);
 
-
         if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
 
             $TwoStepVerification = TwoStepVerification::where('user_id', $user->id)
@@ -40,8 +39,6 @@ class PartnerAuthorizeMiddleware
 
                return  redirect()->route('partner.twoFA');
             }
-
-
         }
 
         if($request->route()->getName()=="partner.dashboard"){
