@@ -226,11 +226,12 @@ class PayoutRecordController extends Controller
                             $phone = $single_account->account_no;
 
                             // Check all transaction limits
-                            $validTransactionLimits = isset($all_accounts[$phone]) &&
+                            $validTransactionLimits = !isset($all_accounts[$phone]) || (
                                 $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                                 $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
                                 $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
-                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0);
+                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
+                            );
 
                             // Check if at least one time slot matches
 
@@ -799,11 +800,12 @@ class PayoutRecordController extends Controller
                             $phone = $single_account->account_no;
 
                             // Check all transaction limits
-                            $validTransactionLimits = isset($all_accounts[$phone]) &&
+                            $validTransactionLimits = !isset($all_accounts[$phone]) || (
                                 $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                                 $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
                                 $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
-                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0);
+                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
+                            );
 
                             // Check if at least one time slot matches
 
@@ -822,6 +824,9 @@ class PayoutRecordController extends Controller
                         })
                         ->values()
                         ->first();
+
+
+                        // dd($account);
 
                         /////////////////////////////////////////////
 
@@ -2488,11 +2493,12 @@ class PayoutRecordController extends Controller
                             $phone = $single_account->account_no;
 
                             // Check all transaction limits
-                            $validTransactionLimits = isset($all_accounts[$phone]) &&
+                            $validTransactionLimits = !isset($all_accounts[$phone]) || (
                                 $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                                 $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
                                 $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
-                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0);
+                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
+                            );
 
                             // Check if at least one time slot matches
 
@@ -2513,7 +2519,7 @@ class PayoutRecordController extends Controller
                         ->first();
 
 
-                        
+
         if (!$account) {
             $message = "You Can not Proceed With this E-wallet account";
             return response()->json(['status'=>'fail','message'=>$message]);
