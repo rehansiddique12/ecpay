@@ -6385,6 +6385,14 @@ class PayoutRecordController extends Controller
         $account->status = $account->status == 1 ? 0 : 1;
         $account->save();
 
+
+        if($account->status==1){
+
+            $Setting = Setting::where('name', 'last_account_active')->first();
+            $Setting->value = Carbon::now();
+            $Setting->save();
+        }
+
         return response()->json([
             'success' => true,
             'status' => $account->status,
