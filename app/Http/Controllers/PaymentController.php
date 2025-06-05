@@ -173,31 +173,80 @@ class PaymentController extends Controller
         
         $Setting = Setting::where('name', 'last_account_active')->first();
 
-        $recordcounts = Payment::where('gateway_id', $gate->id)
-            ->where('created_at', '>=', $Setting->value)
-            ->select('e_wallet_phone_number', DB::raw('count(*) as total'))
+        $now = Carbon::now();
+        $startOfToday = $now->copy()->startOfDay();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $oneMinuteAgo = $now->copy()->subMinute();
+
+        // Query
+        $results = Payment::selectRaw('
+                e_wallet_phone_number,
+                COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
+                COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS today_count,
+                COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS month_count,
+                COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
+                SUM(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+            ', [
+                $Setting->value,
+                $startOfToday,
+                $startOfMonth,
+                $oneMinuteAgo,
+                $oneMinuteAgo
+            ])
+            ->where('gateway_id', $gate->id)
+            ->whereNotNull('e_wallet_phone_number')
+            ->where('e_wallet_phone_number', '!=', '')
             ->groupBy('e_wallet_phone_number')
-            ->pluck('total', 'e_wallet_phone_number')
-            ->toArray();
+            ->get();
+
+
+            // ->where('created_at', '>=', $startOfMonth)
+
+            $all_accounts = [];
+
+            foreach($results as $result){
+                $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
+                $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
+                $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
+                $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
+                $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
+            }
 
         $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
             ->where('monthly_limit', '>', 'monthly_received')
             ->whereRaw('daily_limit - daily_received > ?', [$request->amount])
             ->where('status', 1)
             ->whereIn('account_type', ['Deposit', 'Both'])
-            ->where(function ($query) use ($current_time) {
-                $query->where('apply_time_limit', 0)
-                    ->orWhere(function ($query) use ($current_time) {
-                        $query->where('apply_time_limit', 1)
-                            ->where('from_time', '<=', $current_time)
-                            ->where('to_time', '>=', $current_time);
-                    });
-            })
-            ->get()
-            ->sortBy(function ($single_account) use ($recordcounts) {
-                return $recordcounts[$single_account->account_no] ?? 0;
-            })
-            ->values()->first();
+            ->with('timeSlots')
+                        ->get()
+                        ->filter(function ($single_account) use ($all_accounts, $current_time) {
+                            $phone = $single_account->account_no;
+
+                            // Check all transaction limits
+                            $validTransactionLimits = !isset($all_accounts[$phone]) || (
+                                $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
+                                $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
+                                $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
+                            );
+
+                            // Check if at least one time slot matches
+
+                            $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                                $from = Carbon::parse($slot->from_time);
+                                $to = Carbon::parse($slot->to_time);
+                            
+                                return $current_time->between($from, $to);
+                            });
+                            
+
+                            return $validTransactionLimits && $validTimeSlot;
+                        })
+                        ->sortBy(function ($single_account) use ($all_accounts) {
+                            return $all_accounts[$single_account->account_no]['counts_for_round_robin'] ?? 0;
+                        })
+                        ->values()
+                        ->first();
 
         if (!$account) {
             return response()->json(['error' => 'You Can not Proceed With this E-wallet account'], 422);

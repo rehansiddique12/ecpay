@@ -191,7 +191,27 @@ class LoginController extends Controller
 
     }
 
+    public function forbidden()
+    {
+        $user = Auth::guard('partner')->user();
+        // Get full role config
+        $roleConfig = collect(config('rolep'));
 
+        // Flatten all route names under 'access' keys
+        $allAccessibleRoutes = $roleConfig->pluck('access')->flatten();
+
+        // Intersect with user's permissions
+        $userPermissions = collect($user->admin_access);
+        $accessibleRoutes = $allAccessibleRoutes->intersect($userPermissions);
+
+        // Get the first accessible route (if any)
+        $firstRouteName = $accessibleRoutes->first();
+
+        $redirectUrl = $firstRouteName ? route($firstRouteName) : url('/partner/dashboard');
+
+        $pageTitle  = 'You Don\'t have  permission to access this page';
+        return view('partner.errors.403' ,compact('pageTitle' , 'redirectUrl'));
+    }
 
 
 

@@ -456,6 +456,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 });
 // partnerRoutes
 Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
+    Route::get('/403', [PartnerLoginController::class, 'forbidden'])->name('403');
     Route::middleware(['guest:partner'])->group(function () {
         Route::get('/', [PartnerLoginController::class, 'showLoginForm'])->name('login');
         Route::post('/', [PartnerLoginController::class, 'login'])->name('login');

@@ -404,6 +404,7 @@ class ReportsController extends Controller
     public function partner_account_balance_summary(Request $request)
     {
         // $this->add_daily_partner_summary();
+        // $this->add_daily_summary();
         // exit;
 
 
@@ -530,6 +531,88 @@ class ReportsController extends Controller
             })->get();
 
         return view('admin.reports.partner_account_balance_summary', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
+    }
+
+
+    public function add_daily_summary()
+    {
+        $timezone = config('app.timezone');
+        $now = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-27 00:00:00', $timezone);
+        $date = $now->toDateString();
+        $EndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-27 23:59:00', $timezone);
+        $oneDayBefore = $now->copy()->subDay()->toDateString();
+        $oneDayBeforeEndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $oneDayBefore . ' 23:59:00', $timezone);
+
+
+        // $timezone = config('app.timezone');
+        // $now = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-28 00:00:00', $timezone);
+        // $date = $now->toDateString();
+        // $EndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', '2025-05-28 23:59:00', $timezone);
+        // $oneDayBefore = $now->subDay()->toDateString();
+        // $oneDayBeforeEndOfDay = Carbon::createFromFormat('Y-m-d H:i:s', $oneDayBefore . ' 23:59:00', $timezone);
+
+        $EWalletAccounts = EWalletAccount::all()->keyBy('id');
+
+        // Get all data in bulk
+        $payments = Payment::where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->get()
+            ->groupBy(fn($item) => $item->e_wallet_name . '_' . $item->e_wallet_phone_number);
+
+        $payouts = Payout::where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->get()
+            ->groupBy(fn($item) => $item->e_wallet_name . '_' . $item->e_wallet_phone_number);
+
+        $transfers_in = EWalletTransaction::where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->get()
+            ->groupBy(fn($item) => $item->to_e_wallet . '_' . $item->to_account_no);
+
+        $transfers_out = EWalletTransaction::where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->get()
+            ->groupBy(fn($item) => $item->from_e_wallet . '_' . $item->from_account_no);
+
+        // Fetch all previous day summaries in bulk
+        $previousSummaries = DailyEWalletSummary::whereDate('created_at', $oneDayBefore)
+            ->get()
+            ->keyBy('e_wallet_id');
+
+            foreach ($EWalletAccounts as $accountId => $account) {
+                $key = $account->e_wallet_name . '_' . $account->account_no;
+            
+                $total_deposit = isset($payments[$key]) ? $payments[$key]->sum('amount') : 0.00;
+                $total_withdrawal = isset($payouts[$key]) ? $payouts[$key]->sum('amount') : 0.00;
+                $transfer_in = isset($transfers_in[$key]) ? $transfers_in[$key]->sum('amount') : 0.00;
+                $transfer_out = isset($transfers_out[$key]) ? $transfers_out[$key]->sum('amount') : 0.00;
+            
+                $previousSummary = $previousSummaries[$accountId] ?? null;
+            
+                if (!$previousSummary) {
+                    $closing_balance = 0;
+            
+                    DailyEWalletSummary::create([
+                        'e_wallet_id' => $account->id,
+                        'closing_balance' => $closing_balance,
+                        'created_at' => $oneDayBeforeEndOfDay,
+                        'updated_at' => $oneDayBeforeEndOfDay,
+                    ]);
+                } else {
+                    $closing_balance = $previousSummary->closing_balance;
+                }
+            
+                $new_closing_balance = $closing_balance + $total_deposit - $total_withdrawal + $transfer_in - $transfer_out;
+            
+                DailyEWalletSummary::create([
+                    'e_wallet_id' => $account->id,
+                    'closing_balance' => $new_closing_balance,
+                    'actual_balance' => $account->balance,
+                    'created_at' => $EndOfDay,
+                    'updated_at' => $EndOfDay,
+                ]);
+            }
+            
     }
 
 

@@ -55,7 +55,6 @@
         #closeModal:hover {
             background-color: rgba(97, 96, 96, 0.137)
         }
-
     </style>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -72,8 +71,7 @@
                                 class="form-control form-control-sm search-box" />
 
                         </div>
-                        <button class="btn btn-sm text-white btn-purple"
-                            onclick=" $('#transactions-container').empty();">Close All</button>
+                        <button id="closeAllBtn" class="btn btn-sm text-white btn-purple">Close All</button>
                     </nav>
 
                     <!-- Cards Grid -->
@@ -487,71 +485,266 @@
             }
         });
 
-        (function (jQuery) {
+        $('#closeAllBtn').on('click', function() {
+        // 1. Clear all session storage keys
+        sessionStorage.clear(); // this clears ALL keys stored in sessionStorage
 
-            jQuery(document).ready(function () {
-                jQuery(document).on("click", '.edit_button', function (e) {
-                    var id = jQuery(this).data('id');
-                    jQuery(".action_id").val(id);
-                    jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
-                    // var details = Object.entries(jQuery(this).data('info'));
-                    var list = [];
-                    var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
+        // 2. Empty the transactions container
+        $('#transactions-container').empty();
 
-                    console.log(jQuery(this).data('status'));
+        // Optional: Show a brief confirmation (toast/alert)
+        alert('All session data cleared and results reset.');
+    });
 
-                    if (jQuery(this).data('status') == '2') {
-                        jQuery('#submit1').hide();
-                        jQuery('#submit2').show();
-                        jQuery('#submit3').show();
-                    } else if (jQuery(this).data('status') == '3') {
-                        jQuery('#submit1').hide();
-                        jQuery('#submit2').hide();
-                        jQuery('#submit3').hide();
-                    } else {
-                        jQuery('#submit1').show();
-                        jQuery('#submit2').hide();
-                        jQuery('#submit3').show();
-                    }
+    (function (jQuery) {
 
-                    if (jQuery(this).data('statusb') == 'Complete') {
-                        jQuery('#submit4').show();
-                        jQuery('#submit2').hide();
-                    } else {
-                        jQuery('#submit4').hide();
-                    }
-
-                    // list[details.length + 1] = ``;
-
-                    jQuery('.addForm').html(`
-                    <div class="form-group">
-                        <label for="feedback">@lang('Remarks')</label>
-                        <select class="form-control" name="feedback" id="feedback">
-                            <option value="">@lang('Select Feedback')</option>
-                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
-                            <option value="account_limit_over">@lang('Account limit over')</option>
-                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
-                            <option value="nagad_server_down">@lang('Nagad server down')</option>
-                            <option value="bkash_server_down">@lang('bKash server down')</option>
-                            <option value="rocket_server_down">@lang('Rocket server down')</option>
-                            <option value="others">@lang('Others')</option>
-                        </select>
-                    </div>
-                `);
-
-                    jQuery('.withdraw-detail').html(list);
-                });
-            });
-
-            jQuery(document).on("click", '.edit_buttonc', function (e) {
+        jQuery(document).ready(function () {
+            jQuery(document).on("click", '.edit_button', function (e) {
                 var id = jQuery(this).data('id');
-                var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
-
                 jQuery(".action_id").val(id);
-                jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
-            });
+                jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
+                // var details = Object.entries(jQuery(this).data('info'));
+                var list = [];
+                var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
 
-        })(jQuery);
+                console.log(jQuery(this).data('status'));
+
+                if (jQuery(this).data('status') == '2') {
+                    jQuery('#submit1').hide();
+                    jQuery('#submit2').show();
+                    jQuery('#submit3').show();
+                } else if (jQuery(this).data('status') == '3') {
+                    jQuery('#submit1').hide();
+                    jQuery('#submit2').hide();
+                    jQuery('#submit3').hide();
+                } else {
+                    jQuery('#submit1').show();
+                    jQuery('#submit2').hide();
+                    jQuery('#submit3').show();
+                }
+
+                if (jQuery(this).data('statusb') == 'Complete') {
+                    jQuery('#submit4').show();
+                    jQuery('#submit2').hide();
+                } else {
+                    jQuery('#submit4').hide();
+                }
+
+                // list[details.length + 1] = ``;
+
+                jQuery('.addForm').html(`
+                <div class="form-group">
+                    <label for="feedback">@lang('Remarks')</label>
+                    <select class="form-control" name="feedback" id="feedback">
+                        <option value="">@lang('Select Feedback')</option>
+                        <option value="invalid_phone_number">@lang('Invalid phone number')</option>
+                        <option value="account_limit_over">@lang('Account limit over')</option>
+                        <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
+                        <option value="nagad_server_down">@lang('Nagad server down')</option>
+                        <option value="bkash_server_down">@lang('bKash server down')</option>
+                        <option value="rocket_server_down">@lang('Rocket server down')</option>
+                        <option value="others">@lang('Others')</option>
+                    </select>
+                </div>
+            `);
+
+                jQuery('.withdraw-detail').html(list);
+            });
+        });
+
+        jQuery(document).on("click", '.edit_buttonc', function (e) {
+            var id = jQuery(this).data('id');
+            var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
+
+            jQuery(".action_id").val(id);
+            jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
+        });
+
+    })(jQuery);
+
+    function fetchrecords(search = '', source = '') {
+        console.log(search, source);
+        let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
+        const exists = history.some(item => item.search === search && item.source === source);
+        if (!exists) {
+            history.push({ search, source });
+            sessionStorage.setItem('searchHistory', JSON.stringify(history));
+        }
+        console.log(history);
+
+        $.ajax({
+            url: "{{ route('admin.fetchrecords') }}",
+            method: "GET",
+            dataType: "json",
+            data: {
+                search: search,
+                source: source
+            },
+            success: function (response) {
+                $.each(response.transactions, function (index, transaction) {
+                    $(document).off('click', '.edit-btn').on('click', '.edit-btn',
+                        function () {
+                            const transaction = $(this).data(
+                                'transaction'); // set below
+                            $('#editId').val(transaction.id);
+                            $('#editrejectId').val(transaction.id);
+                            $('#editType').val(transaction.type);
+                            $('#editrejectType').val(transaction.type);
+                            $('#editSender').val(transaction.sender || '');
+                            $('#editEwallet').val(transaction
+                                .e_wallet_phone_number || '');
+                            $('#editTxnId').val(transaction.txn_id || '');
+                            $('#editEwalletType').val(transaction
+                                .e_wallet_type || 'Personal');
+                            $('#editDateTime').val(transaction.date_time ||
+                                new Date().toISOString().slice(0, 16));
+                            $('#editModal').modal('show');
+                        });
+
+                    const currentUserId = response.user_id;
+                    let showAdjustment = transaction.adjusted_by == null ? '' :
+                        'd-none';
+                    let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' :
+                        'WITHDRAWL';
+                    let statusColor = transaction.status === 'pending' ?
+                        'text-warning' : 'text-success';
+                    let showEdit = transaction.adjusted_by == currentUserId ? '' :
+                        'd-none';
+                    let editButton = '';
+                    let typeClass = transaction.type === 'payment' ?
+                        'text-success' : 'text-primary';
+
+                    if (transaction.type === 'payment') {
+                        editButton = `
+                            <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
+                                Edit
+                            </button>`;
+                    } else if (transaction.type === 'payout') {
+                        const details = transaction.information ? JSON.stringify(
+                                transaction.information).replace(/"/g, '&quot;') :
+                            '';
+                        const feedback = transaction.feedback || '';
+                        const status = transaction.transfer_status || '';
+                        const statusb = transaction.status || '';
+
+                        // Use a route pattern or inject it via JavaScript context if needed
+                        const payoutRoute =
+                            `/admin/payout-action/${transaction.id}`;
+
+                        editButton = `
+                            <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
+                                data-bs-toggle="modal"
+                                data-bs-target="#myModal"
+                                data-route="${payoutRoute}"
+                                data-feedback="${feedback}"
+                                data-info="${details}"
+                                data-id="${transaction.id}"
+                                data-status="${status}"
+                                data-statusb="${statusb}">
+                                Edit P
+                            </button>`;
+                    }
+                    let inputTxnNo = transaction.txn_record && transaction
+                        .txn_record.txn_no ?
+                        transaction.txn_record.txn_no :
+                        '-';
+                    let callbackValue = transaction.callback != 0 ? 'Send' : null;
+                    let apiName = transaction.api ? transaction.api.name : 'N/A';
+                    let locationName = transaction.e_wallet_account && transaction
+                        .e_wallet_account.location ?
+                        transaction.e_wallet_account.location.location :
+                        'N/A';
+
+                    let card = `
+                        <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
+                            <div class="custom-card p-4">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-4">
+                                        <p class="${typeClass} fw-semibold mb-1">${typeLabel}</p>
+                                        <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
+                                        <p class="text-white mb-1">${transaction.id }</p>
+                                    </div>
+                                    <div class="d-flex gap-3 text-white">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <button type="button" class="btn-close" aria-label="Close" data-id="${transaction.id}" data-type="${transaction.type}"></button>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-3">
+                                    <p class="mb-0">Order Number: ${transaction.partner_transection_id }</p>
+                                    <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
+                                </div>
+
+                                <div class="d-flex gap-5 mt-2">
+                                    <p class="mb-0">Account Name: ${transaction.e_wallet_name }</p>
+                                    <p class="">${transaction.sender }</p>
+                                </div>
+                                <div>
+                                    <p class="">Location: ${locationName}</p>
+                                    <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
+                                    <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
+                                    <p class="">Input Transaction Number: ${inputTxnNo}</p>
+                                    <p class="">Verified Transaction Number:${transaction.txn_id }</p>
+                                </div>
+
+                                <div class="d-flex gap-4 mt-3">
+                                    <div class="justify-content-center">
+                                        <p class="">Callback Status: ${callbackValue !== null ? callbackValue : 'N/A'}</p>
+                                        <p class="">Merchant  : ${apiName}</p>
+                                    </div>
+                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
+                                    <button
+                                        class="px-4 btn btn-sm activity-btn"
+                                        style="background-color: blue; color: white;"
+                                        data-partner-id="${transaction.partner_transection_id}">
+                                        Activity
+                                    </button>
+                                </div>
+                                <div class="d-flex gap-4 mt-3">
+                                    ${editButton}
+                                    <button class="px-4 btn btn-sm manual-process-btn"
+                                        style="background-color: rgb(226, 15, 15); color: white;"
+                                        data-id="${transaction.id}"
+                                        data-type="${transaction.type}">
+                                        Adjustment
+                                    </button>
+                                    <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Manual Process</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('#transactions-container').prepend(card);
+                });
+            }
+        });
+    }
+
+    // On page load, check for stored search parameters and fetch records if they exist
+    $(document).ready(function () {
+        let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
+
+        // Remove duplicates based on both search and source
+        const uniqueHistory = history.filter((value, index, self) =>
+            index === self.findIndex(item => item.search === value.search && item.source === value.source)
+        );
+
+        // Filter entries with empty values
+        const emptyEntries = uniqueHistory.filter(item => item.search === '' && item.source === '');
+
+        // Filter entries with non-empty values
+        const validEntries = uniqueHistory.filter(item => item.search !== '' && item.source !== '');
+
+        // Call fetchrecords on all empty entries first
+        emptyEntries.forEach(item => fetchrecords(item.search, item.source));
+
+        // If there are valid entries, call fetchrecords once for each
+        validEntries.forEach(item => fetchrecords(item.search, item.source));
+
+        // Optional: if nothing in session, call fetchrecords without params
+        if (history.length === 0) {
+            fetchrecords();
+        }
+    });
 
     </script>
     <script>
@@ -629,168 +822,15 @@
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Optional: prevent form submission if inside a form
                     const searchValue = $(this).val();
-
-                    fetchrecords(searchValue);
+                    alert(searchValue);
+                    fetchrecords(searchValue, 'all');
                 }
             });
 
-            function fetchrecords(search = '', source = 'all') {
-                $.ajax({
-                    url: "{{ route('admin.fetchrecords') }}", // your route
-                    method: "GET",
-                    dataType: "json",
-                    data: {
-                        search: search,
-                        source: source // add source here
-                    },
-                    success: function (response) {
-                          localStorage.setItem('transactions', JSON.stringify(response.transactions));
-                        $.each(response.transactions, function (index, transaction) {
-                            $(document).off('click', '.edit-btn').on('click', '.edit-btn',
-                                function () {
-                                    const transaction = $(this).data(
-                                        'transaction'); // set below
-                                    $('#editId').val(transaction.id);
-                                    $('#editrejectId').val(transaction.id);
-                                    $('#editType').val(transaction.type);
-                                    $('#editrejectType').val(transaction.type);
-                                    $('#editSender').val(transaction.sender || '');
-                                    $('#editEwallet').val(transaction
-                                        .e_wallet_phone_number || '');
-                                    $('#editTxnId').val(transaction.txn_id || '');
-                                    $('#editEwalletType').val(transaction
-                                        .e_wallet_type || 'Personal');
-                                    $('#editDateTime').val(transaction.date_time ||
-                                        new Date().toISOString().slice(0, 16));
-                                    $('#editModal').modal('show');
-                                });
 
 
 
-                            const currentUserId = response.user_id;
-                            let showAdjustment = transaction.adjusted_by == null ? '' :
-                                'd-none';
-                            let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' :
-                                'WITHDRAWL';
-                            let statusColor = transaction.status === 'pending' ?
-                                'text-warning' : 'text-success';
-                            let showEdit = transaction.adjusted_by == currentUserId ? '' :
-                                'd-none';
-                            let editButton = '';
-                            let typeClass = transaction.type === 'payment' ?
-                                'text-success' : 'text-primary';
-
-                            if (transaction.type === 'payment') {
-                                editButton = `
-                    <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
-                        Edit
-                    </button>`;
-                            } else if (transaction.type === 'payout') {
-                                const details = transaction.information ? JSON.stringify(
-                                        transaction.information).replace(/"/g, '&quot;') :
-                                    '';
-                                const feedback = transaction.feedback || '';
-                                const status = transaction.transfer_status || '';
-                                const statusb = transaction.status || '';
-
-                                // Use a route pattern or inject it via JavaScript context if needed
-                                const payoutRoute =
-                                    `/admin/payout-action/${transaction.id}`; // Must match your Laravel route
-
-                                editButton = `
-                    <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
-                        data-bs-toggle="modal"
-                        data-bs-target="#myModal"
-                        data-route="${payoutRoute}"
-                        data-feedback="${feedback}"
-                        data-info="${details}"
-                        data-id="${transaction.id}"
-                        data-status="${status}"
-                        data-statusb="${statusb}">
-                        Edit P
-                    </button>`;
-                            }
-                            let inputTxnNo = transaction.txn_record && transaction
-                                .txn_record.txn_no ?
-                                transaction.txn_record.txn_no :
-                                '-';
-                            let callbackValue = transaction.callback != 0 ? 'Send' : null;
-                            let apiName = transaction.api ? transaction.api.name : 'N/A';
-                            let locationName = transaction.e_wallet_account && transaction
-                                .e_wallet_account.location ?
-                                transaction.e_wallet_account.location.location :
-                                'N/A';
-
-
-                            let card = `
-                        <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
-                            <div class="custom-card p-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-4">
-                                        <p class="${typeClass} fw-semibold mb-1">${typeLabel}</p>
-                                        <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
-                                        <p class="text-white mb-1">${transaction.id }</p>
-                                    </div>
-                                    <div class="d-flex gap-3 text-white">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" aria-label="Close" data-id="${transaction.id}" data-type="${transaction.type}"></button>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ${transaction.partner_transection_id }</p>
-                                    <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
-                                </div>
-
-                                <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: ${transaction.e_wallet_name }</p>
-                                    <p class="">${transaction.sender }</p>
-                                </div>
-                                <div>
-                                    <p class="">Location: ${locationName}</p>
-                                    <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
-                                    <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
-                                    <p class="">Input Transaction Number: ${inputTxnNo}</p>
-                                    <p class="">Verified Transaction Number:${transaction.txn_id }</p>
-                                </div>
-
-                                <div class="d-flex gap-4 mt-3">
-                                    <div class="justify-content-center">
-                                        <p class="">Callback Status: ${callbackValue !== null ? callbackValue : 'N/A'}</p>
-                                        <p class="">Merchant  : ${apiName}</p>
-                                    </div>
-                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
-                                    <button
-        class="px-4 btn btn-sm activity-btn"
-        style="background-color: blue; color: white;"
-        data-partner-id="${transaction.partner_transection_id}">
-        Activity
-        </button>
-
-                                </div>
-                                <div class="d-flex gap-4 mt-3">
-                                    ${editButton}
-                                    <button class="px-4 btn btn-sm manual-process-btn"
-    style="background-color: rgb(226, 15, 15); color: white;"
-    data-id="${transaction.id}"
-    data-type="${transaction.type}">
-    Adjustment
-</button>
-
-                                    <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Manual Process</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    $('#transactions-container').prepend(card);
-
-                        });
-                    }
-                });
-            }
-
-
-            function fetchTransactions(search = '', source = 'all') {
+            function fetchTransactions(search = '', source = '') {
                 $.ajax({
                     url: "{{ route('admin.workboard') }}", // your route
                     method: "GET",
@@ -915,14 +955,14 @@
                 let timeAgo = diffMins > 0 ? `${diffMins} min ago` : 'Just now';
 
                 let pendingHtml = `
-        <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
-             style="background-color: #504c79;">
-            <div>
+                <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
+                    style="background-color: #504c79;">
+                    <div>
                 <p>Order Number:${item.partner_transection_id}  ${item.amount} TK</p>
                 <p>Account: ${item.e_wallet_name}</p>
                 <p>Checking by: ${currentUser}</p>
-</div>
-<div>
+                </div>
+                <div>
 
                 <button class="px-4 btn btn-sm check-btn"
                     data-txn="${item.partner_transection_id}" data-id="${item.id}"
