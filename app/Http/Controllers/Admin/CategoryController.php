@@ -107,7 +107,7 @@ class CategoryController extends Controller
 
     public  function  addCategory(Request $request)
     {
-        $pageTitle = 'Categories List';
+        $pageTitle = __('accounts.categories_list');
         // $categories = Category::select('name' , 'id' , 'status')->get();
 
         if (request()->ajax()) {
