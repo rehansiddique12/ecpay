@@ -2072,9 +2072,7 @@ class TelegramGroupController extends Controller
                                 }    
                         
                             
-                        }
-                        
-                        elseif(strpos($lowercaseText, "/newocr") === 0){
+                        }elseif(strpos($lowercaseText, "/newocr") === 0){
                             
                             
                             
@@ -2213,6 +2211,31 @@ class TelegramGroupController extends Controller
                                                                             }
                                                                         }
 
+                                                                        // Amount patterns (handle both Bengali and English numerals)
+                                                                        LaravelLog::info("Trying to extract amount from text: " . $extractedText);
+                                                                        
+                                                                        // Try each pattern separately and log results
+                                                                        if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using t pattern: " . $amount);
+                                                                        } 
+                                                                        elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using amount label pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/\b(\d+(?:\.\d{2})?)\s*(?:????|Tk|BDT|?)/', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using currency pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/DIST\s*t?(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using DIST pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/\b(\d+(?:\.\d{2})?)\b/', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using generic number pattern: " . $amount);
+                                                                        }
+
                                                                         // Phone number patterns
                                                                         if (preg_match('/(?:Account|Number)\s*:?\s*(01\d{9})/', $extractedText, $matches) ||
                                                                             preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
@@ -2241,6 +2264,31 @@ class TelegramGroupController extends Controller
                                                                                 LaravelLog::info("Found Nagad Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
                                                                                 break;
                                                                             }
+                                                                        }
+
+                                                                        // Amount patterns (handle both Bengali and English numerals)
+                                                                        LaravelLog::info("Trying to extract amount from text: " . $extractedText);
+                                                                        
+                                                                        // Try each pattern separately and log results
+                                                                        if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using t pattern: " . $amount);
+                                                                        } 
+                                                                        elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using amount label pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/\b(\d+(?:\.\d{2})?)\s*(?:????|Tk|BDT|?)/', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using currency pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/DIST\s*t?(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using DIST pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/\b(\d+(?:\.\d{2})?)\b/', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using generic number pattern: " . $amount);
                                                                         }
 
                                                                         // Phone number patterns - handle both formats
@@ -2275,6 +2323,31 @@ class TelegramGroupController extends Controller
                                                                                 LaravelLog::info("Found Rocket Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
                                                                                 break;
                                                                             }
+                                                                        }
+
+                                                                        // Amount patterns (handle both Bengali and English numerals)
+                                                                        LaravelLog::info("Trying to extract amount from text: " . $extractedText);
+                                                                        
+                                                                        // Try each pattern separately and log results
+                                                                        if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using t pattern: " . $amount);
+                                                                        } 
+                                                                        elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using amount label pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/\b(\d+(?:\.\d{2})?)\s*(?:????|Tk|BDT|?)/', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using currency pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/DIST\s*t?(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using DIST pattern: " . $amount);
+                                                                        }
+                                                                        elseif (preg_match('/\b(\d+(?:\.\d{2})?)\b/', $extractedText, $matches)) {
+                                                                            $amount = str_replace(',', '', $matches[1]);
+                                                                            LaravelLog::info("Found amount using generic number pattern: " . $amount);
                                                                         }
 
                                                                         // Phone number patterns for Rocket
@@ -2321,6 +2394,13 @@ class TelegramGroupController extends Controller
                                                                         LaravelLog::info("Final Transaction ID after validation: " . $txnId);
                                                                     }
 
+                                                                    // Generic amount pattern as fallback
+                                                                    if (!isset($amount) || empty($amount)) {
+                                                                        if (preg_match('/\b(\d{2,4}(?:\.\d{2})?)\s*(?:Tk|BDT)?\b/', $extractedText, $matches)) {
+                                                                            $amount = $matches[1];
+                                                                        }
+                                                                    }
+
                                                                     // Generic phone number pattern as fallback
                                                                     if (!isset($phone_number_by_telegram_message) || empty($phone_number_by_telegram_message)) {
                                                                         if (preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
@@ -2340,38 +2420,10 @@ class TelegramGroupController extends Controller
                                                                         $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
                                                                         LaravelLog::info("Adding transaction ID to message: " . $txnId);
                                                                     }
-
-                                                                    // Multiple amount patterns for different formats
-                                                                    $amount = null;
                                                                     
-                                                                    // Bengali amount pattern
-                                                                    if (preg_match('/পরিমাণ\s*(\d+(?:\.\d{2})?)\s*টাকা/i', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found amount in Bengali text: " . $amount);
-                                                                    }
-                                                                    // English Transaction Amount pattern
-                                                                    elseif (preg_match('/Transaction Amount\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found amount in English Transaction format: " . $amount);
-                                                                    }
-                                                                    // Amount with Tk/BDT pattern
-                                                                    elseif (preg_match('/Amount\s*:?\s*(\d+(?:\.\d{2})?)\s*(?:Tk|BDT)?/i', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found amount with Tk/BDT format: " . $amount);
-                                                                    }
-                                                                    // Amount with Taka/Tk pattern
-                                                                    elseif (preg_match('/Amount\s*:?\s*(\d+(?:\.\d{2})?)\s*(?:Taka|Tk)?/i', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found amount with Taka/Tk format: " . $amount);
-                                                                    }
-                                                                    // Generic amount pattern
-                                                                    elseif (preg_match('/\bAmount\s*:?\s*(\d+(?:\.\d{2})?)\b/i', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found amount using generic pattern: " . $amount);
-                                                                    }
-
-                                                                    if ($amount !== null) {
+                                                                    if (isset($amount) && !empty($amount)) {
                                                                         $message .= "?? *Amount:* `" . $amount . "`\n";
+                                                                        LaravelLog::info("Adding amount to message: " . $amount);
                                                                     }
                                                                     
                                                                     if (isset($phone_number_by_telegram_message) && !empty($phone_number_by_telegram_message)) {
@@ -2445,14 +2497,14 @@ class TelegramGroupController extends Controller
                                                 return response()->json(['status' => 'success'], 200);
                                             }
                                             
-                                            // if($image_processed==0){
-                                            //     $response = Http::post($url, [
-                                            //         'chat_id' => $sender_chat['id'],
-                                            //         'text' => 'naveed error',
-                                            //         'reply_to_message_id' => $TG_message['message_id'],
-                                            //         'parse_mode' => 'Markdown',
-                                            //     ]);
-                                            // }
+                                            if($image_processed==0){
+                                                $response = Http::post($url, [
+                                                    'chat_id' => $sender_chat['id'],
+                                                    'text' => 'Error',
+                                                    'reply_to_message_id' => $TG_message['message_id'],
+                                                    'parse_mode' => 'Markdown',
+                                                ]);
+                                            }
                                             
                                 }else{
                                     $message = 'Attach Image';
@@ -2467,11 +2519,7 @@ class TelegramGroupController extends Controller
                                 }    
                         
                             
-                        }
-                        
-                        
-                        
-                        elseif(strpos($lowercaseText, "/callback") === 0){
+                        }elseif(strpos($lowercaseText, "/callback") === 0){
                             $deposit = Payment::where('partner_transection_id',$sender_message)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
                             if($deposit){
                                 if($deposit->status==1){
