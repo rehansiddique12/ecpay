@@ -1,27 +1,27 @@
-@if(adminAccessRoute(config('role.roles_category.access.edit')) ||
-adminAccessRoute(config('role.roles_category.access.delete')))
-<div class="dropdown text-center">
+@if (adminAccessRoute(config('role.roles_category.access.edit')) ||
+        adminAccessRoute(config('role.roles_category.access.delete')))
+    <div class="dropdown text-center">
 
 
-    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-        <i class="icon-base ti tabler-dots-vertical"></i>
-    </button>
+        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+            <i class="icon-base ti tabler-dots-vertical"></i>
+        </button>
 
-    <div class="dropdown-menu">
-        @if(adminAccessRoute(config('role.roles_category.access.edit')))
-        <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
-            data-id="{{ $role->id }}" data-role="{{ $role->name }}">
-            <i class="fa fa-edit text-warning me-2"></i> @lang('Edit')
-        </a>
-        @endif
-        @if(adminAccessRoute(config('role.roles_category.access.delete')))
-        <a href="#" class="dropdown-item delete-role" data-id="{{ $role->id }}">
-            <i class="fa fa-trash text-danger me-2"></i> @lang('Delete')
-        </a>
-        @endif
+        <div class="dropdown-menu">
+            @if (adminAccessRoute(config('role.roles_category.access.edit')))
+                <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
+                    data-id="{{ $role->id }}" data-role="{{ $role->name }}">
+                    <i class="fa fa-edit text-warning me-2"></i> {{ __('userManagement.edit') }}
+                </a>
+            @endif
+            @if (adminAccessRoute(config('role.roles_category.access.delete')))
+                <a href="#" class="dropdown-item delete-role" data-id="{{ $role->id }}">
+                    <i class="fa fa-trash text-danger me-2"></i> {{ __('userManagement.delete') }}
+                </a>
+            @endif
+        </div>
+
     </div>
-
-</div>
 @endif
 <script>
     $(document).on('click', '.delete-role', function(e) {
@@ -30,17 +30,17 @@ adminAccessRoute(config('role.roles_category.access.delete')))
 
         // SweetAlert2 confirmation dialog
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
+            title: "{{ __('userManagement.are_you_sure') }}",
+            text: "{!! __('userManagement.delete_warning') !!}",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: "{{ __('userManagement.yes_delete_it') }}"
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '{{ route("admin.roles.delete") }}', // Your delete route
+                    url: '{{ route('admin.roles.delete') }}', // Your delete route
                     method: 'DELETE',
                     data: {
                         _token: '{{ csrf_token() }}',
@@ -49,7 +49,7 @@ adminAccessRoute(config('role.roles_category.access.delete')))
                     success: function(response) {
                         // Handle success
                         Swal.fire(
-                            'Deleted!',
+                            "{{ __('userManagement.deleted_title') }}",
                             response.message, // Success message
                             'success'
                         );
@@ -60,8 +60,8 @@ adminAccessRoute(config('role.roles_category.access.delete')))
                     error: function(xhr, status, error) {
                         // Handle error
                         Swal.fire(
-                            'Error!',
-                            'There was an error deleting the role.',
+                            "{{ __('userManagement.error_title') }}",
+                            "{{ __('userManagement.error_delete_role') }}",
                             'error'
                         );
                     }
