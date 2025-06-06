@@ -726,7 +726,7 @@ class PayoutRecordController extends Controller
                 }
             }
         } else {
-            $fund = Payment::where('gateway_id', $gate->id)->where('amount', $amount)->where('status', 'Pending')->where('sender', $acc)->where('api_id', $api_key->id)->where('source', 'Iframe')->where('created_at', '>=', $twoHoursAgo)->latest()->first();
+            $fund = Payment::where('gateway_id', $gate->id)->where('amount', $amount)->where('status', 'Pending')->where('sender', $acc)->where('api_id', $api_key->id)->where('created_at', '>=', $twoHoursAgo)->latest()->first();
         }
 
         if (!$fund) {
@@ -904,7 +904,7 @@ class PayoutRecordController extends Controller
             $fund->status = 'Pending';
             $fund->api_id = $api_key->id;
             $fund->e_wallet_phone_number = $e_wallet_phone_number;
-            $fund->request_source = "Iframe";
+            $fund->request_source = "Iframe-1";
             $fund->save();
 
             
@@ -1043,7 +1043,7 @@ class PayoutRecordController extends Controller
 
     public function processNextPayment(Request $request, $id)
     {
-        $maxAttempts = 3;
+        $maxAttempts = 5;
         $attempt = 0;
         $success = 0;
         $txn_id = "";
@@ -1215,7 +1215,7 @@ class PayoutRecordController extends Controller
                             $Log->transection_type = 1;
                             $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
-                            $Log->source = 'Iframe';
+                            $Log->source = 'Iframe-1';
                             $Log->save();
 
 
@@ -1248,7 +1248,7 @@ class PayoutRecordController extends Controller
 
                         $order->status = 'Complete';
                         $order->trans_complete_date = Carbon::now();
-                        $order->completed_source = 'Iframe';
+                        $order->completed_source = 'Iframe-1';
                         $order->charge = $charge;
                         $order->save();
 
@@ -1284,7 +1284,7 @@ class PayoutRecordController extends Controller
                             $summary_log->total_amount = $net_amount;
                             $summary_log->summary_id = $DailyPartnerSummary_record->id;
                             $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                            $summary_log->source = 'Iframe';
+                            $summary_log->source = 'Iframe-1';
                             $summary_log->save();
                         }
 
@@ -1304,7 +1304,7 @@ class PayoutRecordController extends Controller
                                 $Log->transection_type = 5;
                                 $Log->transection_id = $PartnerCommission->id;
                                 $Log->partner_id = $PartnerCommission->from_id;
-                                $Log->source = 'Iframe';
+                                $Log->source = 'Iframe-1';
                                 $Log->save();
 
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
@@ -1322,7 +1322,7 @@ class PayoutRecordController extends Controller
                                     $summary_log->total_amount = $PartnerCommission->profit;
                                     $summary_log->summary_id = $DailyPartnerSummary_record->id;
                                     $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                    $summary_log->source = 'Iframe';
+                                    $summary_log->source = 'Iframe-1';
                                     $summary_log->save();
                                 }
                             }
@@ -1438,7 +1438,7 @@ class PayoutRecordController extends Controller
 
                 $attempt++;
 
-                LaravelLog::info('processNextPayment-PartnerController Error: txn_id: '.$txn_id. ' Error: ' .$e->getMessage());
+                LaravelLog::info('processNextPayment-PartnerController Error: txn_id: '.$txn_id.'seccess ' . $success . ' Error: ' .$e->getMessage());
 
 
             }
@@ -1458,6 +1458,10 @@ class PayoutRecordController extends Controller
         $id = $request->id;
         $ewallet = $request->ewallet;
         $txn_id = $request->txn;
+
+        $order = "";
+        $logo = "";
+        $banner = "";
 
         $fund = Payment::where('id', $request->id)->latest()->first();
         $fiveMinutesAgo = Carbon::now()->subMinutes(5)->timestamp;
@@ -1576,7 +1580,7 @@ class PayoutRecordController extends Controller
                 $Log->transection_type = 1;
                 $Log->transection_id = $order->id;
                 $Log->partner_id = $partner_api_key->id;
-                $Log->source = 'Iframe';
+                $Log->source = 'Iframe-2';
                 $Log->save();
             }
 
@@ -1591,7 +1595,7 @@ class PayoutRecordController extends Controller
             // $order->trans_completed_date = Carbon::now();
             // $payment_record->created_at = $order->created_at;
             // $payment_record->trans_complete_date = Carbon::now();
-            $order->completed_source = 'Iframe';
+            $order->completed_source = 'Iframe-2';
 
             // $payment_record->api_id = $api_id;
             // $payment_record->request_source  = $source;
@@ -1638,7 +1642,7 @@ class PayoutRecordController extends Controller
                 $summary_log->total_amount = $net_amount;
                 $summary_log->summary_id = $DailyPartnerSummary_record->id;
                 $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                $summary_log->source = 'Iframe';
+                $summary_log->source = 'Iframe-2';
                 $summary_log->save();
             }
 
@@ -1658,7 +1662,7 @@ class PayoutRecordController extends Controller
                     $Log->transection_type = 5;
                     $Log->transection_id = $PartnerCommission->id;
                     $Log->partner_id = $PartnerCommission->from_id;
-                    $Log->source = 'Iframe';
+                    $Log->source = 'Iframe-2';
                     $Log->save();
 
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
@@ -1676,7 +1680,7 @@ class PayoutRecordController extends Controller
                         $summary_log->total_amount = $PartnerCommission->profit;
                         $summary_log->summary_id = $DailyPartnerSummary_record->id;
                         $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                        $summary_log->source = 'Iframe';
+                        $summary_log->source = 'Iframe-2';
                         $summary_log->save();
                     }
                 }
@@ -2036,7 +2040,7 @@ class PayoutRecordController extends Controller
             return back()->with('error', $message);
         }
 
-        $maxAttempts = 3;
+        $maxAttempts = 5;
         $attempt = 0;
         $success = 0;
 
@@ -2190,7 +2194,7 @@ class PayoutRecordController extends Controller
                             $Log->transection_type = 1;
                             $Log->transection_id = $order->id;
                             $Log->partner_id = $partner_api_key->id;
-                            $Log->source = 'Iframe';
+                            $Log->source = 'Iframe-2';
                             $Log->save();
                         }
 
@@ -2204,7 +2208,7 @@ class PayoutRecordController extends Controller
 
                         $order->status = 'Complete';
                         $order->trans_complete_date = Carbon::now();
-                        $order->completed_source = 'Iframe';
+                        $order->completed_source = 'Iframe-2';
                         $order->charge = $charge;
 
                         if(empty($order->sender) || $order->sender==0){
@@ -2245,7 +2249,7 @@ class PayoutRecordController extends Controller
                             $summary_log->total_amount = $net_amount;
                             $summary_log->summary_id = $DailyPartnerSummary_record->id;
                             $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                            $summary_log->source = 'Iframe';
+                            $summary_log->source = 'Iframe-2';
                             $summary_log->save();
                         }
 
@@ -2265,7 +2269,7 @@ class PayoutRecordController extends Controller
                                 $Log->transection_type = 5;
                                 $Log->transection_id = $PartnerCommission->id;
                                 $Log->partner_id = $PartnerCommission->from_id;
-                                $Log->source = 'Iframe';
+                                $Log->source = 'Iframe-2';
                                 $Log->save();
 
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
@@ -2283,7 +2287,7 @@ class PayoutRecordController extends Controller
                                     $summary_log->total_amount = $PartnerCommission->profit;
                                     $summary_log->summary_id = $DailyPartnerSummary_record->id;
                                     $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                    $summary_log->source = 'Iframe';
+                                    $summary_log->source = 'Iframe-2';
                                     $summary_log->save();
                                 }
                             }
@@ -2396,7 +2400,7 @@ class PayoutRecordController extends Controller
 
                 $attempt++;
 
-                LaravelLog::info('processNextPayment-PartnerController Error: txn_id: '.$txn_id. ' Error: ' .$e->getMessage());
+                LaravelLog::info('processNextPayment-PartnerController Error: txn_id: '.$txn_id. 'seccess ' . $success . ' Error: ' .$e->getMessage());
 
 
             }
@@ -2575,7 +2579,7 @@ class PayoutRecordController extends Controller
                 }
             }
         } else {
-            $fund = Payment::where('gateway_id', $gate->id)->where('amount', $amount)->where('status', 'Pending')->where('sender', $acc)->where('api_id', $api_key->id)->where('request_source', 'Iframe')->where('created_at', '>=', $twoHoursAgo)->latest()->first();
+            $fund = Payment::where('gateway_id', $gate->id)->where('amount', $amount)->where('status', 'Pending')->where('sender', $acc)->where('api_id', $api_key->id)->where('created_at', '>=', $twoHoursAgo)->latest()->first();
         }
 
         $e_wallet_phone_number = $account->account_no;
@@ -2597,7 +2601,7 @@ class PayoutRecordController extends Controller
             $fund->status = 'Pending';
             $fund->api_id = $api_key->id;
             $fund->e_wallet_phone_number = $e_wallet_phone_number;
-            $fund->request_source = "Iframe";
+            $fund->request_source = "Iframe-2";
             $fund->e_wallet_name = $gate->name;
             $fund->save();
         }
@@ -2791,7 +2795,7 @@ class PayoutRecordController extends Controller
         $fund->status = "Pending";
         $fund->api_id = $api_key->id;
         $fund->e_wallet_phone_number = $e_wallet_phone_number;
-        $fund->request_source = "Iframe";
+        $fund->request_source = "Iframe-3";
         $fund->e_wallet_name = $gate->name;
         $fund->sender = '';
 
@@ -4019,7 +4023,7 @@ public function settlementSearch(Request $request)
     public function verifytxn(Request $request)
     {
 
-        $maxAttempts = 3;
+        $maxAttempts = 5;
         $attempt = 0;
         $success = 0;
 
@@ -4100,7 +4104,6 @@ public function settlementSearch(Request $request)
 
                                 $account = EWalletAccount::where('e_wallet_name', $order->e_wallet_name)
                                 ->where('account_no', $order->e_wallet_phone_number)
-                                ->where('status', 1)
                                 ->first();
 
 

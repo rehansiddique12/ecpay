@@ -362,6 +362,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('roles/list', [UsersController::class, 'getRoles'])->name('roles.list');
 
         Route::get('payment/log', [PaymentLogController::class, 'index'])->name('payment.log');
+        Route::get('payment/log2', [PaymentLogController::class, 'log2'])->name('payment.log2');
         Route::get('payment/search', [PaymentLogController::class, 'search'])->name('payment.search');
         Route::put('payment/update_e_wallet', [PaymentLogController::class, 'update_e_wallet'])->name('payment.update_e_wallet');
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
@@ -573,15 +574,18 @@ Route::middleware(['function_track_middleware'])->group(function () {
     Route::get('iframe/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection'])->name('iframe.open');
     Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
     Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection3'])->name('iframe.direct');
+    Route::get('process/payment/{id}', [PartnerPayoutRecordController::class,'processNextPayment'])->name('iframe.payment');
+    Route::post('process/payment2', [PartnerPayoutRecordController::class,'processNextPayment2'])->name('iframe.payment2');
+    Route::post('process/payment3', [PartnerPayoutRecordController::class,'processNextPayment3'])->name('iframe.payment3');
+    Route::post('partner/verify/txn', [PartnerPayoutRecordController::class,'verifytxn'])->name('partner.verify.txn');
 
 });
 
 
 
 Route::get('process/update-fund-order-status/iframe/{id}', [PartnerPayoutRecordController::class,'update_order_fund_status_iframe'])->name('update_fund_order_status.iframe');
-Route::get('process/payment/{id}', [PartnerPayoutRecordController::class,'processNextPayment'])->name('iframe.payment');
-Route::post('process/payment2', [PartnerPayoutRecordController::class,'processNextPayment2'])->name('iframe.payment2');
-Route::post('process/payment3', [PartnerPayoutRecordController::class,'processNextPayment3'])->name('iframe.payment3');
+
+
 Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class,'getaccount'])->name('iframe.getaccount');
 
 
@@ -591,7 +595,7 @@ Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class,'
     Route::get('partner/process/payment', [PartnerPayoutRecordController::class, 'processMyPayment'])->name('partner.addFund.processPayment.open');
 
 
-Route::post('partner/verify/txn', [PartnerPayoutRecordController::class,'verifytxn'])->name('partner.verify.txn');
+
 Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordController::class,'update_order_fund_status'])->name('partner.update_fund_order_status.open');
 
 

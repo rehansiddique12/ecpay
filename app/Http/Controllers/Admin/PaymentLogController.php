@@ -45,6 +45,65 @@ class PaymentLogController extends Controller
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
     }
 
+
+    public function log2()
+    {
+        $pageTitle = "Last 1 Hours Payment Logs";
+        $domains = Api::where('type', 'Admin')->get();
+        $funds = Payment::where('status', '!=', 'initiate')
+            ->where('created_at', '>=', Carbon::now()->subMinutes(60))
+            ->orderBy('id', 'DESC')
+            ->with('gateway', 'txn_record')
+            ->paginate(config('basic.paginate'));
+
+        // Step 1: Get all txn_nos from txn_record
+        $txnNos = $funds->pluck('txn_record.txn_no')->filter()->unique()->toArray();
+
+        if (!empty($txnNos)) {
+            $timeLimit = Carbon::now()->subMinutes(90);
+
+            // Step 2: Bulk fetch related data
+            $smsLogs = SmsLog::whereIn('txn', $txnNos)
+                ->where('created_at', '>=', $timeLimit)
+                ->get()
+                ->keyBy('txn');
+
+            $duplicates = Payment::whereIn('txn_id', $txnNos)
+                ->where('created_at', '>=', $timeLimit)
+                ->get()
+                ->keyBy('txn_id');
+
+            $pendingPayments = PendingPayment::whereIn('txn_id', $txnNos)
+                ->where('created_at', '>=', $timeLimit)
+                ->get()
+                ->keyBy('txn_id');
+        }
+
+        // Step 3: Loop through and attach results
+        foreach ($funds as $fund) {
+            $fund->sms_received = 0;
+            $fund->duplicate = 0;
+            $fund->payment_received = 0;
+
+            if (isset($fund->txn_record) && isset($fund->txn_record->txn_no)) {
+                $txn = $fund->txn_record->txn_no;
+
+                if (isset($smsLogs[$txn])) {
+                    $fund->sms_received = 1;
+                }
+
+                if (isset($duplicates[$txn])) {
+                    $fund->duplicate = 1;
+                }
+
+                if (isset($pendingPayments[$txn]) && $pendingPayments[$txn]->status == 0) {
+                    $fund->payment_received = 1;
+                }
+            }
+        }
+        return view('admin.payment.logs2', compact('funds', 'pageTitle', 'domains'));
+    }
+
        public function export_by_logs($from_date)
     {
         $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
@@ -992,7 +1051,6 @@ class PaymentLogController extends Controller
                 $this->updateLimits();
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
-                    ->where('status', 1)
                     ->lockForUpdate()
                     ->first();
 
@@ -1316,7 +1374,6 @@ class PaymentLogController extends Controller
 
                     $account = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
                         ->where('account_no', $pre_e_wallet_phone_number)
-                        ->where('status', 1)
                         ->lockForUpdate()
                         ->first();
                     if ($account) {
@@ -1347,7 +1404,6 @@ class PaymentLogController extends Controller
 
                     $account2 = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
                         ->where('account_no', $request->e_wallet_phone_number)
-                        ->where('status', 1)
                         ->lockForUpdate()
                         ->first();
 
@@ -1706,7 +1762,7 @@ class PaymentLogController extends Controller
 
     public function verifyPayment(Request $request)
     {
-        $maxAttempts = 3;
+        $maxAttempts = 5;
         $attempt = 0;
         $success = 0;
 
@@ -1859,7 +1915,6 @@ class PaymentLogController extends Controller
 
                         $account = EWalletAccount::where('e_wallet_name', $order->e_wallet_name)
                         ->where('account_no', $order->e_wallet_phone_number)
-                        ->where('status', 1)
                         ->first();
 
 
@@ -2174,9 +2229,11 @@ class PaymentLogController extends Controller
 
             DB::beginTransaction();
 
+
+            LaravelLog::info('e_wallet_name: '.$request->e_wallet_name.' account_no: '.$request->e_wallet_phone_number);
+
             $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
                 ->where('account_no', $request->e_wallet_phone_number)
-                ->where('status', 1)
                 ->lockForUpdate()
                 ->first();
 
@@ -3610,7 +3667,7 @@ class PaymentLogController extends Controller
 
                                     $thisrquest = request()->merge($parameters);
 
-                                    $maxAttempts = 3;
+                                    $maxAttempts = 5;
                                     $attempt = 0;
                                     $success = 0;
 
@@ -3732,7 +3789,7 @@ class PaymentLogController extends Controller
 
                                 $thisrquest = request()->merge($parameters);
 
-                                $maxAttempts = 3;
+                                $maxAttempts = 5;
                                 $attempt = 0;
                                 $success = 0;
 
@@ -3891,7 +3948,7 @@ class PaymentLogController extends Controller
 
                         $thisrquest = request()->merge($parameters);
 
-                        $maxAttempts = 3;
+                        $maxAttempts = 5;
                         $attempt = 0;
                         $success = 0;
 
@@ -4815,7 +4872,7 @@ class PaymentLogController extends Controller
 
                                     $thisrquest = request()->merge($parameters);
 
-                                    $maxAttempts = 3;
+                                    $maxAttempts = 5;
                                     $attempt = 0;
                                     $success = 0;
 
@@ -4937,7 +4994,7 @@ class PaymentLogController extends Controller
 
                                 $thisrquest = request()->merge($parameters);
 
-                                $maxAttempts = 3;
+                                $maxAttempts = 5;
                                 $attempt = 0;
                                 $success = 0;
 
@@ -5100,7 +5157,7 @@ class PaymentLogController extends Controller
 
                         $thisrquest = request()->merge($parameters);
 
-                        $maxAttempts = 3;
+                        $maxAttempts = 5;
                         $attempt = 0;
                         $success = 0;
 
