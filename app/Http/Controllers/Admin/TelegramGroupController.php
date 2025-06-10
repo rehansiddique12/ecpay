@@ -134,8 +134,6 @@ class TelegramGroupController extends Controller
         ]
     ];
 
-
-
     const TELEGRAM_BOT_TOKEN = '7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4';
     const PENDING_MESSAGE = 'Your request has been sent and is in a pending state. Please contact the administrator!';
     const TRANSACTION_STATUS_MESSAGES = [
@@ -194,26 +192,26 @@ class TelegramGroupController extends Controller
 
     public function telegramwebhook(Request $request){
         LaravelLog::info('Telegram function loaded');
-        
+
         try {
             $data = file_get_contents('php://input');
             $array = json_decode($data, true);
-            
+
             // Add message deduplication check
             if(isset($array['message']['message_id'])) {
                 $messageId = $array['message']['message_id'];
                 $cacheKey = 'telegram_message_' . $messageId;
-                
+
                 // Check if we've already processed this message
                 if (Cache::has($cacheKey)) {
                     LaravelLog::info("Duplicate message received: " . $messageId);
                     return response()->json(['status' => 'success'], 200);
                 }
-                
+
                 // Mark message as processed
                 Cache::put($cacheKey, true, now()->addHours(24));
             }
-            
+
             if(isset($array['message'])){
                 $TG_message = $array['message'];
             }elseif(isset($array['edited_message'])){
@@ -310,7 +308,7 @@ class TelegramGroupController extends Controller
                             if($language=="en" || $language=="ch"){
                                 $api->lang = $language;
                                 $api->save();
-                                
+
                                 $message = $this->messages[$language]['lang_selected'];
                                 $response = Http::post($url, [
                                     'chat_id' => $sender_chat['id'],
@@ -337,14 +335,14 @@ class TelegramGroupController extends Controller
                             ]);
                         }
                     }elseif(strpos($lowercaseText, "/checkorder") === 0){
-                        
+
                         $parts = explode(" ", $sender_message);
                         $extractedText = '';
-                        
+
                         if(count($parts) >= 2) {
                             $orderNumber = trim($parts[1]);
-                        
-                        
+
+
                             $deposit = Payment::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
                             if($deposit){
                                 if($deposit->status=="Complete"){
@@ -365,7 +363,7 @@ class TelegramGroupController extends Controller
                                     ]);
                                 }else{
                                     // $message = "The transaction is in pending state. Please hold on while we transfer your request to our customer service.";
-                                    
+
                                     if (isset($TG_message['photo'])) {
                                         $image_processed = 0;
                                         try {
@@ -373,18 +371,18 @@ class TelegramGroupController extends Controller
                                             $photo = end($TG_message['photo']);
                                             $file_id = $photo['file_id'];
                                             LaravelLog::info("Got file_id: $file_id");
-                                
+
                                             // Get file info from Telegram
                                             $getFileUrl = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$file_id}";
                                             LaravelLog::info("Requesting file info from: $getFileUrl");
                                             $fileData = Http::get($getFileUrl)->json();
                                             LaravelLog::info("File info response: " . json_encode($fileData));
-                                
+
                                             if (isset($fileData['ok']) && $fileData['ok'] === true) {
                                                 $file_path = $fileData['result']['file_path'];
                                                 $fileUrl = "https://api.telegram.org/file/bot{$botToken}/{$file_path}";
                                                 LaravelLog::info("Downloading image from: $fileUrl");
-                                
+
                                                 // Use cURL to fetch the image data because allow_url_fopen is disabled
                                                 $ch = curl_init();
                                                 curl_setopt($ch, CURLOPT_URL, $fileUrl);
@@ -393,22 +391,22 @@ class TelegramGroupController extends Controller
                                                 $imageContent = curl_exec($ch);
                                                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                                                 curl_close($ch);
-                                
+
                                                 if ($imageContent && $httpCode === 200) {
                                                     $tempImagePath = storage_path('app/temp_' . time() . '.jpg');
                                                     file_put_contents($tempImagePath, $imageContent);
                                                     LaravelLog::info("Image saved temporarily at: $tempImagePath");
-                                
+
                                                     try {
                                                         $apiKey = env('OCR_SPACE_API_KEY', 'K83793710188957');  // Update this with your new API key
-                                                        
+
                                                         // Process the image before sending to OCR
                                                         try {
                                                             // Try to improve image quality before OCR processing
                                                             if (extension_loaded('imagick')) {
                                                                 LaravelLog::info("Using Imagick for image preprocessing");
                                                                 $imagick = new \Imagick($tempImagePath);
-                                                                
+
                                                                 // Enhanced image preprocessing
                                                                 $imagick->setImageFormat('png'); // Convert to PNG for better quality
                                                                 $imagick->contrastImage(1);
@@ -416,26 +414,26 @@ class TelegramGroupController extends Controller
                                                                 $imagick->normalizeImage();
                                                                 $imagick->despeckleImage(); // Remove small dots
                                                                 $imagick->enhanceImage(); // Enhance local contrast
-                                                                
+
                                                                 // Increase resolution if too low
                                                                 $resolution = $imagick->getImageResolution();
                                                                 if ($resolution['x'] < 300 || $resolution['y'] < 300) {
                                                                     $imagick->setImageResolution(300, 300);
                                                                     $imagick->resampleImage(300, 300, \Imagick::FILTER_LANCZOS, 1);
                                                                 }
-                                                                
+
                                                                 // Convert to grayscale for better OCR
                                                                 $imagick->transformImageColorspace(\Imagick::COLORSPACE_GRAY);
-                                                                
+
                                                                 // Additional preprocessing steps
                                                                 $imagick->levelImage(0, 1.0, 1.0); // Adjust levels
                                                                 $imagick->unsharpMaskImage(0, 1, 1, 0.05); // Sharpen
                                                                 $imagick->despeckleImage(); // Remove noise
-                                                                
+
                                                                 // Save the enhanced image
                                                                 $enhancedImagePath = $tempImagePath . '_enhanced.png';
                                                                 $imagick->writeImage($enhancedImagePath);
-                                                                
+
                                                                 // Use the enhanced image if it exists
                                                                 if (file_exists($enhancedImagePath)) {
                                                                     $tempImagePath = $enhancedImagePath;
@@ -449,11 +447,11 @@ class TelegramGroupController extends Controller
                                                                     imagefilter($image, IMG_FILTER_CONTRAST, -10);
                                                                     imagefilter($image, IMG_FILTER_BRIGHTNESS, 10);
                                                                     imagefilter($image, IMG_FILTER_GRAYSCALE);
-                                                                    
+
                                                                     $enhancedImagePath = $tempImagePath . '_enhanced.png';
                                                                     imagepng($image, $enhancedImagePath, 9); // High quality PNG
                                                                     imagedestroy($image);
-                                                                    
+
                                                                     if (file_exists($enhancedImagePath)) {
                                                                         $tempImagePath = $enhancedImagePath;
                                                                         LaravelLog::info("Using GD enhanced image: $enhancedImagePath");
@@ -464,7 +462,7 @@ class TelegramGroupController extends Controller
                                                             LaravelLog::error("Image enhancement failed: " . $e->getMessage());
                                                             // Continue with original image
                                                         }
-                                                        
+
                                                         // First try with OCR Engine 2 (better for receipts and complex text)
                                                         $ch = curl_init();
                                                         curl_setopt_array($ch, [
@@ -486,40 +484,40 @@ class TelegramGroupController extends Controller
                                                                 'isSearchablePdfHideTextLayer' => 'false'
                                                             ],
                                                         ]);
-                                                        
+
                                                         // Add detailed logging
                                                         LaravelLog::info('Sending request to OCR.space API...');
                                                         $result = curl_exec($ch);
                                                         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                                                         $error = curl_error($ch);
                                                         curl_close($ch);
-                                                        
+
                                                         if ($error) {
                                                             LaravelLog::error("CURL Error: " . $error);
                                                             throw new \Exception("OCR API request failed: " . $error);
                                                         }
-                                                        
+
                                                         // Log the raw OCR response for debugging
                                                         LaravelLog::info("OCR API Raw Response: " . $result);
-                                                        
+
                                                         if ($httpCode === 200) {
                                                             $ocrResult = json_decode($result, true);
                                                             LaravelLog::info("OCR.space API Response: " . json_encode($ocrResult));
-                                                            
+
                                                             if (isset($ocrResult['ParsedResults'][0]['ParsedText'])) {
                                                                 $extractedText = $ocrResult['ParsedResults'][0]['ParsedText'];
                                                                 LaravelLog::info("Successfully extracted text from image: " . $extractedText);
-                                                                
+
                                                                 /////////////////////////////
                                                                 //////////////////////////////
                                                                 /////////////////////////////////
-                                                                
+
                                                                 // Initialize the gateway_name variable with a default value
                                                                 $gateway_name = $deposit->gateway->name ?? '';
                                                                 if (!empty($deposit->gateway) && !empty($deposit->gateway->name)) {
                                                                     $gateway_name = $deposit->gateway->name;
                                                                 }
-                                                                
+
                                                                 if(strtolower($gateway_name)=="bkash"){
                                                                     // Enhanced bKash transaction ID patterns
                                                                     $txnId = null;
@@ -544,12 +542,12 @@ class TelegramGroupController extends Controller
 
                                                                     // Amount patterns (handle both Bengali and English numerals)
                                                                     LaravelLog::info("Trying to extract amount from text: " . $extractedText);
-                                                                    
+
                                                                     // Try each pattern separately and log results
                                                                     if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                         $amount = str_replace(',', '', $matches[1]);
                                                                         LaravelLog::info("Found amount using t pattern: " . $amount);
-                                                                    } 
+                                                                    }
                                                                     elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                         $amount = str_replace(',', '', $matches[1]);
                                                                         LaravelLog::info("Found amount using amount label pattern: " . $amount);
@@ -575,7 +573,7 @@ class TelegramGroupController extends Controller
                                                                     }
                                                                 } elseif(strtolower($gateway_name)=="nagad"){
                                                                     LaravelLog::info("Processing Nagad payment with text: " . $extractedText);
-                                                                    
+
                                                                     // Enhanced Nagad transaction ID patterns
                                                                     $txnId = null;
                                                                     $patterns = [
@@ -599,12 +597,12 @@ class TelegramGroupController extends Controller
 
                                                                     // Amount patterns (handle both Bengali and English numerals)
                                                                     LaravelLog::info("Trying to extract amount from text: " . $extractedText);
-                                                                    
+
                                                                     // Try each pattern separately and log results
                                                                     if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                         $amount = str_replace(',', '', $matches[1]);
                                                                         LaravelLog::info("Found amount using t pattern: " . $amount);
-                                                                    } 
+                                                                    }
                                                                     elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                         $amount = str_replace(',', '', $matches[1]);
                                                                         LaravelLog::info("Found amount using amount label pattern: " . $amount);
@@ -634,7 +632,7 @@ class TelegramGroupController extends Controller
                                                                 }
                                                                 elseif(strtolower($gateway_name)=="rocket"){
                                                                     LaravelLog::info("Processing Rocket payment with text: " . $extractedText);
-                                                                    
+
                                                                     // Enhanced Rocket transaction ID patterns
                                                                     $txnId = null;
                                                                     $patterns = [
@@ -658,12 +656,12 @@ class TelegramGroupController extends Controller
 
                                                                     // Amount patterns (handle both Bengali and English numerals)
                                                                     LaravelLog::info("Trying to extract amount from text: " . $extractedText);
-                                                                    
+
                                                                     // Try each pattern separately and log results
                                                                     if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                         $amount = str_replace(',', '', $matches[1]);
                                                                         LaravelLog::info("Found amount using t pattern: " . $amount);
-                                                                    } 
+                                                                    }
                                                                     elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                         $amount = str_replace(',', '', $matches[1]);
                                                                         LaravelLog::info("Found amount using amount label pattern: " . $amount);
@@ -695,7 +693,7 @@ class TelegramGroupController extends Controller
                                                                         LaravelLog::info("Found phone number generic format: " . $phone_number_by_telegram_message);
                                                                     }
                                                                 }
-                                                                
+
                                                                 // If no specific provider pattern matched, try generic patterns as fallback
                                                                 if (!isset($txnId) || empty($txnId)) {
                                                                     $genericPatterns = [
@@ -720,7 +718,7 @@ class TelegramGroupController extends Controller
                                                                 if (isset($txnId) && !empty($txnId)) {
                                                                     // Remove any non-alphanumeric characters
                                                                     $txnId = preg_replace('/[^A-Z0-9]/i', '', $txnId);
-                                                                    
+
                                                                     // Log the final transaction ID
                                                                     LaravelLog::info("Final Transaction ID after validation: " . $txnId);
                                                                 }
@@ -738,43 +736,43 @@ class TelegramGroupController extends Controller
                                                                         $phone_number_by_telegram_message = $matches[1];
                                                                     }
                                                                 }
-                                                                
-                                                                
+
+
                                                                 /////////////////////////////
                                                                 //////////////////////////////
                                                                 /////////////////////////////////
-                                                                
+
                                                                 // Format the message with extracted information
                                                                 $message = "?? *Extracted Information:*\n\n";
-                                                                
+
                                                                 if (isset($txnId) && !empty($txnId)) {
                                                                     $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
                                                                     LaravelLog::info("Adding transaction ID to message: " . $txnId);
                                                                 }
-                                                                
+
                                                                 if (isset($amount) && !empty($amount)) {
                                                                     $message .= "?? *Amount:* `" . $amount . "`\n";
                                                                     LaravelLog::info("Adding amount to message: " . $amount);
                                                                 }
-                                                                
+
                                                                 if (isset($phone_number_by_telegram_message) && !empty($phone_number_by_telegram_message)) {
                                                                     $message .= "?? *Phone:* `" . $phone_number_by_telegram_message . "`\n";
                                                                     LaravelLog::info("Adding phone to message: " . $phone_number_by_telegram_message);
                                                                 }
-                                                                
+
                                                                 // Add the full extracted text at the bottom
                                                                 $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                
-                                                                
+
+
                                                                 LaravelLog::info("Final message being sent: " . $message);
-                                                                
+
                                                                 // Add instructions for verification with the correct transaction ID
                                                                 if ($txnId) {
-                                                                    
+
                                                                    /////////////////////////////
                                                                 //////////////////////////////
                                                                 /////////////////////////////////
-                                                                
+
                                                                 DB::beginTransaction();
                                                                 $payment = PendingPayment::where('txn_id', $txnId)->lockForUpdate()->first();
                                                                 if($payment){
@@ -783,7 +781,7 @@ class TelegramGroupController extends Controller
                                                                         if(isset($amount) && $amount > 0) {
                                                                             $expectedAmount = $deposit->amount;
                                                                             $extractedAmount = (float)$amount;
-                                                                            
+
                                                                             // Check if amounts don't match
                                                                             if(abs($extractedAmount - $expectedAmount) > 0.01) { // Using small epsilon for float comparison
                                                                                 // Save the new TRX ID to the deposit/order
@@ -806,12 +804,12 @@ class TelegramGroupController extends Controller
                                                                                 return response()->json(['status' => 'success'], 200);
                                                                             }
                                                                         }
-                                                                        
+
                                                                         $partner_api_key = $api_key;
                                                                         $source = $partner_api_key->website;
                                                                         $api_id = $partner_api_key->id;
-                                                                        
-                                                                        
+
+
                                                                         $sum = Payment::whereYear('created_at', now()->year)
                                                                             ->whereMonth('created_at', now()->month)
                                                                             ->where('api_id', $api_id)
@@ -844,25 +842,25 @@ class TelegramGroupController extends Controller
                                                                                 $charge = $commissions->deposit_percentage * $deposit->amount / 100;
                                                                             }
                                                                         }
-                                                    
+
                                                                         $charge = str_replace(',', '', $charge);
                                                                         $charge = (float)$charge;
                                                                         $charge = round($charge, 2);
-                                                                        
+
                                                                         $amount = str_replace(',', '', $amount);
                                                                         $amount = (float)$amount;
                                                                         $amount = round($amount, 2);
-                                                                        
+
                                                                         if($amount>0){
                                                                             $final_amo = getAmount($amount - $charge);
-                                                                                
+
                                                                             if($amount==$payment->amount){
                                                                                 $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
                                                                                 $message_to_show = "*Transection of Differant Amount Completed*";
                                                                             }else{
                                                                                 $message_to_show = "*Transection Completed*";
                                                                                 $partner_transection_id = "createdByAdmin_" . time();
-                                                                                
+
                                                                                 $order = new Payment();
                                                                                 $order->user_id = 0;
                                                                                 $order->gateway_id = $deposit->gateway_id;
@@ -921,8 +919,8 @@ class TelegramGroupController extends Controller
 
 
                                                                                 }
-                                                                                
-                                                                                
+
+
                                                                                 if($order){
                                                                                     $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
                                                                                     $commit = 0;
@@ -935,13 +933,13 @@ class TelegramGroupController extends Controller
                                                                                             $payment->sender = $order->sender;
                                                                                         }
                                                                                     }
-                                                                                    
-                                                                                    
-                                                                                    
+
+
+
                                                                                     if ($source != env('APP_WEBSITE')) {
                                                                                         $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
                                                                                         $net_amount = $payment->amount - $charge; // Move this outside the if block
-                                                                                        
+
                                                                                         if ($api_balance_row) {
                                                                                             $api_balance_row->balance += $net_amount;
                                                                                             $api_balance_row->save();
@@ -962,7 +960,7 @@ class TelegramGroupController extends Controller
                                                                                     } else {
                                                                                         $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
                                                                                     }
-                                                                
+
                                                                                     $order->status = 'Complete';
                                                                                     $order->trans_complete_date = Carbon::now();
                                                                                     $order->completed_source = 'Telegram';
@@ -971,7 +969,7 @@ class TelegramGroupController extends Controller
                                                                                     if(empty($order->sender) || $order->sender==0){
                                                                                         $order->sender = $payment->sender;
                                                                                     }
-                                                                                    
+
                                                                                     $order->txn_id = $payment->txn_id;
                                                                                     $order->date_time = $payment->date_time;
                                                                                     $order->transaction_type = $payment->transaction_type;
@@ -987,11 +985,11 @@ class TelegramGroupController extends Controller
 
                                                                                     $order->save();
                                                                                     // $payment->delete();
-                                                                                    
-                                                                
+
+
                                                                                     DB::commit();
                                                                                     $commit = 1;
-                                                                
+
                                                                                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                                                                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
@@ -1016,21 +1014,21 @@ class TelegramGroupController extends Controller
                                                                                         $summary_log->source = 'Telegram';
                                                                                         $summary_log->save();
                                                                                     }
-                                                                
-                                                                
-                                                                                    
-                                                                                    
-                                                                
+
+
+
+
+
                                                                                     $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
                                                                                     foreach ($PartnerCommissions as $PartnerCommission) {
                                                                                         $PartnerCommission->status = 1;
                                                                                         $PartnerCommission->save();
-                                                                
+
                                                                                         DB::beginTransaction();
                                                                                         $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
                                                                                         $parent_api_key->balance += $PartnerCommission->profit;
                                                                                         $parent_api_key->save();
-                                                                
+
                                                                                         $Log = new Log();
                                                                                         $Log->date_time = $PartnerCommission->created_at;
                                                                                         $Log->final_amount = $PartnerCommission->profit;
@@ -1041,7 +1039,7 @@ class TelegramGroupController extends Controller
                                                                                         $Log->source = 'Telegram';
                                                                                         $Log->save();
                                                                                         DB::commit();
-                                                                
+
                                                                                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                                                                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
@@ -1049,7 +1047,7 @@ class TelegramGroupController extends Controller
                                                                                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                             $DailyPartnerSummary_record->save();
-                                                                
+
                                                                                             $summary_log = new DailyPartnerSummaryLog();
                                                                                             $summary_log->partner_id = $parent_api_key->id;
                                                                                             $summary_log->partner_balance = $parent_api_key->balance;
@@ -1063,7 +1061,7 @@ class TelegramGroupController extends Controller
                                                                                     }
                                                                 }
                                                                                     if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
-                                                                
+
                                                                                         $string_to_hash = json_encode(array(
                                                                                             "amount" => strval($this->convertStringToNumber($order->amount)),
                                                                                             "api_key" => $partner_api_key->api_key,
@@ -1071,7 +1069,7 @@ class TelegramGroupController extends Controller
                                                                                             "id" => strval($order->id),
                                                                                             'transaction_type' => 'Deposit',
                                                                                             "user_account_no" => strval($order->sender),
-                                                                
+
                                                                                         ));
                                                                                         $secretKey = $partner_api_key->secret_key;
                                                                                         $hash = hash("sha256", $string_to_hash);
@@ -1079,8 +1077,8 @@ class TelegramGroupController extends Controller
                                                                                         $timestamp = time();
                                                                                         $combined = $hmac . $timestamp;
                                                                                         $sign = base64_encode($combined);
-                                                                
-                                                                
+
+
                                                                                         $array_data = [
                                                                                                     'id' => $order->id,
                                                                                                     'partner_transection_id' => $order->partner_transection_id,
@@ -1099,12 +1097,12 @@ class TelegramGroupController extends Controller
                                                                                                     'updated_at' => $order->updated_at,
                                                                                                     'sign' => $sign,
                                                                                         ];
-                                                                
+
                                                                                         if(!empty($order->member_id)){
                                                                                             $array_data['member_id'] = $order->member_id;
                                                                                         }
-                                                                
-                                                                
+
+
                                                                                         $requestData = [
                                                                                             'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
                                                                                             'request_url' => $partner_api_key->api_endpoint_deposit,
@@ -1116,7 +1114,7 @@ class TelegramGroupController extends Controller
                                                                                             'created_at' => now(),
                                                                                             'updated_at' => now(),
                                                                                         ];
-                                                                
+
                                                                                         $logId = DB::table('api_logs')->insertGetId($requestData);
                                                                                         try {
                                                                                             $csrfToken = Str::random(40);
@@ -1125,26 +1123,26 @@ class TelegramGroupController extends Controller
                                                                                                 'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
                                                                                             ])
                                                                                                 ->post($partner_api_key->api_endpoint_deposit, $array_data);
-                                                                
+
                                                                                             if ($response) {
                                                                                                 $responseData = [
                                                                                                     'response_code' => $response->status(),
                                                                                                     'response_payload' => $response->body(),
                                                                                                     'response_headers' => json_encode($response->headers()),
                                                                                                 ];
-                                                                
+
                                                                                                 DB::table('api_logs')->where('id', $logId)->update($responseData);
                                                                                             }
                                                                                         } catch (\Exception $e) {
                                                                                             //
                                                                                         }
                                                                                     }
-                                                                                    
-                                                                                    
-                                                                                    
-                                                                                    
+
+
+
+
                                                                                 }
-                                                                                
+
                                                                                 $support_chat_id = "-4786890063";
                                                                                 $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
                                                                                 $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
@@ -1156,14 +1154,14 @@ class TelegramGroupController extends Controller
                                                                                 $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                                                 $message_support .= "*Remark:* Transaction processed and callback sent.\n";
                                                                                 $message_support .= "*Status:* `Complete`\n";
-                                                                                
+
                                                                                 $response = Http::post($url_support, [
                                                                                     'chat_id' => $support_chat_id,
                                                                                     'text' => $message_support,
                                                                                     'parse_mode' => 'Markdown',
                                                                                 ]);
-                                                                                
-                                                                                
+
+
                                                                                     $message = "";
                                                                                     $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
                                                                                     $message .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
@@ -1171,14 +1169,14 @@ class TelegramGroupController extends Controller
                                                                                     $message .= "*Transaction ID:* `".$txnId."`\n";
                                                                                     $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                                                     $message .= "*Status:* `Complete`\n";
-                                                                                
+
                                                                                     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                                                                                         'chat_id' => $TG_message['chat']['id'],
                                                                                         'text' => $message,
                                                                                         'parse_mode' => 'Markdown',
                                                                                         'reply_to_message_id' => $TG_message['message_id']
                                                                                     ]);
-                                                                                    
+
                                                                                     $image_processed=1;
                                                                             }else{
                                                                                 $support_chat_id = "-4786890063";
@@ -1192,14 +1190,14 @@ class TelegramGroupController extends Controller
                                                                                 $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                                                 $message_support .= "*Remark:* Transaction processed and callback sent.\n";
                                                                                 $message_support .= "*Status:* `Not Found`\n";
-                                                                                
+
                                                                                 $response = Http::post($url_support, [
                                                                                     'chat_id' => $support_chat_id,
                                                                                     'text' => $message_support,
                                                                                     'parse_mode' => 'Markdown',
                                                                                 ]);
-                                                                                
-                                                                                $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+
+                                                                                $message = sprintf($this->messages[$api->lang]['transaction_pending'],
                                                                                     $deposit->partner_transection_id,
                                                                                     $deposit->id,
                                                                                     $txnId,
@@ -1211,14 +1209,14 @@ class TelegramGroupController extends Controller
                                                                                     'parse_mode' => 'Markdown',
                                                                                     'reply_to_message_id' => $TG_message['message_id']
                                                                                 ]);
-                                                                                
+
                                                                                 $image_processed=1;
                                                                             }
-                                                                            
-                                                                            
-                                                                                
+
+
+
                                                                         }
-                                                                        
+
                                                                     }else{
                                                                         $support_chat_id = "-4786890063";
                                                                         $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
@@ -1231,14 +1229,14 @@ class TelegramGroupController extends Controller
                                                                         $message_support .= " *Remark:* Transaction ID not found in system.\n";
                                                                         $message_support .= " *Status:* `Pending`\n";
                                                                         $message_support .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
-                                                                        
+
                                                                         $response = Http::post($url_support, [
                                                                             'chat_id' => $support_chat_id,
                                                                             'text' => $message_support,
                                                                             'parse_mode' => 'Markdown',
                                                                         ]);
-                                                                        
-                                                                        $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+
+                                                                        $message = sprintf($this->messages[$api->lang]['transaction_pending'],
                                                                             $deposit->partner_transection_id,
                                                                             $deposit->id,
                                                                             $txnId,
@@ -1250,22 +1248,22 @@ class TelegramGroupController extends Controller
                                                                             'parse_mode' => 'Markdown',
                                                                             'reply_to_message_id' => $TG_message['message_id']
                                                                         ]);
-                                                                        
+
                                                                         $image_processed=1;
                                                                     }
-                                                                    
+
                                                                     if($commit==0){
                                                                         DB::commit();
                                                                     }
                                                                     /////////////////////////////
                                                                     //////////////////////////////
-                                                                    ///////////////////////////////// 
-                                                                        
-                                                                        
-                                                                        
-                                                                
+                                                                    /////////////////////////////////
+
+
+
+
                                                                     } else {
-                                                                        $message = sprintf($this->messages[$api->lang]['invalid_command'], 
+                                                                        $message = sprintf($this->messages[$api->lang]['invalid_command'],
                                                                             $deposit->partner_transection_id,
                                                                             $deposit->id
                                                                         );
@@ -1275,13 +1273,13 @@ class TelegramGroupController extends Controller
                                                                             'reply_to_message_id' => $TG_message['message_id'],
                                                                             'parse_mode' => 'Markdown',
                                                                         ]);
-                                                                        
+
                                                                         $image_processed=1;
                                                                     }
-                                                                    
+
                                                                 } else {
                                                                     LaravelLog::info('No text found in the image');
-                                                                    $message = sprintf($this->messages[$api->lang]['image_error'], 
+                                                                    $message = sprintf($this->messages[$api->lang]['image_error'],
                                                                         $deposit->partner_transection_id,
                                                                         $deposit->id
                                                                     );
@@ -1291,13 +1289,13 @@ class TelegramGroupController extends Controller
                                                                         'reply_to_message_id' => $TG_message['message_id'],
                                                                         'parse_mode' => 'Markdown',
                                                                     ]);
-                                                                    
+
                                                                     $image_processed=1;
-                                                
+
                                                                 }
                                                             } else {
                                                                 LaravelLog::error("OCR.space API Error: " . $result);
-                                                                $message = sprintf($this->messages[$api->lang]['image_error'], 
+                                                                $message = sprintf($this->messages[$api->lang]['image_error'],
                                                                     $deposit->partner_transection_id,
                                                                     $deposit->id
                                                                 );
@@ -1307,7 +1305,7 @@ class TelegramGroupController extends Controller
                                                                     'reply_to_message_id' => $TG_message['message_id'],
                                                                     'parse_mode' => 'Markdown',
                                                                 ]);
-                                                                
+
                                                                 $image_processed=1;
                                                             }
                                                         } catch (\Exception $e) {
@@ -1319,10 +1317,10 @@ class TelegramGroupController extends Controller
                                                             //     'reply_to_message_id' => $TG_message['message_id'],
                                                             //     'parse_mode' => 'Markdown',
                                                             // ]);
-                                                            
+
                                                             // $image_processed=1;
                                                         }
-                                                        
+
                                                         // Clean up temporary file
                                                         if (file_exists($tempImagePath)) {
                                                             unlink($tempImagePath);
@@ -1337,9 +1335,9 @@ class TelegramGroupController extends Controller
                                             } catch (\Exception $e) {
                                                 LaravelLog::error("Processing exception: " . $e->getMessage());
                                             }
-                                            
+
                                             if($image_processed==0){
-                                                $message = sprintf($this->messages[$api->lang]['service_error'], 
+                                                $message = sprintf($this->messages[$api->lang]['service_error'],
                                                                         $deposit->partner_transection_id,
                                                                         $deposit->id
                                                                     );
@@ -1350,9 +1348,9 @@ class TelegramGroupController extends Controller
                                                     'parse_mode' => 'Markdown',
                                                 ]);
                                             }
-                                            
+
                                         }else{
-                                            $message = sprintf($this->messages[$api->lang]['service_error'], 
+                                            $message = sprintf($this->messages[$api->lang]['service_error'],
                                                                         $deposit->partner_transection_id,
                                                                         $deposit->id
                                                                     );
@@ -1364,11 +1362,11 @@ class TelegramGroupController extends Controller
                                             ]);
                                         }
                                     }
-    
-                                        
-                                        
-                                        
-    
+
+
+
+
+
                                 }else{
                                     $withdrawal = Payout::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->latest()->first();
                                     if($withdrawal){
@@ -1380,7 +1378,7 @@ class TelegramGroupController extends Controller
                                             $message = sprintf($this->messages[$api->lang]['transaction_rejected_with_reason'], $reason);
                                         }else{
                                             $message = $this->messages[$api->lang]['transaction_pending_callback'];
-                                            
+
                                             //
                                             // Add code that send message to support
                                             //
@@ -1388,7 +1386,7 @@ class TelegramGroupController extends Controller
                                             $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
                                             $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
                                             $message_support = "";
-   
+
                                             if ($withdrawal->status == "Pending") {
                                                 $message_support .= "💤 *Withdrawal Pending* 💤\n\n";
                                                 $message_support .= "*Merchant Order:* `" . $withdrawal->partner_transection_id . "`\n";
@@ -1398,28 +1396,28 @@ class TelegramGroupController extends Controller
                                                 $message_support .= "*Remark:* Withdrawal request is pending for processing.\n";
                                                 $message_support .= "*Status:* `Pending`\n";
                                                 $message_support .= "*Payment Platform:* `" . $withdrawal->e_wallet_name . "`\n";
-                                            }                                            
-                                            
-                                            
+                                            }
+
+
                                             $response = Http::post($url_support, [
                                                 'chat_id' => $support_chat_id,
                                                 'text' => $message_support,
                                                 'parse_mode' => 'Markdown',
                                             ]);
                                         }
-    
+
                                         $response = Http::post($url, [
                                             'chat_id' => $sender_chat['id'],
                                             'text' => $message,
                                             'reply_to_message_id' => $TG_message['message_id'],
                                             'parse_mode' => 'Markdown',
                                         ]);
-            
+
                                         if($withdrawal->status=="Complete" || $withdrawal->status=="Reject"){
-                                            
-        
+
+
                                             if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
-        
+
                                                 $string_to_hash = json_encode(array(
                                                     "amount" => strval($this->convertStringToNumber($withdrawal->amount)),
                                                     "api_key" => $api_key->api_key,
@@ -1434,7 +1432,7 @@ class TelegramGroupController extends Controller
                                                 $timestamp = time();
                                                 $combined = $hmac . $timestamp;
                                                 $sign = base64_encode($combined);
-        
+
                                                 $array_data = [
                                                             'id' => $withdrawal->id,
                                                             'partner_transection_id' => $withdrawal->partner_transection_id,
@@ -1453,14 +1451,14 @@ class TelegramGroupController extends Controller
                                                             'updated_at' => $withdrawal->updated_at,
                                                             'sign' => $sign,
                                                             'remarks' => $withdrawal->feedback,
-                                                            
+
                                                 ];
-        
+
                                                 if(!empty($withdrawal->member_id)){
                                                     $array_data['member_id'] = $withdrawal->member_id;
                                                 }
-        
-        
+
+
                                                 $requestData = [
                                                     'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
                                                     'request_url' => $api_key->api_endpoint_withdrawal,
@@ -1472,34 +1470,34 @@ class TelegramGroupController extends Controller
                                                     'created_at' => now(),
                                                     'updated_at' => now(),
                                                 ];
-        
+
                                                 $logId = DB::table('api_logs')->insertGetId($requestData);
-        
+
                                                 $csrfToken = csrf_token();
                                                 $responseData = [];
                                                 try {
-        
+
                                                     $response = Http::withHeaders([
                                                         'Content-Type' => 'application/json',
                                                         'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
                                                     ])
                                                         ->post($api_key->api_endpoint_withdrawal, $array_data);
-        
+
                                                     $responseData = [
                                                         'response_code' => $response->status(),
                                                         'response_payload' => $response->body(),
                                                         'response_headers' => json_encode($response->headers()),
                                                     ];
-        
+
                                                     DB::table('api_logs')->where('id', $logId)->update($responseData);
-                                                    
+
                                                 } catch (\Exception $e) {
                                                     LaravelLog::info('Telegram Withdrawal Callback not sent');
                                                 }
                                             }
                                         }
                                     }else{
-                                        $message = sprintf($this->messages[$api->lang]['transaction_not_found'], 
+                                        $message = sprintf($this->messages[$api->lang]['transaction_not_found'],
                                             $sender_message,
                                             $api->api_id
                                         );
@@ -1510,10 +1508,10 @@ class TelegramGroupController extends Controller
                                             'parse_mode' => 'Markdown',
                                         ]);
                                     }
-                                        
+
                                 }
                             }else{
-                                $message = sprintf($this->messages[$api->lang]['invalid_command'], 
+                                $message = sprintf($this->messages[$api->lang]['invalid_command'],
                                     $sender_message,
                                     $api->api_id
                                 );
@@ -1523,49 +1521,49 @@ class TelegramGroupController extends Controller
                                     'reply_to_message_id' => $TG_message['message_id'],
                                     'parse_mode' => 'Markdown',
                                 ]);
-                            }    
-                        
-                            
+                            }
+
+
                         }elseif(strpos($lowercaseText, "/test") === 0){
-                            
-                            
-                            
-                            
+
+
+
+
                             $parts = explode(" ", $sender_message);
                             $extractedText = '';
-                            
+
                                 $gateway_name = "";
                             if(count($parts) >= 2) {
                                 $gateway_name = trim($parts[1]);
                             }
-                            
-                            
-                            
-                            
-                            
-                            
+
+
+
+
+
+
                             if (isset($TG_message['photo'])) {
                                             $image_processed = 0;
-                                            
+
                                             try {
                                                 $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
                                                 $photo = end($TG_message['photo']);
                                                 $file_id = $photo['file_id'];
                                                 LaravelLog::info("Got file_id: $file_id");
-                                        
+
                                                 // Get file info from Telegram
                                                 $getFileUrl = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$file_id}";
                                                 LaravelLog::info("Requesting file info from: $getFileUrl");
                                                 $fileData = Http::get($getFileUrl)->json();
                                                 LaravelLog::info("File info response: " . json_encode($fileData));
-                                                
-                                                
-                                        
+
+
+
                                                 if (isset($fileData['ok']) && $fileData['ok'] === true) {
                                                     $file_path = $fileData['result']['file_path'];
                                                     $fileUrl = "https://api.telegram.org/file/bot{$botToken}/{$file_path}";
                                                     LaravelLog::info("Downloading image from: $fileUrl");
-                                        
+
                                                     // Use cURL to fetch the image data because allow_url_fopen is disabled
                                                     $ch = curl_init();
                                                     curl_setopt($ch, CURLOPT_URL, $fileUrl);
@@ -1574,25 +1572,25 @@ class TelegramGroupController extends Controller
                                                     $imageContent = curl_exec($ch);
                                                     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                                                     curl_close($ch);
-                                                    
-                                                    
-                                                    
-                                        
+
+
+
+
                                                     if ($imageContent && $httpCode === 200) {
                                                         $tempImagePath = storage_path('app/temp_' . time() . '.jpg');
                                                         file_put_contents($tempImagePath, $imageContent);
                                                         LaravelLog::info("Image saved temporarily at: $tempImagePath");
-                                        
+
                                                         try {
                                                             $apiKey = env('OCR_SPACE_API_KEY', 'K83793710188957');  // Update this with your new API key
-                                                            
+
                                                             // Process the image before sending to OCR
                                                             try {
                                                                 // Try to improve image quality before OCR processing
                                                                 if (extension_loaded('imagick')) {
                                                                     LaravelLog::info("Using Imagick for image preprocessing");
                                                                     $imagick = new \Imagick($tempImagePath);
-                                                                    
+
                                                                     // Enhanced image preprocessing
                                                                     $imagick->setImageFormat('png'); // Convert to PNG for better quality
                                                                     $imagick->contrastImage(1);
@@ -1600,21 +1598,21 @@ class TelegramGroupController extends Controller
                                                                     $imagick->normalizeImage();
                                                                     $imagick->despeckleImage(); // Remove small dots
                                                                     $imagick->enhanceImage(); // Enhance local contrast
-                                                                    
+
                                                                     // Increase resolution if too low
                                                                     $resolution = $imagick->getImageResolution();
                                                                     if ($resolution['x'] < 300 || $resolution['y'] < 300) {
                                                                         $imagick->setImageResolution(300, 300);
                                                                         $imagick->resampleImage(300, 300, \Imagick::FILTER_LANCZOS, 1);
                                                                     }
-                                                                    
+
                                                                     // Convert to grayscale for better OCR
                                                                     $imagick->transformImageColorspace(\Imagick::COLORSPACE_GRAY);
-                                                                    
+
                                                                     // Save the enhanced image
                                                                     $enhancedImagePath = $tempImagePath . '_enhanced.png';
                                                                     $imagick->writeImage($enhancedImagePath);
-                                                                    
+
                                                                     // Use the enhanced image if it exists
                                                                     if (file_exists($enhancedImagePath)) {
                                                                         $tempImagePath = $enhancedImagePath;
@@ -1628,11 +1626,11 @@ class TelegramGroupController extends Controller
                                                                         imagefilter($image, IMG_FILTER_CONTRAST, -10);
                                                                         imagefilter($image, IMG_FILTER_BRIGHTNESS, 10);
                                                                         imagefilter($image, IMG_FILTER_GRAYSCALE);
-                                                                        
+
                                                                         $enhancedImagePath = $tempImagePath . '_enhanced.png';
                                                                         imagepng($image, $enhancedImagePath, 9); // High quality PNG
                                                                         imagedestroy($image);
-                                                                        
+
                                                                         if (file_exists($enhancedImagePath)) {
                                                                             $tempImagePath = $enhancedImagePath;
                                                                             LaravelLog::info("Using GD enhanced image: $enhancedImagePath");
@@ -1643,10 +1641,10 @@ class TelegramGroupController extends Controller
                                                                 LaravelLog::error("Image enhancement failed: " . $e->getMessage());
                                                                 // Continue with original image
                                                             }
-                                                            
-                                                            
-                                                            
-                                                            
+
+
+
+
                                                             // First try with OCR Engine 2 (better for receipts and complex text)
                                                             $ch = curl_init();
                                                             curl_setopt_array($ch, [
@@ -1668,40 +1666,40 @@ class TelegramGroupController extends Controller
                                                                     'isSearchablePdfHideTextLayer' => 'false'
                                                                 ],
                                                             ]);
-                                                            
+
                                                             // Add detailed logging
                                                             LaravelLog::info('Sending request to OCR.space API...');
                                                             $result = curl_exec($ch);
                                                             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                                                             $error = curl_error($ch);
                                                             curl_close($ch);
-                                                            
+
                                                             if ($error) {
                                                                 LaravelLog::error("CURL Error: " . $error);
                                                                 throw new \Exception("OCR API request failed: " . $error);
                                                             }
-                                                            
+
                                                             // Log the raw OCR response for debugging
                                                             LaravelLog::info("OCR API Raw Response: " . $result);
-                                                            
-                                                            
-                                                            
-                                                            
+
+
+
+
                                                             if ($httpCode === 200) {
                                                                 $ocrResult = json_decode($result, true);
                                                                 LaravelLog::info("OCR.space API Response: " . json_encode($ocrResult));
-                                                                
+
                                                                 if (isset($ocrResult['ParsedResults'][0]['ParsedText'])) {
                                                                     $extractedText = $ocrResult['ParsedResults'][0]['ParsedText'];
                                                                     LaravelLog::info("Successfully extracted text from image: " . $extractedText);
-                                                                    
+
                                                                     /////////////////////////////
                                                                     //////////////////////////////
                                                                     /////////////////////////////////
-                                                                    
+
                                                                     // Initialize the gateway_name variable with a default value
                                                                     $gateway_name = $deposit->gateway->name ?? '';
-                                                                    
+
                                                                     if(strtolower($gateway_name)=="bkash"){
                                                                         // Enhanced bKash transaction ID patterns
                                                                         $txnId = null;
@@ -1726,12 +1724,12 @@ class TelegramGroupController extends Controller
 
                                                                         // Amount patterns (handle both Bengali and English numerals)
                                                                         LaravelLog::info("Trying to extract amount from text: " . $extractedText);
-                                                                        
+
                                                                         // Try each pattern separately and log results
                                                                         if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                             $amount = str_replace(',', '', $matches[1]);
                                                                             LaravelLog::info("Found amount using t pattern: " . $amount);
-                                                                        } 
+                                                                        }
                                                                         elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                             $amount = str_replace(',', '', $matches[1]);
                                                                             LaravelLog::info("Found amount using amount label pattern: " . $amount);
@@ -1757,7 +1755,7 @@ class TelegramGroupController extends Controller
                                                                         }
                                                                     } elseif(strtolower($gateway_name)=="nagad"){
                                                                         LaravelLog::info("Processing Nagad payment with text: " . $extractedText);
-                                                                        
+
                                                                         // Enhanced Nagad transaction ID patterns
                                                                         $txnId = null;
                                                                         $patterns = [
@@ -1781,12 +1779,12 @@ class TelegramGroupController extends Controller
 
                                                                         // Amount patterns (handle both Bengali and English numerals)
                                                                         LaravelLog::info("Trying to extract amount from text: " . $extractedText);
-                                                                        
+
                                                                         // Try each pattern separately and log results
                                                                         if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                             $amount = str_replace(',', '', $matches[1]);
                                                                             LaravelLog::info("Found amount using t pattern: " . $amount);
-                                                                        } 
+                                                                        }
                                                                         elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                             $amount = str_replace(',', '', $matches[1]);
                                                                             LaravelLog::info("Found amount using amount label pattern: " . $amount);
@@ -1816,7 +1814,7 @@ class TelegramGroupController extends Controller
                                                                     }
                                                                     elseif(strtolower($gateway_name)=="rocket"){
                                                                         LaravelLog::info("Processing Rocket payment with text: " . $extractedText);
-                                                                        
+
                                                                         // Enhanced Rocket transaction ID patterns
                                                                         $txnId = null;
                                                                         $patterns = [
@@ -1840,12 +1838,12 @@ class TelegramGroupController extends Controller
 
                                                                         // Amount patterns (handle both Bengali and English numerals)
                                                                         LaravelLog::info("Trying to extract amount from text: " . $extractedText);
-                                                                        
+
                                                                         // Try each pattern separately and log results
                                                                         if (preg_match('/t(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                             $amount = str_replace(',', '', $matches[1]);
                                                                             LaravelLog::info("Found amount using t pattern: " . $amount);
-                                                                        } 
+                                                                        }
                                                                         elseif (preg_match('/(?:??????|Amount)\s*:?\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
                                                                             $amount = str_replace(',', '', $matches[1]);
                                                                             LaravelLog::info("Found amount using amount label pattern: " . $amount);
@@ -1877,7 +1875,7 @@ class TelegramGroupController extends Controller
                                                                             LaravelLog::info("Found phone number generic format: " . $phone_number_by_telegram_message);
                                                                         }
                                                                     }
-                                                                    
+
                                                                     // If no specific provider pattern matched, try generic patterns as fallback
                                                                     if (!isset($txnId) || empty($txnId)) {
                                                                         $genericPatterns = [
@@ -1902,7 +1900,7 @@ class TelegramGroupController extends Controller
                                                                     if (isset($txnId) && !empty($txnId)) {
                                                                         // Remove any non-alphanumeric characters
                                                                         $txnId = preg_replace('/[^A-Z0-9]/i', '', $txnId);
-                                                                        
+
                                                                         // Log the final transaction ID
                                                                         LaravelLog::info("Final Transaction ID after validation: " . $txnId);
                                                                     }
@@ -1920,45 +1918,45 @@ class TelegramGroupController extends Controller
                                                                             $phone_number_by_telegram_message = $matches[1];
                                                                         }
                                                                     }
-                                                                    
-                                                                    
+
+
                                                                     /////////////////////////////
                                                                     //////////////////////////////
                                                                     /////////////////////////////////
-                                                                    
+
                                                                     // Format the message with extracted information
                                                                     $message = "?? *Extracted Information:*\n\n";
-                                                                    
+
                                                                     if (isset($txnId) && !empty($txnId)) {
                                                                         $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
                                                                         LaravelLog::info("Adding transaction ID to message: " . $txnId);
                                                                     }
-                                                                    
+
                                                                     if (isset($amount) && !empty($amount)) {
                                                                         $message .= "?? *Amount:* `" . $amount . "`\n";
                                                                         LaravelLog::info("Adding amount to message: " . $amount);
                                                                     }
-                                                                    
+
                                                                     if (isset($phone_number_by_telegram_message) && !empty($phone_number_by_telegram_message)) {
                                                                         $message .= "?? *Phone:* `" . $phone_number_by_telegram_message . "`\n";
                                                                         LaravelLog::info("Adding phone to message: " . $phone_number_by_telegram_message);
                                                                     }
-                                                                    
+
                                                                     // Add the full extracted text at the bottom
                                                                     $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                    
-                                                                    
+
+
                                                                     LaravelLog::info("Final message being sent: " . $message);
-                                                                    
+
                                                                     $response = Http::post($url, [
                                                                         'chat_id' => $sender_chat['id'],
                                                                         'text' => $message,
                                                                         'reply_to_message_id' => $TG_message['message_id'],
                                                                         'parse_mode' => 'Markdown',
                                                                     ]);
-                                                                    
-                                                                    
-                                                                    
+
+
+
                                                                 } else {
                                                                     LaravelLog::info('No text found in the image');
                                                                     $message = "No text found in the image";
@@ -1968,9 +1966,9 @@ class TelegramGroupController extends Controller
                                                                         'reply_to_message_id' => $TG_message['message_id'],
                                                                         'parse_mode' => 'Markdown',
                                                                     ]);
-                                                                    
+
                                                                     $image_processed=1;
-                                                
+
                                                                 }
                                                             } else {
                                                                 LaravelLog::error("OCR.space API Error: " . $result);
@@ -1981,7 +1979,7 @@ class TelegramGroupController extends Controller
                                                                     'reply_to_message_id' => $TG_message['message_id'],
                                                                     'parse_mode' => 'Markdown',
                                                                 ]);
-                                                                
+
                                                                 $image_processed=1;
                                                             }
                                                         } catch (\Exception $e) {
@@ -1993,10 +1991,10 @@ class TelegramGroupController extends Controller
                                                             //     'reply_to_message_id' => $TG_message['message_id'],
                                                             //     'parse_mode' => 'Markdown',
                                                             // ]);
-                                                            
+
                                                             // $image_processed=1;
                                                         }
-                                                        
+
                                                         // Clean up temporary file
                                                         if (file_exists($tempImagePath)) {
                                                             unlink($tempImagePath);
@@ -2010,7 +2008,7 @@ class TelegramGroupController extends Controller
                                                 }
                                             } catch (\Exception $e) {
                                                 LaravelLog::error("Processing exception: " . $e->getMessage());
-                                                
+
                                                 $message = 'catch';
                                                 $response = Http::post($url, [
                                                     'chat_id' => $sender_chat['id'],
@@ -2018,10 +2016,10 @@ class TelegramGroupController extends Controller
                                                     'reply_to_message_id' => $TG_message['message_id'],
                                                     'parse_mode' => 'Markdown',
                                                 ]);
-                                                
+
                                                 return response()->json(['status' => 'success'], 200);
                                             }
-                                            
+
                                             if($image_processed==0){
                                                 $response = Http::post($url, [
                                                     'chat_id' => $sender_chat['id'],
@@ -2030,7 +2028,7 @@ class TelegramGroupController extends Controller
                                                     'parse_mode' => 'Markdown',
                                                 ]);
                                             }
-                                            
+
                                 }else{
                                     $message = 'Attach Image';
                                         $response = Http::post($url, [
@@ -2039,11 +2037,11 @@ class TelegramGroupController extends Controller
                                             'reply_to_message_id' => $TG_message['message_id'],
                                             'parse_mode' => 'Markdown',
                                         ]);
-                                        
+
                                         return response()->json(['status' => 'success'], 200);
-                                }    
-                        
-                            
+                                }
+
+
                         }elseif(strpos($lowercaseText, "/callback") === 0){
                             $deposit = Payment::where('partner_transection_id',$sender_message)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
                             if($deposit){
@@ -2064,7 +2062,7 @@ class TelegramGroupController extends Controller
                                         'parse_mode' => 'Markdown',
                                     ]);
 
-                                    
+
                                     if ($api_key && !empty($api_key->api_endpoint_deposit) && $api_key->website != env('APP_WEBSITE')) {
 
                                         $payment = $deposit;
@@ -2109,7 +2107,7 @@ class TelegramGroupController extends Controller
                                                 $array_data['member_id'] = $payment->member_id;
                                             }
                                         }
-                                        
+
 
                                         $requestData = [
                                             'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
@@ -2140,7 +2138,7 @@ class TelegramGroupController extends Controller
                                             ];
 
                                             DB::table('api_logs')->where('id', $logId)->update($responseData);
-                                            
+
                                         } catch (\Exception $e) {
                                             LaravelLog::info('Telegram Deposit Callback not sent');
                                         }
@@ -2164,7 +2162,7 @@ class TelegramGroupController extends Controller
                                         'parse_mode' => 'Markdown',
                                     ]);
 
-                                    
+
                                     $payout_log = $withdrawal;
 
                                     if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
@@ -2202,7 +2200,7 @@ class TelegramGroupController extends Controller
                                                     'updated_at' => $withdrawal->updated_at,
                                                     'sign' => $sign,
                                                     'remarks' => $payout_log->feedback,
-                                                    
+
                                         ];
 
                                         if(!empty($withdrawal->member_id)){
@@ -2241,14 +2239,14 @@ class TelegramGroupController extends Controller
                                             ];
 
                                             DB::table('api_logs')->where('id', $logId)->update($responseData);
-                                            
+
                                         } catch (\Exception $e) {
                                             LaravelLog::info('Telegram Withdrawal Callback not sent');
                                         }
                                     }
 
                                 }else{
-                                    $message = sprintf($this->messages[$api->lang]['transaction_not_found'], 
+                                    $message = sprintf($this->messages[$api->lang]['transaction_not_found'],
                                         $sender_message,
                                         $api->api_id
                                     );
@@ -2259,10 +2257,10 @@ class TelegramGroupController extends Controller
                                         'parse_mode' => 'Markdown',
                                     ]);
                                 }
-                                    
+
                             }
                         }else{
-                            $message = sprintf($this->messages[$api->lang]['invalid_command'], 
+                            $message = sprintf($this->messages[$api->lang]['invalid_command'],
                                 $sender_message,
                                 $api->api_id
                             );
@@ -2273,19 +2271,19 @@ class TelegramGroupController extends Controller
                                 'parse_mode' => 'Markdown',
                             ]);
                         }
-                        
-                            
+
+
 
                     }
                 }
-                
+
                 LaravelLog::info('Telegram Message'.$data);
                 return response()->json(['status' => 'success'], 200);
             } catch (\Exception $e) {
                  LaravelLog::info('Telegram failed');
                  return response()->json(['status' => 'success'], 200);
-            } 
-       
+            }
+
     }
 
 

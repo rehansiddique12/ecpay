@@ -10,7 +10,7 @@ class RoleController extends Controller
 {
     public function index()
     {
-$pageTitle= 'Roles';
+        $pageTitle= 'Roles';
         $roles = Role::with('permissions')->where('guard_name', 'admin')->get();
         return view('admin.roles.index', compact('roles' , 'pageTitle'));
     }

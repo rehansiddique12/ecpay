@@ -20,7 +20,7 @@ class PaymentMethodController extends Controller
             $data->status = 0;
         } else {
             $data->status = 1;
-        }
+        }   
         $data->save();
 
         return back()->with('success', 'Updated Successfully.');

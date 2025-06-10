@@ -58,8 +58,6 @@ public function profileUpdate(Request $request)
     }
 
     $user = $this->user;
-
-    // ✅ Fix Image Upload
     if ($request->hasFile('image')) {
         try {
             $image = $request->file('image');

@@ -904,7 +904,7 @@ class PayoutRecordController extends Controller
                 }
                 $ewallet = strtolower($order->gateway->code);
 
-                
+
 
 
 
@@ -928,7 +928,7 @@ class PayoutRecordController extends Controller
                     $banner = asset('assets/images/Rocket_Background.jpg');
                 }
 
-                
+
 
                 $fiveMinutesAgo = Carbon::now()->subMinutes(5)->timestamp;
                 if (isset($request->time) && $request->time > $fiveMinutesAgo) {
@@ -1032,7 +1032,7 @@ class PayoutRecordController extends Controller
                             $partner_api_key->save();
 
 
-                            
+
 
                             $Log = new Log();
                             $Log->date_time = $payment_record->updated_at;
@@ -1045,7 +1045,7 @@ class PayoutRecordController extends Controller
                             $Log->save();
 
 
-                            
+
                         }
 
                         // if (strpos($payment_record->sender, 'XXXX') !== false && ($payment_record->mac_address=="111.111.11.111" || $payment_record->mac_address=="222.222.22.222")) {
@@ -2846,7 +2846,7 @@ class PayoutRecordController extends Controller
         })
         ->paginate(config('basic.paginate'));
 
-    $funds_t = Payout::where('status', '!=', 0)
+        $funds_t = Payout::where('status', '!=', 0)
         ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
         ->when($api_id, function ($query) use ($api_id) {
             $query->where('api_id', $api_id);
@@ -3231,7 +3231,7 @@ class PayoutRecordController extends Controller
             return $fund;
         });
 
-    $funds_t = Payout::where('status', '!=', 0)
+      $funds_t = Payout::where('status', '!=', 0)
         ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')
         ->where('status', 'like', '%' . $status . '%')
         ->with('user', 'gateway')
@@ -3300,10 +3300,6 @@ class PayoutRecordController extends Controller
                         });
                 })
                 ->sum('amount');
-
-
-
-
         if ($finalAmo + $previous_pending > $authWallet['balance']) {
             if($previous_pending>0){
                 session()->flash('error', 'You have already requested a withdrawal of '.round($previous_pending, 2).', which is still in process. Your remaining balance is '.round($authWallet['balance'] - $previous_pending, 2).'.');
@@ -3333,10 +3329,6 @@ class PayoutRecordController extends Controller
         }
     }
 
-
-
-
-
     public function newFundOpen(Request $request, $gate, $charge, $final_amo, $amount, $account_no, $open_user, $e_wallet_phone_number): Payment
     {
 
@@ -3356,8 +3348,6 @@ class PayoutRecordController extends Controller
         $fund->save();
         return $fund;
     }
-
-
 
     public function apis(Request $request)
     {
@@ -3659,53 +3649,64 @@ public function settlementSearch(Request $request)
     }
 
 
-    public function partnerBalanceSearch(Request $request)
-    {
+  public function partnerBalanceSearch(Request $request)
+{
+    $user = Auth::guard('partner')->user();
+    $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
+    $partnerTimezone = $main_admin->timezone;
+    $api_id = $main_admin->id;
 
-        $user = Auth::guard('partner')->user();
-        $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
-        $partnerTimezone = $main_admin->timezone;
-        $api_id = $main_admin->id;
+    $originalTimezone = $partnerTimezone;
+    $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
 
-
-        $originalTimezone = $partnerTimezone;
-        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
-
-        if(!empty($request->from_date)){
-            $from_date_to_search = date('Y-m-d H:i:s', strtotime($request->from_date . ' 00:00:00'));
-            $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-        }
-
-        if(!empty($request->to_date)){
-            $to_date_to_search = date('Y-m-d H:i:s', strtotime($request->to_date . ' 23:59:59'));
-            $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-        }
-
-
-        $partners = Api::where('type', 'Admin')->where('status', 1)->get();
-
-        $records = ApiTransaction::with('api');
-
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $records->whereDate('created_at', '>=', $from_date_to_search);
-            $records->whereDate('created_at', '<=', $to_date_to_search);
-        } elseif (!empty($request->from_date)) {
-            $records->whereDate('created_at', '>=', $from_date_to_search);
-        } elseif (!empty($request->to_date)) {
-            $records->whereDate('created_at', '<=', $to_date_to_search);
-        }
-
-        $records->where('partner_id', $api_id);
-
-        if (!empty($request->adjustment) || $request->adjustment == '0') {
-            $records->where('adjustment', $request->adjustment);
-        }
-
-        $records = $records->orderBy('id', 'DESC')->get();
-
-        $pageTitle = "Search Adjustments";
-        return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    if (!empty($request->from_date)) {
+        $from_date_to_search = date('Y-m-d H:i:s', strtotime($request->from_date . ' 00:00:00'));
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
     }
+
+    if (!empty($request->to_date)) {
+        $to_date_to_search = date('Y-m-d H:i:s', strtotime($request->to_date . ' 23:59:59'));
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+    }
+
+    $partners = Api::where('type', 'Admin')->where('status', 1)->get();
+
+    $records = ApiTransaction::with('api');
+
+    // Date filters
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $records->whereDate('created_at', '>=', $from_date_to_search);
+        $records->whereDate('created_at', '<=', $to_date_to_search);
+    } elseif (!empty($request->from_date)) {
+        $records->whereDate('created_at', '>=', $from_date_to_search);
+    } elseif (!empty($request->to_date)) {
+        $records->whereDate('created_at', '<=', $to_date_to_search);
+    }
+
+    // Partner ID filter
+    $records->where('partner_id', $api_id);
+
+    // Adjustment filter
+    if (!empty($request->adjustment) || $request->adjustment == '0') {
+        $records->where('adjustment', $request->adjustment);
+    }
+
+    // Search by name, username, or website from related API model
+    if (!empty($request->search_by_name)) {
+        $searchTerm = $request->search_by_name;
+        $records->whereHas('api', function ($query) use ($searchTerm) {
+            $query->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('username', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('website', 'like', '%' . $searchTerm . '%');
+        });
+    }
+
+    $records = $records->orderBy('id', 'DESC')->get();
+
+    $pageTitle = "Search Adjustments";
+    return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+}
+
 
 
 
@@ -4082,9 +4083,6 @@ public function settlementSearch(Request $request)
 
     public function payoutRequestSubmitTransection(Request $request)
     {
-
-
-
         $basic = (object)config('basic');
         $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->whereIn('transfer_status', [0,1])->with('gateway', 'user')->firstOrFail();
         $rules = [];

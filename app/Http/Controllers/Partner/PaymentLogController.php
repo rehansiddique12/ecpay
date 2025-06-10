@@ -272,6 +272,18 @@ class PaymentLogController extends Controller
         }
     }
 
+     public function export_by_blance($from_date)
+    {
+        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new MerchantReportExport($from_date), "merchant_report_by_date_{$sanitizedDate}.csv");
+    }
+
     public function dailyReport()
     {
         $log = "View Day Wise Payment Report";
