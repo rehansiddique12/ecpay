@@ -457,7 +457,7 @@ class PayoutRecordController extends Controller
             })
             ->when(isset($search['status']), function ($query) use ($search) {
                 if ($search['status'] == 2) {
-                    return $query->where('status', 2)->where('status', 'Complete');
+                    return $query->where('transfer_status', 2)->where('status', 'Complete');
                 } else {
                     return $query->where('status', $search['status']);
                 }
@@ -465,7 +465,7 @@ class PayoutRecordController extends Controller
             ->when(isset($search['domain']), function ($query) use ($search) {
                 return $query->where('api_id', $search['domain']);
             })
-            ->where('status', '!=', 0)
+            ->where('transfer_status', '!=', 0)
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                 return $query->whereDate('created_at', '>=', $search['from_date'])
                     ->whereDate('created_at', '<=', $search['to_date']);
@@ -828,10 +828,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -840,7 +840,7 @@ class PayoutRecordController extends Controller
                         })
                         ->values()
                         ->first();
-                   
+
 
                     if (!$account) {
                         DB::rollBack();
@@ -1658,9 +1658,6 @@ class PayoutRecordController extends Controller
         return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
     }
 
-
-
-
     // Partner controller
 
     public function apisReset($id)
@@ -1741,6 +1738,51 @@ class PayoutRecordController extends Controller
             unset($validated['password']);
         }
 
+        $api->update($validated);
+
+        return redirect()->back()->with('success', 'API record updated successfully.');
+    }
+
+    public function agentupdateApi(Request $request, $id)
+    {
+
+        $api = Api::findOrFail($id);
+
+            $validated = $request->validate([
+                // 'name' => 'required|string|max:100',
+                'username' => 'required|string|max:100',
+                // 'email' => 'nullable|email|max:100',
+                // 'phone' => 'nullable|string|max:20',
+                'password' => 'nullable|string|min:6',
+                // 'website' => 'nullable|string|max:255',
+                // 'api_endpoint_deposit' => 'nullable|string|max:200',
+                // 'api_endpoint_withdrawal' => 'nullable|string|max:200',
+                // 'admin_access' => 'nullable|string',
+                // // 'type' => 'required|string|max:50',
+                // 'api_key' => 'required|string|max:255',
+                // // 'last_login' => 'nullable|string|max:50',
+                // // 'remember_token' => 'nullable|string|max:100',
+                // // 'balance' => 'nullable|numeric',
+                // 'min_deposit' => 'nullable|numeric',
+                // 'min_withdrawal' => 'required|numeric',
+                // 'acc_type' => 'required|string|max:20',
+                // // 'parent_id' => 'nullable|integer',
+                // 'sign' => 'required|boolean',
+                // 'secret_key' => 'nullable|string|max:255',
+                // 'txn_verification' => 'required|boolean',
+                // 'redirect_url' => 'nullable|string|max:500',
+                // 'timezone' => 'nullable|string|max:255',
+                // 'status' => 'required|boolean',
+                // 'category_id' => 'nullable',
+            ]);
+
+
+        if ($request->filled('password')) {
+            $validated['password'] = Hash::make($request->password);
+        } else {
+            unset($validated['password']);
+        }
+        $validated['password_string'] = $request->password;
         $api->update($validated);
 
         return redirect()->back()->with('success', 'API record updated successfully.');
@@ -2109,7 +2151,8 @@ class PayoutRecordController extends Controller
         ));
     }
 
-    public function addpartnerCommission(Request $request) {
+    public function addpartnerCommission(Request $request)
+    {
 
         $api = Api::findOrFail($request->user_id);
         $commissions = Commission::where('category_id', $api->category_id)->get();
@@ -2225,10 +2268,6 @@ class PayoutRecordController extends Controller
         return response()->json(['status' => 'success', 'message' => ucfirst($type) . ' updated.']);
     }
 
-
-
-
-
     // Acconts
 
     public function allAccounts(Request $request)
@@ -2280,9 +2319,6 @@ class PayoutRecordController extends Controller
         return redirect()->back()->with('error', 'Account not found');
        }
     }
-
-
-
 
     public function editAccount($id)
     {
@@ -2628,11 +2664,6 @@ class PayoutRecordController extends Controller
             ], 500);
         }
     }
-
-
-
-
-
 
     public function updateStatus($id)
     {
@@ -3972,33 +4003,33 @@ class PayoutRecordController extends Controller
                         $decoded = base64_decode($sign);
                         $request_hash = substr($decoded, 0, -$timestamp_length);
                         $sign_timestamp = substr($decoded, -$timestamp_length);
-                        if (hash_equals($request_hash, $hmac)) {
-                            if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
-                                $signature = Signature::where('sign', $sign)->first();
-                                if (!$signature) {
-                                    $signature = new Signature();
-                                    $signature->sign = $sign;
-                                    $signature->save();
+                            if (hash_equals($request_hash, $hmac)) {
+                                if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
+                                    $signature = Signature::where('sign', $sign)->first();
+                                    if (!$signature) {
+                                        $signature = new Signature();
+                                        $signature->sign = $sign;
+                                        $signature->save();
+                                    } else {
+                                        return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
+                                    }
                                 } else {
-                                    return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
+                                    return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
                                 }
                             } else {
-                                return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
+                                return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
                             }
                         } else {
-                            return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
+                            return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
                         }
-                    } else {
-                        return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
                     }
+                } else {
+                    return response()->json(['message' => 'Wrong API key'], 404);
                 }
-            } else {
-                return response()->json(['message' => 'Wrong API key'], 404);
-            }
 
-            if ($api_key->min_withdrawal > $request->amount) {
-                return response()->json(['message' => 'Min Withdrawal Limit is ' . $api_key->min_withdrawal], 404);
-            }
+                if ($api_key->min_withdrawal > $request->amount) {
+                    return response()->json(['message' => 'Min Withdrawal Limit is ' . $api_key->min_withdrawal], 404);
+                }
 
             $partner_transection_id = 0;
             if ($request->filled('partner_transection_id')) {
@@ -4072,7 +4103,7 @@ class PayoutRecordController extends Controller
                         $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
                         $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
                     }
-                    
+
 
 
 
@@ -4100,10 +4131,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -5297,14 +5328,14 @@ class PayoutRecordController extends Controller
                 }
             }
 
-            if ($commit == 0) {
-                DB::commit();
+                if ($commit == 0) {
+                    DB::commit();
+                }
+                return response()->json(['message' => 'Payout Rejected'], 200);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['error' => $e->getMessage()], 500);
             }
-            return response()->json(['message' => 'Payout Rejected'], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
     }
 
     public function convertStringToNumber($string)

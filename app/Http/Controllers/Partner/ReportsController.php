@@ -871,7 +871,8 @@ class ReportsController extends Controller
         return view('partner.reports.log_completions', compact('pageTitle', 'final_data', 'from_date', 'to_date', 'order', 'closing_balance', 'total_amount'));
     }
 
-         public function export_excel_record_completions(Request $request){
+     public function export_excel_record_completions(Request $request)
+     {
 
         $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d H:i');
         $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d H:i');

@@ -104,6 +104,7 @@ $currentLocale = App::getLocale();
 $languages = [
 'en' => 'English',
 'ms' => 'Malaysian',
+'cn' =>'Chinese'
 ];
 
 @endphp
@@ -939,6 +940,15 @@ $languages = [
                             <a href="{{ route('admin.payment.log') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Deposit Log">{{ __('sidebar.deposit_log') }}</div>
+                            </a>
+                        </li>
+                        @endif
+                        @if (adminAccessRoute(config('role.deposit_last_hour_report.access.view')))
+                        <li
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log2', 'admin.payment.search']) ? 'active' : '' }}">
+                            <a href="{{ route('admin.payment.log2') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                                <div data-i18n="Deposit log2">{{ __('sidebar.deposit_log') }} (Last Hour)</div>
                             </a>
                         </li>
                         @endif

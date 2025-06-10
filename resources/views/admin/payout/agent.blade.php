@@ -79,7 +79,7 @@
                                 <tr>
                                     <td style="max-width: 70px;">{{ $item['id'] }}</td>
                                     <td style="max-width: 110px;"><a
-                                            href="{{ route('admin.merchant.profile', $item->id) }}">{{ $item['name']
+                                            href="{{ route('admin.agent.profile', $item->id) }}">{{ $item['name']
                                             }}</a>
                                     </td>
                                     <td style="max-width: 100px;">{{ $item['username'] }}</td>
