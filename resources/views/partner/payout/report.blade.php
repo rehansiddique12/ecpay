@@ -1,4 +1,9 @@
 <x-partner-layout :title="$pageTitle">
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <form action="{{ route('partner.payout-report.search') }}" method="get">
             <div class="row justify-content-between align-items-center">
@@ -12,20 +17,20 @@
                 <input type="text" hidden name="name" value="{{ @request()->name }}" class="form-control"
                     placeholder="@lang('Email/ Username')">
 
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>From Date</label>
-                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ @request()->from_date }}"
-                            name="from_date" id="datepicker" />
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>From Date</label>
+                            <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $from_date }}" name="from_date"
+                                 />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>To Date</label>
-                        <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ @request()->to_date }}"
-                            name="to_date" id="datepicker" />
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>To Date</label>
+                            <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $to_date }}" name="to_date"
+                                />
+                        </div>
                     </div>
-                </div>
 
                 <div class="col-md-3">
                     <div class="form-group">
@@ -168,15 +173,15 @@
                                     {{ $item->member_id }}
                                 </td>
                                 <td data-label="@lang('Method')">{{ $item->user_account_no }}</td>
-                                <td>{{ $item->gateway->name }}</td>
+                                <td>{{ $item->e_wallet_name }}</td>
                                 <td data-label="@lang('Amount')" class="font-weight-bold">
                                     {{ getAmount($item->amount) }} {{ $basic->currency_symbol }}</td>
                                 <td data-label="@lang('Charge')" class="text-success">
                                     {{ $item->charge }} {{ $basic->currency_symbol }}</td>
                                 <!--<td data-label="@lang('Charge')" class="text-success">-->
                                 <?php
-                                // if(isset($item->payout->charge)){
-                                //     if(!empty($item->payout->source)){
+                                // if(isset($item->charge)){
+                                //     if(!empty($item->source)){
                                 //         echo "5%";
                                 //     }
 
@@ -184,34 +189,29 @@
                                 ?>
                                 <!--</td>-->
                                 <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->net_amount) }} {{ $basic->currency_symbol }}</td>
+                                    {{ getAmount($item->amount + $item->charge) }} {{ $basic->currency_symbol }}</td>
 
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                    @if ($item->status == 2)
+                                    @if ($item->transfer_status == 2)
                                         <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i>
                                             @lang('Request Approved')</span>
-                                    @elseif($item->status == 1)
+                                    @elseif($item->transfer_status == 1)
                                         <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i>
                                             @lang('Request Pending')</span>
-                                    @elseif($item->status == 3)
+                                    @elseif($item->transfer_status == 3)
                                         <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i>
                                             @lang('Request Rejected')</span>
                                     @endif
                                     <br>
-                                    @if ($item->payout)
-                                        @if ($item->payout->status == 'Complete')
-                                            <span class="badge badge-light"><i
-                                                    class="fa fa-circle text-success font-12"></i>
-                                                @lang('Transfered')</span>
-                                        @elseif($item->payout->status == 'Pending')
-                                            <span class="badge badge-light"><i
-                                                    class="fa fa-circle text-warning font-12"></i>
-                                                @lang('Transfer Pending')</span>
-                                        @elseif($item->payout->status == 'Reject')
-                                            <span class="badge badge-light"><i
-                                                    class="fa fa-circle text-danger font-12"></i> @lang('Transfer Rejected')</span>
-                                        @endif
-                                    @endif
+                                    @if($item->status == "Complete")
+                                    <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Transfered')</span>
+                                @elseif($item->status == "Reject")
+                                <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Transfer Rejected')</span>
+                                @else
+
+                                <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Transfer Pending')</span>
+                                    
+                                @endif
                                 </td>
 
                                 <td>{{ $item->feedback }}</td>
@@ -286,22 +286,32 @@
 
 @push('js')
     <!-- jQuery UI -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <!-- DateTimePicker Add-on -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js">
     </script>
 
 
     <script>
-        (function($) {
-            "use strict";
 
-            $(document).ready(function() {
-                $(document).on("click", '.edit_button', function(e) {
+
+        $(document).ready(function() {
+            // $('select').select2({
+            //     selectOnClose: true
+            // });
+
+            $('.datetimepicker').datetimepicker({
+                format: 'Y-m-d H:i',
+                step: 1,
+                datepicker: true,
+                timepicker: true
+            });
+
+
+            $(document).on("click", '.edit_button', function(e) {
                     var id = $(this).data('id');
                     $(".action_id").val(id);
                     $(".actionRoute").attr('action', $(this).data('route'));
@@ -337,21 +347,6 @@
 
                     $('.withdraw-detail').html(list);
                 });
-            });
-        })(jQuery);
-
-
-        $(document).ready(function() {
-            $('select').select2({
-                selectOnClose: true
-            });
-
-            $('.datetimepicker').datetimepicker({
-                format: 'Y-m-d H:i',
-                step: 1,
-                datepicker: true,
-                timepicker: true
-            });
 
         });
     </script>

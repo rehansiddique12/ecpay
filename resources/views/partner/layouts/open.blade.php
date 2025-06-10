@@ -49,7 +49,7 @@
                         <div class="d-flex align-items-center">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb m-0 p-0">
-                                    <li class="breadcrumb-item text-muted active" aria-current="page">@lang('Dashboard')</li>
+                                    <li class="breadcrumb-item text-muted active" aria-current="page">Dashboard</li>
                                     <li class="breadcrumb-item text-muted" aria-current="page">@yield('title')</li>
                                 </ol>
                             </nav>

@@ -134,7 +134,7 @@
                 username
             },
             success(data) {
-                // console.log(data);
+                console.log(data);
 
                 $('.payment-form').addClass('d-none');
                 $('.checkCalc').closest('.modal-footer').addClass('d-none');

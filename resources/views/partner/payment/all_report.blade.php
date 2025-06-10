@@ -11,14 +11,12 @@
 </style>
 
 
-<div class="modal fade" id="myModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-auto-width" role="document">
+<div class="modal fade" id="myModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-auto-width">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Record Detail</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modalContent1">
         <!-- Content will be dynamically loaded here -->
@@ -29,14 +27,13 @@
 
 
 
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-auto-width" role="document">
+
+<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-auto-width">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Record Detail</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modalContent">
         <!-- Content will be dynamically loaded here -->
@@ -44,6 +41,7 @@
     </div>
   </div>
 </div>
+
 
 
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
@@ -172,67 +170,77 @@ $baseUrl = $protocol . '://' . $domain . $path .'/assets/uploads/receipts/';
 @push('js')
 <script>
   function openmodel1(date, gateway, status) {
-  const url = "{{ route('partner.payment.report.detail', ['date' => '__DATE__', 'gateway' => '__GATEWAY__', 'status' => '__STATUS__']) }}"
-    .replace('__DATE__', encodeURIComponent(date))
-    .replace('__GATEWAY__', encodeURIComponent(gateway))
-    .replace('__STATUS__', encodeURIComponent(status));
 
-  $.ajax({
-    url: url,
-    method: 'GET',
-    success: function(response) {
-      $('#modalContent1').empty();
+    $('#modalContent1').html('<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+    // Show modal immediately
+    $('#myModal1').modal('show');
 
-      var table = $('<table class="table table-bordered"></table>');
-      var thead = $('<thead class="thead-dark"><tr><th>Date</th><th>Trx Number</th><th>User Account</th><th>Method</th><th>Amount</th><th>Merchant Charge</th><th>Payable</th><th>E-Wallet No</th><th>Type</th><th>Status</th><th>Receipt</th></tr></thead>');
-      var tbody = $('<tbody></tbody>');
+    const url = "{{ route('partner.payment.report.detail', ['date' => '__DATE__', 'gateway' => '__GATEWAY__', 'status' => '__STATUS__']) }}"
+      .replace('__DATE__', encodeURIComponent(date))
+      .replace('__GATEWAY__', encodeURIComponent(gateway))
+      .replace('__STATUS__', encodeURIComponent(status));
 
-      response.forEach(function(item) {
-        var createdAt = new Date(item.created_at).toLocaleString('en-GB');
-        var row = $('<tr></tr>');
-        row.append('<td>' + createdAt + '</td>');
-        row.append('<td>' + item.trx_number + '</td>');
-        row.append('<td>' + item.account + '</td>');
-        row.append('<td>' + item.method + '</td>');
-        row.append('<td>' + item.amount + '</td>');
-        row.append('<td>' + item.charge + '</td>');
-        row.append('<td>' + item.payable + '</td>');
-        row.append('<td>' + item.wallet_no + '</td>');
-        row.append('<td>' + item.type + '</td>');
-        row.append('<td>' + item.status + '</td>');
+    $.ajax({
+      url: url,
+      method: 'GET',
+      success: function(response) {
+        $('#modalContent1').empty();
 
-        // Handle receipt image
-        if (item.receipt) {
-          row.append('<td><a href="' + '{{ $baseUrl }}' + item.receipt + '" data-fancybox="gallery" data-caption="Receipt"><img src="' + '{{ $baseUrl }}' + item.receipt + '" alt="Receipt" style="height:50px;"/></a></td>');
-        } else {
-          row.append('<td>—</td>');
-        }
+        var table = $('<table class="table table-bordered"></table>');
+        var thead = $('<thead class="thead-dark"><tr><th>Date</th><th>Trx Number</th><th>User Account</th><th>Method</th><th>Amount</th><th>Merchant Charge</th><th>Payable</th><th>E-Wallet No</th><th>Type</th><th>Status</th><th>Receipt</th></tr></thead>');
+        var tbody = $('<tbody></tbody>');
 
-        tbody.append(row);
-      });
+        response.forEach(function(item) {
+          var createdAt = new Date(item.created_at).toLocaleString('en-GB');
+          var row = $('<tr></tr>');
+          row.append('<td>' + createdAt + '</td>');
+          row.append('<td>' + item.txn_id + '</td>');
+          row.append('<td>' + item.sender + '</td>');
+          row.append('<td>' + item.e_wallet_name + '</td>');
+          row.append('<td>' + item.amount + '</td>');
+          row.append('<td>' + item.charge + '</td>');
+          row.append('<td>' + (item.amount - item.charge) + '</td>');
+          row.append('<td>' + item.e_wallet_phone_number + '</td>');
+          row.append('<td>' + item.e_wallet_type + '</td>');
+          row.append('<td>' + item.status + '</td>');
 
-      table.append(thead);
-      table.append(tbody);
-      $('#modalContent1').append(table);
-      $('#myModal1').modal('show');
-    },
-    error: function(err) {
-      console.error("XHR Error:", xhr);
-        console.error("Status:", xhr.status);
-        console.error("Response Text:", xhr.responseText);
-      $('#modalContent1').html('<p class="text-danger">Error loading data.</p>');
-      $('#myModal1').modal('show');
-    }
-  });
-}
+          // Handle receipt image
+          if (item.receipt) {
+            row.append('<td><a href="' + '{{ $baseUrl }}' + item.receipt + '" data-fancybox="gallery" data-caption="Receipt"><img src="' + '{{ $baseUrl }}' + item.receipt + '" alt="Receipt" style="height:50px;"/></a></td>');
+          } else {
+            row.append('<td>—</td>');
+          }
+
+          tbody.append(row);
+        });
+
+        table.append(thead);
+        table.append(tbody);
+        $('#modalContent1').append(table);
+        $('#myModal1').modal('show');
+      },
+      error: function(err) {
+        $('#modalContent1').html('<p class="text-danger">Error loading data.</p>');
+        $('#myModal1').modal('show');
+      }
+    });
+  }
 
 </script>
 
 <script>
   function openmodel(date, gateway, status) {
 
+    $('#modalContent').html('<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+    // Show modal immediately
+    $('#myModal').modal('show');
+
     // Ajax request to fetch data
     $.ajax({
+
+     
+
+
       url: "{{ route('partner.payout.report.detail', ['date' => 'placeholder', 'gateway' => 'placeholder', 'status' => 'placeholder']) }}"
         .replace('placeholder', date)
         .replace('placeholder', gateway)
@@ -259,18 +267,18 @@ $baseUrl = $protocol . '://' . $domain . $path .'/assets/uploads/receipts/';
             hour12: true
           });
           row.append('<td>' + createdAt + '</td>');
-          row.append('<td>' + response[i].payout.txn_id + '</td>');
-          row.append('<td>' + response[i].payout.user_account_no + '</td>');
-          row.append('<td>' + response[i].method.name + '</td>');
+          row.append('<td>' + response[i].txn_id + '</td>');
+          row.append('<td>' + response[i].user_account_no + '</td>');
+          row.append('<td>' + response[i].e_wallet_name + '</td>');
           row.append('<td>' + response[i].amount + 'TK</td>');
           row.append('<td>' + response[i].charge + 'TK</td>');
-          row.append('<td>' + response[i].net_amount + 'TK</td>');
+          row.append('<td>' + (response[i].amount + response[i].charge) + 'TK</td>');
 
           var statusBadge;
-          if (response[i].status == 2) {
+          if (response[i].transfer_status == 2) {
             statusBadge = '<span class="badge badge-light"><i class="fa fa-circle text-success success font-12"></i> Completed</span>';
 
-          } else if (response[i].status == 1) {
+          } else if (response[i].transfer_status == 1) {
             statusBadge = '<span class="badge badge-light"><i class="fa fa-circle text-warning success font-12"></i> Pending</span>';
           } else {
             statusBadge = '<span class="badge badge-light"><i class="fa fa-circle text-danger danger font-12"></i> Rejected</span>';
@@ -278,8 +286,8 @@ $baseUrl = $protocol . '://' . $domain . $path .'/assets/uploads/receipts/';
 
           row.append('<td>' + statusBadge + '</td>');
 
-          row.append('<td>' + response[i].payout.e_wallet_phone_number + '</td>');
-          row.append('<td>' + response[i].payout.e_wallet_type + '</td>');
+          row.append('<td>' + response[i].e_wallet_phone_number + '</td>');
+          row.append('<td>' + response[i].e_wallet_type + '</td>');
 
           tbody.append(row);
         }

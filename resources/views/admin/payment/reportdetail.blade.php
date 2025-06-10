@@ -90,12 +90,12 @@
                             <td data-label="@lang('Method')">{{ $fund->sender }}</td>
                             <td data-label="@lang('Method')">{{ optional($fund->gateway)->name }}</td>
                             <td data-label="@lang('Amount')"
-                                class="font-weight-bold">{{ getAmount($fund->amount ) }} {{$fund->gateway->currency}}</td>
+                                class="font-weight-bold">{{ getAmount($fund->amount ) }} {{$fund->gateway?->currency}}</td>
                             <td data-label="@lang('Charge')"
-                                class="text-success">{{ getAmount($fund->charge,2) }} {{$fund->gateway->currency}}</td>
+                                class="text-success">{{ getAmount($fund->charge,2) }} {{$fund->gateway?->currency}}</td>
 
                             <td data-label="@lang('Payable')"
-                                class="font-weight-bold">{{ getAmount($fund->amount - $fund->charge) }} {{$fund->gateway->currency}}</td>
+                                class="font-weight-bold">{{ getAmount($fund->amount - $fund->charge) }} {{$fund->gateway?->currency}}</td>
 
                                 <td data-label="@lang('Method')">{{ $fund->e_wallet_phone_number	 }}</td>
                                 <td data-label="@lang('Method')">{{ $fund->e_wallet_type }}</td>

@@ -36,12 +36,21 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\SetLocale::class,
         ],
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+
+        'api_logs_middleware' => [
+            \App\Http\Middleware\LogApiRequests::class,
+        ],
+
+        'function_track_middleware' => [
+            \App\Http\Middleware\TrackFunctionUsage::class,
         ],
     ];
 

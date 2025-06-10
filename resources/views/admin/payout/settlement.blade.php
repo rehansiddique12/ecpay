@@ -120,7 +120,7 @@
                                     <td>{{ $item->account_no }}</td>
                                     <td>{{ $item->amount }}</td>
                                     <td>{{ $item->charges }}</td>
-                                    <td>{{ $item->net_amount }}</td>
+                                    <td>{{ $item->amount + $item->charge }}</td>
                                     <td data-label="@lang('Status')" class="text-lg-center text-right">
                                         @if ($item->status == 2)
                                         <span class="badge  bg-danger">

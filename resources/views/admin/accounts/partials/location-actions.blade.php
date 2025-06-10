@@ -1,23 +1,24 @@
 <div class="dropdown text-center">
-     @if(adminAccessRoute(config('role.categories.access.edit')) ||
-    adminAccessRoute(config('role.categories.access.delete')))
-    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-        <i class="icon-base ti tabler-dots-vertical"></i>
-    </button>
+    @if (adminAccessRoute(config('role.categories.access.edit')) ||
+            adminAccessRoute(config('role.categories.access.delete')))
+        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+            <i class="icon-base ti tabler-dots-vertical"></i>
+        </button>
 
-    <div class="dropdown-menu">
-        @if(adminAccessRoute(config('role.categories.access.edit')))
-        <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
-            data-id="{{ $category->id }}" data-role="{{ $category->name }}" data-status="{{ $category->status }}">
-            <i class="fa fa-edit text-warning me-2"></i> @lang('Edit')
-        </a>
-        @endif
-        @if(adminAccessRoute(config('role.categories.access.delete')))
-        <a href="#" class="dropdown-item delete-role" data-id="{{ $category->id }}">
-            <i class="fa fa-trash text-danger me-2"></i> @lang('Delete')
+        <div class="dropdown-menu">
+            @if (adminAccessRoute(config('role.categories.access.edit')))
+                <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
+                    data-id="{{ $category->id }}" data-role="{{ $category->name }}"
+                    data-status="{{ $category->status }}">
+                    <i class="fa fa-edit text-warning me-2"></i> {{ __('accounts.edit') }}
+                </a>
             @endif
-        </a>
-    </div>
+            @if (adminAccessRoute(config('role.categories.access.delete')))
+                <a href="#" class="dropdown-item delete-role" data-id="{{ $category->id }}">
+                    <i class="fa fa-trash text-danger me-2"></i> {{ __('accounts.delete') }}
+            @endif
+            </a>
+        </div>
     @endif
 </div>
 
@@ -28,17 +29,17 @@
 
         // SweetAlert2 confirmation dialog
         Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
+            title: "{{ __('accounts.are_you_sure') }}",
+            text: "{!! __('accounts.warning_text') !!}",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: "{{ __('accounts.yes_delete_it') }}"
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '{{ route("admin.category.delete") }}', // Your delete route
+                    url: '{{ route('admin.category.delete') }}', // Your delete route
                     method: 'DELETE',
                     data: {
                         _token: '{{ csrf_token() }}',
@@ -47,7 +48,7 @@
                     success: function(response) {
                         // Handle success
                         Swal.fire(
-                            'Deleted!',
+                            "{{ __('accounts.deleted') }}",
                             response.message, // Success message
                             'success'
                         );
@@ -58,8 +59,8 @@
                     error: function(xhr, status, error) {
                         // Handle error
                         Swal.fire(
-                            'Error!',
-                            'There was an error deleting the role.',
+                            "{{ __('accounts.error') }}",
+                            "{{ __('accounts.delete_error') }}",
                             'error'
                         );
                     }

@@ -290,11 +290,9 @@ class AccountManagementController extends Controller
         }
     }
 
-
-
     public function accountGroup()
     {
-        $pageTitle = "Account Group";
+        $pageTitle = __('accounts.account_group');
 
         // Get all groups with their related accounts
         $groups = Group::with(['accounts'])->get();

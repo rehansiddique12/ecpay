@@ -104,7 +104,7 @@
                                 <!-- Password -->
                                 <div class="form-group col-md-6">
                                     <label class="text-dark">{{ __('Password') }}:</label>
-                                    <input type="password" name="password" placeholder="Password" autocomplete="off"
+                                    <input type="password" name="edit_password" placeholder="Password" autocomplete="off"
                                         class="form-control">
                                 </div>
 
@@ -424,7 +424,7 @@
                 { data: 'email', name: 'email' },
                 { data: 'phone', name: 'phone' },
                 { data: 'status', name: 'status', orderable: false },
-                @if(adminAccessRoute(config('role.manage_staff.access.edit')))
+                @if(partnerAccessRoute(config('role.manage_staff.access.edit')))
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 @endif
             ],

@@ -297,7 +297,7 @@
 
                                                 <span class="badge badge-light"><i class="fa fa-circle {{ $classColor }} font-12"></i> @lang('Completed')</span>
                                                 <br>
-                                                <span class="{{ $classColor }}">{{ optional($fund->payment)->e_wallet_phone_number }}</span>
+                                                <span class="{{ $classColor }}">{{ $fund->e_wallet_phone_number }}</span>
                                                 @elseif($fund->status == 3)
                                                 <span class="badge badge-light"><i class="fa fa-circle text-danger danger font-12"></i> @lang('Rejected')</span>
                                                 <br>
@@ -423,12 +423,12 @@
                                             <td data-label="@lang('Date')"> {{ dateTime($item->created_at,'d M,Y H:i') }}</td>
                                              <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                                                 {{ $item->trx_id }}<br>
-                                                <span class="text text-success">{{ optional($item->payout)->txn_id }}</span>
+                                                <span class="text text-success">{{ $item->txn_id }}</span>
 
                                             </td>
-                                            <td>{{ optional($item->payout)->partner_transection_id }}
+                                            <td>{{ $item->partner_transection_id }}
                                                 <br>
-                                                {{ optional($item->payout)->member_id }}
+                                                {{ $item->member_id }}
                                             </td>
                                             <td data-label="@lang('Username')">
                                                 @if(optional($item->user)->username!="dummyuser")
@@ -453,46 +453,46 @@
                                                 @endif
 
                                             </td>
-                                            <td>{{ optional($item->method)->name }}</td>
+                                            <td>{{ $item->e_wallet_name }}</td>
                                             <td>{{ $item->user_account_no }}</td>
                                             <td data-label="@lang('Amount')"
                                                 class="font-weight-bold">{{ getAmount($item->amount,2 ) }} {{$basic->currency_symbol}}</td>
                                             <td data-label="@lang('Charge')"
-                                                class="text-success">{{ getAmount(optional($item->payout)->charge,2) }} {{$basic->currency_symbol}}</td>
+                                                class="text-success">{{ getAmount($item->charge,2) }} {{$basic->currency_symbol}}</td>
 
                                             <td data-label="@lang('Net Amount')"
-                                                class="font-weight-bold">{{ getAmount($item->net_amount,2) }} {{$basic->currency_symbol}}</td>
+                                                class="font-weight-bold">{{ getAmount($item->amount + $item->charge,2) }} {{$basic->currency_symbol}}</td>
 
                                             <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                                @if($item->status == 2)
+                                                @if($item->transfer_status == 2)
                                                     <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Request Approved')</span>
-                                                @elseif($item->status == 1)
+                                                @elseif($item->transfer_status == 1)
                                                     <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Request Pending')</span>
-                                                @elseif($item->status == 3)
+                                                @elseif($item->transfer_status == 3)
                                                     <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Request Rejected')</span>
                                                 @endif
                                                 <br>
-                                                @if($item->payout)
-                                                @if($item->payout->status == "Complete")
+                                                
+                                                @if($item->status == "Complete")
                                                     <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Transfered')</span>
-                                                @elseif($item->payout->status == "Pending")
+                                                @elseif($item->status == "Pending")
                                                     <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Transfer Pending')</span>
-                                                @elseif($item->payout->status == "Reject")
+                                                @elseif($item->status == "Reject")
                                                     <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Transfer Rejected')</span>
                                                 @else
-                                                {{$item->payout->status}}
+                                                {{$item->status}}
                                                 @endif
-                                                @endif
+                                               
                                             </td>
                                             <td>
                                                 {{$item->feedback}}
                                             </td>
                                             <td data-label="@lang('Method')">
-                                                {{ optional($item->payout)->e_wallet_phone_number }}
+                                                {{ $item->e_wallet_phone_number }}
                                                 <br>
-                                                {{ optional($item->payout)->e_wallet_type }}
+                                                {{ $item->e_wallet_type }}
                                             </td>
-                                            <td data-label="@lang('Method')">{{ optional($item->payout)->source }}</td>
+                                            <td data-label="@lang('Method')">{{ $item->source }}</td>
 
                                             <td>
                                                 <div class="dropdown">

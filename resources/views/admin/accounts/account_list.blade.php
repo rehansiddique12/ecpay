@@ -5,7 +5,7 @@
     $currentRoute = Route::currentRouteName();
     @endphp
 
-   <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
             <div class="col-md-12">
                 <div class="row ">
@@ -30,6 +30,16 @@
                             </button>
                         </div>
                         @endif
+                        @if(adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.on_off_account') }}" class="menu-link">
+                                    <div data-i18n="Add Accounts">On/Off Accounts</div>
+                                </a>
+                            </button>
+                        </div>
+                        @endif
                         @if(adminAccessRoute(config('role.account_group.access.view')))
                         <div>
                             <button
@@ -41,14 +51,14 @@
                         </div>
                         @endif
                         @if(adminAccessRoute(config('role.gateways.access.view')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
-                                        <div data-i18n="Gateway">Gateway</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                    <div data-i18n="Gateway">Gateway</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if(adminAccessRoute(config('role.categories.access.view')))
                         <div>
@@ -68,7 +78,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">

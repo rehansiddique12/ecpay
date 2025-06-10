@@ -11,13 +11,15 @@ use App\Models\Gateway;
 
 use App\Models\Category;
 use App\Models\AccountGroup;
-use Illuminate\Http\Request;
+use App\Models\UserLocation;
 
+use Illuminate\Http\Request;
 use App\Models\AccountGateway;
 use App\Models\EWalletAccount;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\UserLocation;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -27,48 +29,85 @@ class CategoryController extends Controller
     {
         $data['methods'] = Gateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::all();
-
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
 
-        $data['records'] = EWalletAccount::with(['apiHits' => function ($query) {
-            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        } ,'location' , 'accountGroups.group'])->paginate(1000);
+        $today = Carbon::today();
 
-        foreach ($data['records'] as $record) {
-            $record->live = $record->apiHits ? 1 : 0; // If relation exists, set live = 1
-        }
+        // Payments Subquery
+        $paymentsSubQuery = DB::table('payments')
+            ->selectRaw('
+        e_wallet_phone_number,
+        COUNT(*) as today_transaction_count,
+        SUM(amount) as today_total_deposit
+    ')
+            ->whereDate('created_at', $today)
+            ->where('status', 'Complete')
+            ->groupBy('e_wallet_phone_number');
+
+        // Payouts Subquery
+        $payoutsSubQuery = DB::table('payouts')
+            ->selectRaw('
+        e_wallet_phone_number,
+        COUNT(*) as today_payout_count,
+        SUM(amount) as today_total_payout
+    ')
+            ->whereDate('created_at', $today)
+            ->where('status', 'Complete')
+            ->groupBy('e_wallet_phone_number');
+
+        $data['records'] = EWalletAccount::leftJoinSub($paymentsSubQuery, 'p', function ($join) {
+            $join->on('e_wallet_accounts.account_no', '=', 'p.e_wallet_phone_number');
+        })
+            ->leftJoinSub($payoutsSubQuery, 'po', function ($join) {
+                $join->on('e_wallet_accounts.account_no', '=', 'po.e_wallet_phone_number');
+            })
+            ->with([
+                'apiHits' => function ($query) {
+                    $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+                },
+                'location',
+                'accountGroups.group'
+            ])
+            ->select(
+                'e_wallet_accounts.*',
+                DB::raw('COALESCE(p.today_transaction_count, 0) as today_transaction_count'),
+                DB::raw('COALESCE(p.today_total_deposit, 0) as today_total_deposit'),
+                DB::raw('COALESCE(po.today_payout_count, 0) as today_payout_count'),
+                DB::raw('COALESCE(po.today_total_payout, 0) as today_total_payout')
+            )
+            ->paginate(1000);
 
         return view('admin.accounts.ewallet_accounts', $data);
     }
 
     public function addAccount(Request $request)
     {
-        $pageTitle = 'Add New Account';
+        $pageTitle = __('accounts.add_new_account');
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
-        $users_locations=UserLocation::where('status' , 1)->get();
-        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations'));
+        $users_locations = UserLocation::where('status', 1)->get();
+        return view('admin.accounts.add_account', compact('pageTitle', 'categories', 'methods', 'groups', 'users_locations'));
     }
 
-    public function editAccount(Request $request , $id)
+    public function editAccount(Request $request, $id)
     {
-        $pageTitle = 'Edit New Account';
+        $pageTitle = __('accounts.edit_new_account');
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
-        $users_locations=UserLocation::where('status' , 1)->get();
+        $users_locations = UserLocation::where('status', 1)->get();
 
-        $e_wallet_account= EWalletAccount::findOfFail($id);
+        $e_wallet_account = EWalletAccount::findOfFail($id);
 
-        return view('admin.accounts.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account'));
+        return view('admin.accounts.edit_account', compact('pageTitle', 'categories', 'methods', 'groups', 'users_locations', 'e_wallet_account'));
     }
 
     public  function  addCategory(Request $request)
     {
-        $pageTitle = 'Categories List';
+        $pageTitle = __('accounts.categories_list');
         // $categories = Category::select('name' , 'id' , 'status')->get();
 
         if (request()->ajax()) {
@@ -79,9 +118,9 @@ class CategoryController extends Controller
 
                 ->addColumn('status', function ($category) {
                     $statusClass = $category->status == 1 ? 'bg-success' : 'bg-danger';
-                    $statusText = $category->status == 1 ? 'Active' : 'Deactive';
+                    $statusText = $category->status == 1 ? "Active" : 'Deactive';
 
-                    return '<span class="toggle-status" data-id="' . $category->id . '" style="cursor:pointer;">' . ($category->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '</span>';
+                    return '<span class="toggle-status" data-id="' . $category->id . '" style="cursor:pointer;">' . ($category->status == 1 ? '<span class="badge bg-success">' . __('accounts.active') . '</span>' : '<span class="badge bg-danger">' . __('accounts.inactive') . '</span>') . '</span>';
                 })
                 ->addColumn('action', function ($category) {
                     return view('admin.accounts.partials.location-actions', compact('category'))->render();
@@ -174,7 +213,7 @@ class CategoryController extends Controller
 
     public function gateway()
     {
-        $pageTitle = 'Gateways';
+        $pageTitle = __('accounts.gateways');
         if (request()->ajax()) {
             $gateways = Gateway::orderBy('id', 'DESC');
 
@@ -187,7 +226,7 @@ class CategoryController extends Controller
                                 data-id="' . $gateways->id . '"
                                 data-url="' . $toggleRoute . '"
                                 style="cursor: pointer;">
-                                ' . ($gateways->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '
+                                ' . ($gateways->status == 1 ? '<span class="badge bg-success">' . __('accounts.active') . '</span>' : '<span class="badge bg-danger">' . __('accounts.inactive') . '</span>') . '
                             </span>';
                 })
                 ->addColumn('action', function ($gateway) {
@@ -197,7 +236,7 @@ class CategoryController extends Controller
                 ->make(true);
         }
         $categories = Category::all();
-        return view('admin.accounts.add_gateway', compact('pageTitle' , 'categories'));
+        return view('admin.accounts.add_gateway', compact('pageTitle', 'categories'));
     }
 
 
@@ -234,8 +273,8 @@ class CategoryController extends Controller
     public function getAccountsByCategory($category_id)
     {
         $accounts = Gateway::where('category_id', $category_id)
-                        ->where('status', 1)
-                        ->get(['id', 'name', 'currency']);
+            ->where('status', 1)
+            ->get(['id', 'name', 'currency']);
 
         return response()->json($accounts);
     }
@@ -252,5 +291,34 @@ class CategoryController extends Controller
         $account->save();
 
         return response()->json(['success' => true, 'message' => 'Status updated.']);
+    }
+
+    public function onOffAccount()
+    {
+        $pageTitle = __('accounts.on_off_account');
+        $records = EWalletAccount::with(['apiHits' => function ($query) {
+            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        }, 'location', 'accountGroups.group'])->paginate(1000);
+
+        foreach ($records as $record) {
+            $record->live = $record->apiHits ? 1 : 0;
+        }
+        return view('admin.accounts.on_off_account', compact('pageTitle', 'records'));
+    }
+
+    public function updateAccountType(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:e_wallet_accounts,id',
+            'account_type' => 'nullable|in:Deposit,Withdrawal,Both',
+        ]);
+        $wallet = EWalletAccount::findOrFail($request->id);
+        $wallet->account_type = $request->account_type;
+        $wallet->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account type updated successfully!',
+        ]);
     }
 }

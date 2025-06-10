@@ -115,7 +115,7 @@
                                 @endif
 
                             </td>
-                            <td>{{ optional($item->gateway)->name }}</td>
+                            <td>{{ $item->e_wallet_name }}</td>
                             <td>{{ $item->user_account_no }}</td>
                             <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($item->amount,2 ) }}
                                 {{$basic->currency_symbol}}</td>
@@ -454,83 +454,6 @@
 
     </script>
 
-    <script>
-        (function (jQuery) {
-
-            jQuery(document).ready(function () {
-                jQuery(document).on("click", '.edit_button', function (e) {
-                    var id = jQuery(this).data('id');
-                    jQuery(".action_id").val(id);
-                    jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
-                    // var details = Object.entries(jQuery(this).data('info'));
-                    var list = [];
-                    var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
-                    // details.map(function (item, i) {
-                    //     if (item[1].type == 'file') {
-                    //         var singleInfo = `<br><img src="${ImgPath}/${item[1].field_name}" alt="..." class="w-50">`;
-                    //     } else {
-                    //         var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
-                    //     }
-                    //     list[i] = `<li class="list-group-item"><span class="font-weight-bold">${item[0].replace('_', " ")}</span> : ${singleInfo}</li>`;
-                    // });
-
-                    console.log(jQuery(this).data('status'));
-
-                    if (jQuery(this).data('status') == '2') {
-                        jQuery('#submit1').hide();
-                        jQuery('#submit2').show();
-                        jQuery('#submit3').show();
-                    } else if (jQuery(this).data('status') == '3') {
-                        jQuery('#submit1').hide();
-                        jQuery('#submit2').hide();
-                        jQuery('#submit3').hide();
-                    } else {
-                        jQuery('#submit1').show();
-                        jQuery('#submit2').hide();
-                        jQuery('#submit3').show();
-                    }
-
-                    if (jQuery(this).data('statusb') == 'Complete') {
-                        jQuery('#submit4').show();
-                        jQuery('#submit2').hide();
-                    } else {
-                        jQuery('#submit4').hide();
-                    }
-
-                    // list[details.length + 1] = ``;
-
-                    jQuery('.addForm').html(`
-                    <div class="form-group">
-                        <label for="feedback">@lang('Remarks')</label>
-                        <select class="form-control" name="feedback" id="feedback">
-                            <option value="">@lang('Select Feedback')</option>
-                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
-                            <option value="account_limit_over">@lang('Account limit over')</option>
-                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
-                            <option value="nagad_server_down">@lang('Nagad server down')</option>
-                            <option value="bkash_server_down">@lang('bKash server down')</option>
-                            <option value="rocket_server_down">@lang('Rocket server down')</option>
-                            <option value="others">@lang('Others')</option>
-                        </select>
-                    </div>
-                `);
-
-                    jQuery('.withdraw-detail').html(list);
-                });
-            });
-
-            jQuery(document).on("click", '.edit_buttonc', function (e) {
-                var id = jQuery(this).data('id');
-                var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
-
-                jQuery(".action_id").val(id);
-                jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
-            });
-
-        })(jQuery);
-
-
-    </script>
 
     <script>
         $(document).ready(function () {
@@ -676,6 +599,67 @@
             });
         });
     </script>
+
+<script>
+            $(document).on("click", '.edit_button', function (e) {
+                var id = $(this).data('id');
+                $(".action_id").val(id);
+                $(".actionRoute").attr('action', $(this).data('route'));
+
+                var list = [];
+                var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
+
+                console.log($(this).data('status'));
+
+                if ($(this).data('status') == '2') {
+                    $('#submit1').hide();
+                    $('#submit2').show();
+                    $('#submit3').show();
+                } else if ($(this).data('status') == '3') {
+                    $('#submit1').hide();
+                    $('#submit2').hide();
+                    $('#submit3').hide();
+                } else {
+                    $('#submit1').show();
+                    $('#submit2').hide();
+                    $('#submit3').show();
+                }
+
+                if ($(this).data('statusb') == 'Complete') {
+                    $('#submit4').show();
+                    $('#submit2').hide();
+                } else {
+                    $('#submit4').hide();
+                }
+
+                $('.addForm').html(`
+                    <div class="form-group">
+                        <label for="feedback">@lang('Remarks')</label>
+                        <select class="form-control" name="feedback" id="feedback">
+                            <option value="">@lang('Select Feedback')</option>
+                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
+                            <option value="account_limit_over">@lang('Account limit over')</option>
+                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
+                            <option value="nagad_server_down">@lang('Nagad server down')</option>
+                            <option value="bkash_server_down">@lang('bKash server down')</option>
+                            <option value="rocket_server_down">@lang('Rocket server down')</option>
+                            <option value="others">@lang('Others')</option>
+                        </select>
+                    </div>
+                `);
+
+                $('.withdraw-detail').html(list);
+            });
+
+            $(document).on("click", '.edit_buttonc', function (e) {
+                var id = $(this).data('id');
+                var e_wallet_phone_number = $(this).data('e_wallet_phone_number');
+
+                $(".action_id").val(id);
+                $(".e_wallet_phone_number").val(e_wallet_phone_number);
+            });
+</script>
+
     @endpush
     @push('styles')
     <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">

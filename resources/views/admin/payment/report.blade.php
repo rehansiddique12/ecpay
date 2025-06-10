@@ -91,6 +91,13 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>User</label>
+                        <input type="text" name="name" value="{{@request()->name}}" class="form-control"
+                               placeholder="@lang('Type Here')">
+                    </div>
+                </div>
 
 
                 <div class="col-md-3">
@@ -125,10 +132,10 @@
                                 class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     </div>
                     <div class="form-group mt-2">
-                        <a href="{{ route('admin.merchant_reports.export_by_logs', ['from_date' => $from_date]) }}"
-                        class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
-                     </a>
+                        <input type="hidden" name="export" id="exportInput" value="">
+                        <button type="submit" class="btn waves-effect waves-light btn-success" onclick="document.getElementById('exportInput').value = 1;">
+                            <i class="fas fa-download"></i> @lang('Export Data')
+                        </button>
                     </div>
                 </div>
 
@@ -231,7 +238,7 @@
                                 </td>
 
                                 <td>
-                                    {{-- {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }} --}}
+                                    {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
                                 </td>
 
                                 <td data-label="@lang('Username')">
@@ -246,13 +253,13 @@
                                 <td class="font-weight-bold">{{ $fund->sender }}</td>
                                 <td data-label="@lang('Amount')" class="font-weight-bold">
                                     {{ getAmount($fund->amount) }}
-                                    {{ $fund->gateway->currency }}</td>
+                                    {{ $fund->gateway?->currency }}</td>
                                 <td data-label="@lang('Charge')" class="text-success">
                                     {{ getAmount($fund->charge) }}
-                                    {{ $fund->gateway->currency }}</td>
+                                    {{ $fund->gateway?->currency }}</td>
                                 <td data-label="@lang('Payable')" class="font-weight-bold">
                                     {{ getAmount($fund->amount) - getAmount($fund->charge) }}
-                                    {{ $fund->gateway->currency }}
+                                    {{ $fund->gateway?->currency }}
                                 </td>
 
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
@@ -281,12 +288,7 @@
                                         @php
                                             // Check if the fund has a payment and if completed_source is set
                                             if ($fund->completed_source != 'AdminPanel') {
-                                                // Dynamically assign the class based on completed_source
-                                                // if ($fund->payment->completed_source != "AdminPanel") {
                                                 $classColor = 'bg-success';
-                                                // } else {
-                                                // $classColor = "text-purple purple ";
-                                                // }
                                             } else {
                                                 $classColor = 'bg-primary';
                                             }
@@ -298,7 +300,7 @@
                                             @lang('Completed')</span>
                                         <br>
                                         <span
-                                            class="{{ $classColor }}">{{ optional($fund->payment)->e_wallet_phone_number }}</span>
+                                            class="{{ $classColor }}">{{ $fund->e_wallet_phone_number }}</span>
                                     @elseif($fund->status == 'Reject')
                                         <span class="badge bg-danger"><i
                                                 class="fa fa-circle text-white danger font-12"></i>

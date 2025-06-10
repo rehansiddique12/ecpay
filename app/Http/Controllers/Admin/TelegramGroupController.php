@@ -147,7 +147,8 @@ class TelegramGroupController extends Controller
     {
         $records = TelegramGroup::paginate('20');
         $partners = Api::where('type', 'Admin')->pluck('name', 'id');
-        $pageTitle = $title = "Manage Telegram Groups";
+        // $pageTitle = $title = "Manage Telegram Groups";
+        $pageTitle = $title = __('accounts.manage_telegram_groups');
 
         return view('admin.group.api', compact('records', 'pageTitle', 'title', 'partners'));
     }
@@ -774,9 +775,26 @@ class TelegramGroupController extends Controller
                                                                 /////////////////////////////////
 
                                                                 DB::beginTransaction();
-                                                                $payment = PendingPayment::where('txn_id', $txnId)->lockForUpdate()->first();
+                                                                $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
                                                                 if($payment){
                                                                     if($payment){
+
+                                                                            $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                                                                            if ($check_payment_txn) {
+                                                                                DB::rollBack();
+
+                                                                                $message = "By This Txn no, Payment Already Completed.";
+
+                                                                                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                    'chat_id' => $TG_message['chat']['id'],
+                                                                                    'text' => $message,
+                                                                                    'parse_mode' => 'Markdown',
+                                                                                    'reply_to_message_id' => $TG_message['message_id']
+                                                                                ]);
+
+                                                                                $image_processed=1;
+                                                                                return response()->json(['status' => 'success'], 200);
+                                                                            }
                                                                         // Add amount validation
                                                                         if(isset($amount) && $amount > 0) {
                                                                             $expectedAmount = $deposit->amount;
@@ -887,11 +905,11 @@ class TelegramGroupController extends Controller
 
                                                                                     $parent_charge = 0;
 
-                                                                                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                                                                                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                                                                                     if ($parent_commission) {
                                                                                         $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
                                                                                     } else {
-                                                                                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                                                                                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                                                                                         if ($parent_commission) {
                                                                                             $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
                                                                                         }
@@ -984,6 +1002,10 @@ class TelegramGroupController extends Controller
 
 
                                                                                     $order->save();
+
+                                                                                    $payment->status = 1;
+                                                                                    $payment->save();
+                                                                                    $payment=null;
                                                                                     // $payment->delete();
 
 
@@ -1026,38 +1048,41 @@ class TelegramGroupController extends Controller
 
                                                                                         DB::beginTransaction();
                                                                                         $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                                                                                        $parent_api_key->balance += $PartnerCommission->profit;
-                                                                                        $parent_api_key->save();
+                                                                                        if($parent_api_key){
+                                                                                            $parent_api_key->balance += $PartnerCommission->profit;
+                                                                                            $parent_api_key->save();
 
-                                                                                        $Log = new Log();
-                                                                                        $Log->date_time = $PartnerCommission->created_at;
-                                                                                        $Log->final_amount = $PartnerCommission->profit;
-                                                                                        $Log->balance = $parent_api_key->balance;
-                                                                                        $Log->transection_type = 5;
-                                                                                        $Log->transection_id = $PartnerCommission->id;
-                                                                                        $Log->partner_id = $PartnerCommission->from_id;
-                                                                                        $Log->source = 'Telegram';
-                                                                                        $Log->save();
-                                                                                        DB::commit();
+                                                                                            $Log = new Log();
+                                                                                            $Log->date_time = $PartnerCommission->created_at;
+                                                                                            $Log->final_amount = $PartnerCommission->profit;
+                                                                                            $Log->balance = $parent_api_key->balance;
+                                                                                            $Log->transection_type = 5;
+                                                                                            $Log->transection_id = $PartnerCommission->id;
+                                                                                            $Log->partner_id = $PartnerCommission->from_id;
+                                                                                            $Log->source = 'Telegram';
+                                                                                            $Log->save();
+                                                                                            DB::commit();
 
-                                                                                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                                                                                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                                                                                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                                                                            $amount_to_update = round($amount_to_update, 2);
-                                                                                            // $amount_to_update = floor($amount_to_update * 100) / 100;
-                                                                                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                                                                                            $DailyPartnerSummary_record->save();
+                                                                                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                                                                                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                                                                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                                                                                                $amount_to_update = round($amount_to_update, 2);
+                                                                                                // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                                                                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                                                                                $DailyPartnerSummary_record->save();
 
-                                                                                            $summary_log = new DailyPartnerSummaryLog();
-                                                                                            $summary_log->partner_id = $parent_api_key->id;
-                                                                                            $summary_log->partner_balance = $parent_api_key->balance;
-                                                                                            $summary_log->payment_id = $PartnerCommission->id;
-                                                                                            $summary_log->total_amount = $PartnerCommission->profit;
-                                                                                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                                                                                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                                                                            $summary_log->source = 'Telegram';
-                                                                                            $summary_log->save();
+                                                                                                $summary_log = new DailyPartnerSummaryLog();
+                                                                                                $summary_log->partner_id = $parent_api_key->id;
+                                                                                                $summary_log->partner_balance = $parent_api_key->balance;
+                                                                                                $summary_log->payment_id = $PartnerCommission->id;
+                                                                                                $summary_log->total_amount = $PartnerCommission->profit;
+                                                                                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                                                                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                                                                                $summary_log->source = 'Telegram';
+                                                                                                $summary_log->save();
+                                                                                            }
                                                                                         }
+
                                                                                     }
                                                                 }
                                                                                     if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
@@ -1577,9 +1602,12 @@ class TelegramGroupController extends Controller
 
 
                                                     if ($imageContent && $httpCode === 200) {
-                                                        $tempImagePath = storage_path('app/temp_' . time() . '.jpg');
+                                                        $tempPath = 'ocr_' . time() . '.jpg';
+                                                        $tempImagePath = storage_path('app/public/ocr_images/' . $tempPath);
                                                         file_put_contents($tempImagePath, $imageContent);
+                                                        $imageUrl = url('storage/app/public/ocr_images/' . $tempPath);
                                                         LaravelLog::info("Image saved temporarily at: $tempImagePath");
+                                                        LaravelLog::info("Image saved temporarily at: $imageUrl");
 
                                                         try {
                                                             $apiKey = env('OCR_SPACE_API_KEY', 'K83793710188957');  // Update this with your new API key
@@ -2042,7 +2070,463 @@ class TelegramGroupController extends Controller
                                 }
 
 
-                        }elseif(strpos($lowercaseText, "/callback") === 0){
+                        }
+                        elseif(strpos($lowercaseText, "/newocr") === 0){
+
+
+
+
+                            $parts = explode(" ", $sender_message);
+                            $extractedText = '';
+
+                                $gateway_name = "";
+                            if(count($parts) >= 2) {
+                                $gateway_name = trim($parts[1]);
+                            }
+
+
+
+
+
+
+                            if (isset($TG_message['photo'])) {
+                                            $image_processed = 0;
+
+                                            try {
+                                                $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
+                                                $photo = end($TG_message['photo']);
+                                                $file_id = $photo['file_id'];
+                                                LaravelLog::info("Got file_id: $file_id");
+
+                                                // Get file info from Telegram
+                                                $getFileUrl = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$file_id}";
+                                                LaravelLog::info("Requesting file info from: $getFileUrl");
+                                                $fileData = Http::get($getFileUrl)->json();
+                                                LaravelLog::info("File info response: " . json_encode($fileData));
+
+
+
+                                                if (isset($fileData['ok']) && $fileData['ok'] === true) {
+                                                    $file_path = $fileData['result']['file_path'];
+                                                    $fileUrl = "https://api.telegram.org/file/bot{$botToken}/{$file_path}";
+                                                    LaravelLog::info("Downloading image from: $fileUrl");
+
+                                                    // Use cURL to fetch the image data because allow_url_fopen is disabled
+                                                    $ch = curl_init();
+                                                    curl_setopt($ch, CURLOPT_URL, $fileUrl);
+                                                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                                    $imageContent = curl_exec($ch);
+                                                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                                                    curl_close($ch);
+
+
+
+
+                                                    if ($imageContent && $httpCode === 200) {
+
+
+
+                                                        $tempPath = 'ocr_' . time() . '.jpg';
+                                                        $tempImagePath = storage_path('app/public/ocr_images/' . $tempPath);
+                                                        file_put_contents($tempImagePath, $imageContent);
+                                                        $imageUrl = url('storage/app/public/ocr_images/' . $tempPath);
+                                                        LaravelLog::info("Image saved temporarily at: $tempImagePath");
+                                                        LaravelLog::info("Image saved temporarily at: $imageUrl");
+
+
+
+                                                        $ocrtext = "";
+
+                                                                $response = Http::withHeaders([
+                                                                    'Content-Type' => 'application/json',
+                                                                ])->post('http://89.46.62.251/ocr/api/applyocr', [
+                                                                    'imageurl' => $imageUrl,
+                                                                ]);
+
+
+
+                                                                LaravelLog::info("OCR API Raw Response: " . $response);
+
+
+
+                                                                if ($response->successful()) {
+                                                                    $ocr_response = $response->json();
+
+                                                                    if(isset($ocr_response['ocr_text'])){
+                                                                      $ocrtext = $ocr_response['ocr_text'];
+                                                                    }
+
+                                                                } else {
+
+                                                                    $message = 'Unexpected error occurred.';
+                                                                    $response = Http::post($url, [
+                                                                        'chat_id' => $sender_chat['id'],
+                                                                        'text' => $message,
+                                                                        'reply_to_message_id' => $TG_message['message_id'],
+                                                                        'parse_mode' => 'Markdown',
+                                                                    ]);
+                                                                }
+
+                                                                LaravelLog::info("OCR API Raw Response: " . $ocrtext);
+
+
+                                                        try {
+
+
+
+
+                                                            $extractedText = $ocrtext;
+                                                                if (isset($extractedText)) {
+
+                                                                    LaravelLog::info("Successfully extracted text from image: " . $extractedText);
+
+                                                                    /////////////////////////////
+                                                                    //////////////////////////////
+                                                                    /////////////////////////////////
+
+                                                                    // Initialize the gateway_name variable with a default value
+                                                                    $gateway_name = $deposit->gateway->name ?? '';
+
+                                                                    if(strtolower($gateway_name)=="bkash"){
+                                                                        // Enhanced bKash transaction ID patterns
+                                                                        $txnId = null;
+                                                                        $patterns = [
+                                                                            // CDR/CD/CDP patterns with more flexible length
+                                                                            '/\b(?:CDR|CD|CDP)[0-9A-Z]{6,12}\b/i',
+                                                                            // Generic bKash transaction pattern
+                                                                            '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{6,12})\b/i',
+                                                                            // Transaction ID with ID label
+                                                                            '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{6,12})\b/i',
+                                                                            // Fallback pattern for any alphanumeric sequence that looks like a transaction ID
+                                                                            '/\b(?:[A-Z]{2,4}[0-9A-Z]{6,12})\b/'
+                                                                        ];
+
+                                                                        foreach ($patterns as $pattern) {
+                                                                            if (preg_match($pattern, $extractedText, $matches)) {
+                                                                                $txnId = $matches[0];
+                                                                                LaravelLog::info("Found bKash Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
+                                                                                break;
+                                                                            }
+                                                                        }
+
+                                                                        // Phone number patterns
+                                                                        if (preg_match('/(?:Account|Number)\s*:?\s*(01\d{9})/', $extractedText, $matches) ||
+                                                                            preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1];
+                                                                            LaravelLog::info("Found phone number: " . $phone_number_by_telegram_message);
+                                                                        }
+                                                                    } elseif(strtolower($gateway_name)=="nagad"){
+                                                                        LaravelLog::info("Processing Nagad payment with text: " . $extractedText);
+
+                                                                        // Enhanced Nagad transaction ID patterns
+                                                                        $txnId = null;
+                                                                        $patterns = [
+                                                                            // 73 prefix pattern with flexible length
+                                                                            '/\b(?:73|NAGAD)[0-9A-Z]{5,10}\b/i',
+                                                                            // Transaction ID with ID label
+                                                                            '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{5,10})\b/i',
+                                                                            // Generic Nagad transaction pattern
+                                                                            '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{5,10})\b/i',
+                                                                            // Fallback pattern for any alphanumeric sequence that looks like a transaction ID
+                                                                            '/\b(?:[A-Z]{2,4}[0-9A-Z]{5,10})\b/'
+                                                                        ];
+
+                                                                        foreach ($patterns as $pattern) {
+                                                                            if (preg_match($pattern, $extractedText, $matches)) {
+                                                                                $txnId = $matches[0];
+                                                                                LaravelLog::info("Found Nagad Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
+                                                                                break;
+                                                                            }
+                                                                        }
+
+                                                                        // Phone number patterns - handle both formats
+                                                                        if (preg_match('/(\d{5})-(\d{6})/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1] . $matches[2];
+                                                                            LaravelLog::info("Found phone number with dash format: " . $phone_number_by_telegram_message);
+                                                                        }
+                                                                        elseif (preg_match('/\b(01\d{3})(\d{6})\b/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1] . $matches[2];
+                                                                            LaravelLog::info("Found phone number without dash: " . $phone_number_by_telegram_message);
+                                                                        }
+                                                                    }
+                                                                    elseif(strtolower($gateway_name)=="rocket"){
+                                                                        LaravelLog::info("Processing Rocket payment with text: " . $extractedText);
+
+                                                                        // Enhanced Rocket transaction ID patterns
+                                                                        $txnId = null;
+                                                                        $patterns = [
+                                                                            // 5359/5358 prefix pattern
+                                                                            '/\b(?:5359|5358)[0-9]{6,8}\b/',
+                                                                            // Transaction ID with ID label
+                                                                            '/\b(?:ID|Transaction ID)[\s#:]*([0-9]{10,12})\b/i',
+                                                                            // Generic Rocket transaction pattern
+                                                                            '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9]{10,12})\b/i',
+                                                                            // Fallback pattern for any numeric sequence that looks like a transaction ID
+                                                                            '/\b(?:[0-9]{10,12})\b/'
+                                                                        ];
+
+                                                                        foreach ($patterns as $pattern) {
+                                                                            if (preg_match($pattern, $extractedText, $matches)) {
+                                                                                $txnId = $matches[0];
+                                                                                LaravelLog::info("Found Rocket Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
+                                                                                break;
+                                                                            }
+                                                                        }
+
+                                                                        // Phone number patterns for Rocket
+                                                                        if (preg_match('/Cash-out\s*\((\d{11})\)/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1];
+                                                                            LaravelLog::info("Found phone number from Cash-out: " . $phone_number_by_telegram_message);
+                                                                        }
+                                                                        elseif (preg_match('/(?:Agent|Rocket)\s*A\/C\s*No\.?\s*:?\s*(\d{11})/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1];
+                                                                            LaravelLog::info("Found phone number from A/C No: " . $phone_number_by_telegram_message);
+                                                                        }
+                                                                        elseif (preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1];
+                                                                            LaravelLog::info("Found phone number generic format: " . $phone_number_by_telegram_message);
+                                                                        }
+                                                                    }
+
+                                                                    // If no specific provider pattern matched, try generic patterns as fallback
+                                                                    if (!isset($txnId) || empty($txnId)) {
+                                                                        $genericPatterns = [
+                                                                            // Generic transaction ID patterns
+                                                                            '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{6,12})\b/i',
+                                                                            '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{6,12})\b/i',
+                                                                            // Look for any sequence that might be a transaction ID
+                                                                            '/\b(?:[A-Z]{2,4}[0-9A-Z]{6,12})\b/',
+                                                                            '/\b(?:[0-9A-Z]{6,12})\b/'
+                                                                        ];
+
+                                                                        foreach ($genericPatterns as $pattern) {
+                                                                            if (preg_match($pattern, $extractedText, $matches)) {
+                                                                                $txnId = $matches[0];
+                                                                                LaravelLog::info("Found Transaction ID using generic pattern: " . $pattern . " - ID: " . $txnId);
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    // Validate the found transaction ID
+                                                                    if (isset($txnId) && !empty($txnId)) {
+                                                                        // Remove any non-alphanumeric characters
+                                                                        $txnId = preg_replace('/[^A-Z0-9]/i', '', $txnId);
+
+                                                                        // Log the final transaction ID
+                                                                        LaravelLog::info("Final Transaction ID after validation: " . $txnId);
+                                                                    }
+
+                                                                    // Generic phone number pattern as fallback
+                                                                    if (!isset($phone_number_by_telegram_message) || empty($phone_number_by_telegram_message)) {
+                                                                        if (preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
+                                                                            $phone_number_by_telegram_message = $matches[1];
+                                                                        }
+                                                                    }
+
+
+                                                                    /////////////////////////////
+                                                                    //////////////////////////////
+                                                                    /////////////////////////////////
+
+                                                                    // Format the message with extracted information
+                                                                    $message = "?? *Extracted Information:*\n\n";
+
+                                                                    if (isset($txnId) && !empty($txnId)) {
+                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
+                                                                        LaravelLog::info("Adding transaction ID to message: " . $txnId);
+                                                                    }
+
+                                                                    // Multiple amount patterns for different formats
+                                                                    $amount = null;
+                                                                    $balance_amount = null;
+                                                                    $cash_out_amount = null;
+                                                                    $main_amount = null;
+
+                                                                    // Main amount with plus sign pattern (specifically extract $1,000.00 or ৮200.00)
+                                                                    if (preg_match('/(?:\$|৳|৮)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)\s*\+/i', $extractedText, $matches)) {
+                                                                        $main_amount = str_replace(',', '', $matches[1]);
+                                                                        LaravelLog::info("Found exact main amount: " . $main_amount);
+                                                                    }
+
+                                                                    // Bengali amount pattern with Bengali numerals
+                                                                    if (preg_match('/[আ্্যামাউন্ট|পরিমাণ]\s*([০-৯]+(?:\.\d{2})?)\s*টাকা/i', $extractedText, $matches)) {
+                                                                        // Convert Bengali numerals to English
+                                                                        $bengali_to_english = array(
+                                                                            '০' => '0', '১' => '1', '২' => '2', '৩' => '3', '৪' => '4',
+                                                                            '৫' => '5', '৬' => '6', '৭' => '7', '৮' => '8', '৯' => '9'
+                                                                        );
+                                                                        $amount = strtr($matches[1], $bengali_to_english);
+                                                                        LaravelLog::info("Found amount in Bengali numerals: " . $amount);
+                                                                    }
+                                                                    // Specific pattern for ৮2000.00 format - look for the larger number
+                                                                    elseif (preg_match('/[৮|০-৯](\d{3,}(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount in mixed Bengali-English format: " . $amount);
+                                                                    }
+                                                                    // Bengali amount pattern
+                                                                    elseif (preg_match('/পরিমাণ\s*(\d+(?:\.\d{2})?)\s*টাকা/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount in Bengali text: " . $amount);
+                                                                    }
+                                                                    // Taka symbol pattern (৳) - also handle $ misreading
+                                                                    elseif (preg_match('/(?:৳|\$)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = str_replace(',', '', $matches[1]);
+                                                                        LaravelLog::info("Found amount with Taka/dollar symbol: " . $amount);
+                                                                    }
+                                                                    // Cash Out Tk pattern - prioritize this
+                                                                    if (preg_match('/Cash\s+Out\s+Tk\s+(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $cash_out_amount = $matches[1];
+                                                                        LaravelLog::info("Found cash out amount: " . $cash_out_amount);
+                                                                    }
+                                                                    // Balance Tk pattern
+                                                                    if (preg_match('/Balance\s+Tk\s+(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $balance_amount = $matches[1];
+                                                                        LaravelLog::info("Found balance amount: " . $balance_amount);
+                                                                    }
+                                                                    // Tk pattern with space
+                                                                    elseif (preg_match('/Tk\s+(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount with Tk format: " . $amount);
+                                                                    }
+                                                                    // English Transaction Amount pattern
+                                                                    elseif (preg_match('/Transaction Amount\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount in English Transaction format: " . $amount);
+                                                                    }
+                                                                    // Amount with Tk/BDT pattern
+                                                                    elseif (preg_match('/Amount\s*:?\s*(\d+(?:\.\d{2})?)\s*(?:Tk|BDT)?/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount with Tk/BDT format: " . $amount);
+                                                                    }
+                                                                    // Amount with Taka/Tk pattern
+                                                                    elseif (preg_match('/Amount\s*:?\s*(\d+(?:\.\d{2})?)\s*(?:Taka|Tk)?/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount with Taka/Tk format: " . $amount);
+                                                                    }
+                                                                    // Generic amount pattern
+                                                                    elseif (preg_match('/\bAmount\s*:?\s*(\d+(?:\.\d{2})?)\b/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount using generic pattern: " . $amount);
+                                                                    }
+
+                                                                    // Use main amount first if available, then cash out amount, then balance amount, then regular amount
+                                                                    if ($main_amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $main_amount . "`\n";
+                                                                    } elseif ($cash_out_amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $cash_out_amount . "`\n";
+                                                                    } elseif ($balance_amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $balance_amount . "`\n";
+                                                                    } elseif ($amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $amount . "`\n";
+                                                                    }
+
+                                                                    if (isset($phone_number_by_telegram_message) && !empty($phone_number_by_telegram_message)) {
+                                                                        $message .= "?? *Phone:* `" . $phone_number_by_telegram_message . "`\n";
+                                                                        LaravelLog::info("Adding phone to message: " . $phone_number_by_telegram_message);
+                                                                    }
+
+                                                                    // Add the full extracted text at the bottom
+                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
+
+
+                                                                    LaravelLog::info("Final message being sent: " . $message);
+
+                                                                    $response = Http::post($url, [
+                                                                        'chat_id' => $sender_chat['id'],
+                                                                        'text' => $message,
+                                                                        'reply_to_message_id' => $TG_message['message_id'],
+                                                                        'parse_mode' => 'Markdown',
+                                                                    ]);
+
+
+
+                                                                } else {
+                                                                    LaravelLog::info('No text found in the image');
+                                                                    $message = "No text found in the image";
+                                                                    $response = Http::post($url, [
+                                                                        'chat_id' => $sender_chat['id'],
+                                                                        'text' => $message,
+                                                                        'reply_to_message_id' => $TG_message['message_id'],
+                                                                        'parse_mode' => 'Markdown',
+                                                                    ]);
+
+                                                                    $image_processed=1;
+
+                                                                }
+                                                        } catch (\Exception $e) {
+                                                            LaravelLog::error("OCR Processing Error: " . $e->getMessage());
+                                                            // $message = "Image Processing Error! Try Again. Please Attach clear image and add caption /ckorder XXX123XXX  for further checking.";
+                                                            // $response = Http::post($url, [
+                                                            //     'chat_id' => $sender_chat['id'],
+                                                            //     'text' => $message,
+                                                            //     'reply_to_message_id' => $TG_message['message_id'],
+                                                            //     'parse_mode' => 'Markdown',
+                                                            // ]);
+
+                                                            // $image_processed=1;
+                                                        }
+
+                                                        // Clean up temporary file
+                                                        if (file_exists($tempImagePath)) {
+                                                            // unlink($tempImagePath);
+                                                            LaravelLog::info("Temporary image file cleaned up: $tempImagePath");
+                                                        }
+                                                    } else {
+                                                        LaravelLog::error("Failed to download image content. HTTP Code: $httpCode");
+                                                    }
+                                                } else {
+                                                    LaravelLog::error("Failed to get file info from Telegram. Response: " . json_encode($fileData));
+                                                }
+                                            } catch (\Exception $e) {
+                                                LaravelLog::error("Processing exception: " . $e->getMessage());
+
+                                                $message = 'catch';
+                                                $response = Http::post($url, [
+                                                    'chat_id' => $sender_chat['id'],
+                                                    'text' => $message,
+                                                    'reply_to_message_id' => $TG_message['message_id'],
+                                                    'parse_mode' => 'Markdown',
+                                                ]);
+
+                                                return response()->json(['status' => 'success'], 200);
+                                            }
+
+                                            // if($image_processed==0){
+                                            //     $response = Http::post($url, [
+                                            //         'chat_id' => $sender_chat['id'],
+                                            //         'text' => 'naveed error',
+                                            //         'reply_to_message_id' => $TG_message['message_id'],
+                                            //         'parse_mode' => 'Markdown',
+                                            //     ]);
+                                            // }
+
+                                }else{
+                                    $message = 'Attach Image';
+                                        $response = Http::post($url, [
+                                            'chat_id' => $sender_chat['id'],
+                                            'text' => $message,
+                                            'reply_to_message_id' => $TG_message['message_id'],
+                                            'parse_mode' => 'Markdown',
+                                        ]);
+
+                                        return response()->json(['status' => 'success'], 200);
+                                }
+
+
+                        }
+
+
+
+
+
+
+
+
+
+
+                        elseif(strpos($lowercaseText, "/callback") === 0){
                             $deposit = Payment::where('partner_transection_id',$sender_message)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
                             if($deposit){
                                 if($deposit->status==1){

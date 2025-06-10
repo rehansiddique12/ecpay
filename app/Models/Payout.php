@@ -20,6 +20,7 @@ class Payout extends Model
         'mac_address',
         'payout_log_id',
         'status',
+        'check_by'
     ];
 
     // Add any relationships or additional methods here
@@ -36,6 +37,11 @@ class Payout extends Model
     public function api()
     {
         return $this->belongsTo(Api::class, 'api_id', 'id');
+    }
+
+    public function eWalletAccount()
+    {
+        return $this->hasOne(EWalletAccount::class, 'account_no', 'e_wallet_phone_number');
     }
 
     //  public function method()

@@ -99,7 +99,8 @@ public function profileUpdate(Request $request)
     public function dashboard()
     {
 
-        $pageTitle = 'Dashboard';
+        // $pageTitle = 'Dashboard';
+        $pageTitle = __('dashboard.dashboard');
         return view('admin.dashboard', compact('pageTitle'));
     }
 

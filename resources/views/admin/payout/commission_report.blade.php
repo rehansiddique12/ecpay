@@ -40,11 +40,11 @@
             <div class="col-md-4">
                 <div class="form-group">
                    <label>Parent</label>
-                   <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select Partner">
+                   <select name="parent" class="form-select select2" data-allow-clear="true" data-placeholder="Select Parent">
                         <option disabled selected></option>
-                        <option value="" @if(request()->partner === '') selected @endif>All</option>
+                        <option value="" @if(request()->parent === '') selected @endif>All</option>
                         @foreach($partners as $partner)
-                            <option value="{{ $partner->id }}" @selected(request()->partner == $partner->id)>{{ $partner->name }}</option>
+                            <option value="{{ $partner->id }}" @selected(request()->parent == $partner->id)>{{ $partner->name }}</option>
                         @endforeach
                     </select>
                 </div>

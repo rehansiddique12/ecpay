@@ -10,6 +10,15 @@ $arr = [
             'delete' => [],
         ],
     ],
+  'language' => [
+        'label' => 'Language Change',
+        'access' => [
+            'view' => ['lang.switch'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
     'manage_staff' => [
         'label' => 'Manage Staff',
         'access' => [
@@ -642,6 +651,25 @@ $arr = [
             ],
         ],
     ],
+
+    'agents' => [
+        'label' => 'Agent Managements',
+        'access' => [
+            'view' => [
+                'admin.agent.list',
+            ],
+            'add' => [
+
+            ],
+            'edit' => [
+
+            ],
+            'delete' => [
+
+            ],
+        ],
+    ],
+
 
     'partner_login' => [
         'label' => 'Admin Login Partners Access',
