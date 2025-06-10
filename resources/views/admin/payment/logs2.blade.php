@@ -111,6 +111,7 @@
                             </td>
 
                             <td>
+                                @if($fund->status=="Pending")
                                 @if($fund->sms_received==1)
                                     <span class="badge bg-success">SMS Received</span><br>
                                 @endif
@@ -119,6 +120,7 @@
                                 @endif
                                 @if($fund->duplicate==1)
                                     <span class="badge bg-danger">Duplicate</span><br>
+                                @endif
                                 @endif
                                 
                                 
