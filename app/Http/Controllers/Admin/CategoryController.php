@@ -118,9 +118,9 @@ class CategoryController extends Controller
 
                 ->addColumn('status', function ($category) {
                     $statusClass = $category->status == 1 ? 'bg-success' : 'bg-danger';
-                    $statusText = $category->status == 1 ? 'Active' : 'Deactive';
+                    $statusText = $category->status == 1 ? "Active" : 'Deactive';
 
-                    return '<span class="toggle-status" data-id="' . $category->id . '" style="cursor:pointer;">' . ($category->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '</span>';
+                    return '<span class="toggle-status" data-id="' . $category->id . '" style="cursor:pointer;">' . ($category->status == 1 ? '<span class="badge bg-success">' . __('accounts.active') . '</span>' : '<span class="badge bg-danger">' . __('accounts.inactive') . '</span>') . '</span>';
                 })
                 ->addColumn('action', function ($category) {
                     return view('admin.accounts.partials.location-actions', compact('category'))->render();
@@ -226,7 +226,7 @@ class CategoryController extends Controller
                                 data-id="' . $gateways->id . '"
                                 data-url="' . $toggleRoute . '"
                                 style="cursor: pointer;">
-                                ' . ($gateways->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '
+                                ' . ($gateways->status == 1 ? '<span class="badge bg-success">' . __('accounts.active') . '</span>' : '<span class="badge bg-danger">' . __('accounts.inactive') . '</span>') . '
                             </span>';
                 })
                 ->addColumn('action', function ($gateway) {

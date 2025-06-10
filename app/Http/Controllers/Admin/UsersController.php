@@ -136,7 +136,7 @@ class UsersController extends Controller
                                     data-id="' . $admin->id . '"
                                     data-url="' . $toggleRoute . '"
                                     style="cursor: pointer;">
-                                    ' . ($admin->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>') . '
+                                    ' . ($admin->status == 1 ? '<span class="badge bg-success">' . __('accounts.active') . '</span>' : '<span class="badge bg-danger">' . __('accounts.inactive') . '</span>') . '
                                 </span>';
                     })
                     ->editColumn('role_type', function ($admin) {
@@ -170,7 +170,7 @@ class UsersController extends Controller
                 // ->make(true);
         }
 
-        $pageTitle = 'User Management';
+        $pageTitle =  __('userManagement.user_managment') ;
         return view('admin.users.list', compact('users', 'pageTitle' , 'locations', 'userRoles'));
     }
 
@@ -323,7 +323,7 @@ class UsersController extends Controller
                     $statusClass = $location->status == 1 ? 'bg-success' : 'bg-danger';
                     $statusText = $location->status == 1 ? 'Active' : 'Deactive';
 
-                    return '<span class="toggle-status" data-id="'.$location->id.'" style="cursor:pointer;">'.($location->status == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactive</span>').'</span>';
+                    return '<span class="toggle-status" data-id="'.$location->id.'" style="cursor:pointer;">'.($location->status == 1 ? '<span class="badge bg-success">' . __('userManagement.active') . '</span>' : '<span class="badge bg-danger">' . __('userManagement.inactive') . '</span>').'</span>';
                 })
                 ->addColumn('action', function ($location) {
                     return view('admin.users.partials.location-actions', compact('location'))->render();
@@ -332,7 +332,7 @@ class UsersController extends Controller
                 ->make(true);
         }
 
-        $pageTitle = 'User Locations';
+        $pageTitle =  __('userManagement.user_locations') ;
         return view('admin.users.user-location', compact('pageTitle'));
 
 
@@ -355,7 +355,7 @@ class UsersController extends Controller
     public function roles_and_permission(Request $request)
     {
         $userLocations = UserLocation::orderBy('id', 'DESC')->paginate(config('basic.paginate'));
-        $pageTitle = 'Roles And Permission';
+        $pageTitle =  __('userManagement.roles_and_permission') ;
 
         // Get all roles
         $roles_list = UserRoles::where('used_for', 'Admin')->get();
@@ -422,7 +422,7 @@ class UsersController extends Controller
                 ->make(true);
         }
 
-        $pageTitle = 'Role Categories';
+        $pageTitle =  __('userManagement.role_categories') ;
         return view('admin.users.user-roles', compact('pageTitle' , 'roles_select_box'));
     }
 

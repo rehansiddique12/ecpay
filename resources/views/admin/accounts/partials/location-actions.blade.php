@@ -10,12 +10,12 @@
                 <a href="#" class="dropdown-item edit-roles" data-bs-toggle="modal" data-bs-target="#editModal"
                     data-id="{{ $category->id }}" data-role="{{ $category->name }}"
                     data-status="{{ $category->status }}">
-                    <i class="fa fa-edit text-warning me-2"></i> @lang('Edit')
+                    <i class="fa fa-edit text-warning me-2"></i> {{ __('accounts.edit') }}
                 </a>
             @endif
             @if (adminAccessRoute(config('role.categories.access.delete')))
                 <a href="#" class="dropdown-item delete-role" data-id="{{ $category->id }}">
-                    <i class="fa fa-trash text-danger me-2"></i> @lang('Delete')
+                    <i class="fa fa-trash text-danger me-2"></i> {{ __('accounts.delete') }}
             @endif
             </a>
         </div>
