@@ -248,7 +248,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/apis/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
-        Route::put('/apis/update/{id}', [PayoutRecordController::class, 'agentupdateApi'])->name('apis.agent.update');
+        Route::put('/apis/agent/update/{id}', [PayoutRecordController::class, 'agentupdateApi'])->name('apis.agent.update');
         Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
         Route::post('/apis/commission/add', [PayoutRecordController::class, 'apisCommissionAdd'])->name('apis.commission.add');
         // partner commission
