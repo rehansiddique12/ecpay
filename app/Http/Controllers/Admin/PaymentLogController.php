@@ -233,7 +233,7 @@ class PaymentLogController extends Controller
                         ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-        
+
             ->when($search['website'], function ($query) use ($search) {
                 $query->where('api_id', $search['website']);
             })
@@ -249,8 +249,8 @@ class PaymentLogController extends Controller
 
 
 
-            
-            
+
+
 
                 $data[] = ['Date', 'System Generated Txn', 'E-Wallet Txn', 'Partner Txn', 'User ID' ,'Username', 'User-Type', 'Method', 'User-Account-No', 'Amount', 'Charges', 'Final-Amount', 'Status', 'E-Wallet-No', 'Website', 'Source', 'Completed-At'];
                 foreach ($funds as $fund) {
@@ -268,13 +268,13 @@ class PaymentLogController extends Controller
                     } elseif ($fund->status == "Reject") {
                         $status = "Rejected";
                     }
-    
+
                     $data[] = [$fund->created_at, $fund->transaction, $fund->txn_id, $partner_transection_id, $fund->member_id  , $user_name, $user_type, optional($fund->gateway)->name, $fund->sender, getAmount($fund->amount), getAmount($fund->charge), getAmount($fund->amount + $fund->charge), $status, $fund->e_wallet_phone_number, optional($fund->api)->website, $fund->request_source, $fund->updated_at];
                 }
 
-                
-    
-    
+
+
+
                 $currentDateTime = date('d_F_Y_h_i_A');
                 $csvFileName = "deposit_export_csv_$currentDateTime.csv";
                 $headers = array(
@@ -284,7 +284,7 @@ class PaymentLogController extends Controller
                     "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
                     "Expires" => "0"
                 );
-    
+
                 $callback = function () use ($data) {
                     $file = fopen('php://output', 'w');
                     foreach ($data as $row) {
@@ -292,13 +292,13 @@ class PaymentLogController extends Controller
                     }
                     fclose($file);
                 };
-    
+
                 return response()->stream($callback, 200, $headers);
-                
-                
 
 
-                
+
+
+
         }else{
             $funds_t = Payment::where('status', 'like', '%' . $search['status'] . '%')
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
@@ -312,7 +312,7 @@ class PaymentLogController extends Controller
                         ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-            
+
             ->when($search['website'], function ($query) use ($search) {
                 $query->where('api_id', $search['website']);
             })
@@ -342,7 +342,7 @@ class PaymentLogController extends Controller
                         ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
-        
+
             ->when($search['website'], function ($query) use ($search) {
                 $query->where('api_id', $search['website']);
             })
@@ -356,7 +356,7 @@ class PaymentLogController extends Controller
             ->with(['gateway:id,name,currency,category_id','txn_record:txn_no,partner_transection_id','api:id,name,acc_type,website','gateway.category:id,name'])
             ->paginate(config('basic.paginate'));
         }
-        
+
 
 
         $pageTitle = "Search Payment Logs";
@@ -886,7 +886,7 @@ class PaymentLogController extends Controller
                         throw new \Exception("By This Txn no, Payment Already Completed.");
                     }
                 }
-                    
+
 
                 if (!$payment) {
                     // $payment = new Payment();
@@ -1123,7 +1123,7 @@ class PaymentLogController extends Controller
                             $summary_log->save();
                         }
                     }
-                        
+
                 }
 
 
@@ -2042,7 +2042,7 @@ class PaymentLogController extends Controller
                                 $summary_log->save();
                             }
                         }
-                            
+
                     }
 
                     if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
@@ -2183,50 +2183,36 @@ class PaymentLogController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
             }
-
-
             $api_id = "";
             $api_key = Api::where('api_key', $request->api_key)->where('status', 1)->first();
-
             if ($api_key && $api_key->website == env('APP_WEBSITE')) {
                 $source = $api_key->website;
             } else {
                 DB::rollBack();
                 return response()->json(['message' => 'Wrong API key'], 404);
             }
-
             $request_amount = str_replace(',', '', $request->amount);
             $request_amount = (float)$request_amount;
-
             if ($request->filled('date')) {
                 $formattedDate = Carbon::createFromFormat('h:ia d/m/y', $request->date)->format('Y-m-d');
             }
-
             if ($request->filled('time')) {
                 $formattedTime = Carbon::createFromFormat('h:ia d/m/y', $request->time)->format('H:i:s');
             }
-
             if (is_null($request->date_time)) {
                 $formattedDateTime = isset($formattedDate) && isset($formattedTime) ? $formattedDate . ' ' . $formattedTime : null;
-
             } else {
                 $formattedDateTime = Carbon::parse($request->date_time)->format('Y-m-d H:i:s');
 
             }
-
-
             $now = Carbon::now();
             $twoHoursAgo = $now->subHours(2);
-
             $parsedDateTime = Carbon::parse($formattedDateTime, 'Asia/Dhaka');
             if ($parsedDateTime->lessThan($twoHoursAgo)) {
                 $thismessage = "$formattedDateTime is less than two hours ago.";
                 return response()->json(['message' => $thismessage], 404);
 
             }
-
-
-
             DB::beginTransaction();
 
 
@@ -2236,12 +2222,10 @@ class PaymentLogController extends Controller
                 ->where('account_no', $request->e_wallet_phone_number)
                 ->lockForUpdate()
                 ->first();
-
             if (!$account) {
                 DB::rollBack();
                 return response()->json(['error' => 'E-Wallet Account Disable OR Not Exist'], 500);
             }
-
             if (empty($request->txn_id)) {
                 $request->txn_id = "none";
                 $payment_record = Payment::where('e_wallet_name', $request->e_wallet_name)
@@ -2279,10 +2263,6 @@ class PaymentLogController extends Controller
                     }
                 }
             }
-
-
-
-
             $partner_txn_verification = 0;
             $Txn = Txn::where('txn_no', $request->txn_id)->orderBy('id', 'DESC')->first();
             if ($Txn) {
@@ -2290,8 +2270,6 @@ class PaymentLogController extends Controller
                 $verify_api_id = $Txn->api_id;
                 $partner_transection_id = $Txn->partner_transection_id;
             }
-
-
             $charge = 0;
             if ($partner_txn_verification == 1) {
                 if (!empty($partner_transection_id)) {
@@ -2333,10 +2311,7 @@ class PaymentLogController extends Controller
                     }else{
                         $order = Payment::where('sender', $request->sender)->where('amount', $request_amount)->where('status', "Pending")->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                     }
-
             }
-
-
             $e_wallet_charge = 0;
             $count_payments = Payment::where('e_wallet_name', $request->e_wallet_name)->where('status', 'Complete')->where('e_wallet_phone_number', $request->e_wallet_phone_number)->whereDate('date_time', $formattedDate)->count();
             if ($count_payments >= $account->free_transections_day) {
@@ -2356,8 +2331,6 @@ class PaymentLogController extends Controller
                     }
                 }
             }
-
-
                 $this->updateLimits();
                 if ($request->filled('fee')) {
                     $account->fee += $request->fee;
@@ -2377,23 +2350,13 @@ class PaymentLogController extends Controller
                 $account->monthly_received += $request_amount;
                 $account->received += $request_amount;
                 $account->save();
-
-
-
-
-
                 $commit = 0;
-
-
-
             $amount_to_save = 0;
             if ($order) {
-
                 $partner_api_key = Api::where('id', $order->api_id)->where('status', 1)->lockForUpdate()->first();
                 if ($partner_api_key) {
                     $source = $partner_api_key->website;
                     $api_id = $partner_api_key->id;
-
                     if ($partner_api_key->txn_verification == 0 || $partner_txn_verification == 1) {
                         if ($source != env('APP_WEBSITE')) {
                             $sum = Payment::whereYear('created_at', now()->year)
@@ -2401,9 +2364,6 @@ class PaymentLogController extends Controller
                                 ->where('api_id', $api_id)
                                 ->where('status', 'Complete')
                                 ->sum('amount');
-
-
-
                             $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                             if ($commissions) {
                                 $charge = $commissions->deposit_percentage * $request_amount / 100;
@@ -2413,21 +2373,16 @@ class PaymentLogController extends Controller
                                     $charge = $commissions->deposit_percentage * $request_amount / 100;
                                 }
                             }
-
                             $charge = str_replace(',', '', $charge);
                             $charge = (float)$charge;
                             $charge = round($charge, 2);
-
                             $net_amount = $request_amount - $charge;
                             $partner_api_key->balance += $net_amount;
                             $partner_api_key->save();
-
                             $amount_to_save = $net_amount;
                         }
                     }
                 }
-
-
                 if ($amount_to_save > 0) {
                     $Log = new Log();
                     $Log->date_time = $order->updated_at;
@@ -2439,19 +2394,12 @@ class PaymentLogController extends Controller
                     $Log->source = 'APIWithoutVerify';
                     $Log->save();
                 }
-
-
-
-
-
                 if (isset($partner_api_key)) {
                     if ($partner_api_key->txn_verification == 0 || $partner_txn_verification == 1) {
                         if ($order) {
-
                             $order->status = 'Complete';
                             $order->trans_complete_date = Carbon::now();
                             $order->completed_source = 'APIWithoutVerify';
-
                             $order->e_wallet_name = $request->e_wallet_name;
                             $order->amount = $request_amount;
                             $order->sender = $request->sender;
@@ -2463,22 +2411,17 @@ class PaymentLogController extends Controller
                             $order->e_wallet_type = $request->e_wallet_type;
                             $order->mac_address = $request->mac_address;
                             $order->payment_received_at = Carbon::now();
-
                             if ($request->filled('fee')) {
                                 $order->fee = $request->fee;
                             }
-
                             if ($request->filled('commission')) {
                                 $order->commission = $request->commission;
                             }
                             $order->e_wallet_charges = $e_wallet_charge;
                             $order->save();
-
                             $payment = $order;
-
                             DB::commit();
                             $commit = 1;
-
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
@@ -2486,7 +2429,6 @@ class PaymentLogController extends Controller
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
-
                                 $summary_log = new DailyPartnerSummaryLog();
                                 $summary_log->partner_id = $partner_api_key->id;
                                 $summary_log->partner_balance = $partner_api_key->balance;
@@ -2497,12 +2439,10 @@ class PaymentLogController extends Controller
                                 $summary_log->source = 'APIWithoutVerify';
                                 $summary_log->save();
                             }
-
                             $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
                             foreach ($PartnerCommissions as $PartnerCommission) {
                                 $PartnerCommission->status = 1;
                                 $PartnerCommission->save();
-
                                 DB::beginTransaction();
                                 $parent_api_key = Api::where('id', $PartnerCommission->from_id)->where('status', 1)->lockForUpdate()->first();
                                 if($parent_api_key){
@@ -2539,12 +2479,10 @@ class PaymentLogController extends Controller
                                         $summary_log->save();
                                     }
                                 }
-                                    
-                            }
 
+                            }
                             //curl request only
                             if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
-
                                 $string_to_hash = json_encode(array(
                                     "amount" => strval($this->convertStringToNumber($payment->amount)),
                                     "api_key" => $partner_api_key->api_key,
@@ -2552,7 +2490,6 @@ class PaymentLogController extends Controller
                                     "id" => strval($payment->id),
                                     'transaction_type' => 'Deposit',
                                     "user_account_no" => strval($payment->sender),
-
                                 ));
                                 $secretKey = $partner_api_key->secret_key;
                                 $hash = hash("sha256", $string_to_hash);
@@ -2560,8 +2497,6 @@ class PaymentLogController extends Controller
                                 $timestamp = time();
                                 $combined = $hmac . $timestamp;
                                 $sign = base64_encode($combined);
-
-
                                 $array_data = [
                                             'id' => $payment->id,
                                             'partner_transection_id' => $payment->partner_transection_id,
@@ -2581,12 +2516,9 @@ class PaymentLogController extends Controller
                                             'sign' => $sign,
                                 ];
 
-
                                 if(!empty($payment->member_id)){
                                     $array_data['member_id'] = $payment->member_id;
                                 }
-
-
                                 $requestData = [
                                     'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
                                     'request_url' => $partner_api_key->api_endpoint_deposit,
@@ -2622,14 +2554,10 @@ class PaymentLogController extends Controller
                         }
                     }
                 }
-
                 if($commit == 0){
                     DB::commit();
                 }
             }
-
-
-
             if(!isset($payment)){
                 $pending_payment = new PendingPayment();
                 $pending_payment->e_wallet_name = $request->e_wallet_name;
@@ -2643,35 +2571,17 @@ class PaymentLogController extends Controller
                 $pending_payment->e_wallet_type = $request->e_wallet_type;
                 $pending_payment->mac_address = $request->mac_address;
                 $pending_payment->source = $source;
-
-
-
                 if ($request->filled('fee')) {
                     $pending_payment->fee = $request->fee;
                 }
-
                 if ($request->filled('commission')) {
                     $pending_payment->commission = $request->commission;
                 }
-
                 $pending_payment->e_wallet_charges = $e_wallet_charge;
-
-
-
                 $pending_payment->save();
-
-                // DB::commit();
-
                 $payment = $pending_payment;
                 $payment->status = "Pending";
             }
-
-
-
-
-
-
-
             $e_wallet_log_save = new EWalletLog();
             $e_wallet_log_save->previous_balance = $previous_account_balance;
             $e_wallet_log_save->amount = $request_amount;
@@ -2680,30 +2590,13 @@ class PaymentLogController extends Controller
             $e_wallet_log_save->final_amount = ($request_amount - $request->fee + $request->commission);
             $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
             $e_wallet_log_save->transaction_type = 1;
-
             $e_wallet_log_save->transaction_id = $payment->id;
-
             $e_wallet_log_save->account_id = $account->id;
             $e_wallet_log_save->source = "addPaymentInfo";
-
-            // return $e_wallet_log_save;
             $e_wallet_log_save->save();
-
-
             if($commit == 0){
                 DB::commit();
             }
-
-
-
-
-
-
-
-
-
-
-
             return response()->json(['message' => 'Payment information added successfully','id'=>$payment->id,'status'=>$payment->status], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -2753,9 +2646,9 @@ class PaymentLogController extends Controller
             //         $cron_commission->to_amount = $new_commission->to_amount;
             //         $cron_commission->type = $new_commission->type;
             //         $cron_commission->gateway_id = $new_commission->gateway_id;
-            //         $cron_commission->save();     
+            //         $cron_commission->save();
             //     }
-                
+
             // }
 
 
@@ -2787,10 +2680,10 @@ class PaymentLogController extends Controller
                             if ($key !== array_key_last($paymentTxnIds)) {
                                 $commaSeparated .= ',';
                             }
-                            
-                        }            
 
-            
+                        }
+
+
             dd($commaSeparated);
 
 
@@ -2802,9 +2695,9 @@ class PaymentLogController extends Controller
                 $payment = Payment::select('id','txn_id')->where('txn_id', $PendingPayment->txn_id)->first();
                 if($payment){
                     $PendingPayment->status = 1;
-                    $PendingPayment->save();     
+                    $PendingPayment->save();
                 }
-                
+
             }
 
 
@@ -2824,23 +2717,14 @@ class PaymentLogController extends Controller
         // $CompletedchatId = "-4754036101";
         // $HoldchatId = "-4735989259";
         // $RejectedchatId = "-4632357788";
-
         $CompletedchatId = "-4771016562";
         $HoldchatId = "-4771016562";
         $RejectedchatId = "-4771016562";
-
-
-
-
-
-
         // LaravelLog::info('Source:'.$source.' Acc:'.$acc.' Message:'.$string);
 
             // Step 1: Find the position of "Text"
             $textStart = strpos($string, '"content"');
-
             $result=[];
-
             if(isset($textStart) && !empty($textStart)){
                 $colonPos = strpos($string, ':', $textStart);
                 $valueStart = strpos($string, '"', $colonPos + 1) + 1;
@@ -2848,44 +2732,32 @@ class PaymentLogController extends Controller
                 $text = substr($string, $valueStart, $valueEnd - $valueStart);
                 $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
                 $jsonWithoutText = rtrim($jsonWithoutText, ",");
-
                 $array = json_decode($jsonWithoutText, true);
-
                 $result = [];
-
-
                 if($array['from']=="bKash"){
-
                     $text = preg_replace('/\s*Download.*$/', '', $text);
-
                     if (strpos($text, "You have received") === 0) {
-
                         $t_type = 1;
-
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-
                         // Extract customer phone number after "from" and before "Fee"
                         if (preg_match('/from .*?(\d+)\. (?:Fee|Ref)/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
-
                         // Extract commission after "Fee" and before "Balance"
                         if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['charge'] = floatval(str_replace(',', '', $matches[1]));
                         } else {
                             $result['charge'] = 0.00; // Default if not found
                         }
-
                         // Extract balance after "Balance Tk" and before "TrxID"
                         if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
                         } else {
                             $result['Balance'] = 0.00; // Default if not found
                         }
-
                         // Extract TrxID after "TrxID" and before "at"
                         if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];

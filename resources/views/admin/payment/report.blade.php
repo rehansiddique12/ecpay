@@ -9,7 +9,7 @@
         $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
     @endphp
 
-    
+
     <style>
         .hover:hover {
             background-color: #ffc000;
@@ -328,7 +328,7 @@
 
                                 @if (adminAccessRoute(config('role.payment_log.access.edit')))
                                     <td data-label="@lang('Action')">
-                                        
+
 
                                         {{-- @if ($fund->gateway_id > 999) --}}
                                         <button
@@ -465,7 +465,7 @@
                     @csrf
                     @method('put')
                     <div class="modal-body">
-                       
+
 
                         <div class="get-feedback">
 

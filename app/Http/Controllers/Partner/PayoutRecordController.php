@@ -238,10 +238,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -473,7 +473,7 @@ class PayoutRecordController extends Controller
 
                             }
                         }
-                        
+
                     }
 
                     $commit = 1;
@@ -812,10 +812,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -851,7 +851,7 @@ class PayoutRecordController extends Controller
                 //     ->values()->first();
 
 
-                    
+
 
                     // dd($recordcounts);
 
@@ -907,19 +907,19 @@ class PayoutRecordController extends Controller
             $fund->request_source = "Iframe-1";
             $fund->save();
 
-            
+
 
             $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()
                 ->values();
 
-                
+
             foreach($parentIds as  $parentId){
 
                 $parent_charge = 0;
 
-                
+
 
                 $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                 if ($parent_commission) {
@@ -933,7 +933,7 @@ class PayoutRecordController extends Controller
 
 
 
-                
+
 
                 if($parent_charge>0){
                     $PartnerCommission = new PartnerCommission();
@@ -1071,7 +1071,7 @@ class PayoutRecordController extends Controller
                 }
                 $ewallet = strtolower($order->gateway->code);
 
-                
+
 
 
 
@@ -1095,7 +1095,7 @@ class PayoutRecordController extends Controller
                     $banner = asset('assets/images/Rocket_Background.jpg');
                 }
 
-                
+
 
                 $fiveMinutesAgo = Carbon::now()->subMinutes(5)->timestamp;
                 if (isset($request->time) && $request->time > $fiveMinutesAgo) {
@@ -1206,7 +1206,7 @@ class PayoutRecordController extends Controller
                             $partner_api_key->save();
 
 
-                            
+
 
                             $Log = new Log();
                             $Log->date_time = $payment_record->updated_at;
@@ -1219,7 +1219,7 @@ class PayoutRecordController extends Controller
                             $Log->save();
 
 
-                            
+
                         }
 
                         // if (strpos($payment_record->sender, 'XXXX') !== false && ($payment_record->mac_address=="111.111.11.111" || $payment_record->mac_address=="222.222.22.222")) {
@@ -1326,11 +1326,11 @@ class PayoutRecordController extends Controller
                                     $summary_log->save();
                                 }
                             }
-                            
 
-                            
 
-                                
+
+
+
                         }
 
                         DB::commit();
@@ -1684,7 +1684,7 @@ class PayoutRecordController extends Controller
                         $summary_log->save();
                     }
                 }
-                
+
             }
 
                 $commit = 1;
@@ -1792,7 +1792,7 @@ class PayoutRecordController extends Controller
 
     public function processTransection2($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
-        
+
 
         $remainingTime = 600;
         $amount = str_replace(',', '', $amount);
@@ -1940,7 +1940,7 @@ class PayoutRecordController extends Controller
 
         $data['gate_id'] = $gate->id;
         $data['phone_number'] = "Loading...";
-        
+
 
         // setting for theme style
         return view('partner.payout.process_transection2', compact('ewallet_to_show','data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -2291,7 +2291,7 @@ class PayoutRecordController extends Controller
                                     $summary_log->save();
                                 }
                             }
-                            
+
                         }
 
                          $commit = 1;
@@ -2509,10 +2509,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -3184,7 +3184,7 @@ class PayoutRecordController extends Controller
         $search['from_date'] = Carbon::parse($search['from_date'], $originalTimezone)->setTimezone($targetTimezone);
         $search['to_date'] = Carbon::parse($search['to_date'], $originalTimezone)->setTimezone($targetTimezone);
 
-        
+
 
         if(isset($search['export'])){
             $records = Payout::when(isset($search['status']), function ($query) use ($search) {
@@ -3304,8 +3304,8 @@ class PayoutRecordController extends Controller
                 ->selectRaw('COUNT(*) as amount_count, SUM(amount) as amount_sum')
                 ->with('gateway')
                 ->first();
-        
-        
+
+
                 if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
                     $fund_count = $funds_t[0]->amount_count;
                     $fund_sum = round($funds_t[0]->amount_sum, 2);
@@ -3569,7 +3569,7 @@ class PayoutRecordController extends Controller
             return back();
         }
 
-        
+
 
         $previous_pending = Payout::where('api_id', $open_user->id)
         ->where(function($query) {
@@ -3580,7 +3580,7 @@ class PayoutRecordController extends Controller
                   });
         })
         ->sum('amount');
-    
+
 
 
 
@@ -3614,10 +3614,6 @@ class PayoutRecordController extends Controller
         }
     }
 
-
-
-
-
     public function newFundOpen(Request $request, $gate, $charge, $final_amo, $amount, $account_no, $open_user, $e_wallet_phone_number): Payment
     {
 
@@ -3637,8 +3633,6 @@ class PayoutRecordController extends Controller
         $fund->save();
         return $fund;
     }
-
-
 
     public function apis(Request $request)
     {
@@ -3940,53 +3934,64 @@ public function settlementSearch(Request $request)
     }
 
 
-    public function partnerBalanceSearch(Request $request)
-    {
+  public function partnerBalanceSearch(Request $request)
+{
+    $user = Auth::guard('partner')->user();
+    $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
+    $partnerTimezone = $main_admin->timezone;
+    $api_id = $main_admin->id;
 
-        $user = Auth::guard('partner')->user();
-        $main_admin = Api::where('type', 'Admin')->where('status', 1)->where('api_key', $user->api_key)->first();
-        $partnerTimezone = $main_admin->timezone;
-        $api_id = $main_admin->id;
+    $originalTimezone = $partnerTimezone;
+    $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
 
-
-        $originalTimezone = $partnerTimezone;
-        $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
-
-        if(!empty($request->from_date)){
-            $from_date_to_search = date('Y-m-d H:i:s', strtotime($request->from_date . ' 00:00:00'));
-            $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-        }
-
-        if(!empty($request->to_date)){
-            $to_date_to_search = date('Y-m-d H:i:s', strtotime($request->to_date . ' 23:59:59'));
-            $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-        }
-
-
-        $partners = Api::where('type', 'Admin')->where('status', 1)->get();
-
-        $records = ApiTransaction::with('api');
-
-        if (!empty($request->from_date) && !empty($request->to_date)) {
-            $records->whereDate('created_at', '>=', $from_date_to_search);
-            $records->whereDate('created_at', '<=', $to_date_to_search);
-        } elseif (!empty($request->from_date)) {
-            $records->whereDate('created_at', '>=', $from_date_to_search);
-        } elseif (!empty($request->to_date)) {
-            $records->whereDate('created_at', '<=', $to_date_to_search);
-        }
-
-        $records->where('partner_id', $api_id);
-
-        if (!empty($request->adjustment) || $request->adjustment == '0') {
-            $records->where('adjustment', $request->adjustment);
-        }
-
-        $records = $records->orderBy('id', 'DESC')->get();
-
-        $pageTitle = "Search Adjustments";
-        return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    if (!empty($request->from_date)) {
+        $from_date_to_search = date('Y-m-d H:i:s', strtotime($request->from_date . ' 00:00:00'));
+        $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
     }
+
+    if (!empty($request->to_date)) {
+        $to_date_to_search = date('Y-m-d H:i:s', strtotime($request->to_date . ' 23:59:59'));
+        $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+    }
+
+    $partners = Api::where('type', 'Admin')->where('status', 1)->get();
+
+    $records = ApiTransaction::with('api');
+
+    // Date filters
+    if (!empty($request->from_date) && !empty($request->to_date)) {
+        $records->whereDate('created_at', '>=', $from_date_to_search);
+        $records->whereDate('created_at', '<=', $to_date_to_search);
+    } elseif (!empty($request->from_date)) {
+        $records->whereDate('created_at', '>=', $from_date_to_search);
+    } elseif (!empty($request->to_date)) {
+        $records->whereDate('created_at', '<=', $to_date_to_search);
+    }
+
+    // Partner ID filter
+    $records->where('partner_id', $api_id);
+
+    // Adjustment filter
+    if (!empty($request->adjustment) || $request->adjustment == '0') {
+        $records->where('adjustment', $request->adjustment);
+    }
+
+    // Search by name, username, or website from related API model
+    if (!empty($request->search_by_name)) {
+        $searchTerm = $request->search_by_name;
+        $records->whereHas('api', function ($query) use ($searchTerm) {
+            $query->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('username', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('website', 'like', '%' . $searchTerm . '%');
+        });
+    }
+
+    $records = $records->orderBy('id', 'DESC')->get();
+
+    $pageTitle = "Search Adjustments";
+    return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+}
+
 
 
 
@@ -4231,7 +4236,7 @@ public function settlementSearch(Request $request)
 
                                 }
                             }
-                            
+
                         }
 
 
@@ -4374,9 +4379,6 @@ public function settlementSearch(Request $request)
 
     public function payoutRequestSubmitTransection(Request $request)
     {
-
-
-
         $basic = (object)config('basic');
         $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->whereIn('transfer_status', [0,1])->with('gateway', 'user')->firstOrFail();
         $rules = [];
