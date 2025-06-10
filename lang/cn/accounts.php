@@ -1,0 +1,193 @@
+<?php
+
+return [
+    // Telegram Groups
+    'manage_telegram_groups' => '管理Telegram群组',
+    'id' => 'ID',
+    'partner' => '合作伙伴',
+    'group_name' => '群组名称',
+    'group_id' => '群组ID',
+    'status' => '状态',
+    'action' => '操作',
+    'delete' => '删除',
+    'edit' => '编辑',
+    'select_partner' => '选择合作伙伴',
+    'active' => '激活',
+    'inactive' => '未激活',
+    'update' => '更新',
+    'close' => '关闭',
+    'edit_record' => '编辑记录',
+
+    // E-Wallet Test
+    'all_accounts' => '所有账户',
+    'e_wallet_account_no' => '电子钱包账号',
+    'e_wallet_name' => '电子钱包名称',
+    'type' => '类型',
+    'live_status' => '实时状态',
+    'test_account' => '测试账户',
+    'activate' => '激活',
+    'deactivate' => '停用',
+    'no_data_found' => '未找到数据',
+    'admin_e_wallet_testing_accounts' => '管理员电子钱包测试账户',
+    'add_admin_account' => '添加管理员账户',
+    'ewallet_test' => '电子钱包测试',
+    'admin_account_no' => '管理员账号',
+    'amount' => '金额',
+    'run_test' => '运行测试',
+    'withdrawal' => '提现',
+    'deposit' => '存款',
+    'account_no' => '账号',
+    'nagad' => 'Nagad',
+    'rocket' => 'Rocket',
+    'bkash' => 'bKash',
+    'add' => '添加',
+    'confirm_delete_title' => '确定删除吗？',
+    'confirm_delete_text' => "此操作无法撤销！",
+    'confirm_delete_button' => '是的，删除！',
+    'cancel_button' => '取消',
+    'deleted_title' => '已删除！',
+    'error_title' => '错误！',
+    'error_message' => '删除角色时出错。',
+
+    // Accounts Management Menu
+    'accounts_list' => '账户列表',
+    'add_account' => '添加账户',
+    'on_off_account' => '启用/禁用账户',
+    'account_group' => '账户组',
+    'gateway' => '网关',
+    'categories' => '分类',
+
+    // Accounts List
+    'acc_number' => '账号',
+    'category' => '分类',
+    'code' => '代码',
+    'groups' => '组别',
+    'account_name' => '账户名称',
+    'location' => '位置',
+    'device_name' => '设备名称',
+    'live_balance' => '实时余额',
+    'd' => '存',
+    'w' => '取',
+
+    // Balance Management
+    'add_balance' => '增加余额',
+    'edit_balance' => '编辑余额',
+    'charges%' => '手续费%',
+    'balance' => '余额',
+    'plus_add_credit' => '+ 增加信用',
+    'minus_subtract_credit' => '- 减少信用',
+
+    // Confirmation Dialogs
+    'confirm_delete_title' => '确定删除吗？',
+    'confirm_delete_text' => '此账户将被永久删除！',
+    'confirm_delete_button' => '是的，删除！',
+
+    // Status Messages
+    'status_updated_to' => '状态已更新为',
+    'something_went_wrong' => '出错了。',
+    'status_update_failed' => '状态更新失败。',
+
+    // Transaction Messages
+    'processing' => '处理中...',
+    'success_title' => '成功！',
+    'balance_updated' => '余额更新成功！',
+    'error_title' => '糟糕...',
+    'status_updated_successfully' => '状态更新成功。',
+    'failed_to_update_status' => '状态更新失败。',
+
+    // Account Management
+    'edit_new_account' => '编辑新账户',
+    'category_name' => '分类名称',
+    'edit_batch_title' => '批量编辑账户',
+    'select_category' => '选择分类',
+    'select_account' => '选择账户',
+    'select_account_name' => '选择账户名称',
+    'configuration' => '配置',
+    'daily_deposit_amount_limit' => '每日存款金额限制',
+    'daily_withdrawal_amount_limit' => '每日提现金额限制',
+    'monthly_deposit_amount_limit' => '每月存款金额限制',
+    'monthly_withdrawal_amount_limit' => '每月提现金额限制',
+    'daily_deposit_transaction_limit' => '每日存款交易次数限制',
+    'daily_withdrawal_transaction_limit' => '每日提现交易次数限制',
+    'monthly_deposit_transaction_limit' => '每月存款交易次数限制',
+    'monthly_withdrawal_transaction_limit' => '每月提现交易次数限制',
+    'max_transaction_per_minute' => '每分钟最大交易次数',
+    'max_amount_per_minute' => '每分钟最大金额',
+    'time_configuration' => '时间配置',
+    'check_all' => '全选',
+    'threshold_alert' => '阈值警报',
+    'daily_deposit_limit' => '每日存款限额警报(%)',
+    'daily_withdrawal_limit' => '每日提现限额警报(%)',
+    'monthly_deposit_limit' => '每月存款限额警报(%)',
+    'monthly_withdrawal_limit' => '每月提现限额警报(%)',
+    'low_balance_alert' => '低余额警报金额',
+
+    // Account Types
+    'agent' => '代理',
+    'merchant' => '商户',
+    'personal' => '个人',
+    'in_out' => '入/出',
+    'both' => '两者',
+
+    // UI Elements
+    'select_location' => '选择位置',
+    'qr' => '二维码',
+    'qr_code' => '二维码',
+    'more' => '+ 更多',
+    'save_changes' => '保存更改',
+    'no' => '否',
+    'yes' => '是',
+    'remove' => '移除',
+    'need_at_least_one_row' => '至少需要一行',
+    'no_accounts_found' => '未找到账户',
+    'failed_fetch_accounts' => '获取账户失败，请重试。',
+
+    // Batch Operations
+    'add_new_account' => '添加新账户',
+    'create_account_in_batch' => '批量创建账户',
+
+    // Account Status
+    'on' => '开',
+    'off' => '关',
+    'account_type_updated' => '账户类型更新成功',
+
+    // Account Group Management
+    'add_account_group' => '添加账户组',
+    'enter_group_name' => '输入组名',
+    'select_pairs' => '选择配对',
+    'save_group' => '保存组',
+    'update_group' => '更新组',
+    'no_accounts' => '无账户',
+
+    // Gateway Management
+    'gateways' => '网关',
+    'add_new_gateway' => '添加新网关',
+    'currency' => '货币',
+    'minimum_deposit_amount' => '最低存款金额',
+    'minimum_withdrawal_amount' => '最低提现金额',
+    'maximum_deposit_amount' => '最高存款金额',
+    'maximum_withdrawal_amount' => '最高提现金额',
+    'drop_or_click' => '拖放文件或点击上传',
+    'demo_dropzone_part1' => '这只是演示区域，选择的文件',
+    'not' => '不会',
+    'demo_dropzone_part2' => '实际被上传',
+    'edit_deposit_method' => '编辑存款方式',
+    'conversion_rate' => '汇率',
+    'percentage_charge' => '百分比费用',
+    'fixed_charge' => '固定费用',
+    'replace_image' => '替换图片',
+    'current_image' => '当前图片',
+    'note' => '备注',
+
+    // Categories
+    'categories_list' => '分类列表',
+    'add_new' => '添加新分类',
+    'save' => '保存',
+
+    // Delete Dialogs
+    'are_you_sure' => '您确定吗？',
+    'warning_text' => '此操作无法撤销！',
+    'yes_delete_it' => '是的，删除！',
+    'deleted' => '已删除！',
+    'delete_error' => '删除角色时出错。',
+];

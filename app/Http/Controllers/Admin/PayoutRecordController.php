@@ -457,7 +457,7 @@ class PayoutRecordController extends Controller
             })
             ->when(isset($search['status']), function ($query) use ($search) {
                 if ($search['status'] == 2) {
-                    return $query->where('status', 2)->where('status', 'Complete');
+                    return $query->where('transfer_status', 2)->where('status', 'Complete');
                 } else {
                     return $query->where('status', $search['status']);
                 }
@@ -465,7 +465,7 @@ class PayoutRecordController extends Controller
             ->when(isset($search['domain']), function ($query) use ($search) {
                 return $query->where('api_id', $search['domain']);
             })
-            ->where('status', '!=', 0)
+            ->where('transfer_status', '!=', 0)
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                 return $query->whereDate('created_at', '>=', $search['from_date'])
                     ->whereDate('created_at', '<=', $search['to_date']);
@@ -828,10 +828,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -840,7 +840,7 @@ class PayoutRecordController extends Controller
                         })
                         ->values()
                         ->first();
-                   
+
 
                     if (!$account) {
                         DB::rollBack();
@@ -4073,7 +4073,7 @@ class PayoutRecordController extends Controller
                         $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
                         $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
                     }
-                    
+
 
 
 
@@ -4101,10 +4101,10 @@ class PayoutRecordController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
