@@ -457,7 +457,7 @@ class PayoutRecordController extends Controller
             })
             ->when(isset($search['status']), function ($query) use ($search) {
                 if ($search['status'] == 2) {
-                    return $query->where('status', 2)->where('status', 'Complete');
+                    return $query->where('transfer_status', 2)->where('status', 'Complete');
                 } else {
                     return $query->where('status', $search['status']);
                 }
@@ -465,7 +465,7 @@ class PayoutRecordController extends Controller
             ->when(isset($search['domain']), function ($query) use ($search) {
                 return $query->where('api_id', $search['domain']);
             })
-            ->where('status', '!=', 0)
+            ->where('transfer_status', '!=', 0)
             ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
                 return $query->whereDate('created_at', '>=', $search['from_date'])
                     ->whereDate('created_at', '<=', $search['to_date']);

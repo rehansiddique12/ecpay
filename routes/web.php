@@ -611,7 +611,7 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
 
 
     Route::get('/admin/lang/{locale}', function ($locale) {
-        if (in_array($locale, ['en', 'ms'])) {
+        if (in_array($locale, ['en', 'ms' , 'cn'])) {
             Session::put('locale', $locale);
         }
         return redirect()->back();

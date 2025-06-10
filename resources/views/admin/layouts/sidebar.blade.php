@@ -104,6 +104,7 @@ $currentLocale = App::getLocale();
 $languages = [
 'en' => 'English',
 'ms' => 'Malaysian',
+'cn' =>'Chinese'
 ];
 
 @endphp
