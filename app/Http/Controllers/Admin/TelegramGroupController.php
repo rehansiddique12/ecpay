@@ -2073,7 +2073,6 @@ class TelegramGroupController extends Controller
                         
                             
                         }
-                        
                         elseif(strpos($lowercaseText, "/newocr") === 0){
                             
                             
@@ -2343,11 +2342,55 @@ class TelegramGroupController extends Controller
 
                                                                     // Multiple amount patterns for different formats
                                                                     $amount = null;
+                                                                    $balance_amount = null;
+                                                                    $cash_out_amount = null;
+                                                                    $main_amount = null;
                                                                     
+                                                                    // Main amount with plus sign pattern (specifically extract $1,000.00 or ৮200.00)
+                                                                    if (preg_match('/(?:\$|৳|৮)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)\s*\+/i', $extractedText, $matches)) {
+                                                                        $main_amount = str_replace(',', '', $matches[1]);
+                                                                        LaravelLog::info("Found exact main amount: " . $main_amount);
+                                                                    }
+                                                                    
+                                                                    // Bengali amount pattern with Bengali numerals
+                                                                    if (preg_match('/[আ্্যামাউন্ট|পরিমাণ]\s*([০-৯]+(?:\.\d{2})?)\s*টাকা/i', $extractedText, $matches)) {
+                                                                        // Convert Bengali numerals to English
+                                                                        $bengali_to_english = array(
+                                                                            '০' => '0', '১' => '1', '২' => '2', '৩' => '3', '৪' => '4',
+                                                                            '৫' => '5', '৬' => '6', '৭' => '7', '৮' => '8', '৯' => '9'
+                                                                        );
+                                                                        $amount = strtr($matches[1], $bengali_to_english);
+                                                                        LaravelLog::info("Found amount in Bengali numerals: " . $amount);
+                                                                    }
+                                                                    // Specific pattern for ৮2000.00 format - look for the larger number
+                                                                    elseif (preg_match('/[৮|০-৯](\d{3,}(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount in mixed Bengali-English format: " . $amount);
+                                                                    }
                                                                     // Bengali amount pattern
-                                                                    if (preg_match('/পরিমাণ\s*(\d+(?:\.\d{2})?)\s*টাকা/i', $extractedText, $matches)) {
+                                                                    elseif (preg_match('/পরিমাণ\s*(\d+(?:\.\d{2})?)\s*টাকা/i', $extractedText, $matches)) {
                                                                         $amount = $matches[1];
                                                                         LaravelLog::info("Found amount in Bengali text: " . $amount);
+                                                                    }
+                                                                    // Taka symbol pattern (৳) - also handle $ misreading
+                                                                    elseif (preg_match('/(?:৳|\$)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = str_replace(',', '', $matches[1]);
+                                                                        LaravelLog::info("Found amount with Taka/dollar symbol: " . $amount);
+                                                                    }
+                                                                    // Cash Out Tk pattern - prioritize this
+                                                                    if (preg_match('/Cash\s+Out\s+Tk\s+(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $cash_out_amount = $matches[1];
+                                                                        LaravelLog::info("Found cash out amount: " . $cash_out_amount);
+                                                                    }
+                                                                    // Balance Tk pattern
+                                                                    if (preg_match('/Balance\s+Tk\s+(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $balance_amount = $matches[1];
+                                                                        LaravelLog::info("Found balance amount: " . $balance_amount);
+                                                                    }
+                                                                    // Tk pattern with space
+                                                                    elseif (preg_match('/Tk\s+(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
+                                                                        $amount = $matches[1];
+                                                                        LaravelLog::info("Found amount with Tk format: " . $amount);
                                                                     }
                                                                     // English Transaction Amount pattern
                                                                     elseif (preg_match('/Transaction Amount\s*(\d+(?:\.\d{2})?)/i', $extractedText, $matches)) {
@@ -2370,7 +2413,14 @@ class TelegramGroupController extends Controller
                                                                         LaravelLog::info("Found amount using generic pattern: " . $amount);
                                                                     }
 
-                                                                    if ($amount !== null) {
+                                                                    // Use main amount first if available, then cash out amount, then balance amount, then regular amount
+                                                                    if ($main_amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $main_amount . "`\n";
+                                                                    } elseif ($cash_out_amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $cash_out_amount . "`\n";
+                                                                    } elseif ($balance_amount !== null) {
+                                                                        $message .= "?? *Amount:* `" . $balance_amount . "`\n";
+                                                                    } elseif ($amount !== null) {
                                                                         $message .= "?? *Amount:* `" . $amount . "`\n";
                                                                     }
                                                                     
@@ -2468,6 +2518,13 @@ class TelegramGroupController extends Controller
                         
                             
                         }
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         
                         
                         
