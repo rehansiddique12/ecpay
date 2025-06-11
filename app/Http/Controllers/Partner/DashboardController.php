@@ -380,7 +380,7 @@ class DashboardController extends Controller
 
         $partner = $this->user;
         $usertimezone = $partner->timezone;
-        $pageTitle = 'Partner Profile';
+        $pageTitle = __('partner_basic.partner_profile');
         return view('partner.profile', compact('partner','data','usertimezone' , 'pageTitle'));
     }
 
@@ -433,7 +433,7 @@ class DashboardController extends Controller
 
     public function password()
     {
-        $pageTitle = 'Password Change';
+        $pageTitle = __('partner_basic.password_page_title');
         return view('partner.password' , compact('pageTitle'));
     }
 
@@ -449,7 +449,7 @@ class DashboardController extends Controller
         $request = (object)$req;
         $user = $this->user;
         if (!Hash::check($request->current_password, $user->password)) {
-            return back()->with('error', "Password didn't match");
+           return back()->with('error', __('messages.password_mismatch'));
         }
         $user->update([
             'password' => bcrypt($request->password)
@@ -459,6 +459,6 @@ class DashboardController extends Controller
         $this->addLogs($log);
 
 
-        return back()->with('success', 'Password has been Changed');
+        return back()->with('success', __('messages.password_changed'));
     }
 }

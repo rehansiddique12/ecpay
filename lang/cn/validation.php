@@ -164,6 +164,14 @@ return [
         'attribute-name' => [
             'rule-name' => '自定义消息',
         ],
+ 'current_password' => [
+        'required' => '当前密码为必填项。',
+    ],
+    'password' => [
+        'required' => '新密码为必填项。',
+        'min' => '新密码不能少于 :min 个字符。',
+        'confirmed' => '新密码确认不匹配。',
+    ],
     ],
 
     /*
@@ -177,5 +185,16 @@ return [
     |
     */
 
-    'attributes' => [],
+    'required' => ':attribute 为必填项。',
+    'email' => ':attribute 必须是有效的电子邮件地址。',
+    'unique' => ':attribute 已经被使用。',
+    'image' => ':attribute 必须是一张图片。',
+
+    'attributes' => [
+        'name' => '姓名',
+        'username' => '用户名',
+        'email' => '电子邮件',
+        'phone' => '电话号码',
+        'image' => '图片',
+    ],
 ];
