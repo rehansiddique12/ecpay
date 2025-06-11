@@ -877,7 +877,7 @@
                     accounts.forEach(function (account) {
                         accountDetailsHtml += `
                 <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
-                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK (${account.account_type})
+                    ${walletName}: ${account.account_no} Current Balance = ${account.low_balance_amount}TK (${account.account_type})
                 </p>
             `;
                     });
