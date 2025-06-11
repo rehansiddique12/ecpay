@@ -4,44 +4,46 @@
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <input type="text" name="name" value="{{@request()->name}}" class="form-control"
-                            placeholder="@lang('Email/ Username')">
+                        <input type="text" name="name" value="{{ @request()->name }}" class="form-control"
+                            placeholder="{{ __('transaction.email_or_username') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <input type="text" name="partner_transection_id" value="{{@request()->partner_transection_id}}"
-                            class="form-control" placeholder="@lang('Transection No.')">
+                        <input type="text" name="partner_transection_id"
+                            value="{{ @request()->partner_transection_id }}" class="form-control"
+                            placeholder="{{ __('transaction.transaction_no') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <input type="date" class="form-control" value="{{@request()->date_time}}" name="date_time"
+                        <input type="date" class="form-control" value="{{ @request()->date_time }}" name="date_time"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <select name="status" class="form-select">
-                            <option value="4">@lang('All Payment')</option>
-                            <option value="1" @if(@request()->status == '1') selected @endif>@lang('Pending Payment')
-                            </option>
-                            <option value="2" @if(@request()->status == '2') selected @endif>@lang('Complete Payment')
-                            </option>
-                            <option value="3" @if(@request()->status == '3') selected @endif>@lang('Cancel Payment')
-                            </option>
+                            <option value="4">{{ __('transaction.all_payment') }}</option>
+                            <option value="1" @if (request()->status == '1') selected @endif>
+                                {{ __('transaction.pending_payment') }}</option>
+                            <option value="2" @if (request()->status == '2') selected @endif>
+                                {{ __('transaction.complete_payment') }}</option>
+                            <option value="3" @if (request()->status == '3') selected @endif>
+                                {{ __('transaction.cancel_payment') }}</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="col-md-4">
                     <div class="form-group">
-                        <select name="domain" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain">
+                        <select name="domain" class="form-select select2" data-allow-clear="true"
+                            data-placeholder="{{ __('transaction.select_domain') }}">
                             <option></option>
-                            <option value="">@lang('Select Domain')</option>
-                            @foreach($domains as $domain)
-                            <option value="{{ $domain->id }}" @if(@request()->domain == $domain->id) selected
-                                @endif>{{ $domain->name }} ===> ( {{ $domain->website }} )</option>
+                            <option value="">{{ __('transaction.select_domain') }}</option>
+                            @foreach ($domains as $domain)
+                                <option value="{{ $domain->id }}" @if (@request()->domain == $domain->id) selected @endif>
+                                    {{ $domain->name }} ===> ( {{ $domain->website }} )</option>
                             @endforeach
                         </select>
                     </div>
@@ -50,9 +52,10 @@
                 <div class="col-md-4 d-flex gap-5">
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i>
-                            @lang('Search')</button>
+                            {{ __('transaction.search') }}</button>
                         <button type="submit" name="export" value="export" class="btn btn-success"><i
-                                class="icon-base ti tabler-download me-1"></i> @lang('Export Data')</button>
+                                class="icon-base ti tabler-download me-1"></i>
+                            {{ __('transaction.export_data') }}</button>
                     </div>
                 </div>
 
@@ -61,8 +64,8 @@
 
     </div>
 
-    <input type="text" value="{{$letest_record}}" id="letest_record" hidden>
-    <audio id="notification-sound" src="{{asset(config('location.withdrawLog.path'))}}/dogru-128492.mp3"
+    <input type="text" value="{{ $letest_record }}" id="letest_record" hidden>
+    <audio id="notification-sound" src="{{ asset(config('location.withdrawLog.path')) }}/dogru-128492.mp3"
         preload="auto"></audio>
 
 
@@ -73,158 +76,177 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('ID')</th>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Acc No.')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Net Amount')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Remarks')</th>
-                            <th scope="col">@lang('Sent From')</th>
-                            <th scope="col">@lang('Source')</th>
-                            @if(adminAccessRoute(config('role.payout_manage.access.edit')))
-                            <th scope="col">@lang('More')</th>
+                            <th scope="col">{{ __('transaction.id') }}</th>
+                            <th scope="col">{{ __('transaction.date') }}</th>
+                            <th scope="col">{{ __('transaction.trx_number') }}</th>
+                            <th scope="col">{{ __('transaction.partner_trx_number') }}</th>
+                            <th scope="col">{{ __('transaction.username') }}</th>
+                            <th scope="col">{{ __('transaction.method') }}</th>
+                            <th scope="col">{{ __('transaction.acc_no') }}</th>
+                            <th scope="col">{{ __('transaction.amount') }}</th>
+                            <th scope="col">{{ __('transaction.merchant_charge') }}</th>
+                            <th scope="col">{{ __('transaction.net_amount') }}</th>
+                            <th scope="col">{{ __('transaction.status') }}</th>
+                            <th scope="col">{{ __('transaction.remarks') }}</th>
+                            <th scope="col">{{ __('transaction.sent_from') }}</th>
+                            <th scope="col">{{ __('transaction.source') }}</th>
+                            @if (adminAccessRoute(config('role.payout_manage.access.edit')))
+                                <th scope="col">{{ __('transaction.more') }}</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($records as $key => $item)
-                        <tr>
-                            <td>{{ $item->id }}</td>
-                            <td data-label="@lang('Date')"> {{ dateTime($item->created_at,'d M,Y H:i') }}</td>
-                            <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                {{ $item->trx_id }}<br>
-                                <span class="text text-success">{{ $item->txn_id }}</span>
+                            <tr>
+                                <td>{{ $item->id }}</td>
+                                <td data-label="{{ __('transaction.date') }}">
+                                    {{ dateTime($item->created_at, 'd M,Y H:i') }}
+                                </td>
+                                <td data-label="{{ __('transaction.trx_number') }}"
+                                    class="font-weight-bold text-uppercase">
+                                    {{ $item->trx_id }}<br>
+                                    <span class="text text-success">{{ $item->txn_id }}</span>
 
-                            </td>
-                            <td>{{ $item->partner_transection_id }}
-                                <br>
-                                {{ $item->member_id }}
-                            </td>
-                            <td data-label="@lang('Username')">
+                                </td>
+                                <td>{{ $item->partner_transection_id }}
+                                    <br>
+                                    {{ $item->member_id }}
+                                </td>
+                                <td data-label="{{ __('transaction.username') }}">
 
-                                @if($item->api)
-                                {{ optional($item->api)->name }} <b>({{ optional($item->api)->acc_type }})</b>
-                                @else
-                                Partner Transection
-                                @endif
+                                    @if ($item->api)
+                                        {{ optional($item->api)->name }} <b>({{ optional($item->api)->acc_type }})</b>
+                                    @else
+                                        {{ __('transaction.partner_transaction') }}
+                                    @endif
 
-                            </td>
-                            <td>{{ $item->e_wallet_name }}</td>
-                            <td>{{ $item->user_account_no }}</td>
-                            <td data-label="@lang('Amount')" class="font-weight-bold">{{ getAmount($item->amount,2 ) }}
-                                {{$basic->currency_symbol}}</td>
-                            <td data-label="@lang('Charge')" class="text-success">
-                                {{ getAmount($item->charge,2 ) }} {{$basic->currency_symbol}}</td>
+                                </td>
+                                <td>{{ $item->e_wallet_name }}</td>
+                                <td>{{ $item->user_account_no }}</td>
+                                <td data-label="{{ __('transaction.amount') }}" class="font-weight-bold">
+                                    {{ getAmount($item->amount, 2) }}
+                                    {{ $basic->currency_symbol }}</td>
+                                <td data-label="{{ __('transaction.charge') }}" class="text-success">
+                                    {{ getAmount($item->charge, 2) }} {{ $basic->currency_symbol }}</td>
 
-                            <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                {{ getAmount($item->amount + $item->charge ,2) }} {{$basic->currency_symbol}}</td>
+                                <td data-label="{{ __('transaction.net_amount') }}" class="font-weight-bold">
+                                    {{ getAmount($item->amount + $item->charge, 2) }} {{ $basic->currency_symbol }}
+                                </td>
 
-                           <td data-label="@lang('Status')" class="text-center">
-                            <div class="d-flex flex-column align-items-center">
-                                @if($item->transfer_status == 2)
-                                    <span class="badge bg-success mb-1">
-                                        <i class="fa fa-circle text-white font-12"></i> @lang('Request Approved')
-                                    </span>
-                                @elseif($item->transfer_status == 1)
-                                    <span class="badge bg-warning mb-1">
-                                        <i class="fa fa-circle text-white font-12"></i> @lang('Request Pending')
-                                    </span>
-                                @elseif($item->transfer_status == 3)
-                                    <span class="badge bg-danger mb-1">
-                                        <i class="fa fa-circle text-white font-12"></i> @lang('Request Rejected')
-                                    </span>
-                                @endif
-
-                                @if($item->status == 'Complete')
-                                    <span class="badge bg-success mt-1">
-                                        <i class="fa fa-circle text-white font-12"></i> @lang('Transferred')
-                                    </span>
-                                @elseif($item->status == 'inititate' || $item->status == 'Pending')
-                                    <span class="badge bg-warning mt-1">
-                                        <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Pending')
-                                    </span>
-                                @elseif($item->status == 'Reject')
-                                    <span class="badge bg-danger mt-1">
-                                        <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Rejected')
-                                    </span>
-                                @endif
-                            </div>
-                        </td>
-
-
-                            <td>
-                                {{$item->feedback}}
-                            </td>
-                            <td data-label="@lang('Method')">
-                                {{ $item->e_wallet_phone_number }}
-                                <br>
-                                {{ $item->e_wallet_type }}
-                            </td>
-                            <td data-label="@lang('Method')">{{ $item->request_source }}</td>
-
-                            <td>
-                                <div class="dropdown">
-                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                        data-bs-toggle="dropdown">
-                                        <i class="icon-base ti tabler-dots-vertical"></i>
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <!-- active / deactive button here -->
-                                        @if(adminAccessRoute(config('role.payout_manage.access.edit')))
-                                            <button type="button" class="btn btn-sm edit_button" data-bs-toggle="modal"
-                                                data-bs-target="#newModalb" onclick="setBalanceItem({{ $item->id }})">
-                                                <i class="icon-base ti tabler-report-money me-1"></i> Send Callback
-                                            </button><br>
-                                            @if(isset($item))
-                                            <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal"
-                                                data-bs-target="#myModalc" data-title="Edit" data-id="{{ $item->id }}"
-                                                data-e_wallet_phone_number="{{$item->e_wallet_phone_number}}">
-                                                <i class="icon-base ti tabler-device-mobile  me-1"></i> Change E-Wallet No
-                                            </button><br>
-                                            @endif
-                                        @php
-
-                                        $details = ($item->information != null) ? json_encode($item->information) :
-                                        null;
-                                        @endphp
-                                        <button type="button" class="btn btn-sm  edit_button" data-bs-toggle="modal"
-                                            data-bs-target="#myModal"
-                                            data-route="{{route('admin.payout-action',$item->id)}}"
-                                            data-feedback="{{$item->feedback}}" data-info="{{$details}}"
-                                            data-id="{{$item->id}}" data-status="{{$item->transfer_status}}"
-
-                                            data-statusb="{{$item->status ? $item->status:''}}">
-                                            @if(Request::routeIs('admin.payout-request'))
-                                            <i class="icon-base ti tabler-pencil me-1"></i> Edit
-                                            @else
-                                            <i class="icon-base ti tabler-eye me-1"></i>View
-                                            @endif
-                                        </button>
+                                <td data-label="{{ __('transaction.status') }}" class="text-center">
+                                    <div class="d-flex flex-column align-items-center">
+                                        @if ($item->transfer_status == 2)
+                                            <span class="badge bg-success mb-1">
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.request_approved') }}
+                                            </span>
+                                        @elseif($item->transfer_status == 1)
+                                            <span class="badge bg-warning mb-1">
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.request_pending') }}
+                                            </span>
+                                        @elseif($item->transfer_status == 3)
+                                            <span class="badge bg-danger mb-1">
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.request_rejected') }}
+                                            </span>
                                         @endif
 
+                                        @if ($item->status == 'Complete')
+                                            <span class="badge bg-success mt-1">
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.transferred') }}
+                                            </span>
+                                        @elseif($item->status == 'inititate' || $item->status == 'Pending')
+                                            <span class="badge bg-warning mt-1">
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.transfer_pending') }}
+                                            </span>
+                                        @elseif($item->status == 'Reject')
+                                            <span class="badge bg-danger mt-1">
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.transfer_rejected') }}
+                                            </span>
+                                        @endif
                                     </div>
-                                </div>
-                            </td>
+                                </td>
 
-                        </tr>
+
+                                <td>
+                                    {{ $item->feedback }}
+                                </td>
+                                <td data-label="@lang('Method')">
+                                    {{ $item->e_wallet_phone_number }}
+                                    <br>
+                                    {{ $item->e_wallet_type }}
+                                </td>
+                                <td data-label="{{ __('transaction.method') }}">{{ $item->request_source }}</td>
+
+                                <td>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                            data-bs-toggle="dropdown">
+                                            <i class="icon-base ti tabler-dots-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <!-- active / deactive button here -->
+                                            @if (adminAccessRoute(config('role.payout_manage.access.edit')))
+                                                <button type="button" class="btn btn-sm edit_button"
+                                                    data-bs-toggle="modal" data-bs-target="#newModalb"
+                                                    onclick="setBalanceItem({{ $item->id }})">
+                                                    <i class="icon-base ti tabler-report-money me-1"></i>
+                                                    {{ __('transaction.send_callback') }}
+                                                </button><br>
+                                                @if (isset($item))
+                                                    <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal"
+                                                        data-bs-target="#myModalc" data-title="Edit"
+                                                        data-id="{{ $item->id }}"
+                                                        data-e_wallet_phone_number="{{ $item->e_wallet_phone_number }}">
+                                                        <i class="icon-base ti tabler-device-mobile  me-1"></i>
+                                                        {{ __('transaction.change_e_wallet_no') }}
+                                                    </button><br>
+                                                @endif
+                                                @php
+
+                                                    $details =
+                                                        $item->information != null
+                                                            ? json_encode($item->information)
+                                                            : null;
+                                                @endphp
+                                                <button type="button" class="btn btn-sm  edit_button"
+                                                    data-bs-toggle="modal" data-bs-target="#myModal"
+                                                    data-route="{{ route('admin.payout-action', $item->id) }}"
+                                                    data-feedback="{{ $item->feedback }}"
+                                                    data-info="{{ $details }}" data-id="{{ $item->id }}"
+                                                    data-status="{{ $item->transfer_status }}"
+                                                    data-statusb="{{ $item->status ? $item->status : '' }}">
+                                                    @if (Request::routeIs('admin.payout-request'))
+                                                        <i class="icon-base ti tabler-pencil me-1"></i>
+                                                        {{ __('transaction.edit') }}
+                                                    @else
+                                                        <i
+                                                            class="icon-base ti tabler-eye me-1"></i>{{ __('transaction.view') }}
+                                                    @endif
+                                                </button>
+                                            @endif
+
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="100%">
-                                <p class="text-dark">@lang('No Data Found')</p>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="100%">
+                                    <p class="text-dark">{{ __('transaction.no_data_found') }}</p>
+                                </td>
+                            </tr>
 
                         @endforelse
                     </tbody>
                 </table>
                 <div class="mt-5">
-                {{ $records->appends($_GET)->links('partials.pagination') }}
+                    {{ $records->appends($_GET)->links('partials.pagination') }}
                 </div>
             </div>
         </div>
@@ -235,7 +257,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Change E-Wallet No.')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.change_e_wallet_no') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <?php
@@ -250,18 +272,19 @@
 
                         <div class="get-feedback">
 
-                            <label>E-Wallet No.</label>
+                            <label>{{ __('transaction.e_wallet_no') }}</label>
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
                             <button type="submit" class="btn btn-primary mt-3" name="status"
-                                value="1">@lang('Change')</button>
+                                value="1">{{ __('transaction.change') }}</button>
                         </div>
                         <input type="hidden" class="action_id" name="id">
                     </div>
                 </form>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')</button>
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">{{ __('transaction.close') }}</button>
                 </div>
 
             </div>
@@ -275,7 +298,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Send Callback')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.send_callback') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="addBalanceForm" action="{{ route('admin.run.callback') }}" method="POST">
@@ -290,7 +313,7 @@
 
 
                             <div class="col-md-12">
-                                Callback Status
+                                {{ __('transaction.callback_status') }}
                                 <span id="spinner2" style="display: none;">
                                     <span class="spinner-border text-primary" role="status">
                                     </span>
@@ -303,12 +326,12 @@
                                 </span>
                                 <br>
                                 <br>
-                                <p>Message: <span id="text1"></span></p>
+                                <p>{{ __('transaction.message') }}: <span id="text1"></span></p>
                                 <br>
                                 <div id="apiresponse" style="display: none;">
-                                    <h4>Response</h4>
-                                    <p>Response Code: <span id="text2"></span></p>
-                                    <p>Response Body: </p>
+                                    <h4>{{ __('transaction.response') }}</h4>
+                                    <p>{{ __('transaction.response_code') }}: <span id="text2"></span></p>
+                                    <p>{{ __('transaction.response_body') }}:</p>
                                     <div style="background-color: black;color:white;padding:10px"><span
                                             id="text3"></span></div>
                                 </div>
@@ -339,7 +362,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Payout Information')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.payout_info') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -351,7 +374,7 @@
                         <ul class="list-group withdraw-detail">
                         </ul>
 
-                        {{-- @if(Request::routeIs('admin.payout-request')) --}}
+                        {{-- @if (Request::routeIs('admin.payout-request')) --}}
 
                         <div class="form-group addForm">
 
@@ -361,25 +384,26 @@
                     </div>
                     <div class="modal-footer">
                         <input type="hidden" id="status" name="status">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{{ __('transaction.close') }}
                         </button>
 
                         <input type="hidden" class="action_id" name="id">
                         <div id="submit1" style="display: none;">
                             <button type="submit" id="btn2" class="btn btn-primary" name="status"
-                                value="2">@lang('Approve')</button>
+                                value="2">{{ __('transaction.approve') }}</button>
                         </div>
                         <div id="submit2" style="display: none;">
-                            <button type="submit" id="btn4" class="btn btn-dark" name="status" value="4">@lang('Mark As
-                                Complete')</button>
+                            <button type="submit" id="btn4" class="btn btn-dark" name="status"
+                                value="4">{{ __('transaction.mark_as_complete') }}</button>
                         </div>
                         <div id="submit4" style="display: none;">
-                            <button type="submit" id="btn5" class="btn btn-warning" name="status" value="5">@lang('Mark
-                                As Pending')</button>
+                            <button type="submit" id="btn5" class="btn btn-warning" name="status"
+                                value="5">{{ __('transaction.mark_as_pending') }}</button>
                         </div>
                         <div id="submit3" style="display: none;">
                             <button type="submit" id="btn3" class="btn btn-danger" name="status"
-                                value="3">@lang('Reject')</button>
+                                value="3">{{ __('transaction.reject') }}</button>
                         </div>
 
                     </div>
@@ -392,216 +416,215 @@
     </div>
 
     @push('js')
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Get references to all buttons
-            var btn2 = document.getElementById("btn2");
-            var btn3 = document.getElementById("btn3");
-            var btn4 = document.getElementById("btn4");
-            var btn5 = document.getElementById("btn5");
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                // Get references to all buttons
+                var btn2 = document.getElementById("btn2");
+                var btn3 = document.getElementById("btn3");
+                var btn4 = document.getElementById("btn4");
+                var btn5 = document.getElementById("btn5");
 
-            // Function to handle button click
-            function handleButtonClick(statusValue) {
-                // Set the status input field value
-                document.getElementById("status").value = statusValue;
+                // Function to handle button click
+                function handleButtonClick(statusValue) {
+                    // Set the status input field value
+                    document.getElementById("status").value = statusValue;
 
-                // Disable all buttons
-                btn2.disabled = true;
-                btn3.disabled = true;
-                btn4.disabled = true;
-                btn5.disabled = true;
+                    // Disable all buttons
+                    btn2.disabled = true;
+                    btn3.disabled = true;
+                    btn4.disabled = true;
+                    btn5.disabled = true;
 
-                // Submit the form
-                document.querySelector('#actionRoutee').submit();
-            }
+                    // Submit the form
+                    document.querySelector('#actionRoutee').submit();
+                }
 
-            // Attach event listeners to each button
-            btn2.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default form submission
-                handleButtonClick(2);
-            });
+                // Attach event listeners to each button
+                btn2.addEventListener("click", function(event) {
+                    event.preventDefault(); // Prevent default form submission
+                    handleButtonClick(2);
+                });
 
-            btn3.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default form submission
+                btn3.addEventListener("click", function(event) {
+                    event.preventDefault(); // Prevent default form submission
 
-                // Find the select box
-                const selectBox = document.querySelector("select[name='feedback']");
-                if (selectBox) {
-                    // Add the 'required' attribute
-                    selectBox.setAttribute("required", "required");
+                    // Find the select box
+                    const selectBox = document.querySelector("select[name='feedback']");
+                    if (selectBox) {
+                        // Add the 'required' attribute
+                        selectBox.setAttribute("required", "required");
 
-                    // Check if the select box has an empty value
-                    if (selectBox.value === "") {
-                        alert("Please select an issue before proceeding.");
-                        return; // Prevent further execution
+                        // Check if the select box has an empty value
+                        if (selectBox.value === "") {
+                            alert("{{ __('transaction.select_issue_alert') }}");
+                            return; // Prevent further execution
+                        }
                     }
-                }
 
-                // Call the function to handle button click
-                handleButtonClick(3);
+                    // Call the function to handle button click
+                    handleButtonClick(3);
+                });
+
+                btn4.addEventListener("click", function(event) {
+                    event.preventDefault(); // Prevent default form submission
+                    handleButtonClick(4);
+                });
+
+                btn5.addEventListener("click", function(event) {
+                    event.preventDefault(); // Prevent default form submission
+                    handleButtonClick(5);
+                });
+            });
+        </script>
+
+
+        <script>
+            $(document).ready(function() {
+                var intervalId; // To store the interval id
+                var orderid = document.getElementById("orderid");
+                var wid = document.getElementById("wid");
+                var acc_no = document.getElementById("acc_no");
+
+
+
+                $('#runWithdrawalTest').click(function() {
+                    if (acc_no.value === "") {
+                        alert("{{ __('transaction.select_admin_account_alert') }}");
+                        return;
+                    }
+
+                });
+
+                // Function to perform the AJAX call
+
+
+                $('.modal-header .close').click(function() {
+                    $('#runWithdrawalTest').prop('disabled', false);
+                    $('#spinner2').hide();
+                    $('#tickMark2').hide();
+                });
             });
 
-            btn4.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default form submission
-                handleButtonClick(4);
-            });
+            function setBalanceItem(itemId) {
+                var account_id = jQuery("#account_id");
+                account_id.val(itemId);
 
-            btn5.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default form submission
-                handleButtonClick(5);
-            });
-        });
+                jQuery('#spinner2').show();
+                jQuery('#runWithdrawalTest').prop('disabled', true);
 
-    </script>
+                var formData = new FormData(jQuery('#addBalanceForm')[0]); // Get form data
 
+                jQuery.ajax({
+                    type: "POST",
+                    url: "{{ route('admin.run.callback') }}",
+                    headers: {
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        console.log(response);
+                        if (response.status === "success") {
+                            jQuery('#spinner2').hide();
+                            jQuery('#tickMark2').show();
+                            jQuery('#apiresponse').show();
+                        } else {
+                            jQuery('#spinner2').hide();
+                            jQuery('#tickMark3').show();
+                            jQuery('#apiresponse').hide();
+                        }
 
-    <script>
-        $(document).ready(function () {
-            var intervalId; // To store the interval id
-            var orderid = document.getElementById("orderid");
-            var wid = document.getElementById("wid");
-            var acc_no = document.getElementById("acc_no");
-
-
-
-            $('#runWithdrawalTest').click(function () {
-                if (acc_no.value === "") {
-                    alert("Please select an Admin Account");
-                    return;
-                }
-
-            });
-
-            // Function to perform the AJAX call
-
-
-            $('.modal-header .close').click(function () {
-                $('#runWithdrawalTest').prop('disabled', false);
-                $('#spinner2').hide();
-                $('#tickMark2').hide();
-            });
-        });
-
-        function setBalanceItem(itemId) {
-            var account_id = jQuery("#account_id");
-            account_id.val(itemId);
-
-            jQuery('#spinner2').show();
-            jQuery('#runWithdrawalTest').prop('disabled', true);
-
-            var formData = new FormData(jQuery('#addBalanceForm')[0]); // Get form data
-
-            jQuery.ajax({
-                type: "POST",
-                url: "{{ route('admin.run.callback') }}",
-                headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                },
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    console.log(response);
-                    if (response.status === "success") {
-                        jQuery('#spinner2').hide();
-                        jQuery('#tickMark2').show();
-                        jQuery('#apiresponse').show();
-                    } else {
+                        jQuery("#text1").text(response.message);
+                        jQuery("#text2").text(response.code);
+                        jQuery("#text3").text(response.response_payload);
+                    },
+                    error: function(xhr, status, error) {
                         jQuery('#spinner2').hide();
                         jQuery('#tickMark3').show();
                         jQuery('#apiresponse').hide();
-                    }
 
-                    jQuery("#text1").text(response.message);
-                    jQuery("#text2").text(response.code);
-                    jQuery("#text3").text(response.response_payload);
-                },
-                error: function (xhr, status, error) {
-                    jQuery('#spinner2').hide();
-                    jQuery('#tickMark3').show();
-                    jQuery('#apiresponse').hide();
-
-                    jQuery("#text1").text(
-                        'An error occurred while processing your request. Please try again.');
-                    jQuery("#text2").text('');
-                    jQuery("#text3").text('');
-                }
-            });
-        }
-
-    </script>
-
-    <script>
-        $(document).ready(function () {
-
-            function fetchNotification() {
-                var letest_record = document.getElementById("letest_record").value;
-                $.ajax({
-                    url: "{{ route('admin.payout-report.getnotification') }}",
-                    type: "GET",
-                    data: {
-                        letest_record: letest_record
-                    },
-                    success: function (response) {
-                        // console.log(response.message);
-                        if (response.message === "success") {
-                            var sound = document.getElementById("notification-sound");
-                            const audio = new Audio();
-                            audio.addEventListener("canplaythrough", () => {
-                                audio.play()
-                            });
-                            sound.play();
-                            window.location.reload();
-                        }
-
-                    },
-                    error: function (xhr) {
-                        console.log('Error:', xhr.responseText);
+                        jQuery("#text1").text(
+                            "{{ __('transaction.error_occurred') }}");
+                        jQuery("#text2").text('');
+                        jQuery("#text3").text('');
                     }
                 });
             }
+        </script>
 
-            // Run fetchNotification every 5 seconds (5000 milliseconds)
-            setInterval(fetchNotification, 5000);
-        });
+        <script>
+            $(document).ready(function() {
 
-    </script>
-    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
-    <script>
-        $(document).ready(function () {
-            $('form').on('submit', function () {
-                const $form = $(this);
-                const $submitButton = $form.find('button[type="submit"]');
+                function fetchNotification() {
+                    var letest_record = document.getElementById("letest_record").value;
+                    $.ajax({
+                        url: "{{ route('admin.payout-report.getnotification') }}",
+                        type: "GET",
+                        data: {
+                            letest_record: letest_record
+                        },
+                        success: function(response) {
+                            // console.log(response.message);
+                            if (response.message === "success") {
+                                var sound = document.getElementById("notification-sound");
+                                const audio = new Audio();
+                                audio.addEventListener("canplaythrough", () => {
+                                    audio.play()
+                                });
+                                sound.play();
+                                window.location.reload();
+                            }
 
-                // Disable button and change text (optional)
-                $submitButton.prop('disabled', true);
-                $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang("Processing...")');
-
-                // Allow form to proceed
-                return true;
-            });
-            let $select = $('.select2').select2({
-                // placeholder: "Select Partner",
-                allowClear: true,
-                selectOnClose: true,
-            });
-
-            // Prevent dropdown from opening on clear
-            $select.on('select2:unselecting', function (e) {
-                $(this).data('unselecting', true);
-            });
-
-            $select.on('select2:opening', function (e) {
-                if ($(this).data('unselecting')) {
-                    $(this).removeData('unselecting');
-                    e.preventDefault();
+                        },
+                        error: function(xhr) {
+                            console.log('Error:', xhr.responseText);
+                        }
+                    });
                 }
-            });
-        });
-    </script>
 
-<script>
-            $(document).on("click", '.edit_button', function (e) {
+                // Run fetchNotification every 5 seconds (5000 milliseconds)
+                setInterval(fetchNotification, 5000);
+            });
+        </script>
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+        <script>
+            $(document).ready(function() {
+                $('form').on('submit', function() {
+                    const $form = $(this);
+                    const $submitButton = $form.find('button[type="submit"]');
+
+                    // Disable button and change text (optional)
+                    $submitButton.prop('disabled', true);
+                    $submitButton.html(
+                        "<i class='fa fa-spinner fa-spin me-1'></i> {{ __('transaction.processing') }}");
+
+
+                    // Allow form to proceed
+                    return true;
+                });
+                let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    selectOnClose: true,
+                });
+
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function(e) {
+                    $(this).data('unselecting', true);
+                });
+
+                $select.on('select2:opening', function(e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
+                    }
+                });
+            });
+        </script>
+
+        <script>
+            $(document).on("click", '.edit_button', function(e) {
                 var id = $(this).data('id');
                 $(".action_id").val(id);
                 $(".actionRoute").attr('action', $(this).data('route'));
@@ -634,16 +657,16 @@
 
                 $('.addForm').html(`
                     <div class="form-group">
-                        <label for="feedback">@lang('Remarks')</label>
+                        <label for="feedback">{{ __('feedback.remarks') }}</label>
                         <select class="form-control" name="feedback" id="feedback">
-                            <option value="">@lang('Select Feedback')</option>
-                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
-                            <option value="account_limit_over">@lang('Account limit over')</option>
-                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
-                            <option value="nagad_server_down">@lang('Nagad server down')</option>
-                            <option value="bkash_server_down">@lang('bKash server down')</option>
-                            <option value="rocket_server_down">@lang('Rocket server down')</option>
-                            <option value="others">@lang('Others')</option>
+                            <option value="">{{ __('feedback.select_feedback') }}</option>
+                            <option value="invalid_phone_number">{{ __('feedback.invalid_phone_number') }}</option>
+                            <option value="account_limit_over">{{ __('feedback.account_limit_over') }}</option>
+                            <option value="kyc_incomplete">{{ __('feedback.kyc_incomplete') }}</option>
+                            <option value="nagad_server_down">{{ __('feedback.nagad_server_down') }}</option>
+                            <option value="bkash_server_down">{{ __('feedback.bkash_server_down') }}</option>
+                            <option value="rocket_server_down">{{ __('feedback.rocket_server_down') }}</option>
+                            <option value="others">{{ __('feedback.others') }}</option>
                         </select>
                     </div>
                 `);
@@ -651,18 +674,17 @@
                 $('.withdraw-detail').html(list);
             });
 
-            $(document).on("click", '.edit_buttonc', function (e) {
+            $(document).on("click", '.edit_buttonc', function(e) {
                 var id = $(this).data('id');
                 var e_wallet_phone_number = $(this).data('e_wallet_phone_number');
 
                 $(".action_id").val(id);
                 $(".e_wallet_phone_number").val(e_wallet_phone_number);
             });
-</script>
-
+        </script>
     @endpush
     @push('styles')
-    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
 
 </x-admin-layout>

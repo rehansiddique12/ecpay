@@ -705,7 +705,7 @@ class PayoutRecordController extends Controller
 
     public function index()
     {
-        $pageTitle = "Payout Logs";
+        $pageTitle = __("general.payout_logs");
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->first()->id;
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway', 'api')->paginate(config('basic.paginate'));
@@ -1634,7 +1634,7 @@ class PayoutRecordController extends Controller
             ? $query->get()
             : $query->paginate(20);
 
-        $pageTitle = "Manage APIs";
+        $pageTitle = __('merchant.manage_apis');
 
         return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
@@ -1652,7 +1652,7 @@ class PayoutRecordController extends Controller
             ? $query->get()
             : $query->paginate(20);
 
-        $pageTitle = "Agent List";
+        $pageTitle = __('agent.agent_list');
         // dd($records);
 
         return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
