@@ -568,8 +568,9 @@
 
     // Check if the search already exists
     const existingIndex = history.findIndex(item => item.search === search && item.source === source);
-
-    if (existingIndex !== -1) {
+    const searchInput = document.getElementById('transaction-search');
+const searchValue = searchInput.value.trim(); // Get and trim the search value
+if (existingIndex !== -1 && searchValue !== "") {
         // If it exists, show an alert
         Swal.fire({
                                 icon: 'error',
@@ -849,7 +850,6 @@
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Optional: prevent form submission if inside a form
                     const searchValue = $(this).val();
-                    alert(searchValue);
                     fetchrecords(searchValue, 'all');
                 }
             });
