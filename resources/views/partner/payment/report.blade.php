@@ -7,28 +7,28 @@
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>@lang('partner_basic.from_date_label')</label>
                         <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $from_date }}" name="from_date"
                              />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>@lang('partner_basic.to_date_label')</label>
                         <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $to_date }}" name="to_date"
                             />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>User Account No</label>
+                        <label>@lang('partner_basic.user_account_no')</label>
                         <input type="text" class="form-control" autocomplete="off" value="{{ @request()->account_no }}" name="account_no"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Transection No</label>
+                        <label>@lang('partner_basic.transaction_no')</label>
                         <input type="text" name="partner_transection_id" value="{{ @request()->partner_transection_id }}"
                             class="form-control" placeholder="@lang('Transection No.')">
                     </div>
@@ -37,7 +37,7 @@
 
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>E-Wallet</label>
+                        <label>@lang('partner_basic.e_wallet_label')</label>
                         <select name="gateway" class="form-select">
                             <option value="">All</option>
                             @foreach ($gateways as $gateway)
@@ -56,8 +56,9 @@
                 <input type="text" name="name" hidden value="{{ @request()->name }}" class="form-control "
                     placeholder="@lang('Type Here')">
 
-                <div class="col-md-5 mt-4">
+                <div class="col-md-5">
                     <div class="form-group">
+                        <label for="status">@lang('partner_basic.status')</label>
                         <select name="status" class="form-select">
                             <option value="All" @if (@request()->status == 'All') selected @endif>@lang('All Payment')
                             </option>
@@ -77,10 +78,10 @@
 
                 <div class="col-md-2">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                         <button type="submit" name="export" value="export"
                             class="btn btn-success mt-2"><i class="icon-base ti tabler-download me-1"></i>
-                            @lang('Export Data')</button>
+                            @lang('partner_basic.export')</button>
                     </div>
                 </div>
             </div>
@@ -103,11 +104,11 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_count }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Transactions')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('partner_basic.total_transactions')
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
-                            <span class="opacity-7 text-muted"><i class="fas fa-wallet"></i></span>
+                            <span class="opacity-7 text-muted"><i class="fas fa-wallet fa-3x"></i></span>
                         </div>
                     </div>
                 </div>
@@ -121,11 +122,11 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_sum }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Deposit Amount')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('partner_basic.total_deposit_amount')
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
-                            <span class="opacity-7 text-muted"><i class="fa fa-hand-holding-usd"></i></span>
+                            <span class="opacity-7 text-muted"><i class="fa fa-hand-holding-usd fa-3x"></i></span>
                         </div>
                     </div>
                 </div>
@@ -137,15 +138,6 @@
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
 
-            
-
-
-
-
-
-
-
-
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
         
@@ -153,21 +145,20 @@
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
-                                    <th scope="col">@lang('ID')</th>
-                                    <th scope="col">@lang('Date Time')</th>
-                                    <th scope="col">@lang('Trx Number')</th>
-                                    <th scope="col">@lang('Partner Trx No')</th>
-                                    <th scope="col">@lang('Partner Txn Input')</th>
-                                    <th scope="col">@lang('Type')</th>
-                                    <th scope="col">@lang('Code')</th>
-                                    <th scope="col">User Account</th>
-                                    <th scope="col">@lang('Amount')</th>
-                                    <th scope="col">@lang('Merchant Charge')</th>
-                                    <th scope="col">@lang('Final Amount')</th>
-                                    <th scope="col">@lang('Status')</th>
-                                    
-                                    <th scope="col">Completed At</th>
-                                    <th scope="col">@lang('Receipt')</th>
+                                    <th scope="col">@lang('partner_basic.id')</th>
+                                    <th scope="col">@lang('partner_basic.datetime')</th>
+                                    <th scope="col">@lang('partner_basic.txn_no')</th>
+                                    <th scope="col">@lang('partner_basic.partner_txn_no')</th>
+                                    <th scope="col">@lang('partner_basic.partner_txn_input')</th>
+                                    <th scope="col">@lang('partner_basic.type')</th>
+                                    <th scope="col">@lang('partner_basic.code')</th>
+                                    <th scope="col">@lang('partner_basic.user_account_no')</th>
+                                    <th scope="col">@lang('partner_basic.amount')</th>
+                                    <th scope="col">@lang('partner_basic.merchant_charges')</th>
+                                    <th scope="col">@lang('partner_basic.final_amount')</th>
+                                    <th scope="col">@lang('partner_basic.status')</th>
+                                    <th scope="col">@lang('partner_basic.completed_at')</th>
+                                    <th scope="col">@lang('partner_basic.receipt')</th>
                                    
                                 </tr>
                             </thead>
@@ -274,7 +265,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
+                                            <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                         </td>
                                     </tr>
         

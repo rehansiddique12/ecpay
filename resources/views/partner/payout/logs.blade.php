@@ -1,6 +1,6 @@
 <x-partner-layout :title="$pageTitle">
 <h1 class="text-center">
-    <span class="badge badge-primary">Available to withdraw: <b>{{ $withdrawal_able_amount }} TK</b></span>
+    <span class="badge badge-primary">@lang('partner_basic.available_to_withdraw'): <b>{{ $withdrawal_able_amount }} TK</b></span>
 </h1>
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
@@ -44,11 +44,6 @@
                     </div>
                 </div>
 
-
-
-
-
-
                 <div class="col-md-2">
                     <div class="form-group">
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
@@ -68,17 +63,17 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                     <tr>
-                        <th scope="col">@lang('Date')</th>
-                        <th scope="col">@lang('Trx Number')</th>
-                        <th scope="col">@lang('Partner Trx Number')</th>
-                        <th scope="col">@lang('Method')</th>
-                        <th scope="col">@lang('Amount')</th>
-                        <th scope="col">@lang('Merchant Charge')</th>
-                        <th scope="col">@lang('Net Amount')</th>
-                        <th scope="col">@lang('Status')</th>
-                        <th scope="col">@lang('Transfer Status')</th>
-                        <th scope="col">@lang('Sent From')</th>
-                        <th scope="col">@lang('More')</th>
+                        <th scope="col">@lang('partner_basic.Date_label')</th>
+                        <th scope="col">@lang('partner_basic.txn_no')</th>
+                        <th scope="col">@lang('partner_basic.partner_txn_no')</th>
+                        <th scope="col">@lang('partner_basic.method_label')</th>
+                        <th scope="col">@lang('partner_basic.amount')</th>
+                        <th scope="col">@lang('partner_basic.merchant_charges')</th>
+                        <th scope="col">@lang('partner_basic.net_amount_label')</th>
+                        <th scope="col">@lang('partner_basic.status')</th>
+                        <th scope="col">@lang('partner_basic.transfer_status_label')</th>
+                        <th scope="col">@lang('partner_basic.sent_from_label')</th>
+                        <th scope="col">@lang('partner_basic.more_info_label')</th>
 
                     </tr>
                     </thead>
@@ -156,7 +151,7 @@
                     @empty
                         <tr>
                             <td colspan="100%">
-                                <p class="text-dark">@lang('No Data Found')</p>
+                                <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                             </td>
                         </tr>
 

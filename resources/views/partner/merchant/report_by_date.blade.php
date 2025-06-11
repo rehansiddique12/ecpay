@@ -14,12 +14,12 @@
                 <div class="form-group mt-2">
                     <br>
                     &nbsp;&nbsp;&nbsp;&nbsp;
-                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     {{-- <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button> --}}
                     <a href="{{ route('partner.merchant_reports.export_by_date', ['from_date' => $from_date]) }}"
                         class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('partner_basic.export')
                      </a>
                 </div>
             </div>
@@ -43,13 +43,13 @@
                            <th></th>
                         </tr>
                         <tr>
-                            <th>@lang('partner_basic.no_transaction_label')No. Transaction</th>
-                            <th>@lang('partner_basic.total_amount_label')Total Amount</th>
-                            <th>@lang('partner_basic.commission_label')Commission</th>
-                            <th>@lang('partner_basic.no_transaction_label')No. Transaction</th>
-                            <th>@lang('partner_basic.withdrawal_label')Total Withdrawal</th>
-                            <th>@lang('partner_basic.withdrawal_label')Commission</th>
-                            <th>@lang('partner_basic.withdrawal_label')Total Commission</th>
+                            <th>@lang('partner_basic.no_transaction_label')</th>
+                            <th>@lang('partner_basic.total_amount_label')</th>
+                            <th>@lang('partner_basic.commission_label')</th>
+                            <th>@lang('partner_basic.no_transaction_label')</th>
+                            <th>@lang('partner_basic.total_widthdrawal_label')</th>
+                            <th>@lang('partner_basic.commission_label')</th>
+                            <th>@lang('partner_basic.total_commission_label')</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -68,7 +68,7 @@
                                 @empty
                                 <tr>
                                     <td colspan="100%">
-                                        <p class="text-dark">@lang('No Data Found')</p>
+                                        <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                     </td>
                                 </tr>
                                 @endforelse
