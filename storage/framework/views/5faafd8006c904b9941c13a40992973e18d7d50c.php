@@ -1,38 +1,46 @@
-<x-admin-layout :title="$pageTitle">
-    @push('styles')
-    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+<?php if (isset($component)) { $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040 = $component; } ?>
+<?php $component = App\View\Components\AdminLayout::resolve(['title' => $pageTitle] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
+<?php $component->withName('admin-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(App\View\Components\AdminLayout::class))->getConstructor()): ?>
+<?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+    <?php $__env->startPush('styles'); ?>
+    <link rel="stylesheet" href="<?php echo e(asset('assets/vendor/libs/select2/select2.css')); ?>">
     <style>
         tr th {
             color: white !important;
         }
     </style>
-    @endpush
+    <?php $__env->stopPush(); ?>
 
 
-    @php
+    <?php
     $key = 0;
-    @endphp
+    ?>
     <div class="row">
         <div class="col-md-12">
             <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-                <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                <h3 style="color: #7367f0"><?php echo e($pageTitle); ?></h3>
 
-                <form action="{{ route('admin.add.partner.commission') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="user_id" value="{{ $user_id }}">
+                <form action="<?php echo e(route('admin.add.partner.commission')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="user_id" value="<?php echo e($user_id); ?>">
                     <div class="mb-3">
                         <label for="partner_id" class="form-label">Select Parent</label>
                         <select name="partner_id" style="border:2px solid green;" id="partner_id" class="form-select" required>
                             <option value="">-- Choose Parent --</option>
-                            @foreach ($partners as $partner)
-                            <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $partners; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $partner): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($partner->id); ?>"><?php echo e($partner->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
-                    @if(count($commissions) > 0)
-                    @foreach($commissions as $commission)
-                    <div id="row-p{{ $key }}">
+                    <?php if(count($commissions) > 0): ?>
+                    <?php $__currentLoopData = $commissions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $commission): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div id="row-p<?php echo e($key); ?>">
                         <br>
                         <div style="border:1px solid;padding:20px">
                             <div class="row">
@@ -40,20 +48,20 @@
                                     <div class="row">
                                     <div class="col-md-3">
                                         <label>From Amount</label>
-                                        <input type="hidden" name="id[]" value="{{ $commission->id }}">
+                                        <input type="hidden" name="id[]" value="<?php echo e($commission->id); ?>">
                                         <input type="number" class="form-control"
-                                            value="{{ $commission->from_amount }}" readonly>
+                                            value="<?php echo e($commission->from_amount); ?>" readonly>
                                     </div>
                                     <div class="col-md-3">
                                         <label>To Amount</label>
                                         <input type="number" class="form-control"
-                                            value="{{ $commission->to_amount }}" readonly>
+                                            value="<?php echo e($commission->to_amount); ?>" readonly>
                                     </div>
                                     <div class="col-md-3">
                                         <label>Deposit %</label>
                                         <div class="input-group">
                                             <input type="number" step="0.01" class="form-control"
-                                                 value="{{ $commission->deposit_percentage }}"
+                                                 value="<?php echo e($commission->deposit_percentage); ?>"
                                                  readonly>
                                             <div class="input-group-append"><span class="input-group-text">%</span></div>
                                         </div>
@@ -63,7 +71,7 @@
                                         <div class="input-group">
                                             <input type="number" step="0.01" class="form-control"
 
-                                                value="{{ $commission->withdrawal_percentage }}" readonly>
+                                                value="<?php echo e($commission->withdrawal_percentage); ?>" readonly>
                                             <div class="input-group-append"><span class="input-group-text">%</span></div>
                                         </div>
                                     </div>
@@ -71,29 +79,30 @@
                                 </div>
                                 </div>
 
-                                @php
+                                <?php
                                 $selectedGateways = json_decode($commission->gateway_id ?? '');
                                 $selectedtypes = json_decode($commission->type ?? '');
-                                @endphp
+                                ?>
                                 <div class="col-md-2">
                                     <label>Type</label>
                                     <select class="form-select select2" multiple  required>
 
-                                        <option value="Agent" {{ in_array('Agent', $selectedtypes)? 'selected' : '' }}>Agent
+                                        <option value="Agent" <?php echo e(in_array('Agent', $selectedtypes)? 'selected' : ''); ?>>Agent
                                         </option>
-                                        <option value="Personal" {{ in_array('Personal', $selectedtypes)? 'selected' : '' }}>Personal</option>
-                                        <option value="Merchant" {{ in_array('Merchant', $selectedtypes)? 'selected' : '' }}>Merchant</option>
+                                        <option value="Personal" <?php echo e(in_array('Personal', $selectedtypes)? 'selected' : ''); ?>>Personal</option>
+                                        <option value="Merchant" <?php echo e(in_array('Merchant', $selectedtypes)? 'selected' : ''); ?>>Merchant</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label>Gateway</label>
                                     <select class="form-select select2" multiple >
-                                        @foreach($gateways as $gateway)
-                                        <option value="{{ $gateway->name }}" {{ in_array($gateway->name, $selectedGateways)
-                                            ? 'selected' : '' }}>
-                                            {{ $gateway->name }}
+                                        <?php $__currentLoopData = $gateways; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gateway): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($gateway->name); ?>" <?php echo e(in_array($gateway->name, $selectedGateways)
+                                            ? 'selected' : ''); ?>>
+                                            <?php echo e($gateway->name); ?>
+
                                         </option>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
 
@@ -115,13 +124,13 @@
                             </div>
                         </div>
                     </div>
-                    @php
+                    <?php
                     $key++;
-                    @endphp
-                    @endforeach
-                    @else
+                    ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php else: ?>
 
-                    @endif
+                    <?php endif; ?>
 
                     <div class="col-md-12">
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -131,8 +140,8 @@
         </div>
     </div>
 
-    @push('js')
-    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+    <?php $__env->startPush('js'); ?>
+    <script src="<?php echo e(asset('assets/vendor/libs/select2/select2.js')); ?>"></script>
     <script>
         var key = '<?php echo $key?>';
         let $select = $('.select2').select2({
@@ -160,8 +169,14 @@
 
 
     </script>
-    @endpush
-</x-admin-layout>
+    <?php $__env->stopPush(); ?>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040)): ?>
+<?php $component = $__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040; ?>
+<?php unset($__componentOriginalbacdc7ee2ae68d90ee6340a54a5e36f99d0a3040); ?>
+<?php endif; ?>
 
 
 
+<?php /**PATH C:\xampp\htdocs\subecpaypast\resources\views/admin/payout/partner_commission.blade.php ENDPATH**/ ?>

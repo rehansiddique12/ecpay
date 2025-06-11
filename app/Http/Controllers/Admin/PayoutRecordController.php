@@ -2132,7 +2132,7 @@ class PayoutRecordController extends Controller
     public function partnerCommission($id)
     {
         $api = Api::where('id', $id)->first();
-        $partners = Api::where('id', '!=', $id)->get();
+        $partners = Api::where('id', '!=', $id)->where('acc_type','Partner')->get();
         // $cron_commissions = CronCommission::where('category_id', $id)->get();
         $user_id = $api->id;
         $commissions = Commission::where('category_id', $api->category_id)->get();
