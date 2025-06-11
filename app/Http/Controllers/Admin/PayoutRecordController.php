@@ -2050,11 +2050,11 @@ class PayoutRecordController extends Controller
             $Log->save();
 
             DB::commit();
-            session()->flash('success', 'Successfully Updated Balance');
+            session()->flash('success', __('partner.successfully_updated_balance'));
             return back();
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction on error
-            session()->flash('error', 'Failed to Update Balance: ' . $e->getMessage());
+            session()->flash('error', __('partner.failed_to_update_balance', ['message' => $e->getMessage()]));
             return back()->withInput();
         }
     }
@@ -2120,8 +2120,7 @@ class PayoutRecordController extends Controller
             }
         }
 
-        $pageTitle = "Manage Commissions";
-
+        $pageTitle =  __('partner.manage_commissions');
         $records = "";
 
         return view('admin.payout.commission', compact(
@@ -3527,7 +3526,7 @@ class PayoutRecordController extends Controller
 
         return view('admin.payout.add_balance', [
             'domains' => $domains,
-            'pageTitle' => 'Add Partner Balance / Adjustment'
+            'pageTitle' => __('partner.add_partner_balance_adjustment')
         ]);
     }
 
@@ -3825,7 +3824,7 @@ class PayoutRecordController extends Controller
 
         $e_wallet_accounts = EWalletAccount::get();
         $e_wallet_transections = EWalletTransfer::whereDate('transaction_date_time', '=', $from_date)->orderBy('created_at', 'desc')->paginate(50);
-        $pageTitle = "Transfer Logs";
+        $pageTitle = __('partner.transfer_logs');
         return view('admin.payout.ewallet_transfer', compact('pageTitle', 'from_date', 'e_wallet_accounts', 'e_wallet_transections'));
     }
 
@@ -3917,7 +3916,7 @@ class PayoutRecordController extends Controller
         }
         $EWalletTransaction->save();
 
-        session()->flash('success', 'Added Successfully');
+        session()->flash('success', __('partner.added_successfully'));
         return back();
     }
 
@@ -6038,7 +6037,7 @@ class PayoutRecordController extends Controller
             $totalProfitSum = number_format($TotalProfitSum, 2);
         }
         // dd($recordsQuery->sum('amount'));
-        $pageTitle = "Partners Commission History";
+        $pageTitle = __('partner.partners_commission_history');
         $partners = Api::where('type', 'Admin')->get();
 
         return view('admin.payout.commission_report', compact('records', 'pageTitle', 'partners', 'from_date', 'to_date', 'totalAmount', 'isLastPage', 'totalChargesSum', 'totalAAmountSum', 'totalProfitSum'));
@@ -6061,8 +6060,7 @@ class PayoutRecordController extends Controller
 
     public function adjustments()
 {
-    $pageTitle = "Partners Adjustments History";
-
+    $pageTitle = __('partner.adjustments_history');
     $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
     $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
     $monthyear = Carbon::now()->subMonth()->startOfMonth();
@@ -6203,7 +6201,7 @@ class PayoutRecordController extends Controller
     public function partnerBalance(Request $request)
     {
         $records = ApiTransaction::with('api')->orderBy('id', 'DESC')->paginate(20);
-        $pageTitle = "Partners Adjustments";
+        $pageTitle = __('partner.adjustments');
         $partners = Api::where('type', 'Admin')->paginate(10);
 
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));

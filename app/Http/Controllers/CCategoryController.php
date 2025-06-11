@@ -12,7 +12,7 @@ class CCategoryController extends Controller
     public function index()
     {
         try {
-            $pageTitle = 'Commission Categories';
+            $pageTitle =  __('partner.commission_categories');
             $records = CCategory::paginate(10);
             return view('commission_category.index', compact('records', 'pageTitle'));
         } catch (\Exception $e) {

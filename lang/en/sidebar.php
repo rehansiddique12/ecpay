@@ -44,7 +44,7 @@ return [
     'unclaimed_payment' => 'Unclaimed Payment',
     'deposit_report' => 'Deposit Report',
     'all_report' => 'All Report',
-    'withdrawal_report' => 'withdrawal_report',
+    'withdrawal_report' => 'Withdrawal Report',
     
     
     'reports' => 'Reports',

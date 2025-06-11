@@ -6,24 +6,25 @@
 
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>{{ __('partner.from_date') }}</label>
                         <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>{{ __('partner.to_date') }}</label>
                         <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Partner</label>
-                        <select id="select2Basic" name="partner" class="select2 form-select" data-allow-clear="true" data-placeholder="Select Partner">
+                        <label>{{ __('partner.partner') }}</label>
+                        <select id="select2Basic" name="partner" class="select2 form-select" data-allow-clear="true"
+                            data-placeholder="{{ __('partner.select_partner') }}">
                             <option></option>
-                            <option value="">All</option>
+                            <option value="">{{ __('partner.all') }}</option>
                             @foreach ($partners as $partner)
                                 <option value="{{ $partner->id }}" @if (@request()->partner == $partner->id) selected @endif>
                                     {{ $partner->website }}</option>
@@ -33,31 +34,34 @@
                 </div>
 
 
-               <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>Adjustment Type</label>
-                        <select name="adjustment" class="form-select">
-                            <option value="">@lang('All')</option>
-                            <option value="4" @if (@request()->adjustment == '4') selected @endif>@lang('Top-Up')
-                            </option>
-                            <option value="1" @if (@request()->adjustment == '1') selected @endif>@lang('Balance')
-                            </option>
-                            <option value="2" @if (@request()->adjustment == '2') selected @endif>@lang('Deposit')
-                            </option>
-                            <option value="3" @if (@request()->adjustment == '3') selected @endif>@lang('Withdrawal')
-                            </option>
-                        </select>
-                    </div>
-                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>{{ __('partner.adjustment_type') }}</label>
+                            <select name="adjustment" class="form-select">
+                                <option value="">{{ __('partner.all') }}</option>
 
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <br>
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                <option value="4" @if (@request()->adjustment == '4') selected @endif>
+                                    {{ __('partner.top_up') }}</option>
+                                <option value="1" @if (@request()->adjustment == '1') selected @endif>
+                                    {{ __('partner.balance') }}</option>
+                                <option value="2" @if (@request()->adjustment == '2') selected @endif>
+                                    {{ __('partner.deposit') }}</option>
+                                <option value="3" @if (@request()->adjustment == '3') selected @endif>
+                                    {{ __('partner.withdrawal') }}</option>
+
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <br>
+                            <button type="submit" class="btn waves-effect waves-light btn-primary"><i
+                                    class="icon-base ti tabler-search me-1"></i> {{ __('partner.search') }}</button>
+                        </div>
                     </div>
                 </div>
-               </div>
 
             </div>
         </form>
@@ -74,17 +78,16 @@
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
-
-                                    <th scope="col">@lang('Name')</th>
-                                    <th scope="col">@lang('User-Name')</th>
-                                    <th scope="col">Website</th>
-                                    <th scope="col">Amount</th>
-                                    <th scope="col">Charges</th>
-                                    <th scope="col">@lang('Ajustment Type')</th>
-                                    <th scope="col" style="width: 500px;">Remarks</th>
-                                    <th scope="col">Created At</th>
-
+                                    <th scope="col">{{ __('partner.name') }}</th>
+                                    <th scope="col">{{ __('partner.user_name') }}</th>
+                                    <th scope="col">{{ __('partner.website') }}</th>
+                                    <th scope="col">{{ __('partner.amount') }}</th>
+                                    <th scope="col">{{ __('partner.charges') }}</th>
+                                    <th scope="col">{{ __('partner.adjustment_type') }}</th>
+                                    <th scope="col" style="width: 500px;">{{ __('partner.remarks') }}</th>
+                                    <th scope="col">{{ __('partner.created_at') }}</th>
                                 </tr>
+
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
@@ -96,29 +99,32 @@
                                             <td>{{ $item->amount }}</td>
                                             <td>{{ $item->charges }}</td>
 
-                                            <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                            <td data-label="{{ __('partner.status') }}"
+                                                class="text-lg-center text-right">
                                                 @if ($item->adjustment == 2)
                                                     <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-warning success font-12"></i>
-                                                        @lang('Deposit')</span>
+                                                        {{ __('partner.deposit') }}
+                                                    </span>
                                                 @elseif($item->adjustment == 3)
                                                     <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-danger success font-12"></i>
-                                                        @lang('Withdrawal')</span>
+                                                        {{ __('partner.withdrawal') }}
+                                                    </span>
                                                 @elseif($item->adjustment == 4)
                                                     <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-primary success font-12"></i>
-                                                        @lang('Top-Up')</span>
+                                                        {{ __('partner.top_up') }}
+                                                    </span>
                                                 @else
                                                     <span class="badge bg-dark">
                                                         <i class="fa fa-circle text-success success font-12"></i>
-                                                        @lang('Balance')</span>
+                                                        {{ __('partner.balance') }}
+                                                    </span>
                                                 @endif
                                             </td>
-                                            <td data-label="Remarks">
-                                                {{-- <div style="max-height: 80px; overflow: auto; font-size: 12px; line-height: 1.4; background: #1e1e2f; padding: 5px; border-radius: 4px;"> --}}
-                                                    {{ $item->reason }}
-                                                {{-- </div> --}}
+                                            <td data-label="{{ __('partner.remarks') }}">
+                                                {{ $item->reason }}
                                             </td>
                                             <td>{{ $item->created_at }}</td>
                                         </tr>
@@ -126,7 +132,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
+                                            <p class="text-dark">{{ __('partner.no_data_found') }}</p>
                                         </td>
                                     </tr>
 
@@ -143,29 +149,29 @@
 
     </div>
     @push('styles')
-    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
     @push('js')
-        <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
         <script>
             $(document).ready(function() {
-               let $select = $('.select2').select2({
-                // placeholder: "Select Partner",
-                allowClear: true,
-                selectOnClose: true,
-            });
+                let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    selectOnClose: true,
+                });
 
-            // Prevent dropdown from opening on clear
-            $select.on('select2:unselecting', function (e) {
-                $(this).data('unselecting', true);
-            });
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function(e) {
+                    $(this).data('unselecting', true);
+                });
 
-            $select.on('select2:opening', function (e) {
-                if ($(this).data('unselecting')) {
-                    $(this).removeData('unselecting');
-                    e.preventDefault();
-                }
-            });
+                $select.on('select2:opening', function(e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
+                    }
+                });
             });
         </script>
     @endpush
