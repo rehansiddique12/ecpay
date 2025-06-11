@@ -5379,9 +5379,11 @@ class PayoutRecordController extends Controller
     public function workboard(Request $request)
     {
         $EWalletAccount = EWalletAccount::where('status', 1)->get();
-        $notifications = EWalletAccount::where('live_balance', '<', '1000')
+        $notifications = EWalletAccount::whereColumn('live_balance', '<', 'low_balance_amount')
+        ->where('status',1)
         ->orderBy('id', 'desc')
-        ->take(5)->get();
+        ->take(5)
+        ->get();
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
         ->where('status','Pending')
         ->where('check_by', 0)
