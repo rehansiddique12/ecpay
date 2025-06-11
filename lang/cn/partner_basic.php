@@ -27,6 +27,18 @@ return [
     'change_password' => '修改密码',
 
 
+    'merchant_page_title' => '商户日期汇总报告',
+'date_field_label' => '选择日期',
+'total_commission_label' => '总佣金',
+'merchant_name_label' => '商户名称',
+'deposit_label' => '存款',
+'withdrawal_label' => '取款',
+'no_transaction_label' => '交易数量',
+'total_amount_label' => '总金额',
+'commission_label' => '佣金',
+'total_commission_amount_label' => '总佣金金额',
+
+
 
 
 

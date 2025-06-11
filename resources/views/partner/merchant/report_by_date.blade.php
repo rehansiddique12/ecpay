@@ -5,7 +5,7 @@
         <div class="row align-items-left">
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Select Date</label>
+                    <label>@lang('partner_basic.date_field_label')</label>
                     <input type="date" class="form-control" value="{{$from_date}}" name="from_date" id="datepicker" />
                 </div>
             </div>
@@ -32,24 +32,24 @@
     <div class="col-md-12">
         <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
             <div class="card-body">
-                <h3><b>Total Commission</b> {{number_format($totalCommissionAll , 2)}}</h3>
+                <h3><b>@lang('partner_basic.total_commission_label')</b> {{number_format($totalCommissionAll , 2)}}</h3>
                 <div class="table-responsive">
                     <table class="categories-show-table table table-hover table-striped table-bordered">
                         <thead class="thead-dark">
                             <tr class="text-center">
-                            <th rowspan="2">Merchant Name</th>
-                            <th colspan="3">Deposit</th>
-                            <th colspan="3">Withdrawal</th>
+                            <th rowspan="2">@lang('partner_basic.merchant_name_label')</th>
+                            <th colspan="3">@lang('partner_basic.deposit_label')</th>
+                            <th colspan="3">@lang('partner_basic.withdrawal_label')</th>
                            <th></th>
                         </tr>
                         <tr>
-                            <th>No. Transaction</th>
-                            <th>Total Amount</th>
-                            <th>Commission</th>
-                            <th>No. Transaction</th>
-                            <th>Total Withdrawal</th>
-                            <th>Commission</th>
-                            <th>Total Commission</th>
+                            <th>@lang('partner_basic.no_transaction_label')No. Transaction</th>
+                            <th>@lang('partner_basic.total_amount_label')Total Amount</th>
+                            <th>@lang('partner_basic.commission_label')Commission</th>
+                            <th>@lang('partner_basic.no_transaction_label')No. Transaction</th>
+                            <th>@lang('partner_basic.withdrawal_label')Total Withdrawal</th>
+                            <th>@lang('partner_basic.withdrawal_label')Commission</th>
+                            <th>@lang('partner_basic.withdrawal_label')Total Commission</th>
                         </tr>
                         </thead>
                         <tbody>
