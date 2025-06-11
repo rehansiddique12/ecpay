@@ -2050,11 +2050,11 @@ class PayoutRecordController extends Controller
             $Log->save();
 
             DB::commit();
-            session()->flash('success', __('partner.successfully_updated_balance'));
+            session()->flash('success', 'Successfully Updated Balance');
             return back();
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction on error
-            session()->flash('error', __('partner.failed_to_update_balance', ['message' => $e->getMessage()]));
+            session()->flash('error', 'Failed to Update Balance: ' . $e->getMessage());
             return back()->withInput();
         }
     }
@@ -2120,7 +2120,8 @@ class PayoutRecordController extends Controller
             }
         }
 
-        $pageTitle =  __('partner.manage_commissions');
+        $pageTitle = "Manage Commissions";
+
         $records = "";
 
         return view('admin.payout.commission', compact(
@@ -2131,7 +2132,7 @@ class PayoutRecordController extends Controller
     public function partnerCommission($id)
     {
         $api = Api::where('id', $id)->first();
-        $partners = Api::where('id', '!=', $id)->where('acc_type','Partner')->get();
+        $partners = Api::where('id', '!=', $id)->where('acc_type','Agent')->get();
         // $cron_commissions = CronCommission::where('category_id', $id)->get();
         $user_id = $api->id;
         $commissions = Commission::where('category_id', $api->category_id)->get();
@@ -3526,7 +3527,7 @@ class PayoutRecordController extends Controller
 
         return view('admin.payout.add_balance', [
             'domains' => $domains,
-            'pageTitle' => __('partner.add_partner_balance_adjustment')
+            'pageTitle' => 'Add Partner Balance / Adjustment'
         ]);
     }
 
@@ -3824,7 +3825,7 @@ class PayoutRecordController extends Controller
 
         $e_wallet_accounts = EWalletAccount::get();
         $e_wallet_transections = EWalletTransfer::whereDate('transaction_date_time', '=', $from_date)->orderBy('created_at', 'desc')->paginate(50);
-        $pageTitle = __('partner.transfer_logs');
+        $pageTitle = "Transfer Logs";
         return view('admin.payout.ewallet_transfer', compact('pageTitle', 'from_date', 'e_wallet_accounts', 'e_wallet_transections'));
     }
 
@@ -3916,7 +3917,7 @@ class PayoutRecordController extends Controller
         }
         $EWalletTransaction->save();
 
-        session()->flash('success', __('partner.added_successfully'));
+        session()->flash('success', 'Added Successfully');
         return back();
     }
 
@@ -6039,7 +6040,7 @@ class PayoutRecordController extends Controller
             $totalProfitSum = number_format($TotalProfitSum, 2);
         }
         // dd($recordsQuery->sum('amount'));
-        $pageTitle = __('partner.partners_commission_history');
+        $pageTitle = "Partners Commission History";
         $partners = Api::where('type', 'Admin')->get();
 
         return view('admin.payout.commission_report', compact('records', 'pageTitle', 'partners', 'from_date', 'to_date', 'totalAmount', 'isLastPage', 'totalChargesSum', 'totalAAmountSum', 'totalProfitSum'));
@@ -6062,7 +6063,8 @@ class PayoutRecordController extends Controller
 
     public function adjustments()
 {
-    $pageTitle = __('partner.adjustments_history');
+    $pageTitle = "Partners Adjustments History";
+
     $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
     $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
     $monthyear = Carbon::now()->subMonth()->startOfMonth();
@@ -6203,7 +6205,7 @@ class PayoutRecordController extends Controller
     public function partnerBalance(Request $request)
     {
         $records = ApiTransaction::with('api')->orderBy('id', 'DESC')->paginate(20);
-        $pageTitle = __('partner.adjustments');
+        $pageTitle = "Partners Adjustments";
         $partners = Api::where('type', 'Admin')->paginate(10);
 
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));

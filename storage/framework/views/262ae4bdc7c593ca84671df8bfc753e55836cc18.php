@@ -559,8 +559,10 @@ $languages = [
                                 <div data-i18n="Deposit Log"><?php echo e(__('sidebar.deposit_log')); ?></div>
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if(adminAccessRoute(config('role.deposit_last_hour_report.access.view'))): ?>
                         <li
-                            class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : ''); ?>">
+                            class="menu-item <?php echo e(in_array(Route::currentRouteName(), ['admin.payment.log2', 'admin.payment.search']) ? 'active' : ''); ?>">
                             <a href="<?php echo e(route('admin.payment.log2')); ?>" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Deposit log2"><?php echo e(__('sidebar.deposit_log')); ?> (Last Hour)</div>
