@@ -9,6 +9,14 @@ return [
     'my_profile' => '我的资料',
     'password' => '密码',
     'logout' => '退出登录',
+    'Dashboard' => '仪表盘',
+    'Staff' => '员工',
+    'commission_summary' => '佣金摘要',
+    'commission_report' => '佣金报告',
+    'settlements' => '结算',
+    'daily_settlement_report' => '每日结算报告',
+    'adjustments' => '调整',
+    'transaction_completions_logs' => '交易完成日志',
 
     // Main Navigation Bar
     'main' => '主菜单',
@@ -33,8 +41,10 @@ return [
     'api_logs' => 'API日志',
 
     'transactions' => '交易',
+    'transaction_logs' => '交易日志',
     'deposit_log' => '存款记录',
     'withdrawal_log' => '取款记录',
+    'withdrawal_request' => '取款请求',
     'api_deposit_log' => 'API存款记录',
     'unclaimed_payment' => '未认领付款',
     'deposit_report' => '存款报告',
@@ -42,6 +52,7 @@ return [
     'withdrawal_report' => '取款报告',
 
     'reports' => '报表',
+    'all_report' => '全部报告',
     'live_ewallet_balance' => '实时电子钱包余额',
     'daily_ewallet_summary' => '每日电子钱包摘要',
     'daily_transection_summary' => '每日交易摘要',
@@ -56,6 +67,8 @@ return [
     'master_report' => '主报表',
     'gateway_performance_report' => '网关性能报告',
     'payment_type' => '支付类型',
+    'account_balance' => '账户余额',
+    'account_summary' => '账户摘要',
 
     'merchant_reports' => '商户报表',
     'summary_by_date' => '按日期汇总',

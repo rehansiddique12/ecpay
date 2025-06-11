@@ -41,11 +41,16 @@ $isMainActive = in_array(Route::currentRouteName(), [
         'partner.merchant_reports.by_month',
     ]);
 
+use Illuminate\Support\Facades\App;
+
+$currentLocale = App::getLocale();
+$languages = [
+'en' => 'English',
+'ms' => 'Malaysian',
+'cn' =>'Chinese'
+];
+
 @endphp
-
-
-
-
 
 
 <nav class="layout-navbar navbar navbar-expand-xl align-items-center" id="layout-navbar">
@@ -82,6 +87,58 @@ $isMainActive = in_array(Route::currentRouteName(), [
                 </li>
                 <!-- /Search -->
 
+                <!-- Language -->
+                <li class="nav-item dropdown-language dropdown">
+                    {{-- <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
+                        --}} <a class="nav-link dropdown-toggle btn btn-text-secondary rounded-pill" href="#"
+                        data-bs-toggle="dropdown">
+                        {{ $languages[$currentLocale] ?? 'Select Language' }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        @foreach ($languages as $code => $label)
+                        <li>
+                            <a class="dropdown-item" href="{{ route('lang.switch', ['locale' => $code]) }}"
+                                data-language="{{ $code }}" data-text-direction="ltr">
+                                <span>{{ $label }}</span>
+                            </a>
+                        </li>
+                        @endforeach
+                    </ul>
+                </li>
+                <!--/ Language -->
+
+ <!-- Style Switcher -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
+                        id="nav-theme" href="javascript:void(0);" data-bs-toggle="dropdown">
+                        <i class="icon-base ti tabler-sun icon-22px theme-icon-active text-heading"></i>
+                        <span class="d-none ms-2" id="nav-theme-text">{{ __('sidebar.toggle_theme') }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
+                        <li>
+                            <button type="button" class="dropdown-item align-items-center active"
+                                data-bs-theme-value="light" aria-pressed="false">
+                                <span><i class="icon-base ti tabler-sun icon-22px me-3" data-icon="sun"></i>{{
+                                    __('sidebar.light') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item align-items-center" data-bs-theme-value="dark"
+                                aria-pressed="true">
+                                <span><i class="icon-base ti tabler-moon-stars icon-22px me-3"
+                                        data-icon="moon-stars"></i>{{ __('sidebar.dark') }}</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item align-items-center" data-bs-theme-value="system"
+                                aria-pressed="false">
+                                <span><i class="icon-base ti tabler-device-desktop-analytics icon-22px me-3"
+                                        data-icon="device-desktop-analytics"></i>{{ __('sidebar.system') }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                </li>
+                <!-- / Style Switcher-->
 
 
                 <!-- User -->
@@ -149,14 +206,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('partner.profile') }}">
-                                <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
-                                    Profile</span>
+                                <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">{{__('sidebar.my_profile') }}</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('partner.password') }}">
                                 <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
-                                    class="align-middle">Password</span>
+                                    class="align-middle">{{__('sidebar.password') }}</span>
                             </a>
                         </li>
                         {{-- <li>
@@ -190,7 +246,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                     @csrf
                                     <button type="submit"
                                         class="btn btn-sm btn-danger btn-block d-flex align-items-center">
-                                        <small class="align-middle">Logout</small>
+                                        <small class="align-middle">{{ __('sidebar.logout') }}</small>
                                         <i class="icon-base ti tabler-logout ms-2 icon-14px"></i>
                                     </button>
                                 </form>
@@ -216,7 +272,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                     <li class="menu-item {{ $isMainActive ? 'active open' : '' }}">
                         <a href="javascript:void(0)" class="menu-link menu-toggle">
                             <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>
-                            <div data-i18n="Main">Main</div>
+                            <div data-i18n="{{ __('sidebar.main') }}">{{ __('sidebar.main') }}</div>
                         </a>
 
                         <ul class="menu-sub">
@@ -225,7 +281,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 class="menu-item {{ Route::currentRouteName() == 'partner.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('partner.dashboard') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Dashboards">Dashboard</div>
+                                    <div data-i18n="{{ __('sidebar.Dashboard') }}">{{ __('sidebar.Dashboard') }}</div>
                                 </a>
                             </li>
                             @endif
@@ -234,7 +290,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             <li class="menu-item {{ Route::currentRouteName() == 'partner.staff' ? 'active' : '' }}">
                                 <a href="{{ route('partner.staff') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Staff">Staff</div>
+                                    <div data-i18n="{{ __('sidebar.Staff') }}">{{ __('sidebar.Staff') }}</div>
                                 </a>
                             </li>
                             @endif
@@ -244,14 +300,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             <li class="menu-item {{ Route::currentRouteName() == 'partner.apis' ? 'active' : '' }}">
                                 <a href="{{ route('partner.apis') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Commissions Summary">Commissions Summary</div>
+                                    <div data-i18n="{{ __('sidebar.commission_summary') }}">{{ __('sidebar.commission_summary') }}</div>
                                 </a>
                             </li>
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.api.commissions' ? 'active' : '' }}">
                                 <a href="{{ route('partner.api.commissions') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Commission History">Commission Report</div>
+                                    <div data-i18n="{{ __('sidebar.commission_report') }}">{{ __('sidebar.commission_report') }}</div>
                                 </a>
                             </li>
                             @endif
@@ -260,7 +316,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 class="menu-item {{ Route::currentRouteName() == 'partner.settlements' ? 'active' : '' }}">
                                 <a href="{{ route('partner.settlements') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Settlements">Settlements</div>
+                                    <div data-i18n="{{ __('sidebar.settlements') }}">{{ __('sidebar.settlements') }}</div>
                                 </a>
                             </li>
 
@@ -268,14 +324,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 class="menu-item {{ Route::currentRouteName() == 'partner.settlement.report.daily' ? 'active' : '' }}">
                                 <a href="{{ route('partner.settlement.report.daily') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Daily Settlement Report">Daily Settlement Report</div>
+                                    <div data-i18n="{{ __('sidebar.daily_settlement_report') }}">{{ __('sidebar.daily_settlement_report') }}</div>
                                 </a>
                             </li>
                             <li
                                 class="menu-item {{ in_array(Route::currentRouteName(), ['partner.partner.balance', 'partner.partner.balance.search']) ? 'active' : '' }}">
                                 <a href="{{ route('partner.partner.balance') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Adjustments">Adjustments</div>
+                                    <div data-i18n="{{ __('sidebar.adjustments') }}">{{ __('sidebar.adjustments') }}</div>
                                 </a>
                             </li>
                             @endif
@@ -293,14 +349,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                                 class="menu-item {{ Route::currentRouteName() == 'partner.reports.log_completions' ? 'active' : '' }}">
                                 <a href="{{ route('partner.reports.log_completions') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Transactions Completions Logs">Transactions Completions Logs</div>
+                                    <div data-i18n="{{ __('sidebar.transaction_completions_logs') }}">{{ __('sidebar.transaction_completions_logs') }}</div>
                                 </a>
                             </li>
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'partner.payment.payment_gateway_report' ? 'active' : '' }}">
                                 <a href="{{ route('partner.payment.payment_gateway_report') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                    <div data-i18n="Gateway Performance Report">Gateway Performance Report</div>
+                                    <div data-i18n="{{ __('sidebar.gateway_performance_report') }}">{{ __('sidebar.gateway_performance_report') }}</div>
                                 </a>
                             </li>
 
@@ -319,7 +375,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>
-                        <div data-i18n="Reports">Reports</div>
+                        <div data-i18n="{{ __('sidebar.reports') }}">{{ __('sidebar.reports') }}</div>
                     </a>
                     <ul class="menu-sub">
 
@@ -327,7 +383,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             class="menu-item {{ in_array(Route::currentRouteName(), ['partner.payment.report.all', 'partner.payment.report.all.search']) ? 'active' : '' }}">
                             <a href="{{ route('partner.payment.report.all') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="All Reports">All Reports</div>
+                                <div data-i18n="{{ __('sidebar.all_report') }}">{{ __('sidebar.all_report') }}</div>
                             </a>
                         </li>
 
@@ -335,14 +391,14 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             class="menu-item {{ Route::currentRouteName() == 'partner.reports.partner_account_balance_summary' ? 'active' : '' }}">
                             <a href="{{ route('partner.reports.partner_account_balance_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="Account Balance">Account Balance</div>
+                                <div data-i18n="{{ __('sidebar.account_balance') }}">{{ __('sidebar.account_balance') }}</div>
                             </a>
                         </li>
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'partner.reports.partner_account_summary' ? 'active' : '' }}">
                             <a href="{{ route('partner.reports.partner_account_summary') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="Account Summary">Account Summary</div>
+                                <div data-i18n="{{ __('sidebar.account_summary') }}">{{ __('sidebar.account_summary') }}</div>
                             </a>
                         </li>
                     </ul>
@@ -351,13 +407,13 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>
-                        <div data-i18n="Transactions">Transaction</div>
+                        <div data-i18n="{{ __('sidebar.transactions') }}">{{ __('sidebar.transactions') }}</div>
                     </a>
                     <ul class="menu-sub">
                         <li class="menu-item {{ Route::currentRouteName() == 'partner.reports.logs' ? 'active' : '' }}">
                             <a href="{{ route('partner.reports.logs') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="Transaction Logs">Transaction Logs</div>
+                                <div data-i18n="{{ __('sidebar.transaction_logs') }}">{{ __('sidebar.transaction_logs') }}</div>
                             </a>
                         </li>
 
@@ -365,7 +421,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             class="menu-item {{ in_array(Route::currentRouteName(), ['partner.payment.report', 'partner.payment.report.search']) ? 'active' : '' }}">
                             <a href="{{ route('partner.payment.report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="Deposit Report">Deposit Report</div>
+                                <div data-i18n="{{ __('sidebar.deposit_report') }}">{{ __('sidebar.deposit_report') }}</div>
                             </a>
                         </li>
 
@@ -381,7 +437,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             class="menu-item {{ Route::currentRouteName() == 'partner.payout-request' ? 'active' : '' }}">
                             <a href="{{ route('partner.payout-request') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="Withdrawal Request">Withdrawal Request</div>
+                                <div data-i18n="{{ __('sidebar.withdrawal_request') }}">{{ __('sidebar.withdrawal_request') }}</div>
                             </a>
                         </li>
 
@@ -389,7 +445,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
                             class="menu-item {{ in_array(Route::currentRouteName(), ['partner.payout-report', 'partner.payout-report.search']) ? 'active' : '' }}">
                             <a href="{{ route('partner.payout-report') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                                <div data-i18n="Withdrawal Report">Withdrawal Report</div>
+                                <div data-i18n="{{ __('sidebar.withdrawal_report') }}">{{ __('sidebar.withdrawal_report') }}</div>
                             </a>
                         </li>
 
@@ -408,7 +464,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
 
                     <a href="javascript:void(0)" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-layout-grid-add"></i>
-                        <div data-i18n="Merchant Reports">Merchant Reports</div>
+                        <div data-i18n="{{ __('sidebar.merchant_reports') }}">{{ __('sidebar.merchant_reports') }}</div>
                     </a>
                     <ul class="menu-sub">
 
@@ -416,19 +472,19 @@ $isMainActive = in_array(Route::currentRouteName(), [
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_date' ? 'active' : '' }}">
                             <a href="{{ route('partner.merchant_reports.by_date') }}" class="menu-link">
-                                <div data-i18n=" ">Summary By_Date</div>
+                                <div data-i18n="{{ __('sidebar.summary_by_date') }}">{{ __('sidebar.summary_by_date') }}</div>
                             </a>
                         </li>
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_name' ? 'active' : '' }}">
                             <a href="{{ route('partner.merchant_reports.by_name') }}" class="menu-link">
-                                <div data-i18n="Summary By_Name">Summary By_Name</div>
+                                <div data-i18n="{{ __('sidebar.summary_by_name') }}">{{ __('sidebar.summary_by_name') }}</div>
                             </a>
                         </li>
                         <li
                             class="menu-item {{ Route::currentRouteName() == 'partner.merchant_reports.by_month' ? 'active' : '' }}">
                             <a href="{{ route('partner.merchant_reports.by_month') }}" class="menu-link">
-                                <div data-i18n="Summary By_Year">Summary By_Year</div>
+                                <div data-i18n="{{ __('sidebar.summary_by_year') }}">{{ __('sidebar.summary_by_year') }}</div>
                             </a>
                         </li>
 

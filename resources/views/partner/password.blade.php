@@ -6,7 +6,7 @@
     </style>
 
     <div class="container-fluid p-4">
-        <h4 class="card-title mb-5"><i class="icon-key"></i> @lang('Password Setting')</h4>
+        <h4 class="card-title mb-5"><i class="icon-key"></i> @lang('partner_basic.password_settings')</h4>
         <form action="" method="post" class="form-body file-upload">
             @csrf
             @method('put')
@@ -14,10 +14,10 @@
 
                 <div class="form-group">
                     <div class="row">
-                        <label class="col-lg-2">@lang('Current Password')</label>
+                        <label class="col-lg-2">@lang('partner_basic.current_password_label')</label>
                         <div class="col-lg-6">
                             <input type="password" class="form-control" name="current_password"
-                                placeholder="@lang('Current Password')">
+                                placeholder="@lang('partner_basic.current_password_placeholder')">
 
                             @error('current_password')
                             <span class="text-danger">{{ $message }}</span>
@@ -28,10 +28,10 @@
 
                 <div class="form-group">
                     <div class="row">
-                        <label class="col-lg-2">@lang('New Password')</label>
+                        <label class="col-lg-2">@lang('partner_basic.new_password_label')</label>
                         <div class="col-lg-6">
                             <input type="password" name="password" class="form-control"
-                                placeholder="@lang('New Password')">
+                                placeholder="@lang('partner_basic.new_password_placeholder')">
                             @error('password')
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -41,10 +41,10 @@
 
                 <div class="form-group">
                     <div class="row">
-                        <label class="col-lg-2">@lang('Confirm Password')</label>
+                        <label class="col-lg-2">@lang('partner_basic.confirm_password_label')</label>
                         <div class="col-lg-6">
                             <input type="password" name="password_confirmation" class="form-control"
-                                placeholder="@lang('Confirm Password')">
+                                placeholder="@lang('partner_basic.confirm_password_placeholder')">
                         </div>
                     </div>
 
@@ -55,8 +55,7 @@
                     <div class="row ">
                         <div class="col-md-6 offset-md-2">
                             <button type="submit"
-                                class="btn waves-effect waves-light btn-rounded btn-primary btn-block mt-3">@lang('Change
-                                Password')</button>
+                                class="btn waves-effect waves-light btn-rounded btn-primary btn-block mt-3">@lang('partner_basic.change_password')</button>
                         </div>
                     </div>
                 </div>
