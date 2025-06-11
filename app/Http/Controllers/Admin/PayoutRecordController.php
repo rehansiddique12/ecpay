@@ -1639,6 +1639,9 @@ class PayoutRecordController extends Controller
         return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
 
+
+
+
     public function agentlist(Request $request)
     {
         $query = Api::where('type', 'Admin')->where('acc_type','Agent')->select([
@@ -5386,7 +5389,7 @@ class PayoutRecordController extends Controller
         ->get();
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
         ->where('status','Pending')
-        ->where('check_by', 0)
+        // ->where('check_by', 0)
         ->orderBy('id', 'desc')
         ->take(5)
         ->get();
@@ -5422,10 +5425,8 @@ class PayoutRecordController extends Controller
         ->where('show_none', 0)
         ->when($query, function ($q) use ($query) {
             $q->where(function ($subQuery) use ($query) {
-                $subQuery->where('txn_id', 'like', '%' . $query . '%')
-                         ->orWhere('partner_transection_id', 'like', '%' . $query . '%')
-                         ->orWhere('transaction', 'like', '%' . $query . '%')
-                         ->orWhere('member_id', 'like', '%' . $query . '%');
+                $subQuery->where('txn_id', '=', $query)
+                         ->orWhere('partner_transection_id', '=', $query);
             });
         })
         ->take(10)
@@ -6250,6 +6251,41 @@ class PayoutRecordController extends Controller
         $pageTitle = "API Logs";
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }
+
+    public function getApiLog($url)
+{
+
+    $log = \App\Models\ApiLog::where('request_url',  $url)->orderby('id','Desc')->get();
+
+    if ($log) {
+        return response()->json([
+            'success' => true,
+            'data' => $log
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'No log found.'
+    ]);
+}
+    public function getApiLog2($url)
+{
+
+    $log = \App\Models\ApiLog::where('request_payload',  $url)->orderby('id','Desc')->get();
+
+    if ($log) {
+        return response()->json([
+            'success' => true,
+            'data' => $log
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'No log found.'
+    ]);
+}
 
     public function functionlogs(Request $request)
     {

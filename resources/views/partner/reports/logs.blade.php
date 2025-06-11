@@ -11,13 +11,13 @@
         <div class="row justify-content-between align-items-center">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>From Date</label>
+                    <label>@lang('partner_basic.from_date_label')</label>
                     <input type="text" class="form-control datetimepicker" value="{{$from_date}}" name="from_date"/>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>To Date</label>
+                    <label>@lang('partner_basic.to_date_label')</label>
                     <input type="text" class="form-control datetimepicker" value="{{$to_date}}" name="to_date" />
                 </div>
             </div>
@@ -27,9 +27,9 @@
                 <div class="form-group mt-2">
                     <br>
                     <button type="submit" value="submit" class="btn waves-effect waves-light btn-primary"><i
-                        class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     <a href="{{ route('partner.report.export_excel_record', ['from_date' => $from_date, 'to_date' => $to_date , 'order' => request('order') === 'asc' ? 'asc' : 'desc']) }}" class="btn waves-effect waves-light btn-success">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('partner_basic.export')
                     </a>
                 </div>
             </div>
@@ -47,22 +47,22 @@
                         <thead class="thead-dark">
                             <tr>
                                 <th scope="col">
-                                    Transaction Date
+                                    @lang('partner_basic.transaction_date')
                                 </th>
                                 <th scope="col">
-                                    Completed Date
+                                    @lang('partner_basic.completed_date')
                                 </th>
-                                <th scope="col">Txn No.</th>
-                                <th scope="col">Partner Txn No.</th>
-                                <th scope="col">Account No.</th>
-                                <th scope="col">Source</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">E-Wallet Acc. No.</th>
-                                <th scope="col">Amount</th>
-                                <th scope="col">Charges</th>
-                                <th scope="col">Final Amount</th>
-                                <th scope="col">Balance</th>
-                                <th scope="col">Transaction Type</th>
+                                <th scope="col">@lang('partner_basic.txn_no').</th>
+                                <th scope="col">@lang('partner_basic.partner_txn_no').</th>
+                                <th scope="col">@lang('partner_basic.account_no').</th>
+                                <th scope="col">@lang('partner_basic.source')</th>
+                                <th scope="col">@lang('partner_basic.type')</th>
+                                <th scope="col">@lang('partner_basic.e_wallet_account')</th>
+                                <th scope="col">@lang('partner_basic.amount')</th>
+                                <th scope="col">@lang('partner_basic.charges')</th>
+                                <th scope="col">@lang('partner_basic.final_amount')</th>
+                                <th scope="col">@lang('partner_basic.balance')</th>
+                                <th scope="col">@lang('partner_basic.transaction_type')</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,7 +107,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
                             @endforelse

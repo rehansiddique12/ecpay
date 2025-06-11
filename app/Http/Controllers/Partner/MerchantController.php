@@ -179,7 +179,7 @@ class MerchantController extends Controller
         //         ->orWhereNull('website');
         // })->pluck('name', 'id')->all();
         $userID = $user->id;
-        $pageTitle = "Merchant Summary Report Between Dates";
+        $pageTitle = __('partner_basic.merchant_tab_title');
         return view('partner.merchant.report_by_name' , compact('from_date' , 'pageTitle' , 'results' , 'apis' , 'to_date' ,'totalSummary' , 'userID'));
     }
 
@@ -286,7 +286,7 @@ class MerchantController extends Controller
         // })->pluck('name', 'id')->all();
 
         // dd($apis);
-        $pageTitle = "Merchant Summary Report of Month";
+        $pageTitle = __('partner_basic.merchant_summary_of_month_page_title');
         return view('partner.merchant.report_by_month' , compact('pageTitle' , 'from_date' , 'apis' , 'results' , 'months'));
     }
 

@@ -9,45 +9,45 @@
 <?php $component->withAttributes([]); ?>
 
     <?php $__env->startPush('styles'); ?>
-    <link rel="stylesheet" href="<?php echo e(asset('assets/vendor/libs/select2/select2.css')); ?>">
-    <style>
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 90px;
-            height: 30px;
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            user-select: none;
-        }
+        <link rel="stylesheet" href="<?php echo e(asset('assets/vendor/libs/select2/select2.css')); ?>">
+        <style>
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 90px;
+                height: 30px;
+                font-size: 13px;
+                font-weight: bold;
+                text-align: center;
+                user-select: none;
+            }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
 
-        .slider {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            color: white;
-            line-height: 30px;
-            border-radius: 20px;
-            transition: 0.4s;
-        }
+            .slider {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                color: white;
+                line-height: 30px;
+                border-radius: 20px;
+                transition: 0.4s;
+            }
 
-        .slider.active {
-            background: linear-gradient(to right, #28a745, #20c997);
-        }
+            .slider.active {
+                background: linear-gradient(to right, #28a745, #20c997);
+            }
 
-        .slider.deactive {
-            background: linear-gradient(to right, #dc3545, #d1404f);
-        }
-    </style>
+            .slider.deactive {
+                background: linear-gradient(to right, #dc3545, #d1404f);
+            }
+        </style>
     <?php $__env->stopPush(); ?>
 
     <div class="row ">
@@ -56,8 +56,7 @@
                 <div class="card-body">
                     <h3 style="color: #7367f0"><?php echo e($pageTitle); ?></h3>
                     
-                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal"
-                        data-bs-target="#newModal">
+                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
                         Add New
                     </button>
                     <div class="d-flex justify-content-end mb-3">
@@ -88,158 +87,186 @@
                             </thead>
                             <tbody>
                                 <?php $__empty_1 = true; $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr>
-                                    <td style="max-width: 70px;"><?php echo e($item['id']); ?></td>
-                                    <td style="max-width: 110px;"><a
-                                            href="<?php echo e(route('admin.merchant.profile', $item->id)); ?>"><?php echo e($item['name']); ?></a>
-                                    </td>
-                                    <td style="max-width: 100px;"><?php echo e($item['username']); ?></td>
-                                    <td style="max-width: 130px;"><span class="editable" data-id="<?php echo e($item['id']); ?>"
-                                            data-field="website"><?php echo e($item['website']); ?></span></td>
-                                    <td style="max-width: 220px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                            style="border-radius: 8px; padding: 7px;">Deposit:</span>
-                                        <?php echo e($item['api_endpoint_deposit']); ?><br>
+                                    <tr>
+                                        <td style="max-width: 70px;"><?php echo e($item['id']); ?></td>
+                                        <td style="max-width: 110px;"><a
+                                                href="<?php echo e(route('admin.merchant.profile', $item->id)); ?>"><?php echo e($item['name']); ?></a>
+                                        </td>
+                                        <td style="max-width: 100px;"><?php echo e($item['username']); ?></td>
+                                        <td style="max-width: 130px;"><span class="editable"
+                                                data-id="<?php echo e($item['id']); ?>"
+                                                data-field="website"><?php echo e($item['website']); ?></span></td>
+                                        <td style="max-width: 220px;">
+                                            <!-- Deposit Label -->
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                                style="border-radius: 8px; padding: 7px;">Deposit:
+                                            </span>
 
-                                        <span class="bg-warning text-white  d-inline-block mt-2 mb-2"
-                                            style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
-                                        <?php echo e($item['api_endpoint_withdrawal']); ?><br>
-
-                                        <span class="bg-info text-white  d-inline-block mt-2"
-                                            style="border-radius: 10px; padding: 7px;">Redirect
-                                            URL:</span>
-                                        <?php echo e($item['redirect_url']); ?><br>
-                                    </td>
-
-                                    <td style="max-width: 220px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                            style="border-radius: 6px; padding: 7px;">API Key:</span>
-                                        <span class="editable" data-id="<?php echo e($item['id']); ?>" data-field="api_key"><?php echo e($item['api_key']); ?></span>
-                                        <br>
-
-                                        <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
-                                            style="border-radius: 8px; padding: 7px;">Secret
-                                            Key:</span>
-                                        <?php echo e($item['secret_key']); ?>
-
-                                    </td>
-
-                                    <td><?php echo e($item['balance']); ?></td>
-                                    <td style="max-width: 300px;">
-                                        <span class="bg-success text-white p-1 d-inline-block mb-2"
-                                            style="border-radius: 6px; padding: 7px;">Deposit:</span>
-                                        <span class="editable" data-id="<?php echo e($item['id']); ?>" data-field="min_deposit"><?php echo e($item['min_deposit']); ?></span><br>
-
-                                        <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2"
-                                            style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
-                                        <span class="editable" data-id="<?php echo e($item['id']); ?>"
-                                            data-field="min_withdrawal"><?php echo e($item['min_withdrawal']); ?></span>
-                                    </td>
-
-                                    <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-lg-center text-right">
-                                        
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span><?php echo app('translator')->get('Status'); ?>&nbsp;</span>
-                                            <label class="switch mb-0">
-                                                <input type="checkbox" class="toggle-switch" data-id="<?php echo e($item->id); ?>" data-type="status"
-                                                    <?php echo e($item->status == 1 ? 'checked' : ''); ?>>
-                                                <span class="slider <?php echo e($item->status == 1 ? 'active' : 'deactive'); ?>">
-                                                    <?php echo e($item->status == 1 ? __('Active') : __('Deactive')); ?>
-
-                                                </span>
-                                            </label>
-                                        </div>
-
-                                        
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span><?php echo app('translator')->get('Sign'); ?></span>
-                                            <label class="switch mb-0">
-                                                <input type="checkbox" class="toggle-switch" data-id="<?php echo e($item->id); ?>" data-type="sign"
-                                                    <?php echo e($item->sign == 1 ? 'checked' : ''); ?>>
-                                                <span class="slider <?php echo e($item->sign == 1 ? 'active' : 'deactive'); ?>">
-                                                    <?php echo e($item->sign == 1 ? __('Active') : __('Inactive')); ?>
-
-                                                </span>
-                                            </label>
-                                        </div>
-
-                                        
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span><?php echo app('translator')->get('Txn'); ?></span>
-                                            <label class="switch mb-0">
-                                                <input type="checkbox" class="toggle-switch" data-id="<?php echo e($item->id); ?>" data-type="txn_verification"
-                                                    <?php echo e($item->txn_verification == 1 ? 'checked' : ''); ?>>
-                                                <span class="slider <?php echo e($item->txn_verification == 1 ? 'active' : 'deactive'); ?>">
-                                                    <?php echo e($item->txn_verification == 1 ? __('Required') : __('Optional')); ?>
-
-                                                </span>
-                                            </label>
-                                        </div>
-                                    </td>
+                                            <!-- LOG Button -->
+                                            <a href="javascript:void(0);"
+                                                class="text-white p-1 d-inline-block mb-2 open-log-modal"
+                                                style="margin-left: 50px; border-radius: 8px; padding: 10px;"
+                                               data-id="<?php echo e($item['api_endpoint_deposit']); ?>">LOG</a>
 
 
+                                            <!-- API Endpoint Display -->
+                                            <?php echo e($item['api_endpoint_deposit']); ?>
 
-                                    <td>
-                                        <?php if(adminAccessRoute(config('role.partner_login.access.view'))): ?>
-                                        <a class="btn btn-sm edit_button"
-                                            href="<?php echo e(route('admin.apis.login', $item['id'])); ?>" target="_blank"
-                                            data-bs-toggle="tooltip" data-bs-placement="right" title="Partner">
-                                            <i class="icon-base ti tabler-login me-1"></i>
-                                        </a>
+                                            <br>
 
-                                        <br>
-                                        <?php endif; ?>
-                                        <?php if(adminAccessRoute(config('role.partners.access.delete'))): ?>
+                                            <span class="bg-warning text-white  d-inline-block mt-2 mb-2"
+                                                style="border-radius: 10px; padding: 7px;">Withdrawal:</span>
+                                           <a href="javascript:void(0);"
+                                                class="text-white p-1 d-inline-block mb-2 open-log-modal"
+                                                style="margin-left: 50px; border-radius: 8px; padding: 10px;"
+                                               data-id="<?php echo e($item['api_endpoint_withdrawal']); ?>">LOG</a>
+                                            <?php echo e($item['api_endpoint_withdrawal']); ?><br>
 
-                                        <button type="button"
-                                            class="btn btn-sm delete_api_button edit_button delete-api"
-                                            data-id="<?php echo e($item['id']); ?>"
-                                            data-url="<?php echo e(route('admin.apis.delete', $item['id'])); ?>"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-placement="right"
-                                            title="Delete">
-                                            <i class="icon-base ti tabler-trash me-1"></i>
-                                        </button>
-                                                                                <?php endif; ?>
-                                        <br>
-                                        <button class="btn btn-sm edit_button"
-                                            onclick="generateAndCopyPassword(<?php echo e($item['id']); ?>)"
-                                            data-bs-toggle="tooltip" data-bs-placement="right" title="Reload">
-                                            <i class="icon-base ti tabler-restore me-1"></i>
-                                        </button>
+                                            <span class="bg-info text-white  d-inline-block mt-2"
+                                                style="border-radius: 10px; padding: 7px;">Redirect
+                                                URL:</span>
+                                            <?php echo e($item['redirect_url']); ?><br>
+                                        </td>
 
-                                        <br>
-                                        <a class="btn btn-sm edit_button"
-                                            data-copy="Username: <?php echo e($item['username']); ?>&#10;Password: <?php echo e($item['password_string']); ?>&#10;Api Key: <?php echo e($item['api_key']); ?>"
-                                            onclick="copyToClipboard(this)" data-bs-toggle="tooltip"
-                                            data-bs-placement="right" title="Copy">
-                                            <i class="icon-base ti tabler-copy-check me-1"></i>
-                                        </a>
+                                        <td style="max-width: 220px;">
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                                style="border-radius: 6px; padding: 7px;">API Key:</span>
+                                            <span class="editable" data-id="<?php echo e($item['id']); ?>"
+                                                data-field="api_key"><?php echo e($item['api_key']); ?></span>
+                                            <br>
+
+                                            <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
+                                                style="border-radius: 8px; padding: 7px;">Secret Key:</span>
+                                            <a href="javascript:void(0);"
+                                                class="text-white p-1 d-inline-block mb-2 open-log-modal2"
+                                                style="margin-left: 50px; border-radius: 8px; padding: 10px;"
+                                               data-id="<?php echo e($item['secret_key']); ?>">LOG</a>
+                                            <?php echo e($item['secret_key']); ?>
+
+                                        </td>
+
+                                        <td><?php echo e($item['balance']); ?></td>
+                                        <td style="max-width: 300px;">
+                                            <span class="bg-success text-white p-1 d-inline-block mb-2"
+                                                style="border-radius: 6px; padding: 7px;">Deposit:</span>
+                                            <span class="editable" data-id="<?php echo e($item['id']); ?>"
+                                                data-field="min_deposit"><?php echo e($item['min_deposit']); ?></span><br>
+
+                                            <span class="bg-warning text-white p-2 d-inline-block mt-2 mb-2"
+                                                style="border-radius: 10px; padding: 10px;">Withdrawal:</span>
+                                            <span class="editable" data-id="<?php echo e($item['id']); ?>"
+                                                data-field="min_withdrawal"><?php echo e($item['min_withdrawal']); ?></span>
+                                        </td>
+
+                                        <td data-label="<?php echo app('translator')->get('Status'); ?>" class="text-lg-center text-right">
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span><?php echo app('translator')->get('Status'); ?>&nbsp;</span>
+                                                <label class="switch mb-0">
+                                                    <input type="checkbox" class="toggle-switch"
+                                                        data-id="<?php echo e($item->id); ?>" data-type="status"
+                                                        <?php echo e($item->status == 1 ? 'checked' : ''); ?>>
+                                                    <span
+                                                        class="slider <?php echo e($item->status == 1 ? 'active' : 'deactive'); ?>">
+                                                        <?php echo e($item->status == 1 ? __('Active') : __('Deactive')); ?>
+
+                                                    </span>
+                                                </label>
+                                            </div>
+
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span><?php echo app('translator')->get('Sign'); ?></span>
+                                                <label class="switch mb-0">
+                                                    <input type="checkbox" class="toggle-switch"
+                                                        data-id="<?php echo e($item->id); ?>" data-type="sign"
+                                                        <?php echo e($item->sign == 1 ? 'checked' : ''); ?>>
+                                                    <span
+                                                        class="slider <?php echo e($item->sign == 1 ? 'active' : 'deactive'); ?>">
+                                                        <?php echo e($item->sign == 1 ? __('Active') : __('Inactive')); ?>
+
+                                                    </span>
+                                                </label>
+                                            </div>
+
+                                            
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><?php echo app('translator')->get('Txn'); ?></span>
+                                                <label class="switch mb-0">
+                                                    <input type="checkbox" class="toggle-switch"
+                                                        data-id="<?php echo e($item->id); ?>" data-type="txn_verification"
+                                                        <?php echo e($item->txn_verification == 1 ? 'checked' : ''); ?>>
+                                                    <span
+                                                        class="slider <?php echo e($item->txn_verification == 1 ? 'active' : 'deactive'); ?>">
+                                                        <?php echo e($item->txn_verification == 1 ? __('Required') : __('Optional')); ?>
+
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </td>
 
 
-                                        <br>
-                                        <a class="btn btn-sm edit_button"
-                                            href="<?php echo e(route('admin.api.profile.export', $item['id'])); ?>"
-                                            data-bs-toggle="tooltip" data-bs-placement="right" title="Download EX">
-                                            <i class="icon-base ti tabler-database-export me-1"></i>
-                                        </a>
 
-                                        <br>
+                                        <td>
+                                            <?php if(adminAccessRoute(config('role.partner_login.access.view'))): ?>
+                                                <a class="btn btn-sm edit_button"
+                                                    href="<?php echo e(route('admin.apis.login', $item['id'])); ?>" target="_blank"
+                                                    data-bs-toggle="tooltip" data-bs-placement="right"
+                                                    title="Partner">
+                                                    <i class="icon-base ti tabler-login me-1"></i>
+                                                </a>
 
-                                        <a class="btn btn-sm"
-                                            href="<?php echo e(route('admin.apis.reset', $item['id'])); ?>"
-                                            data-bs-toggle="tooltip" data-bs-placement="right" title="QR Code">
-                                            <i class="icon-base ti tabler-qrcode me-1"></i>
-                                        </a>
-                                        
-                                    </td>
-                                </tr>
+                                                <br>
+                                            <?php endif; ?>
+                                            <?php if(adminAccessRoute(config('role.partners.access.delete'))): ?>
+                                                <button type="button"
+                                                    class="btn btn-sm delete_api_button edit_button delete-api"
+                                                    data-id="<?php echo e($item['id']); ?>"
+                                                    data-url="<?php echo e(route('admin.apis.delete', $item['id'])); ?>"
+                                                    data-bs-toggle="tooltip" data-bs-placement="right"
+                                                    title="Delete">
+                                                    <i class="icon-base ti tabler-trash me-1"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                            <br>
+                                            <button class="btn btn-sm edit_button"
+                                                onclick="generateAndCopyPassword(<?php echo e($item['id']); ?>)"
+                                                data-bs-toggle="tooltip" data-bs-placement="right" title="Reload">
+                                                <i class="icon-base ti tabler-restore me-1"></i>
+                                            </button>
+
+                                            <br>
+                                            <a class="btn btn-sm edit_button"
+                                                data-copy="Username: <?php echo e($item['username']); ?>&#10;Password: <?php echo e($item['password_string']); ?>&#10;Api Key: <?php echo e($item['api_key']); ?>"
+                                                onclick="copyToClipboard(this)" data-bs-toggle="tooltip"
+                                                data-bs-placement="right" title="Copy">
+                                                <i class="icon-base ti tabler-copy-check me-1"></i>
+                                            </a>
+
+
+                                            <br>
+                                            <a class="btn btn-sm edit_button"
+                                                href="<?php echo e(route('admin.api.profile.export', $item['id'])); ?>"
+                                                data-bs-toggle="tooltip" data-bs-placement="right"
+                                                title="Download EX">
+                                                <i class="icon-base ti tabler-database-export me-1"></i>
+                                            </a>
+
+                                            <br>
+
+                                            <a class="btn btn-sm" href="<?php echo e(route('admin.apis.reset', $item['id'])); ?>"
+                                                data-bs-toggle="tooltip" data-bs-placement="right" title="QR Code">
+                                                <i class="icon-base ti tabler-qrcode me-1"></i>
+                                            </a>
+                                            
+                                        </td>
+                                    </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                <tr>
-                                    <td colspan="100%">
-                                        <p class="text-dark"><?php echo app('translator')->get('No Data Found'); ?></p>
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td colspan="100%">
+                                            <p class="text-dark"><?php echo app('translator')->get('No Data Found'); ?></p>
+                                        </td>
+                                    </tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -257,155 +284,201 @@
 
     </div>
 
-    
-    <?php $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-    <!-- Edit Modal -->
-    <div id="editModal<?php echo e($item['id']); ?>" class="modal modal-top fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
 
-                <div class="modal-header modal-colored-header bg-warning">
-                    <h5 class="modal-title" id="modalTopTitle"><?php echo app('translator')->get('Edit Record'); ?> </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Log Modal -->
+    <div class="modal fade" id="logModal" tabindex="-1" role="dialog" aria-labelledby="logModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">API Log Details</h5>
+
                 </div>
-                <form action="<?php echo e(route('admin.apis.update', $item['id'])); ?>" method="POST">
-                    <?php echo csrf_field(); ?>
-                    <?php echo method_field('PUT'); ?>
-                    <div class="modal-body">
-                        <div class="row justify-content-between align-items-center">
-                            <!-- Input fields for editing the record -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Name</label>
-                                    <input type="text" class="form-control" name="name" value="<?php echo e($item['name']); ?>"
-                                        required />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Username</label>
-                                    <input type="text" class="form-control" name="username"
-                                        value="<?php echo e($item['username']); ?>" required />
-                                </div>
-                            </div>
-                            <!-- Add other input fields for editing here -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Email</label>
-                                    <input type="text" class="form-control" name="email" value="<?php echo e($item['email']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Phone</label>
-                                    <input type="text" class="form-control" name="phone" value="<?php echo e($item['phone']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Min Deposit</label>
-                                    <input type="number" class="form-control" name="min_deposit"
-                                        value="<?php echo e($item['min_deposit']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Min Withdrawal</label>
-                                    <input type="number" class="form-control" name="min_withdrawal"
-                                        value="<?php echo e($item['min_withdrawal']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Account Type</label>
-                                    <select class="form-control" name="acc_type" required>
-                                        <option value="Partner" <?php echo e($item['acc_type']=='Partner' ? 'selected' : ''); ?>>
-                                            Partner</option>
-                                        <option value="Agent" <?php echo e($item['acc_type']=='Agent' ? 'selected' : ''); ?>>Agent
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Status</label>
-                                    <select class="form-control" name="status" required>
-                                        <option value="1" <?php echo e($item['status']==1 ? 'selected' : ''); ?>>Active
-                                        </option>
-                                        <option value="0" <?php echo e($item['status']==0 ? 'selected' : ''); ?>>
-                                            Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Signature</label>
-                                    <select class="form-control" name="sign" required>
-                                        <option value="0" <?php echo e($item['sign']==0 ? 'selected' : ''); ?>>Inactive
-                                        </option>
-                                        <option value="1" <?php echo e($item['sign']==1 ? 'selected' : ''); ?>>Active
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Txn Verification</label>
-                                    <select class="form-control" name="txn_verification" required>
-                                        <option value="0" <?php echo e($item['txn_verification']==0 ? 'selected' : ''); ?>>
-                                            Optional</option>
-                                        <option value="1" <?php echo e($item['txn_verification']==1 ? 'selected' : ''); ?>>
-                                            Required</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Password</label>
-                                    <input type="text" class="form-control" name="password" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Website</label>
-                                    <input type="text" class="form-control" placeholder="http://ecwin.asia"
-                                        name="website" value="<?php echo e($item['website']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">API End-Point Deposit</label>
-                                    <input type="text" class="form-control" name="api_endpoint_deposit"
-                                        placeholder="http://ecwin.asia/api"
-                                        value="<?php echo e($item['api_endpoint_deposit']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">API End-Point Withdrawal</label>
-                                    <input type="text" class="form-control" name="api_endpoint_withdrawal"
-                                        placeholder="http://ecwin.asia/api"
-                                        value="<?php echo e($item['api_endpoint_withdrawal']); ?>" />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="pr-3">Redirect URL</label>
-                                    <input type="text" class="form-control" name="redirect_url"
-                                        placeholder="http://ecwin.asia" value="<?php echo e($item['redirect_url']); ?>" />
-                                </div>
-                            </div>
-                        </div>
+                <div class="modal-body">
+                    <!-- Loading spinner or placeholder -->
+                    <div id="log-content">
+                        <p>Loading...</p>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary"><?php echo app('translator')->get('Update'); ?></button>
-                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
-                            aria-label="Close"><?php echo app('translator')->get('Close'); ?></button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
+    <!-- Log Modal2 -->
+    <div class="modal fade" id="logModal2" tabindex="-1" role="dialog" aria-labelledby="logModalLabel2"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">API Log Details</h5>
+
+                </div>
+                <div class="modal-body">
+                    <!-- Loading spinner or placeholder -->
+                    <div id="log-content">
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    
+    <?php $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <!-- Edit Modal -->
+        <div id="editModal<?php echo e($item['id']); ?>" class="modal modal-top fade" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header modal-colored-header bg-warning">
+                        <h5 class="modal-title" id="modalTopTitle"><?php echo app('translator')->get('Edit Record'); ?> </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <form action="<?php echo e(route('admin.apis.update', $item['id'])); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('PUT'); ?>
+                        <div class="modal-body">
+                            <div class="row justify-content-between align-items-center">
+                                <!-- Input fields for editing the record -->
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Name</label>
+                                        <input type="text" class="form-control" name="name"
+                                            value="<?php echo e($item['name']); ?>" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Username</label>
+                                        <input type="text" class="form-control" name="username"
+                                            value="<?php echo e($item['username']); ?>" required />
+                                    </div>
+                                </div>
+                                <!-- Add other input fields for editing here -->
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Email</label>
+                                        <input type="text" class="form-control" name="email"
+                                            value="<?php echo e($item['email']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Phone</label>
+                                        <input type="text" class="form-control" name="phone"
+                                            value="<?php echo e($item['phone']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Min Deposit</label>
+                                        <input type="number" class="form-control" name="min_deposit"
+                                            value="<?php echo e($item['min_deposit']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Min Withdrawal</label>
+                                        <input type="number" class="form-control" name="min_withdrawal"
+                                            value="<?php echo e($item['min_withdrawal']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Account Type</label>
+                                        <select class="form-control" name="acc_type" required>
+                                            <option value="Partner"
+                                                <?php echo e($item['acc_type'] == 'Partner' ? 'selected' : ''); ?>>
+                                                Partner</option>
+                                            <option value="Agent" <?php echo e($item['acc_type'] == 'Agent' ? 'selected' : ''); ?>>
+                                                Agent
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Status</label>
+                                        <select class="form-control" name="status" required>
+                                            <option value="1" <?php echo e($item['status'] == 1 ? 'selected' : ''); ?>>Active
+                                            </option>
+                                            <option value="0" <?php echo e($item['status'] == 0 ? 'selected' : ''); ?>>
+                                                Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Signature</label>
+                                        <select class="form-control" name="sign" required>
+                                            <option value="0" <?php echo e($item['sign'] == 0 ? 'selected' : ''); ?>>Inactive
+                                            </option>
+                                            <option value="1" <?php echo e($item['sign'] == 1 ? 'selected' : ''); ?>>Active
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Txn Verification</label>
+                                        <select class="form-control" name="txn_verification" required>
+                                            <option value="0"
+                                                <?php echo e($item['txn_verification'] == 0 ? 'selected' : ''); ?>>
+                                                Optional</option>
+                                            <option value="1"
+                                                <?php echo e($item['txn_verification'] == 1 ? 'selected' : ''); ?>>
+                                                Required</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Password</label>
+                                        <input type="text" class="form-control" name="password" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Website</label>
+                                        <input type="text" class="form-control" placeholder="http://ecwin.asia"
+                                            name="website" value="<?php echo e($item['website']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">API End-Point Deposit</label>
+                                        <input type="text" class="form-control" name="api_endpoint_deposit"
+                                            placeholder="http://ecwin.asia/api"
+                                            value="<?php echo e($item['api_endpoint_deposit']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">API End-Point Withdrawal</label>
+                                        <input type="text" class="form-control" name="api_endpoint_withdrawal"
+                                            placeholder="http://ecwin.asia/api"
+                                            value="<?php echo e($item['api_endpoint_withdrawal']); ?>" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="pr-3">Redirect URL</label>
+                                        <input type="text" class="form-control" name="redirect_url"
+                                            placeholder="http://ecwin.asia" value="<?php echo e($item['redirect_url']); ?>" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary"><?php echo app('translator')->get('Update'); ?></button>
+                            <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
+                                aria-label="Close"><?php echo app('translator')->get('Close'); ?></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
     
@@ -667,7 +740,8 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="pr-3">Balance</label>
-                                    <input type="number" step="0.01" class="form-control" name="amount" required />
+                                    <input type="number" step="0.01" class="form-control" name="amount"
+                                        required />
                                 </div>
                             </div>
 
@@ -697,7 +771,8 @@
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <input value="1" type="radio" name="amount_type" id="amount_type1" checked>
+                                    <input value="1" type="radio" name="amount_type" id="amount_type1"
+                                        checked>
                                     <label class="pr-3">(+) Add</label>
                                     <input value="2" type="radio" name="amount_type" id="amount_type2">
                                     <label class="pr-3">(-) Deduct</label>
@@ -743,99 +818,227 @@
 
 
     <?php $__env->startPush('js'); ?>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
 
-        $(document).on('click', '.delete_api_button', function(e) {
-            e.preventDefault();
-            var roleId = $(this).data('id');
-            var url = $(this).data('url');
-            // SweetAlert2 confirmation dialog
-            Swal.fire({
-                 title: `Are you sure you want to delete ID: ${roleId}?`,
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
+            $(document).ready(function () {
+                $('.open-log-modal').on('click', function () {
+                    const apiUrl = $(this).data('id');
+                    $('#log-content').html('<p>Loading...</p>');
+
                     $.ajax({
-                        url: url, // Your delete route
-                        method: 'DELETE',
-                        data: {
-                            _token: '<?php echo e(csrf_token()); ?>',
-                            id: roleId
-                        },
-                        success: function(response) {
-                            // Handle success
-                            Swal.fire({
-                                title: 'Deleted!',
-                                text: response.message || `ID ${roleId} was deleted successfully.`,
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 2000,
-                                timerProgressBar: true,
-                                willClose: () => {
-                                    window.location.reload();
-                                }
-                            });
+                        url: 'get-api-log/' + apiUrl,
+                        method: 'GET',
+                        success: function (response) {
+                            if (response.success && response.data.length > 0) {
+                                let html = `
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Request URL</th>
+                                                <th>Status Code</th>
+                                                <th>Response</th>
+                                                <th>Created At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                `;
 
+                                // Loop through each log entry
+                                response.data.forEach(function(log) {
+                                    html += `
+                                        <tr>
+                                            <td>${log.id}</td>
+                                            <td title="${log.request_url}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                ${log.request_url}
+                                            </td>
+                                            <td>${log.status_code ?? 'N/A'}</td>
+                                            <td style="max-width: 300px; overflow: auto;">
+                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response, null, 2) ?? 'N/A'}</pre>
+                                            </td>
+                                            <td>${log.created_at}</td>
+                                        </tr>
+                                    `;
+                                });
+
+                                html += `
+                                        </tbody>
+                                    </table>
+                                `;
+
+                                $('#log-content').html(html);
+                            } else {
+                                $('#log-content').html('<p>No logs found for this API endpoint.</p>');
+                            }
                         },
-                        error: function(xhr, status, error) {
-                            // Handle error
-                            Swal.fire(
-                                'Error!',
-                                'There was an error deleting the role.',
-                                'error'
-                            );
+                        error: function () {
+                            $('#log-content').html('<p>Something went wrong while loading log data.</p>');
                         }
                     });
-                }
-            });
-        });
 
-        $(document).on('change', '.toggle-switch', function () {
-    const checkbox = $(this);
-    const apiId = checkbox.data('id');
-    const type = checkbox.data('type'); // 'status', 'sign', or 'txn_verification'
-    const value = checkbox.is(':checked') ? 1 : 0;
-
-    $.ajax({
-        url: "<?php echo e(route('admin.apis.toggleStatus')); ?>",
-        method: 'POST',
-        data: {
-            _token: '<?php echo e(csrf_token()); ?>',
-            id: apiId,
-            type: type,
-            value: value
-        },
-        success: function (response) {
-            if (response.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Updated!',
-                    text: response.message || 'Field updated successfully.',
-                    showConfirmButton: false,
-                    timer: 1500
+                    $('#logModal').modal('show');
                 });
-
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-            } else {
-                Swal.fire('Error!', response.message || 'Update failed.', 'error');
-            }
-        },
-        error: function () {
-            Swal.fire('Error!', 'Something went wrong.', 'error');
-        }
-    });
-});
+            });
 
 
-        document.addEventListener('DOMContentLoaded', function() {
+            $(document).ready(function () {
+                $('.open-log-modal2').on('click', function () {
+                    const apiUrl = $(this).data('id');
+                    alert(apiUrl);
+                    $('#log-content').html('<p>Loading...</p>');
+
+                    $.ajax({
+                        url: 'get-api-log2/' + apiUrl,
+                        method: 'GET',
+                        success: function (response) {
+                            if (response.success && response.data.length > 0) {
+                                let html = `
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Request Payload</th>
+                                                <th>Status Code</th>
+                                                <th>Response</th>
+                                                <th>Created At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                `;
+
+                                // Loop through each log entry
+                                response.data.forEach(function(log) {
+                                    html += `
+                                        <tr>
+                                            <td>${log.id}</td>
+                                            <td title="${log.request_payload}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                ${log.request_payload}
+                                            </td>
+                                            <td>${log.status_code ?? 'N/A'}</td>
+                                            <td style="max-width: 300px; overflow: auto;">
+                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response, null, 2) ?? 'N/A'}</pre>
+                                            </td>
+                                            <td>${log.created_at}</td>
+                                        </tr>
+                                    `;
+                                });
+
+                                html += `
+                                        </tbody>
+                                    </table>
+                                `;
+
+                                $('#log-content').html(html);
+                            } else {
+                                $('#log-content').html('<p>No logs found for this API endpoint.</p>');
+                            }
+                        },
+                        error: function () {
+                            $('#log-content').html('<p>Something went wrong while loading log data.</p>');
+                        }
+                    });
+
+                    $('#logModal2').modal('show');
+                });
+            });
+
+
+
+
+
+
+            $(document).on('click', '.delete_api_button', function(e) {
+                e.preventDefault();
+                var roleId = $(this).data('id');
+                var url = $(this).data('url');
+                // SweetAlert2 confirmation dialog
+                Swal.fire({
+                    title: `Are you sure you want to delete ID: ${roleId}?`,
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: url, // Your delete route
+                            method: 'DELETE',
+                            data: {
+                                _token: '<?php echo e(csrf_token()); ?>',
+                                id: roleId
+                            },
+                            success: function(response) {
+                                // Handle success
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: response.message ||
+                                        `ID ${roleId} was deleted successfully.`,
+                                    icon: 'success',
+                                    showConfirmButton: false,
+                                    timer: 2000,
+                                    timerProgressBar: true,
+                                    willClose: () => {
+                                        window.location.reload();
+                                    }
+                                });
+
+                            },
+                            error: function(xhr, status, error) {
+                                // Handle error
+                                Swal.fire(
+                                    'Error!',
+                                    'There was an error deleting the role.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).on('change', '.toggle-switch', function() {
+                const checkbox = $(this);
+                const apiId = checkbox.data('id');
+                const type = checkbox.data('type'); // 'status', 'sign', or 'txn_verification'
+                const value = checkbox.is(':checked') ? 1 : 0;
+
+                $.ajax({
+                    url: "<?php echo e(route('admin.apis.toggleStatus')); ?>",
+                    method: 'POST',
+                    data: {
+                        _token: '<?php echo e(csrf_token()); ?>',
+                        id: apiId,
+                        type: type,
+                        value: value
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated!',
+                                text: response.message || 'Field updated successfully.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            Swal.fire('Error!', response.message || 'Update failed.', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Something went wrong.', 'error');
+                    }
+                });
+            });
+
+
+            document.addEventListener('DOMContentLoaded', function() {
                 let currentlyEditing = null;
 
                 document.querySelectorAll('.editable').forEach(function(span) {
@@ -890,7 +1093,7 @@
                 });
             });
 
-        function generateAndCopyPassword(id) {
+            function generateAndCopyPassword(id) {
                 const url = `<?php echo e(route('admin.apis.generatePassword', ':id')); ?>`.replace(':id', id);
 
                 fetch(url, {
@@ -916,7 +1119,7 @@
                     });
             }
 
-        function copyToClipboard(element) {
+            function copyToClipboard(element) {
                 const text = element.getAttribute('data-copy');
                 navigator.clipboard.writeText(text).then(function() {
                     alert('Copied to clipboard!');
@@ -943,20 +1146,20 @@
                 acc_idInput.value = acc_idd;
             }
 
-         document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function() {
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 tooltipTriggerList.forEach(function(tooltipTriggerEl) {
                     new bootstrap.Tooltip(tooltipTriggerEl);
                 });
             });
-    </script>
+        </script>
 
-    <script src="<?php echo e(asset('assets/vendor/libs/select2/select2.js')); ?>"></script>
-    <script>
-        "use strict";
+        <script src="<?php echo e(asset('assets/vendor/libs/select2/select2.js')); ?>"></script>
+        <script>
+            "use strict";
             $(document).ready(function() {
 
-                $('form').on('submit', function (e) {
+                $('form').on('submit', function(e) {
                     e.preventDefault();
 
                     let $form = $(this);
@@ -972,7 +1175,7 @@
                         url: $form.attr('action'),
                         method: $form.attr('method'),
                         data: $form.serialize(),
-                        success: function (response) {
+                        success: function(response) {
                             if (response.status === 'success') {
                                 $('#newModal').modal('hide');
                                 $form[0].reset();
@@ -980,19 +1183,19 @@
                             }
 
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             if (xhr.status === 422) {
                                 let errors = xhr.responseJSON.errors;
-                                $.each(errors, function (key, value) {
+                                $.each(errors, function(key, value) {
                                     $form.find('span.' + key + '_error').text(value[0]);
                                 });
                             } else {
                                 alert('Something went wrong.');
                             }
                         },
-                        complete: function () {
+                        complete: function() {
                             // Enable the button again
-                            submitBtn.prop('disabled', false).text('<?php echo app('translator')->get("Save"); ?>');
+                            submitBtn.prop('disabled', false).text('<?php echo app('translator')->get('Save'); ?>');
                         }
                     });
                 });
@@ -1012,36 +1215,33 @@
                         $('#amount_type1').prop('checked', false);
                     }
                 });
-                 let $select = $('.select2').select2({
+                let $select = $('.select2').select2({
                     // placeholder: "Select Partner",
                     allowClear: true,
                     selectOnClose: true,
                 });
 
                 // Prevent dropdown from opening on clear
-                $select.on('select2:unselecting', function (e) {
+                $select.on('select2:unselecting', function(e) {
                     $(this).data('unselecting', true);
                 });
 
-                $select.on('select2:opening', function (e) {
+                $select.on('select2:opening', function(e) {
                     if ($(this).data('unselecting')) {
                         $(this).removeData('unselecting');
                         e.preventDefault();
                     }
                 });
             });
-    </script>
-   <script>
-    document.getElementById('showAllToggle').addEventListener('change', function () {
-        const showAll = this.checked ? 1 : 0;
-        const url = new URL(window.location.href);
-        url.searchParams.set('show_all', showAll);
-        window.location.href = url.toString();
-    });
-</script>
-
-
-
+        </script>
+        <script>
+            document.getElementById('showAllToggle').addEventListener('change', function() {
+                const showAll = this.checked ? 1 : 0;
+                const url = new URL(window.location.href);
+                url.searchParams.set('show_all', showAll);
+                window.location.href = url.toString();
+            });
+        </script>
     <?php $__env->stopPush(); ?>
  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
