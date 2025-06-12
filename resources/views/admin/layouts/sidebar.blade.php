@@ -942,7 +942,7 @@ $languages = [
                             </a>
                         </li>
                         <li
-                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log', 'admin.payment.search']) ? 'active' : '' }}">
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log2']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.log2') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
                                 <div data-i18n="Deposit log2">{{ __('sidebar.deposit_log') }} (Last Hour)</div>
