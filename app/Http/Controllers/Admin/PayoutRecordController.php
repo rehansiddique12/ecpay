@@ -726,6 +726,7 @@ class PayoutRecordController extends Controller
 
     public function request()
     {
+
         $pageTitle = "Payout Request";
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = PayoutLog::where('status', '!=', 0)->orderBy('id', 'DESC')->first()->id;
