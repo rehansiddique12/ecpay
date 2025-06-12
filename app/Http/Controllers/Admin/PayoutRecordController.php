@@ -428,7 +428,7 @@ class PayoutRecordController extends Controller
     {
         $gateways = Gateway::where('status', 1)
             ->get();
-        $pageTitle = "Payout Report";
+        $pageTitle = __('transaction.payout_report');
         $domains = Api::where('type', 'Admin')->get();
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
         $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
@@ -725,6 +725,7 @@ class PayoutRecordController extends Controller
 
     public function request()
     {
+
         $pageTitle = "Payout Request";
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = PayoutLog::where('status', '!=', 0)->orderBy('id', 'DESC')->first()->id;
@@ -6349,7 +6350,9 @@ public function markAsRead(Notification $notification)
     public function getApiLog2($url)
     {
 
-        $log = \App\Models\ApiLog::where('request_payload',  $url)->orderby('id', 'Desc')->get();
+    $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $url . '%')
+    ->orderBy('id', 'DESC')
+    ->get();
 
         if ($log) {
             return response()->json([

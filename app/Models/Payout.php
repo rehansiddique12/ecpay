@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,11 @@ class Payout extends Model
         'payout_log_id',
         'status',
         'check_by'
+    ];
+
+
+    protected $casts = [
+        'information' => 'object',
     ];
 
     // Add any relationships or additional methods here

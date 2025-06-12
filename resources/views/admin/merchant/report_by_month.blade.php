@@ -18,9 +18,9 @@
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Select Year</label>
+                        <label>{{ __('merchant_reports.select_year') }}</label>
                         <input type="text" name="searchYear" id="yearpicker" class="form-control"
-                            placeholder="Select Year" readonly />
+                            placeholder="{{ __('merchant_reports.select_year') }}" readonly />
                     </div>
                 </div>
 
@@ -28,10 +28,11 @@
                 <input type="hidden" name="search" value="Yes">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Merchants</label>
-                        <select  class="form-select select2" name="transfer_to1" data-allow-clear="true" data-placeholder="Select To Account">
-                                    <option></option>
-                            <option value="">Select Merchant</option>
+                        <label>{{ __('merchant_reports.merchants') }}</label>
+                        <select class="form-select select2" name="transfer_to1" data-allow-clear="true"
+                            data-placeholder="{{ __('merchant_reports.select_to_account') }}">
+                            <option></option>
+                            <option value="">{{ __('merchant_reports.select_merchant') }}</option>
                             @foreach ($apis as $key => $val)
                                 <option value="{{ $key }}" @if (@request()->merchant == $key) selected @endif>
                                     {{ $val }}</option>
@@ -44,12 +45,13 @@
                         <br>
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i>
+                            {{ __('merchant_reports.search') }}</button>
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         {{-- <button type="button" class="btn waves-effect waves-light btn-success"><i class="fas fa-share"></i> @lang('Export')</button> --}}
                         <a href="{{ route('admin.merchant_reports.export_by_month', ['from_date' => $from_date]) }}"
                             class="btn waves-effect waves-light btn-success" id="exportButton">
-                            <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
+                            <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
                         </a>
                     </div>
                 </div>
@@ -68,20 +70,20 @@
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr class="text-center">
-                                    <th rowspan="2">Month</th>
-                                    <th rowspan="2">Merchant Name</th>
-                                    <th colspan="3">Deposit</th>
-                                    <th colspan="3">Withdrawal</th>
+                                    <th rowspan="2">{{ __('merchant_reports.month') }}</th>
+                                    <th rowspan="2">{{ __('merchant_reports.merchant_name') }}</th>
+                                    <th colspan="3">{{ __('merchant_reports.deposit') }}</th>
+                                    <th colspan="3">{{ __('merchant_reports.withdrawal') }}</th>
                                     <th></th>
                                 </tr>
                                 <tr>
-                                    <th>No. Transaction</th>
-                                    <th>Total Amount</th>
-                                    <th>Commission</th>
-                                    <th>No. Transaction</th>
-                                    <th>Total Withdrawal</th>
-                                    <th>Commission</th>
-                                    <th>Total Commission</th>
+                                    <th>{{ __('merchant_reports.no_transaction') }}</th>
+                                    <th>{{ __('merchant_reports.total_amount') }}</th>
+                                    <th>{{ __('merchant_reports.commission') }}</th>
+                                    <th>{{ __('merchant_reports.no_transaction') }}</th>
+                                    <th>{{ __('merchant_reports.total_withdrawal') }}</th>
+                                    <th>{{ __('merchant_reports.commission') }}</th>
+                                    <th>{{ __('merchant_reports.total_commission') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -111,7 +113,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="100%">
-                                                <p class="text-dark">@lang('No Data Found')</p>
+                                                <p class="text-dark">{{ __('merchant_reports.no_data_found') }}</p>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -158,70 +160,69 @@
     @endpush
 
     @push('styles')
-    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
 
     @push('js')
-<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
-    <script>
-    $(document).ready(function () {
-        $('#category').change(function () {
-            var selectedCategory = $(this).val();
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+        <script>
+            $(document).ready(function() {
+                $('#category').change(function() {
+                    var selectedCategory = $(this).val();
 
-            if (selectedCategory === 'Bank to E-wallet') {
-                // Show fromtransfer2 and hide fromtransfer1
-                $('#fromtransfer2').show();
-                $('#fromtransfer1').hide();
+                    if (selectedCategory === 'Bank to E-wallet') {
+                        // Show fromtransfer2 and hide fromtransfer1
+                        $('#fromtransfer2').show();
+                        $('#fromtransfer1').hide();
 
-                // Show totransfer1 and hide totransfer2
-                $('#totransfer1').show();
-                $('#totransfer2').hide();
-            } else if (selectedCategory === 'E-wallet to Bank') {
-                // Show fromtransfer1 and hide fromtransfer2
-                $('#fromtransfer1').show();
-                $('#fromtransfer2').hide();
+                        // Show totransfer1 and hide totransfer2
+                        $('#totransfer1').show();
+                        $('#totransfer2').hide();
+                    } else if (selectedCategory === 'E-wallet to Bank') {
+                        // Show fromtransfer1 and hide fromtransfer2
+                        $('#fromtransfer1').show();
+                        $('#fromtransfer2').hide();
 
-                // Show totransfer2 and hide totransfer1
-                $('#totransfer2').show();
-                $('#totransfer1').hide();
-            } else if (selectedCategory === 'E-wallet to E-wallet') {
-                // Show fromtransfer1 and hide fromtransfer2
-                $('#fromtransfer1').show();
-                $('#fromtransfer2').hide();
+                        // Show totransfer2 and hide totransfer1
+                        $('#totransfer2').show();
+                        $('#totransfer1').hide();
+                    } else if (selectedCategory === 'E-wallet to E-wallet') {
+                        // Show fromtransfer1 and hide fromtransfer2
+                        $('#fromtransfer1').show();
+                        $('#fromtransfer2').hide();
 
-                // Show totransfer1 and hide totransfer2
-                $('#totransfer1').show();
-                $('#totransfer2').hide();
-            }
-        });
+                        // Show totransfer1 and hide totransfer2
+                        $('#totransfer1').show();
+                        $('#totransfer2').hide();
+                    }
+                });
 
-        $('form').on('submit', function () {
-            const $btn = $(this).find('button[type="submit"]');
-            // Disable the button
-            $btn.prop('disabled', true);
-            // Optional: Change button text to show loading spinner
-            $btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Submitting...');
-            return true; // allow form to submit
-        });
-           let $select = $('.select2').select2({
-                // placeholder: "Select Partner",
-                allowClear: true,
-                selectOnClose: true,
+                $('form').on('submit', function() {
+                    const $btn = $(this).find('button[type="submit"]');
+                    // Disable the button
+                    $btn.prop('disabled', true);
+                    // Optional: Change button text to show loading spinner
+                    $btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Submitting...');
+                    return true; // allow form to submit
+                });
+                let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    selectOnClose: true,
+                });
+
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function(e) {
+                    $(this).data('unselecting', true);
+                });
+
+                $select.on('select2:opening', function(e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
+                    }
+                });
             });
-
-            // Prevent dropdown from opening on clear
-            $select.on('select2:unselecting', function (e) {
-                $(this).data('unselecting', true);
-            });
-
-            $select.on('select2:opening', function (e) {
-                if ($(this).data('unselecting')) {
-                    $(this).removeData('unselecting');
-                    e.preventDefault();
-                }
-            });
-    });
-
-    </script>
+        </script>
     @endpush
 </x-admin-layout>
