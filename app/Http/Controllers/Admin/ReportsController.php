@@ -29,7 +29,7 @@ class ReportsController extends Controller
         $sumDailySent = $data->sum('daily_sent');
         $sumDailyReceived = $data->sum('daily_received');
         // dd($sumDailyReceived);
-        $pageTitle = "Live E-Wallet Balance";
+        $pageTitle = __('reports.live_ewallet_balance');
         return view('admin.reports.live_ewallet_balance', compact('pageTitle', 'data', 'sumBalance', 'sumDailySent', 'sumDailyReceived'));
     }
 
@@ -129,7 +129,7 @@ class ReportsController extends Controller
             ];
         }
 
-        $pageTitle = "Daily E-Wallet Summary";
+        $pageTitle = __('reports.daily_ewallet_summary');
         return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'data', 'EWalletAccounts'));
     }
 
@@ -214,7 +214,7 @@ class ReportsController extends Controller
             $data["{$key}_out"] = $out_transfers["{$key}_out"] ?? (object)['total_amount' => 0, 'record_count' => 0];
         }
 
-        $pageTitle = "Daily Transection Summary";
+        $pageTitle = __('reports.daily_transection_summary');
         return view('admin.reports.daily_transection_summary', compact('pageTitle', 'data', 'date'));
     }   
 
@@ -262,7 +262,7 @@ class ReportsController extends Controller
         ];
     }
 
-    $pageTitle = "Merchant Charges Summary";
+    $pageTitle = __('reports.merchant_charges_summary');
     return view('admin.reports.merchant_charges_summary', compact('pageTitle', 'domains', 'data'));
 }
 
@@ -394,7 +394,7 @@ class ReportsController extends Controller
             }
         }
     
-        $pageTitle = "Partner Account Summary";
+        $pageTitle = __('reports.partner_account_summary');
         return view('admin.reports.partner_account_summary', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
     }
     
@@ -523,7 +523,7 @@ class ReportsController extends Controller
             }
         }
 
-        $pageTitle = "Partner Account Balance Summary Creations";
+        $pageTitle = __('reports.partner_account_balance_summary_creations');
         $domains = Api::where('type', 'Admin')
             ->where(function ($query) {
                 $query->where('website', '!=', env('APP_WEBSITE'))

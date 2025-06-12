@@ -3248,6 +3248,183 @@ class PayoutRecordController extends Controller
         return view('partner.payout.logs', compact('records', 'pageTitle', 'domains', 'withdrawal_able_amount'));
     }
 
+    public  function action(Request $request, $id)
+    {
+        $this->validate($request, [
+            'id' => 'required',
+            'status' => ['required', Rule::in(['2', '3'])],
+        ]);
+
+        $data = Payout::where('id', $request->id)->where('transfer_status', 1)->firstOrFail();
+        $api_key = Auth::guard('partner')->user();
+        $partner = Api::where('api_key', $api_key->api_key)->where('type', 'Admin')->first();
+
+        $previous_pending = Payout::where('api_id', $partner->id)
+            ->where(function ($query) {
+                $query->where('transfer_status', 1)
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('transfer_status', 2)
+                            ->where('status', 'Pending');
+                    });
+            })
+            ->sum('amount');
+
+        if ($previous_pending > $partner->balance) {
+            if ($previous_pending > 0) {
+                session()->flash('error', 'You have already requested a withdrawal of ' . round($previous_pending, 2) . ', which is still in process. Your remaining balance is ' . round($partner->balance - $previous_pending, 2) . '.');
+                return back();
+            } else {
+                session()->flash('error', 'Insufficient balance' . snake2Title(round($partner->balance, 2)) . ' For Withdraw.');
+                return back();
+            }
+        }
+
+        $basic = (object) config('basic');
+
+        if ($request->status == '2') {
+
+            if ($data->e_wallet_name == "Nagad" || $data->e_wallet_name == "Rocket" || $data->e_wallet_name == "Bkash") {
+
+                $log = "Approve Withdrawal Requests of " . $data->e_wallet_name . " Acc No:" . $data->user_account_no . " Amount:" . $data->amount;
+                $this->addLogs($log);
+
+                //  $result = $this->checkPayoutAmountWithinTime($data);
+
+                $this->updateLimits();
+                $this->updateEWallets();
+
+                $current_time = Carbon::now('Asia/Dhaka');
+
+                $Setting = Setting::where('name', 'last_account_active')->first();
+
+                $now = Carbon::now();
+                $startOfToday = $now->copy()->startOfDay();
+                $startOfMonth = $now->copy()->startOfMonth();
+                $oneMinuteAgo = $now->copy()->subMinute();
+
+                // Query
+                $results = Payout::selectRaw('
+                        e_wallet_phone_number,
+                        COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
+                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS today_count,
+                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS month_count,
+                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
+                        SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                    ', [
+                    $Setting->value,
+                    $startOfToday,
+                    $startOfMonth,
+                    $oneMinuteAgo,
+                    $oneMinuteAgo
+                ])
+                    ->where('e_wallet_name', $data->e_wallet_name)
+                    ->whereNotNull('e_wallet_phone_number')
+                    ->where('e_wallet_phone_number', '!=', '')
+                    ->groupBy('e_wallet_phone_number')
+                    ->get();
+
+
+                // ->where('created_at', '>=', $startOfMonth)
+
+                $all_accounts = [];
+
+                foreach ($results as $result) {
+                    $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
+                    $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
+                    $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
+                    $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
+                    $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
+                }
+
+                $account = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
+                    ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                    ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$data->amount])
+                    ->where('status', 1)
+                    ->where('max_withdrawal_amount', '>=', $data->amount)
+                    ->whereIn('account_type', ['Withdrawal', 'Both'])
+                    ->with('timeSlots')
+                    ->get()
+                    ->filter(function ($single_account) use ($all_accounts, $current_time) {
+                        $phone = $single_account->account_no;
+
+                        // Check all transaction limits
+                        $validTransactionLimits = !isset($all_accounts[$phone]) || (
+                            $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
+                            $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
+                            $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                            $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
+                        );
+
+                        // Check if at least one time slot matches
+
+                        $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                            $from = Carbon::parse($slot->from_time);
+                            $to = Carbon::parse($slot->to_time);
+
+                            return $current_time->between($from, $to);
+                        });
+
+
+                        return $validTransactionLimits && $validTimeSlot;
+                    })
+                    ->sortBy(function ($single_account) use ($all_accounts) {
+                        return $all_accounts[$single_account->account_no]['counts_for_round_robin'] ?? 0;
+                    })
+                    ->values()
+                    ->first();
+
+                // $pre_payout = Payout::where('payout_log_id', $data->id)->first();
+                // if (!$pre_payout) {
+                //     $pre_payout = new Payout();
+                // }
+
+                if (isset($data->information->PhoneNumber->field_name)) {
+                    $user_account_no =  $data->information->PhoneNumber->field_name;
+                } else {
+                    $user_account_no =  $data->user_account_no;
+                }
+
+                // $pre_payout->payout_log_id = $data->id;
+                // $pre_payout->api_id = $data->api_id;
+                // $pre_payout->e_wallet_name = $data->method->name;
+                // $pre_payout->amount = $data->amount;
+                $data->user_account_no = $user_account_no;
+                $data->e_wallet_phone_number = $account->account_no;
+                $data->e_wallet_type = $account->type;
+                $data->status = 'Pending';
+                // $data->payout_id = $pre_payout->id;
+                $data->feedback = $request->feedback;
+                $data->save();
+
+                session()->flash('success', 'Payout Request has been sent');
+                return back();
+            }
+
+            $data->transfer_status = 2;
+            $data->feedback = $request->feedback;
+
+            // dd($data);
+            $data->save();
+
+            session()->flash('success', 'Approve Successfully');
+            return back();
+        } elseif ($request->status == '3') {
+
+            $log = "Reject Withdrawal Requests of " . $data->e_wallet_name . " Acc No:" . $data->user_account_no . " Amount:" . $data->amount;
+            $this->addLogs($log);
+
+            $data->transfer_status = 3;
+            $data->feedback = $request->feedback;
+            $data->status = 'Reject';
+           
+            $data->save();
+
+            session()->flash('success', 'Reject Successfully');
+            return back();
+        }
+    }
+
+
     function addLogs($log)
     {
 
