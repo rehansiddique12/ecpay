@@ -126,7 +126,7 @@ return [
     'edit' => 'Edit',
     'delete' => 'Delete',
     'are_you_sure' => 'Are you sure?',
-    'delete_warning' => "You won't be able to revert this!",
+    'delete_warning' => 'You won\'t be able to revert this!',
     'yes_delete_it' => 'Yes, delete it!',
     'cancel' => 'Cancel',
     'deleted' => 'Deleted!',

@@ -202,7 +202,7 @@ class PayoutRecordController extends Controller
         $eWalletAccount->status = !$eWalletAccount->status;
         $eWalletAccount->save();
 
-        if($eWalletAccount->status==1){
+        if ($eWalletAccount->status == 1) {
 
             $Setting = Setting::where('name', 'last_account_active')->first();
             $Setting->value = Carbon::now();
@@ -489,7 +489,7 @@ class PayoutRecordController extends Controller
 
         $pageTitle = "Search Payout Logs";
         $from_date = date('Y-m-d');
-        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum','from_date'));
+        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'from_date'));
     }
 
     public function dailyReport()
@@ -705,14 +705,14 @@ class PayoutRecordController extends Controller
 
     public function index()
     {
-        $pageTitle = "Payout Logs";
+        $pageTitle = __("general.payout_logs");
         $domains = Api::where('type', 'Admin')->get();
         $letest_record = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->first()->id;
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway', 'api')->paginate(config('basic.paginate'));
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
-        public function export_by_logs_for_WithDrawl($from_date)
+    public function export_by_logs_for_WithDrawl($from_date)
     {
         $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
 
@@ -778,12 +778,12 @@ class PayoutRecordController extends Controller
                             COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
                             SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
                         ', [
-                            $Setting->value,
-                            $startOfToday,
-                            $startOfMonth,
-                            $oneMinuteAgo,
-                            $oneMinuteAgo
-                        ])
+                        $Setting->value,
+                        $startOfToday,
+                        $startOfMonth,
+                        $oneMinuteAgo,
+                        $oneMinuteAgo
+                    ])
                         ->where('e_wallet_name', $data->gateway->name)
                         ->whereNotNull('e_wallet_phone_number')
                         ->where('e_wallet_phone_number', '!=', '')
@@ -791,17 +791,17 @@ class PayoutRecordController extends Controller
                         ->get();
 
 
-                        // ->where('created_at', '>=', $startOfMonth)
+                    // ->where('created_at', '>=', $startOfMonth)
 
-                        $all_accounts = [];
+                    $all_accounts = [];
 
-                        foreach($results as $result){
-                            $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
-                            $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
-                            $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
-                            $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
-                            $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
-                        }
+                    foreach ($results as $result) {
+                        $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
+                        $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
+                        $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
+                        $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
+                        $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
+                    }
 
                     $current_time = Carbon::now('Asia/Dhaka');
                     $account = EWalletAccount::where('e_wallet_name', $data->gateway->name)
@@ -942,11 +942,16 @@ class PayoutRecordController extends Controller
                     throw new \Exception("This transaction already rejected!.");
                 }
 
+
+
                 $data->transfer_status = 3;
                 $data->feedback = $request->feedback;
                 $data->save();
 
                 if ($data->status == "Complete") {
+
+
+
                     $partner_api_key = Api::where('id', $data->api_id)->lockForUpdate()->firstOrFail();
                     $partner_api_key->balance += ($data->amount + $data->charge);
                     $partner_api_key->save();
@@ -985,7 +990,7 @@ class PayoutRecordController extends Controller
                         $PartnerCommission->status = 0;
                         $PartnerCommission->save();
                         $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->firstOrFail();
-                        if($parent_api_key){
+                        if ($parent_api_key) {
                             $parent_api_key->balance -= $PartnerCommission->profit;
                             $parent_api_key->save();
 
@@ -1018,7 +1023,6 @@ class PayoutRecordController extends Controller
                                 $summary_log->save();
                             }
                         }
-
                     }
 
 
@@ -1154,12 +1158,21 @@ class PayoutRecordController extends Controller
                     DB::rollBack();
                     throw new \Exception("This transaction already completed!.");
                 } else {
+
+                    $log_exist = Log::where('transection_id', $data->id)->where('transection_type',2)
+                        ->orderBy('id', 'desc')
+                        ->first();
+
+                    if (isset($log_exist)) {
+                        DB::rollBack();
+                        throw new \Exception("This transaction log already exist.");
+                    }
+
                     $data->status = "Complete";
                     $data->completions_at = Carbon::now();
                     $data->transfer_status = 2;
                     $data->feedback = $request->feedback;
                     $data->save();
-
 
                     $net_amount = $data->amount + $data->charge;
 
@@ -1204,7 +1217,7 @@ class PayoutRecordController extends Controller
                             $PartnerCommission->status = 1;
                             $PartnerCommission->save();
                             $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->firstOrFail();
-                            if($parent_api_key){
+                            if ($parent_api_key) {
                                 $parent_api_key->balance += $PartnerCommission->profit;
                                 $parent_api_key->save();
 
@@ -1237,7 +1250,6 @@ class PayoutRecordController extends Controller
                                     $summary_log->save();
                                 }
                             }
-
                         }
 
 
@@ -1621,10 +1633,24 @@ class PayoutRecordController extends Controller
 
     public function apis(Request $request)
     {
-        $query = Api::where('type', 'Admin')->where('acc_type','Partner')->select([
-            'id', 'name', 'username', 'acc_type', 'website', 'api_endpoint_deposit',
-            'api_endpoint_withdrawal', 'redirect_url', 'api_key', 'secret_key', 'balance',
-            'min_deposit', 'min_withdrawal', 'status', 'password_string', 'sign', 'txn_verification'
+        $query = Api::where('type', 'Admin')->where('acc_type', 'Partner')->select([
+            'id',
+            'name',
+            'username',
+            'acc_type',
+            'website',
+            'api_endpoint_deposit',
+            'api_endpoint_withdrawal',
+            'redirect_url',
+            'api_key',
+            'secret_key',
+            'balance',
+            'min_deposit',
+            'min_withdrawal',
+            'status',
+            'password_string',
+            'sign',
+            'txn_verification'
         ]);
 
         // Default to show_all = 1
@@ -1634,7 +1660,7 @@ class PayoutRecordController extends Controller
             ? $query->get()
             : $query->paginate(20);
 
-        $pageTitle = "Manage APIs";
+        $pageTitle = __('merchant.manage_apis');
 
         return view('admin.payout.api', compact('records', 'pageTitle', 'showAll'));
     }
@@ -1644,11 +1670,13 @@ class PayoutRecordController extends Controller
 
     public function agentlist(Request $request)
     {
-        $query = Api::where('type', 'Admin')
-                    ->where('acc_type', 'Agent')
-                    ->select(['id', 'name', 'username', 'balance', 'status'])
-                    ->latest(); // Orders by `created_at` DESC (default)
-                    // OR use ->orderBy('id', 'DESC') if you prefer ID-based sorting
+        $query = Api::where('type', 'Admin')->where('acc_type', 'Agent')->select([
+            'id',
+            'name',
+            'username',
+            'balance',
+            'status'
+        ]);
 
         // Default to show_all = 1
         $showAll = $request->get('show_all', '1');
@@ -1706,33 +1734,33 @@ class PayoutRecordController extends Controller
 
         $api = Api::findOrFail($id);
 
-            $validated = $request->validate([
-                'name' => 'required|string|max:100',
-                'username' => 'required|string|max:100',
-                'email' => 'nullable|email|max:100',
-                'phone' => 'nullable|string|max:20',
-                'password' => 'nullable|string|min:6',
-                'website' => 'nullable|string|max:255',
-                'api_endpoint_deposit' => 'nullable|string|max:200',
-                'api_endpoint_withdrawal' => 'nullable|string|max:200',
-                'admin_access' => 'nullable|string',
-                // 'type' => 'required|string|max:50',
-                'api_key' => 'required|string|max:255',
-                // 'last_login' => 'nullable|string|max:50',
-                // 'remember_token' => 'nullable|string|max:100',
-                // 'balance' => 'nullable|numeric',
-                'min_deposit' => 'nullable|numeric',
-                'min_withdrawal' => 'required|numeric',
-                'acc_type' => 'required|string|max:20',
-                // 'parent_id' => 'nullable|integer',
-                'sign' => 'required|boolean',
-                'secret_key' => 'nullable|string|max:255',
-                'txn_verification' => 'required|boolean',
-                'redirect_url' => 'nullable|string|max:500',
-                'timezone' => 'nullable|string|max:255',
-                'status' => 'required|boolean',
-                'category_id' => 'nullable',
-            ]);
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'username' => 'required|string|max:100',
+            'email' => 'nullable|email|max:100',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:6',
+            'website' => 'nullable|string|max:255',
+            'api_endpoint_deposit' => 'nullable|string|max:200',
+            'api_endpoint_withdrawal' => 'nullable|string|max:200',
+            'admin_access' => 'nullable|string',
+            // 'type' => 'required|string|max:50',
+            'api_key' => 'required|string|max:255',
+            // 'last_login' => 'nullable|string|max:50',
+            // 'remember_token' => 'nullable|string|max:100',
+            // 'balance' => 'nullable|numeric',
+            'min_deposit' => 'nullable|numeric',
+            'min_withdrawal' => 'required|numeric',
+            'acc_type' => 'required|string|max:20',
+            // 'parent_id' => 'nullable|integer',
+            'sign' => 'required|boolean',
+            'secret_key' => 'nullable|string|max:255',
+            'txn_verification' => 'required|boolean',
+            'redirect_url' => 'nullable|string|max:500',
+            'timezone' => 'nullable|string|max:255',
+            'status' => 'required|boolean',
+            'category_id' => 'nullable',
+        ]);
 
 
         if ($request->filled('password')) {
@@ -1752,33 +1780,33 @@ class PayoutRecordController extends Controller
 
         $api = Api::findOrFail($id);
 
-            $validated = $request->validate([
-                // 'name' => 'required|string|max:100',
-                'username' => 'required|string|max:100',
-                // 'email' => 'nullable|email|max:100',
-                // 'phone' => 'nullable|string|max:20',
-                'password' => 'nullable|string|min:6',
-                // 'website' => 'nullable|string|max:255',
-                // 'api_endpoint_deposit' => 'nullable|string|max:200',
-                // 'api_endpoint_withdrawal' => 'nullable|string|max:200',
-                // 'admin_access' => 'nullable|string',
-                // // 'type' => 'required|string|max:50',
-                // 'api_key' => 'required|string|max:255',
-                // // 'last_login' => 'nullable|string|max:50',
-                // // 'remember_token' => 'nullable|string|max:100',
-                // // 'balance' => 'nullable|numeric',
-                // 'min_deposit' => 'nullable|numeric',
-                // 'min_withdrawal' => 'required|numeric',
-                // 'acc_type' => 'required|string|max:20',
-                // // 'parent_id' => 'nullable|integer',
-                // 'sign' => 'required|boolean',
-                // 'secret_key' => 'nullable|string|max:255',
-                // 'txn_verification' => 'required|boolean',
-                // 'redirect_url' => 'nullable|string|max:500',
-                // 'timezone' => 'nullable|string|max:255',
-                // 'status' => 'required|boolean',
-                // 'category_id' => 'nullable',
-            ]);
+        $validated = $request->validate([
+            // 'name' => 'required|string|max:100',
+            'username' => 'required|string|max:100',
+            // 'email' => 'nullable|email|max:100',
+            // 'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:6',
+            // 'website' => 'nullable|string|max:255',
+            // 'api_endpoint_deposit' => 'nullable|string|max:200',
+            // 'api_endpoint_withdrawal' => 'nullable|string|max:200',
+            // 'admin_access' => 'nullable|string',
+            // // 'type' => 'required|string|max:50',
+            // 'api_key' => 'required|string|max:255',
+            // // 'last_login' => 'nullable|string|max:50',
+            // // 'remember_token' => 'nullable|string|max:100',
+            // // 'balance' => 'nullable|numeric',
+            // 'min_deposit' => 'nullable|numeric',
+            // 'min_withdrawal' => 'required|numeric',
+            // 'acc_type' => 'required|string|max:20',
+            // // 'parent_id' => 'nullable|integer',
+            // 'sign' => 'required|boolean',
+            // 'secret_key' => 'nullable|string|max:255',
+            // 'txn_verification' => 'required|boolean',
+            // 'redirect_url' => 'nullable|string|max:500',
+            // 'timezone' => 'nullable|string|max:255',
+            // 'status' => 'required|boolean',
+            // 'category_id' => 'nullable',
+        ]);
 
 
         if ($request->filled('password')) {
@@ -1968,12 +1996,24 @@ class PayoutRecordController extends Controller
 
         // Permissions list
         $permissionsArray = [
-            "partner.dashboard", "partner.staff", "partner.storeStaff", "partner.updateStaff",
-            "partner.apis.delete", "partner.payment.report", "partner.payment.report.search",
-            "partner.payment.report.daily", "partner.payment.report.daily.search",
-            "partner.payment.report.all", "partner.payment.report.all.search", "partner.payout-log",
-            "partner.payout-request", "partner.payout-log.search", "partner.payout-action",
-            "partner.payout-report", "partner.payout-report.search", "partner.payout.report.daily",
+            "partner.dashboard",
+            "partner.staff",
+            "partner.storeStaff",
+            "partner.updateStaff",
+            "partner.apis.delete",
+            "partner.payment.report",
+            "partner.payment.report.search",
+            "partner.payment.report.daily",
+            "partner.payment.report.daily.search",
+            "partner.payment.report.all",
+            "partner.payment.report.all.search",
+            "partner.payout-log",
+            "partner.payout-request",
+            "partner.payout-log.search",
+            "partner.payout-action",
+            "partner.payout-report",
+            "partner.payout-report.search",
+            "partner.payout.report.daily",
             "partner.payout.report.daily.search"
         ];
 
@@ -2110,7 +2150,7 @@ class PayoutRecordController extends Controller
         $commissions = Commission::where('category_id', $id)->get();
         $cron_commissions = CronCommission::where('category_id', $id)->get();
 
-        $categories = Category::with(['gateways' => function($query) {
+        $categories = Category::with(['gateways' => function ($query) {
             $query->where('status', 1);
         }])->where('status', 1)->get();
 
@@ -2129,14 +2169,21 @@ class PayoutRecordController extends Controller
         $records = "";
 
         return view('admin.payout.commission', compact(
-            'records', 'pageTitle', 'commissions', 'cron_commissions','id' ,'gateways','categories','allgateways'
+            'records',
+            'pageTitle',
+            'commissions',
+            'cron_commissions',
+            'id',
+            'gateways',
+            'categories',
+            'allgateways'
         ));
     }
 
     public function partnerCommission($id)
     {
         $api = Api::where('id', $id)->first();
-        $partners = Api::where('id', '!=', $id)->where('acc_type','Agent')->get();
+        $partners = Api::where('id', '!=', $id)->where('acc_type', 'Agent')->get();
         // $cron_commissions = CronCommission::where('category_id', $id)->get();
         $user_id = $api->id;
         $commissions = Commission::where('category_id', $api->category_id)->get();
@@ -2188,8 +2235,6 @@ class PayoutRecordController extends Controller
                     'commission_id' => $commission->id,
                 ]);
             }
-
-
         }
         return redirect()->route('admin.merchant.profile', ['id' => $request->user_id]);
     }
@@ -2317,12 +2362,12 @@ class PayoutRecordController extends Controller
     {
         $account = EWalletAccount::where('id', $id)->first();
 
-       if($account){
-        $account->delete();
-        return redirect()->back()->with('success', 'Account deleted successfully');
-       }else{
-        return redirect()->back()->with('error', 'Account not found');
-       }
+        if ($account) {
+            $account->delete();
+            return redirect()->back()->with('success', 'Account deleted successfully');
+        } else {
+            return redirect()->back()->with('error', 'Account not found');
+        }
     }
 
     public function editAccount($id)
@@ -2331,19 +2376,19 @@ class PayoutRecordController extends Controller
         $categories = Category::select('name', 'id')->get();
         $methods = Gateway::select('name', 'id')->where('status', 1)->get();
         $groups = Group::all();
-        $users_locations=UserLocation::where('status' , 1)->get();
+        $users_locations = UserLocation::where('status', 1)->get();
 
-        $e_wallet_account= EWalletAccount::with('timeSlots')->find($id);
+        $e_wallet_account = EWalletAccount::with('timeSlots')->find($id);
         if (!$e_wallet_account) {
             return redirect()->route('admin.ewallet.accounts.details')->with('error', 'Account not found.');
         }
         $savedSlots = $e_wallet_account->timeSlots->pluck('time_saved')->toArray();
-        $selectedGroupIds = AccountGroup::where('account_id' , $e_wallet_account->id)->pluck('group_id')->toArray();
+        $selectedGroupIds = AccountGroup::where('account_id', $e_wallet_account->id)->pluck('group_id')->toArray();
 
 
-        return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods' , 'groups' ,'users_locations' , 'e_wallet_account' , 'savedSlots' ,'selectedGroupIds'));
+        return view('admin.payout.edit_account', compact('pageTitle', 'categories', 'methods', 'groups', 'users_locations', 'e_wallet_account', 'savedSlots', 'selectedGroupIds'));
     }
-    public function updateAccount(Request $request , $id)
+    public function updateAccount(Request $request, $id)
     {
         // dd($request->all());
         $validated = $request->validate([
@@ -2434,7 +2479,7 @@ class PayoutRecordController extends Controller
                 // Prepare account data
                 $accountData = [
                     'category_id' => $request->category_id,
-                    'gateway_id'=> $request->account_id,
+                    'gateway_id' => $request->account_id,
                     'e_wallet_name' => $name,
                     'account_no' => $request->account_number[$index],
                     'type' => $request->account_type[$index],
@@ -2461,7 +2506,7 @@ class PayoutRecordController extends Controller
                     'location_id' => $request->location[$index] ?? null,
                 ];
 
-                if(isset($imagePath)   && !empty($imagePath)) {
+                if (isset($imagePath)   && !empty($imagePath)) {
                     $accountData['image'] = $imagePath; // Add image path if it exists
                 }
 
@@ -2591,7 +2636,7 @@ class PayoutRecordController extends Controller
             DB::commit();
 
             // Return success for AJAX
-            return response()->json(['success' => true,'message' => 'Successfully Updated Balance'], 200);
+            return response()->json(['success' => true, 'message' => 'Successfully Updated Balance'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -2600,7 +2645,7 @@ class PayoutRecordController extends Controller
     }
 
 
-   public function accountBalanceEdit(Request $request)
+    public function accountBalanceEdit(Request $request)
     {
         $validated = $request->validate([
             'account_id' => 'required|exists:e_wallet_accounts,id',
@@ -2660,7 +2705,6 @@ class PayoutRecordController extends Controller
                 'success' => true,
                 'message' => 'Balance updated successfully!'
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -3384,7 +3428,7 @@ class PayoutRecordController extends Controller
                 // Create e-wallet account
                 $account = EWalletAccount::create([
                     'category_id' => $request->category_id,
-                    'gateway_id'=> $request->account_id,
+                    'gateway_id' => $request->account_id,
                     'e_wallet_name' => $name,
                     'account_no' => $request->account_number[$index],
                     'type' => $request->account_type[$index],
@@ -3441,8 +3485,8 @@ class PayoutRecordController extends Controller
                     }
                 }
 
-                foreach($request->account_group[$index] as $groupId) {
-                    $new_group=new AccountGroup();
+                foreach ($request->account_group[$index] as $groupId) {
+                    $new_group = new AccountGroup();
                     $new_group->account_id = $account->id;
                     $new_group->group_id = $groupId;
                     $new_group->save();
@@ -4008,33 +4052,33 @@ class PayoutRecordController extends Controller
                         $decoded = base64_decode($sign);
                         $request_hash = substr($decoded, 0, -$timestamp_length);
                         $sign_timestamp = substr($decoded, -$timestamp_length);
-                            if (hash_equals($request_hash, $hmac)) {
-                                if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
-                                    $signature = Signature::where('sign', $sign)->first();
-                                    if (!$signature) {
-                                        $signature = new Signature();
-                                        $signature->sign = $sign;
-                                        $signature->save();
-                                    } else {
-                                        return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
-                                    }
+                        if (hash_equals($request_hash, $hmac)) {
+                            if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
+                                $signature = Signature::where('sign', $sign)->first();
+                                if (!$signature) {
+                                    $signature = new Signature();
+                                    $signature->sign = $sign;
+                                    $signature->save();
                                 } else {
-                                    return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
+                                    return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
                                 }
                             } else {
-                                return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
+                                return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
                             }
                         } else {
-                            return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
+                            return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
                         }
+                    } else {
+                        return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
                     }
-                } else {
-                    return response()->json(['message' => 'Wrong API key'], 404);
                 }
+            } else {
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
 
-                if ($api_key->min_withdrawal > $request->amount) {
-                    return response()->json(['message' => 'Min Withdrawal Limit is ' . $api_key->min_withdrawal], 404);
-                }
+            if ($api_key->min_withdrawal > $request->amount) {
+                return response()->json(['message' => 'Min Withdrawal Limit is ' . $api_key->min_withdrawal], 404);
+            }
 
             $partner_transection_id = 0;
             if ($request->filled('partner_transection_id')) {
@@ -4084,12 +4128,12 @@ class PayoutRecordController extends Controller
                         COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
                         SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
                     ', [
-                        $Setting->value,
-                        $startOfToday,
-                        $startOfMonth,
-                        $oneMinuteAgo,
-                        $oneMinuteAgo
-                    ])
+                    $Setting->value,
+                    $startOfToday,
+                    $startOfMonth,
+                    $oneMinuteAgo,
+                    $oneMinuteAgo
+                ])
                     ->where('e_wallet_name', $request->e_wallet_name)
                     ->whereNotNull('e_wallet_phone_number')
                     ->where('e_wallet_phone_number', '!=', '')
@@ -4097,57 +4141,57 @@ class PayoutRecordController extends Controller
                     ->get();
 
 
-                    // ->where('created_at', '>=', $startOfMonth)
+                // ->where('created_at', '>=', $startOfMonth)
 
-                    $all_accounts = [];
+                $all_accounts = [];
 
-                    foreach($results as $result){
-                        $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
-                        $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
-                        $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
-                        $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
-                        $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
-                    }
-
-
+                foreach ($results as $result) {
+                    $all_accounts[$result->e_wallet_phone_number]['counts_for_round_robin'] = $result->counts_for_round_robin;
+                    $all_accounts[$result->e_wallet_phone_number]['today_count'] = $result->today_count;
+                    $all_accounts[$result->e_wallet_phone_number]['month_count'] = $result->month_count;
+                    $all_accounts[$result->e_wallet_phone_number]['one_min_count'] = $result->one_min_count;
+                    $all_accounts[$result->e_wallet_phone_number]['one_min_sum'] = $result->one_min_sum;
+                }
 
 
-                    $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                        ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
-                        ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
-                        ->where('status', 1)
-                        ->where('max_withdrawal_amount', '>=', $request->amount)
-                        ->whereIn('account_type', ['Withdrawal', 'Both'])
-                        ->with('timeSlots')
-                        ->get()
-                        ->filter(function ($single_account) use ($all_accounts, $current_time) {
-                            $phone = $single_account->account_no;
-
-                            // Check all transaction limits
-                            $validTransactionLimits = !isset($all_accounts[$phone]) || (
-                                $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
-                                $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
-                                $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
-                                $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
-                            );
-
-                            // Check if at least one time slot matches
-
-                            $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
-                                $from = Carbon::parse($slot->from_time);
-                                $to = Carbon::parse($slot->to_time);
-
-                                return $current_time->between($from, $to);
-                            });
 
 
-                            return $validTransactionLimits && $validTimeSlot;
-                        })
-                        ->sortBy(function ($single_account) use ($all_accounts) {
-                            return $all_accounts[$single_account->account_no]['counts_for_round_robin'] ?? 0;
-                        })
-                        ->values()
-                        ->first();
+                $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+                    ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
+                    ->whereRaw('daily_limit_withdrawal - daily_sent > ?', [$request->amount])
+                    ->where('status', 1)
+                    ->where('max_withdrawal_amount', '>=', $request->amount)
+                    ->whereIn('account_type', ['Withdrawal', 'Both'])
+                    ->with('timeSlots')
+                    ->get()
+                    ->filter(function ($single_account) use ($all_accounts, $current_time) {
+                        $phone = $single_account->account_no;
+
+                        // Check all transaction limits
+                        $validTransactionLimits = !isset($all_accounts[$phone]) || (
+                            $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
+                            $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
+                            $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                            $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
+                        );
+
+                        // Check if at least one time slot matches
+
+                        $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                            $from = Carbon::parse($slot->from_time);
+                            $to = Carbon::parse($slot->to_time);
+
+                            return $current_time->between($from, $to);
+                        });
+
+
+                        return $validTransactionLimits && $validTimeSlot;
+                    })
+                    ->sortBy(function ($single_account) use ($all_accounts) {
+                        return $all_accounts[$single_account->account_no]['counts_for_round_robin'] ?? 0;
+                    })
+                    ->values()
+                    ->first();
 
 
 
@@ -4252,12 +4296,12 @@ class PayoutRecordController extends Controller
 
 
 
-                $previous_pending = Payout::where('api_id', $api_key->id)
-                ->where(function($query) {
+            $previous_pending = Payout::where('api_id', $api_key->id)
+                ->where(function ($query) {
                     $query->where('transfer_status', 1)
-                        ->orWhere(function($subQuery) {
+                        ->orWhere(function ($subQuery) {
                             $subQuery->where('transfer_status', 2)
-                                    ->where('status', 'Pending');
+                                ->where('status', 'Pending');
                         });
                 })
                 ->sum('amount');
@@ -4694,7 +4738,7 @@ class PayoutRecordController extends Controller
                     $PartnerCommission->status = 1;
                     $PartnerCommission->save();
                     $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                    if($parent_api_key){
+                    if ($parent_api_key) {
                         $parent_api_key->balance += $PartnerCommission->profit;
                         $parent_api_key->save();
 
@@ -4728,7 +4772,6 @@ class PayoutRecordController extends Controller
                             $summary_log->save();
                         }
                     }
-
                 }
 
                 $account = EWalletAccount::where('e_wallet_name', $payout->e_wallet_name)
@@ -4919,7 +4962,7 @@ class PayoutRecordController extends Controller
                                 $PartnerCommission->status = 0;
                                 $PartnerCommission->save();
                                 $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                                if($parent_api_key){
+                                if ($parent_api_key) {
                                     $parent_api_key->balance -= $PartnerCommission->profit;
                                     $parent_api_key->save();
 
@@ -4952,7 +4995,6 @@ class PayoutRecordController extends Controller
                                         $summary_log->save();
                                     }
                                 }
-
                             }
 
 
@@ -5175,7 +5217,7 @@ class PayoutRecordController extends Controller
                                 $PartnerCommission->status = 0;
                                 $PartnerCommission->save();
                                 $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                                if($parent_api_key){
+                                if ($parent_api_key) {
                                     $parent_api_key->balance -= $PartnerCommission->profit;
                                     $parent_api_key->save();
 
@@ -5208,7 +5250,6 @@ class PayoutRecordController extends Controller
                                         $summary_log->save();
                                     }
                                 }
-
                             }
 
                             $account = EWalletAccount::where('e_wallet_name', $payout_data->e_wallet_name)
@@ -5333,14 +5374,14 @@ class PayoutRecordController extends Controller
                 }
             }
 
-                if ($commit == 0) {
-                    DB::commit();
-                }
-                return response()->json(['message' => 'Payout Rejected'], 200);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return response()->json(['error' => $e->getMessage()], 500);
+            if ($commit == 0) {
+                DB::commit();
             }
+            return response()->json(['message' => 'Payout Rejected'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function convertStringToNumber($string)
@@ -5384,16 +5425,16 @@ class PayoutRecordController extends Controller
     {
         $EWalletAccount = EWalletAccount::where('status', 1)->get();
         $notifications = EWalletAccount::whereColumn('live_balance', '<', 'low_balance_amount')
-        ->where('status',1)
-        ->orderBy('id', 'desc')
-        ->take(5)
-        ->get();
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->take(5)
+            ->get();
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
-        ->where('status','Pending')
-        ->where('check_by', 0)
-        ->orderBy('id', 'desc')
-        ->take(5)
-        ->get();
+            ->where('status', 'Pending')
+            ->where('check_by', 0)
+            ->orderBy('id', 'desc')
+            ->take(5)
+            ->get();
 
         if ($request->ajax()) {
             return response()->json([
@@ -5409,7 +5450,8 @@ class PayoutRecordController extends Controller
         return view('admin.payout.workboard', compact('pageTitle', 'apis'));
     }
 
-    public function fetchrecords(Request $request){
+    public function fetchrecords(Request $request)
+    {
         $query = $request->input('search');
         $source = $request->input('source');
 
@@ -5460,13 +5502,14 @@ class PayoutRecordController extends Controller
         ]);
     }
 
-    public function updatePayment(Request $request) {
+    public function updatePayment(Request $request)
+    {
 
         $this->validate($request, [
             'id' => 'required',
             'status' => ['required', Rule::in(['Complete', 'Reject'])],
         ]);
-                DB::beginTransaction();
+        DB::beginTransaction();
         try {
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             if (!empty($request->sender)) {
@@ -5527,10 +5570,8 @@ class PayoutRecordController extends Controller
                 if (!$payment) {
                     // $payment = new Payment();
                     $new = 1;
-                }
-                else
-                {
-                    if(empty($data->sender) || $data->sender==0){
+                } else {
+                    if (empty($data->sender) || $data->sender == 0) {
                         $data->sender = $payment->sender;
                     }
 
@@ -5547,7 +5588,7 @@ class PayoutRecordController extends Controller
 
                     // $payment->delete();
                 }
-                $payment=$data;
+                $payment = $data;
                 //dd($payment);
 
                 if ($new == 1) {
@@ -5778,25 +5819,25 @@ class PayoutRecordController extends Controller
                     $sign = base64_encode($combined);
 
                     $array_data = [
-                            'id' => $payment->id,
-                            'partner_transection_id' => $payment->partner_transection_id,
-                            'transaction_type' => 'Deposit',
-                            'e_wallet_name' => $payment->e_wallet_name,
-                            'amount' => $this->convertStringToNumber($payment->amount),
-                            'user_account_no' => $payment->sender,
-                            'txn_id' => $payment->txn_id,
-                            'e_wallet_phone_number' => $payment->e_wallet_phone_number,
-                            'e_wallet_type' => $payment->e_wallet_type,
-                            'charges' => $this->convertStringToNumber($payment->charge),
-                            'status' => $payment->status,
-                            'completion_date' => $api_date,
-                            'completion_time' => $api_time,
-                            'created_at' => $payment->created_at,
-                            'updated_at' => $payment->updated_at,
-                            'sign' => $sign,
+                        'id' => $payment->id,
+                        'partner_transection_id' => $payment->partner_transection_id,
+                        'transaction_type' => 'Deposit',
+                        'e_wallet_name' => $payment->e_wallet_name,
+                        'amount' => $this->convertStringToNumber($payment->amount),
+                        'user_account_no' => $payment->sender,
+                        'txn_id' => $payment->txn_id,
+                        'e_wallet_phone_number' => $payment->e_wallet_phone_number,
+                        'e_wallet_type' => $payment->e_wallet_type,
+                        'charges' => $this->convertStringToNumber($payment->charge),
+                        'status' => $payment->status,
+                        'completion_date' => $api_date,
+                        'completion_time' => $api_time,
+                        'created_at' => $payment->created_at,
+                        'updated_at' => $payment->updated_at,
+                        'sign' => $sign,
                     ];
 
-                    if(!empty($payment->member_id)){
+                    if (!empty($payment->member_id)) {
                         $array_data['member_id'] = $payment->member_id;
                     }
 
@@ -5870,25 +5911,25 @@ class PayoutRecordController extends Controller
                     $sign = base64_encode($combined);
 
                     $array_data = [
-                                'id' => '',
-                                'partner_transection_id' => $data->partner_transection_id,
-                                'transaction_type' => 'Deposit',
-                                'e_wallet_name' => $data->gateway->name,
-                                'amount' => $this->convertStringToNumber($data->amount),
-                                'user_account_no' => $data->account_no,
-                                'txn_id' => '',
-                                'e_wallet_phone_number' => $data->e_wallet_phone_number,
-                                'e_wallet_type' => '',
-                                'charges' => $this->convertStringToNumber($data->charge),
-                                'status' => 'Reject',
-                                'completion_date' => '',
-                                'completion_time' => '',
-                                'created_at' => $data->created_at,
-                                'updated_at' => $data->updated_at,
-                                'sign' => $sign,
+                        'id' => '',
+                        'partner_transection_id' => $data->partner_transection_id,
+                        'transaction_type' => 'Deposit',
+                        'e_wallet_name' => $data->gateway->name,
+                        'amount' => $this->convertStringToNumber($data->amount),
+                        'user_account_no' => $data->account_no,
+                        'txn_id' => '',
+                        'e_wallet_phone_number' => $data->e_wallet_phone_number,
+                        'e_wallet_type' => '',
+                        'charges' => $this->convertStringToNumber($data->charge),
+                        'status' => 'Reject',
+                        'completion_date' => '',
+                        'completion_time' => '',
+                        'created_at' => $data->created_at,
+                        'updated_at' => $data->updated_at,
+                        'sign' => $sign,
                     ];
 
-                    if(!empty($data->member_id)){
+                    if (!empty($data->member_id)) {
                         $array_data['member_id'] = $data->member_id;
                     }
 
@@ -5926,9 +5967,8 @@ class PayoutRecordController extends Controller
                     }
                 }
                 session()->flash('success', 'Reject Successfully');
-
             }
-            if($commit==0){
+            if ($commit == 0) {
                 DB::commit();
             }
             return response()->json(['success' => true]);
@@ -5937,10 +5977,10 @@ class PayoutRecordController extends Controller
             session()->flash('error', $e->getMessage());
             return back();
         }
-
     }
 
-    public function updatePayout(Request $request) {
+    public function updatePayout(Request $request)
+    {
         $payout = Payout::findOrFail($request->id);
         $payout->amount = $request->amount;
         $payout->status = 'Pending';
@@ -5951,37 +5991,37 @@ class PayoutRecordController extends Controller
 
 
     public function adjustTransaction(Request $request)
-{
-    $model = $request->type === 'payment' ? Payment::class : Payout::class;
-    $record = $model::findOrFail($request->id);
-    $record->adjusted_by = auth()->id();
-    $record->save();
-
-    return response()->json(['success' => true]);
-}
-
-
-    public function hideTransaction(Request $request)
-{
-    $id = $request->input('id');
-    $type = $request->input('type');
-
-    if ($type === 'payment') {
-        $record = Payment::find($id);
-    } elseif ($type === 'payout') {
-        $record = Payout::find($id);
-    } else {
-        return response()->json(['success' => false, 'message' => 'Invalid type'], 400);
-    }
-
-    if ($record) {
-        $record->show_none = 1;
+    {
+        $model = $request->type === 'payment' ? Payment::class : Payout::class;
+        $record = $model::findOrFail($request->id);
+        $record->adjusted_by = auth()->id();
         $record->save();
+
         return response()->json(['success' => true]);
     }
 
-    return response()->json(['success' => false, 'message' => 'Record not found'], 404);
-}
+
+    public function hideTransaction(Request $request)
+    {
+        $id = $request->input('id');
+        $type = $request->input('type');
+
+        if ($type === 'payment') {
+            $record = Payment::find($id);
+        } elseif ($type === 'payout') {
+            $record = Payout::find($id);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Invalid type'], 400);
+        }
+
+        if ($record) {
+            $record->show_none = 1;
+            $record->save();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Record not found'], 404);
+    }
 
 
 
@@ -6066,113 +6106,113 @@ class PayoutRecordController extends Controller
 
 
     public function adjustments()
-{
-    $pageTitle = "Partners Adjustments History";
+    {
+        $pageTitle = "Partners Adjustments History";
 
-    $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
-    $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
-    $monthyear = Carbon::now()->subMonth()->startOfMonth();
+        $firstDayOfMonth = Carbon::now()->subMonth()->startOfMonth()->toDateString();
+        $lastDayOfMonth = Carbon::now()->subMonth()->endOfMonth()->toDateString();
+        $monthyear = Carbon::now()->subMonth()->startOfMonth();
 
-    // Fetch all Admin partners at once
-    $partners = Api::where('type', 'Admin')->get();
-    $partnerIds = $partners->pluck('id');
+        // Fetch all Admin partners at once
+        $partners = Api::where('type', 'Admin')->get();
+        $partnerIds = $partners->pluck('id');
 
-    // Fetch all payments grouped by api_id
-    $payments = Payment::where('status', 'Complete')
-        ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
-        ->whereIn('api_id', $partnerIds)
-        ->selectRaw('api_id, COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
-        ->groupBy('api_id')
-        ->get()
-        ->keyBy('api_id');
+        // Fetch all payments grouped by api_id
+        $payments = Payment::where('status', 'Complete')
+            ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
+            ->whereIn('api_id', $partnerIds)
+            ->selectRaw('api_id, COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+            ->groupBy('api_id')
+            ->get()
+            ->keyBy('api_id');
 
-    // Fetch all payouts grouped by api_id
-    $payouts = Payout::where('transfer_status', 2)
-        ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
-        ->whereIn('api_id', $partnerIds)
-        ->selectRaw('api_id, COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
-        ->groupBy('api_id')
-        ->get()
-        ->keyBy('api_id');
+        // Fetch all payouts grouped by api_id
+        $payouts = Payout::where('transfer_status', 2)
+            ->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
+            ->whereIn('api_id', $partnerIds)
+            ->selectRaw('api_id, COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
+            ->groupBy('api_id')
+            ->get()
+            ->keyBy('api_id');
 
-    // Preload all commissions by category for faster access
-    $commissionsByCategory = Commission::orderBy('to_amount', 'desc')->get()->groupBy('category_id');
+        // Preload all commissions by category for faster access
+        $commissionsByCategory = Commission::orderBy('to_amount', 'desc')->get()->groupBy('category_id');
 
-    $adjustmentsToInsert = [];
+        $adjustmentsToInsert = [];
 
-    foreach ($partners as $partner) {
-        if ($partner->website === env('APP_WEBSITE')) continue;
+        foreach ($partners as $partner) {
+            if ($partner->website === env('APP_WEBSITE')) continue;
 
-        $api_id = $partner->id;
-        $category_id = $partner->category_id;
+            $api_id = $partner->id;
+            $category_id = $partner->category_id;
 
-        if (empty($category_id) || !isset($commissionsByCategory[$category_id])) {
-            continue;
-        }
+            if (empty($category_id) || !isset($commissionsByCategory[$category_id])) {
+                continue;
+            }
 
-        $total_adjustment_amount = 0;
-        $total_payment = 0;
-        $total_payout = 0;
+            $total_adjustment_amount = 0;
+            $total_payment = 0;
+            $total_payout = 0;
 
-        // ===== Payment Side Calculation =====
-        if (isset($payments[$api_id])) {
-            $pay = $payments[$api_id];
-            $commission = $commissionsByCategory[$category_id]
-                ->firstWhere(fn($c) => $pay->fund_sum >= $c->from_amount && $pay->fund_sum <= $c->to_amount)
-                ?? $commissionsByCategory[$category_id]->first(); // fallback to top one
+            // ===== Payment Side Calculation =====
+            if (isset($payments[$api_id])) {
+                $pay = $payments[$api_id];
+                $commission = $commissionsByCategory[$category_id]
+                    ->firstWhere(fn($c) => $pay->fund_sum >= $c->from_amount && $pay->fund_sum <= $c->to_amount)
+                    ?? $commissionsByCategory[$category_id]->first(); // fallback to top one
 
-            $charge = $commission ? $commission->deposit_percentage * $pay->fund_sum / 100 : 0;
-            $get_adjustment = $pay->charge_sum - $charge;
+                $charge = $commission ? $commission->deposit_percentage * $pay->fund_sum / 100 : 0;
+                $get_adjustment = $pay->charge_sum - $charge;
 
-            $total_adjustment_amount += $get_adjustment;
-            $total_payment = $pay->fund_sum;
-        }
+                $total_adjustment_amount += $get_adjustment;
+                $total_payment = $pay->fund_sum;
+            }
 
-        // ===== Payout Side Calculation =====
-        if (isset($payouts[$api_id])) {
-            $payout = $payouts[$api_id];
-            $commission = $commissionsByCategory[$category_id]
-                ->firstWhere(fn($c) => $payout->fund_sum >= $c->from_amount && $payout->fund_sum <= $c->to_amount)
-                ?? $commissionsByCategory[$category_id]->first();
+            // ===== Payout Side Calculation =====
+            if (isset($payouts[$api_id])) {
+                $payout = $payouts[$api_id];
+                $commission = $commissionsByCategory[$category_id]
+                    ->firstWhere(fn($c) => $payout->fund_sum >= $c->from_amount && $payout->fund_sum <= $c->to_amount)
+                    ?? $commissionsByCategory[$category_id]->first();
 
-            $charge = $commission ? $commission->withdrawal_percentage * $payout->fund_sum / 100 : 0;
-            $get_adjustment = $payout->charge_sum - $charge;
+                $charge = $commission ? $commission->withdrawal_percentage * $payout->fund_sum / 100 : 0;
+                $get_adjustment = $payout->charge_sum - $charge;
 
-            $total_adjustment_amount += $get_adjustment;
-            $total_payout = $payout->fund_sum;
-        }
+                $total_adjustment_amount += $get_adjustment;
+                $total_payout = $payout->fund_sum;
+            }
 
-        // ===== Insert Adjustment If Not Exists =====
-        if ($total_adjustment_amount > 0) {
-            $existing = Adjustment::where('partner_id', $partner->id)
-                ->whereMonth('month', $monthyear->month)
-                ->whereYear('month', $monthyear->year)
-                ->exists();
+            // ===== Insert Adjustment If Not Exists =====
+            if ($total_adjustment_amount > 0) {
+                $existing = Adjustment::where('partner_id', $partner->id)
+                    ->whereMonth('month', $monthyear->month)
+                    ->whereYear('month', $monthyear->year)
+                    ->exists();
 
-            if (!$existing) {
-                $adjustmentsToInsert[] = [
-                    'month' => $lastDayOfMonth,
-                    'adjustment' => $total_adjustment_amount,
-                    'payment' => $total_payment,
-                    'payout' => $total_payout,
-                    'partner_id' => $partner->id,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
+                if (!$existing) {
+                    $adjustmentsToInsert[] = [
+                        'month' => $lastDayOfMonth,
+                        'adjustment' => $total_adjustment_amount,
+                        'payment' => $total_payment,
+                        'payout' => $total_payout,
+                        'partner_id' => $partner->id,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }
             }
         }
+
+        // Bulk insert new adjustments
+        if (!empty($adjustmentsToInsert)) {
+            Adjustment::insert($adjustmentsToInsert);
+        }
+
+        // Load records for view
+        $records = Adjustment::with('api')->orderBy('id', 'DESC')->get();
+
+        return view('admin.payout.adjustments', compact('records', 'pageTitle', 'partners'));
     }
-
-    // Bulk insert new adjustments
-    if (!empty($adjustmentsToInsert)) {
-        Adjustment::insert($adjustmentsToInsert);
-    }
-
-    // Load records for view
-    $records = Adjustment::with('api')->orderBy('id', 'DESC')->get();
-
-    return view('admin.payout.adjustments', compact('records', 'pageTitle', 'partners'));
-}
 
 
     public function adjustmentSearch(Request $request)
@@ -6254,39 +6294,39 @@ class PayoutRecordController extends Controller
     }
 
     public function getApiLog($url)
-{
+    {
 
-    $log = \App\Models\ApiLog::where('request_url',  $url)->orderby('id','Desc')->get();
+        $log = \App\Models\ApiLog::where('request_url',  $url)->orderby('id', 'Desc')->get();
 
-    if ($log) {
+        if ($log) {
+            return response()->json([
+                'success' => true,
+                'data' => $log
+            ]);
+        }
+
         return response()->json([
-            'success' => true,
-            'data' => $log
+            'success' => false,
+            'message' => 'No log found.'
         ]);
     }
-
-    return response()->json([
-        'success' => false,
-        'message' => 'No log found.'
-    ]);
-}
     public function getApiLog2($url)
-{
+    {
 
-    $log = \App\Models\ApiLog::where('request_payload',  $url)->orderby('id','Desc')->get();
+        $log = \App\Models\ApiLog::where('request_payload',  $url)->orderby('id', 'Desc')->get();
 
-    if ($log) {
+        if ($log) {
+            return response()->json([
+                'success' => true,
+                'data' => $log
+            ]);
+        }
+
         return response()->json([
-            'success' => true,
-            'data' => $log
+            'success' => false,
+            'message' => 'No log found.'
         ]);
     }
-
-    return response()->json([
-        'success' => false,
-        'message' => 'No log found.'
-    ]);
-}
 
     public function functionlogs(Request $request)
     {
@@ -6458,7 +6498,7 @@ class PayoutRecordController extends Controller
         $account->save();
 
 
-        if($account->status==1){
+        if ($account->status == 1) {
 
             $Setting = Setting::where('name', 'last_account_active')->first();
             $Setting->value = Carbon::now();

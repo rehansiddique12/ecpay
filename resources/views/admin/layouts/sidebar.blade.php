@@ -103,7 +103,7 @@ use Illuminate\Support\Facades\App;
 $currentLocale = App::getLocale();
 $languages = [
 'en' => 'English',
-'ms' => 'Malaysian',
+//'ms' => 'Malaysian',
 'cn' =>'Chinese'
 ];
 

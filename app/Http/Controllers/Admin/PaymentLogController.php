@@ -39,7 +39,7 @@ class PaymentLogController extends Controller
 
     public function index()
     {
-        $pageTitle = "Payment Logs";
+        $pageTitle = __("transaction.payment_logs");
         $domains = Api::where('type', 'Admin')->get();
         $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway','txn_record')->paginate(config('basic.paginate'));
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
@@ -178,7 +178,7 @@ class PaymentLogController extends Controller
     {
         $gateways = Gateway::where('status', 1)
             ->get();
-        $pageTitle = "Payment Report";
+        $pageTitle = __('transaction.payment_report');
         // $today = Carbon::today();
         $today = date('Y-m-d');
         $domains = Api::select('id', 'name', 'website')->where('type', 'Admin')->get();
