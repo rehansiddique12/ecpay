@@ -166,6 +166,14 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+  'current_password' => [
+        'required' => 'Current password is required.',
+    ],
+    'password' => [
+        'required' => 'New password is required.',
+        'min' => 'New password must be at least :min characters.',
+        'confirmed' => 'New password confirmation does not match.',
+    ],
     ],
 
     /*
@@ -179,6 +187,12 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'name' => 'Name',
+        'username' => 'Username',
+        'email' => 'Email address',
+        'phone' => 'Phone number',
+        'image' => 'Image',
+    ],
 
 ];

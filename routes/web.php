@@ -233,6 +233,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/type/add', [PaymentTypeController::class, 'typeAdd'])->name('type.add');
         Route::put('/type/update/{id}', [PaymentTypeController::class, 'updatetype'])->name('type.update');
 
+        Route::get('/get-api-log/{url}', [PayoutRecordController::class, 'getApiLog'])->where('url', '.*');
+        Route::get('/get-api-log2/{url}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
         Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
@@ -248,6 +250,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/apis/commissions/calculate/{id}', [PayoutRecordController::class, 'apiCommissionsCalculate'])->name('api.commissions.calculate');
         Route::put('/apis/update/{id}', [PayoutRecordController::class, 'updateApi'])->name('apis.update');
+        Route::put('/apis/agent/update/{id}', [PayoutRecordController::class, 'agentupdateApi'])->name('apis.agent.update');
         Route::post('/apis/balance/add', [PayoutRecordController::class, 'apisbalanceadd'])->name('apis.balance.add');
         Route::post('/apis/commission/add', [PayoutRecordController::class, 'apisCommissionAdd'])->name('apis.commission.add');
         // partner commission
@@ -430,7 +433,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts-management', [PayoutRecordController::class, 'eWalletAccountsAdd'])->name('accounts.management');
 
 
+        Route::get('agent-profile/{id}', [MerchantController::class, 'agent_profile'])->name('agent.profile');
         Route::get('merchant-profile/{id}', [MerchantController::class, 'profile'])->name('merchant.profile');
+        Route::get('agent-logs/{id}', [MerchantController::class, 'agent_logs'])->name('agent.logs');
         Route::get('merchant-logs/{id}', [MerchantController::class, 'mechantlogs'])->name('merchant.logs');
         Route::post('/activity-logs', [MerchantController::class, 'fetchActivityLogs'])->name('fetchActivityLogs');
 
@@ -494,6 +499,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
 
         Route::get('/partner/balance', [PartnerPayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
+        Route::get('/reports/export/{from_date?}', [PartnerPaymentLogController::class, 'export_by_blance'])->name('merchant_reports.export_by_blance');
         Route::get('partner/balance/search', [PartnerPayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
 
         Route::get('reports/partner_account_summary', [PartnerReportsController::class, 'partner_account_summary'])->name('reports.partner_account_summary');
@@ -607,7 +613,7 @@ Route::get('partner/update-fund-order-status/check', [PartnerPayoutRecordControl
 
 
     Route::get('/admin/lang/{locale}', function ($locale) {
-        if (in_array($locale, ['en', 'ms'])) {
+        if (in_array($locale, ['en', 'ms' , 'cn'])) {
             Session::put('locale', $locale);
         }
         return redirect()->back();

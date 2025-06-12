@@ -64,11 +64,11 @@
                         <label>Status</label>
                         <select name="status" class="form-select">
                             <option value="">@lang('All Payment')</option>
-                            <option value="1" @if (@request()->status == '1') selected @endif>@lang('Pending Payment')
+                            <option value="Pending" @if (@request()->status == 'Pending') selected @endif>@lang('Pending Payment')
                             </option>
-                            <option value="2" @if (@request()->status == '2') selected @endif>@lang('Complete Payment')
+                            <option value="Complete" @if (@request()->status == 'Complete') selected @endif>@lang('Complete Payment')
                             </option>
-                            <option value="3" @if (@request()->status == '3') selected @endif>@lang('Cancel Payment')
+                            <option value="Reject" @if (@request()->status == 'Reject') selected @endif>@lang('Cancel Payment')
                             </option>
                         </select>
                     </div>
@@ -210,7 +210,7 @@
                                 @else
 
                                 <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Transfer Pending')</span>
-                                    
+
                                 @endif
                                 </td>
 
@@ -286,11 +286,11 @@
 
 @push('js')
     <!-- jQuery UI -->
-    
+
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <!-- DateTimePicker Add-on -->
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js">
     </script>
 

@@ -1,5 +1,46 @@
 <x-partner-layout :title="$pageTitle">
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+    @endpush
+
+    @php
+        $today = \Carbon\Carbon::today()->toDateString();
+        $yesterday = \Carbon\Carbon::yesterday()->toDateString();
+        $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
+    @endphp
+
+
+    <style>
+        .hover:hover {
+            background-color: #ffc000;
+            color: white;
+        }
+
+        .btn-yellow.active {
+            background-color: #ffc000 !important;
+            color: white !important;
+            border: 2px solid #e0a800;
+        }
+    </style>
+
+
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+        <div class="d-flex d-lg-flex d-md-block align-items-center">
+            <h4 class="mb-10 text-primary font-weight-medium ">Adjustments</h4>
+            <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
+                    id="btn-today">Today</button>
+
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
+                    id="btn-yesterday">Yesterday</button>
+
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
+                    id="btn-last7">Last 7 days</button>
+            </div>
+        </div>
         <form action="{{ route('partner.partner.balance.search') }}" method="get">
 
             <div class="row justify-content-between align-items-center">
@@ -8,19 +49,19 @@
                     <div class="form-group">
                         <label>From Date</label>
                         <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
-                            id="datepicker" />
+                            id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>To Date</label>
                         <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
-                            id="datepicker" />
+                            id="to_date" />
                     </div>
                 </div>
 
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label>Adjustment Type</label>
                         <select name="adjustment" class="form-control">
@@ -37,6 +78,13 @@
                     </div>
                 </div>
 
+
+                <div class="col-md-4">
+                    <label>Search by Name</label>
+                    <input type="text" class="form-control" name="search_by_name" id="searchInput" placeholder="Type name...">
+                </div>
+
+
                 <div class="col-md-1">
                     <div class="form-group">
                         <br>
@@ -44,7 +92,14 @@
                                 class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
                     </div>
                 </div>
-                
+                {{--
+                <div class="form-group mt-2">
+                    <a href="{{ route('partner.PaymentLogController.export_by_blance', ['from_date' => $from_date]) }}"
+                        class="btn waves-effect waves-light btn-success" id="exportButton">
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
+                    </a>
+                </div> --}}
+
             </div>
         </form>
     </div>
@@ -124,8 +179,6 @@
         <script>
             "use strict";
             $(document).ready(function(e) {
-
-
                 $('#image').change(function() {
                     let reader = new FileReader();
                     reader.onload = (e) => {
@@ -133,8 +186,6 @@
                     }
                     reader.readAsDataURL(this.files[0]);
                 });
-
-
             });
 
             $(document).ready(function() {
@@ -142,6 +193,80 @@
                     selectOnClose: true
                 });
             });
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                function setDateInputs(from, to) {
+                    document.getElementById('from_date').value = from;
+                    document.getElementById('to_date').value = to;
+                }
+
+                function setActiveButton(buttonId) {
+                    document.querySelectorAll('.btn-date-filter').forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(buttonId).classList.add('active');
+                }
+
+                document.getElementById('btn-today').addEventListener('click', function() {
+                    setDateInputs(todayStr, todayStr);
+                    setActiveButton('btn-today');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+
+                document.getElementById('btn-yesterday').addEventListener('click', function() {
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+                    const yyy = yesterday.getFullYear();
+                    const mmm = String(yesterday.getMonth() + 1).padStart(2, '0');
+                    const ddd = String(yesterday.getDate()).padStart(2, '0');
+                    const yesterdayStr = `${yyy}-${mmm}-${ddd}`;
+                    setDateInputs(yesterdayStr, yesterdayStr);
+                    setActiveButton('btn-yesterday');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+
+                document.getElementById('btn-last7').addEventListener('click', function() {
+                    const from = new Date();
+                    from.setDate(today.getDate() - 6);
+                    const yyy = from.getFullYear();
+                    const mmm = String(from.getMonth() + 1).padStart(2, '0');
+                    const ddd = String(from.getDate()).padStart(2, '0');
+                    const fromStr = `${yyy}-${mmm}-${ddd}`;
+                    setDateInputs(fromStr, todayStr);
+                    setActiveButton('btn-last7');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+            });
+        </script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const input = document.getElementById('searchInput');
+                const table = document.getElementById('adjustmentTable').getElementsByTagName('tbody')[0];
+
+                input.addEventListener('keyup', function() {
+                    const filter = input.value.toLowerCase();
+                    const rows = table.getElementsByTagName('tr');
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const firstColumn = rows[i].getElementsByTagName('td')[0]; // Name column
+                        if (firstColumn) {
+                            const textValue = firstColumn.textContent || firstColumn.innerText;
+                            rows[i].style.display = textValue.toLowerCase().includes(filter) ? '' : 'none';
+                        }
+                    }
+                });
+            });
         </script>
     @endpush
+
 </x-partner-layout>

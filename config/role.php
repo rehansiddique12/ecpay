@@ -288,6 +288,18 @@ $arr = [
         ],
     ],
 
+   'deposit_last_hour_report' => [
+        'label' => 'Deposit Last Hour Reports',
+        'access' => [
+            'view' => [
+                'admin.payment.log2',
+            ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
     'merchant_reports' => [
         'label' => 'Merchants Reports',
         'access' => [

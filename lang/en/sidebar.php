@@ -9,6 +9,14 @@ return [
     'my_profile' => 'My Profile',
     'password' => 'Password',
     'logout' => 'Logout',
+    'Dashboard' => 'Dashboard',
+    'Staff' => 'Staff',
+    'commission_summary' => 'Commission Summary',
+    'commission_report' => 'Commission Report',
+    'settlements' => 'Settlements',
+    'daily_settlement_report' => 'Daily Settlement Report',
+    'adjustments' => 'Adjustments',
+    'transaction_completions_logs' => 'Transaction Completions Logs',
 
 
     // Main Navigation Bar
@@ -18,8 +26,8 @@ return [
     'merchant_management' => 'Merchant Management',
     'agent_management' => 'Agent Management',
     'user_management' => 'User Management',
-    
-    
+
+
     'accounts' => 'Accounts',
     'telegramGroup' => 'TelegramGroup',
     'account_management' => 'Account Management',
@@ -35,19 +43,22 @@ return [
     'monthly_adjustments' => 'Monthly Adjustments',
     'adjustments' => 'Adjustments',
     'api_logs' => 'API Logs',
-    
-    
+
+
     'transactions' => 'Transactions',
+    'transaction_logs' => 'Transaction Logs',
     'deposit_log' => 'Deposit Log',
     'withdrawal_log' => 'Withdrawal Log',
+    'withdrawal_request' => 'Withdrawal Request',
     'api_deposit_log' => 'Api Deposit Log',
     'unclaimed_payment' => 'Unclaimed Payment',
     'deposit_report' => 'Deposit Report',
     'all_report' => 'All Report',
-    'withdrawal_report' => 'withdrawal_report',
-    
-    
+    'withdrawal_report' => 'Withdrawal Report',
+
+
     'reports' => 'Reports',
+    'all_report' => 'All Report',
     'live_ewallet_balance' => 'Live E-Wallet Balance',
     'daily_ewallet_summary' => 'Daily E-Wallet Summary',
     'daily_transection_summary' => 'Daily Transection Summary',
@@ -62,8 +73,10 @@ return [
     'master_report' => 'Master Report',
     'gateway_performance_report' => 'Gateway Performance Report',
     'payment_type' => 'Payment Type',
-    
-    
+    'account_balance' => 'Account Balance',
+    'account_summary' => 'Account Summary',
+
+
     'merchant_reports' => 'Merchant Reports',
     'summary_by_date' => 'Summary By Date',
     'summary_by_name' => 'Summary By Name',

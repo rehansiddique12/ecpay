@@ -103,7 +103,8 @@ use Illuminate\Support\Facades\App;
 $currentLocale = App::getLocale();
 $languages = [
 'en' => 'English',
-'ms' => 'Malaysian',
+//'ms' => 'Malaysian',
+'cn' =>'Chinese'
 ];
 
 @endphp
@@ -941,6 +942,8 @@ $languages = [
                                 <div data-i18n="Deposit Log">{{ __('sidebar.deposit_log') }}</div>
                             </a>
                         </li>
+                        @endif
+                        @if (adminAccessRoute(config('role.deposit_last_hour_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log2']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.log2') }}" class="menu-link">

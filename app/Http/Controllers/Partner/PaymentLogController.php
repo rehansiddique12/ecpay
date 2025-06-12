@@ -51,7 +51,7 @@ class PaymentLogController extends Controller
         $fromDate = Carbon::parse($search['from_date']);
         $toDate = Carbon::parse($search['to_date'])->setSecond(59);
 
-        $pageTitle = "Payment Report";
+        $pageTitle = __('partner_basic.deposit_report_page_title');
         $domains = Api::where('type', 'Admin')->get();
         $funds = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)
         ->where('created_at', '>=', $fromDate)
@@ -231,6 +231,18 @@ class PaymentLogController extends Controller
             $pageTitle = "Search Payment Logs";
             return view('partner.payment.report', compact('funds', 'pageTitle', 'gateways', 'fund_count', 'fund_sum','from_date','to_date'));
         }
+    }
+
+     public function export_by_blance($from_date)
+    {
+        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new MerchantReportExport($from_date), "merchant_report_by_date_{$sanitizedDate}.csv");
     }
 
     public function dailyReport()

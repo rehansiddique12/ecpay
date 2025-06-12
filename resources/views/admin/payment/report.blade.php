@@ -3,13 +3,13 @@
         <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
 
-      @php
+    @php
         $today = \Carbon\Carbon::today()->toDateString();
         $yesterday = \Carbon\Carbon::yesterday()->toDateString();
         $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
     @endphp
 
-    
+
     <style>
         .hover:hover {
             background-color: #ffc000;
@@ -25,33 +25,33 @@
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="d-flex d-lg-flex d-md-block align-items-center">
-            <h4 class="mb-10 text-primary font-weight-medium ">Deposit</h4>
+            <h4 class="mb-10 text-primary font-weight-medium ">{{ __('transaction.deposit') }}</h4>
             <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-today">Today</button>
+                    id="btn-today">{{ __('transaction.today') }}</button>
 
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
-                    id="btn-yesterday">Yesterday</button>
+                    id="btn-yesterday">{{ __('transaction.yesterday') }}</button>
 
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-last7">Last 7 days</button>
+                    id="btn-last7">{{ __('transaction.last_7_days') }}</button>
             </div>
         </div>
         <form action="{{ route('admin.payment.report.search') }}" method="get">
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>From Date</label>
+                        <label>{{ __('transaction.from_date') }}</label>
                         <input type="date" class="form-control" value="{{ $from_date }}" name="from_date"
                             id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>To Date</label>
+                        <label>{{ __('transaction.to_date') }}</label>
                         <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="to_date" />
                     </div>
@@ -59,21 +59,22 @@
 
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>User Account No</label>
+                        <label>{{ __('transaction.account_no') }}</label>
                         <input type="text" class="form-control" value="{{ @request()->account_no }}"
-                            name="account_no" id="datepicker" />
+                            name="account_no" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>Source</label>
+                        <label>{{ __('transaction.source') }}</label>
                         <select name="website" class="form-select select2" data-allow-clear="true"
-                            data-placeholder="Select Source">
+                            data-placeholder="{{ __('transaction.select_source') }}">
                             <option></option>
-                            <option value="">All Source</option>
+                            <option value="">{{ __('transaction.all_source') }}</option>
                             @foreach ($domains as $partner)
                                 <option value="{{ $partner->id }}" @if (@request()->website == $partner->id) selected @endif>
-                                    {{ $partner->name }} ===> ( {{ $partner->website }} )</option>
+                                    {{ $partner->name }} ===> ( {{ $partner->website }} )
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -81,64 +82,67 @@
 
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>E-Wallet</label>
+                        <label>{{ __('transaction.e_wallet') }}</label>
                         <select name="gateway" class="form-select">
-                            <option value="">All</option>
+                            <option value="">{{ __('transaction.all') }}</option>
                             @foreach ($gateways as $gateway)
                                 <option value="{{ $gateway->name }}" @if (@request()->gateway == $gateway->name) selected @endif>
-                                    {{ $gateway->name }}</option>
+                                    {{ $gateway->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>User</label>
-                        <input type="text" name="name" value="{{@request()->name}}" class="form-control"
-                               placeholder="@lang('Type Here')">
+                        <label>{{ __('transaction.user') }}</label>
+                        <input type="text" name="name" value="{{ @request()->name }}" class="form-control"
+                            placeholder="{{ __('transaction.type_here') }}">
                     </div>
                 </div>
 
-
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>Payments</label>
+                        <label>{{ __('transaction.payments') }}</label>
                         <select name="status" class="form-select">
-                            <option value="All" @if (@request()->status == 'All') selected @endif>@lang('All Payment')
+                            <option value="All" @if (@request()->status == 'All') selected @endif>
+                                {{ __('transaction.all_payment') }}
                             </option>
-                            <option value="Complete" @if (@request()->status == 'Complete') selected @endif>@lang('Complete Payment')
+                            <option value="Complete" @if (@request()->status == 'Complete') selected @endif>
+                                {{ __('transaction.complete_payment') }}
                             </option>
-                            <option value="Pending" @if (@request()->status == 'Pending') selected @endif>@lang('Pending
-                                                                                                                                                                            Payment')
+                            <option value="Pending" @if (@request()->status == 'Pending') selected @endif>
+                                {{ __('transaction.pending_payment') }}
                             </option>
-                            <option value="Reject" @if (@request()->status == 'Reject') selected @endif>@lang('Cancel
-                                                                                                                                                                            Payment')
+                            <option value="Reject" @if (@request()->status == 'Reject') selected @endif>
+                                {{ __('transaction.cancel_payment') }}
                             </option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-2">
-                        <label>Transaction</label>
+                        <label>{{ __('transaction.transaction') }}</label>
                         <input type="text" name="partner_transection_id"
                             value="{{ @request()->partner_transection_id }}" class="form-control"
-                            placeholder="@lang('Transection No.')">
+                            placeholder="{{ __('transaction.transaction_no') }}">
                     </div>
                 </div>
 
                 <div class="col-md-3 d-flex justify-content-end align-items-center gap-6">
                     <div class="form-group mt-2">
-                        <button type="submit" class="btn  btn-primary mt-2"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        <button type="submit" class="btn btn-primary mt-2">
+                            <i class="icon-base ti tabler-search me-1"></i> {{ __('transaction.search') }}
+                        </button>
                     </div>
                     <div class="form-group mt-2">
                         <input type="hidden" name="export" id="exportInput" value="">
-                        <button type="submit" class="btn waves-effect waves-light btn-success" onclick="document.getElementById('exportInput').value = 1;">
-                            <i class="fas fa-download"></i> @lang('Export Data')
+                        <button type="submit" class="btn waves-effect waves-light btn-success"
+                            onclick="document.getElementById('exportInput').value = 1;">
+                            <i class="fas fa-download"></i> {{ __('transaction.export_data') }}
                         </button>
                     </div>
                 </div>
-
             </div>
         </form>
     </div>
@@ -148,21 +152,19 @@
         <div class="col-4">
             <div class="card shadow border-right">
                 <div class="card-body">
-
                     <div class="d-flex d-lg-flex d-md-block align-items-center">
                         <div>
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_count }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total
-                                                                                                                                                                            Transactions')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">
+                                {{ __('transaction.total_transactions') }}
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
-                            <span class="opacity-7 text-muted"><i class="icon-base ti tabler-wallet me-1"></i></span>
-
-
-
+                            <span class="opacity-7 text-muted">
+                                <i class="icon-base ti tabler-wallet me-1"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -176,21 +178,20 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_sum }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Deposit
-                                                                                                                                                                            Amount')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">
+                                {{ __('transaction.total_deposit_amount') }}
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
-                            <span class="opacity-7 text-muted"> <i
-                                    class="icon-base ti tabler-currency-dollar me-1"></i></span>
+                            <span class="opacity-7 text-muted">
+                                <i class="icon-base ti tabler-currency-dollar me-1"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-
 
     <link rel="stylesheet" href="{{ asset('node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.css') }}">
     <script src="{{ asset('node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.js') }}"></script>
@@ -200,34 +201,36 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('ID')</th>
-                            <th scope="col">@lang('Date Time')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx No')</th>
-                            <th scope="col">@lang('Partner Txn Input')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('Type')</th>
-                            <th scope="col">@lang('Code')</th>
-                            <th scope="col">Acc. No.</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Final Amount')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Source')</th>
-                            <th scope="col">Completed At</th>
-                            <th scope="col">@lang('Receipt')</th>
+                            <th scope="col">{{ __('transaction.id') }}</th>
+                            <th scope="col">{{ __('transaction.date_time') }}</th>
+                            <th scope="col">{{ __('transaction.trx_number') }}</th>
+                            <th scope="col">{{ __('transaction.partner_trx_no') }}</th>
+                            <th scope="col">{{ __('transaction.partner_txn_input') }}</th>
+                            <th scope="col">{{ __('transaction.username') }}</th>
+                            <th scope="col">{{ __('transaction.type') }}</th>
+                            <th scope="col">{{ __('transaction.code') }}</th>
+                            <th scope="col">{{ __('transaction.acc_no') }}</th>
+                            <th scope="col">{{ __('transaction.amount') }}</th>
+                            <th scope="col">{{ __('transaction.merchant_charge') }}</th>
+                            <th scope="col">{{ __('transaction.final_amount') }}</th>
+                            <th scope="col">{{ __('transaction.status') }}</th>
+                            <th scope="col">{{ __('transaction.source') }}</th>
+                            <th scope="col">{{ __('transaction.completed_at') }}</th>
+                            <th scope="col">{{ __('transaction.receipt') }}</th>
                             @if (adminAccessRoute(config('role.payment_log.access.edit')))
-                                <th scope="col">@lang('Action')</th>
+                                <th scope="col">{{ __('transaction.action') }}</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($funds as $key => $fund)
                             <tr>
-                                <td data-label="@lang('ID')"> {{ $fund->id }} </td>
-                                <td data-label="@lang('Date_Time')"> {{ dateTime($fund->created_at, 'd M,Y H:i') }}
+                                <td data-label="{{ __('transaction.id') }}"> {{ $fund->id }} </td>
+                                <td data-label="{{ __('transaction.date_time') }}">
+                                    {{ dateTime($fund->created_at, 'd M,Y H:i') }}
                                 </td>
-                                <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
+                                <td data-label="{{ __('transaction.trx_number') }}"
+                                    class="font-weight-bold text-uppercase">
                                     {{ $fund->transaction }}<br>
                                     <span class="text text-success">{{ $fund->txn_id }}</span>
 
@@ -241,28 +244,31 @@
                                     {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
                                 </td>
 
-                                <td data-label="@lang('Username')">
-                                    @if($fund->source == 'Admin Test')
+                                <td data-label="{{ __('transaction.username') }}">
+                                    @if ($fund->source == 'Admin Test')
                                         Admin Test
                                     @else
                                         {{ optional($fund->api)->name }} <b>({{ optional($fund->api)->acc_type }})</b>
                                     @endif
                                 </td>
-                                <td data-label="@lang('Type')">{{ $fund->gateway?->category?->name ?? 'N/A' }}</td>
-                                <td data-label="@lang('Code')">{{ optional($fund->gateway)->name }}</td>
+                                <td data-label="{{ __('transaction.type') }}">
+                                    {{ $fund->gateway?->category?->name ?? 'N/A' }}
+                                </td>
+                                <td data-label="{{ __('transaction.code') }}">{{ optional($fund->gateway)->name }}
+                                </td>
                                 <td class="font-weight-bold">{{ $fund->sender }}</td>
-                                <td data-label="@lang('Amount')" class="font-weight-bold">
+                                <td data-label="{{ __('transaction.amount') }}" class="font-weight-bold">
                                     {{ getAmount($fund->amount) }}
                                     {{ $fund->gateway?->currency }}</td>
-                                <td data-label="@lang('Charge')" class="text-success">
+                                <td data-label="{{ __('transaction.charge') }}" class="text-success">
                                     {{ getAmount($fund->charge) }}
                                     {{ $fund->gateway?->currency }}</td>
-                                <td data-label="@lang('Payable')" class="font-weight-bold">
+                                <td data-label="{{ __('transaction.payable') }}" class="font-weight-bold">
                                     {{ getAmount($fund->amount) - getAmount($fund->charge) }}
                                     {{ $fund->gateway?->currency }}
                                 </td>
 
-                                <td data-label="@lang('Status')" class="text-lg-center text-right">
+                                <td data-label="{{ __('transaction.status') }}" class="text-lg-center text-right">
                                     @if ($fund->status == 'Pending')
                                         @php
                                             // Get the time difference between now and the created_at timestamp
@@ -274,12 +280,12 @@
                                         @if ($diffInMinutes > 10 && @request()->status != 'Pending')
                                             <span class="badge bg-warning">
                                                 <i class="fa fa-circle text-white warning font-12"></i>
-                                                @lang('Member did not complete')
+                                                {{ __('transaction.member_did_not_complete') }}
                                             </span>
                                         @else
                                             <span class="badge bg-info">
                                                 <i class="fa fa-circle text-white font-12"></i>
-                                                @lang('Pending')
+                                                {{ __('transaction.pending') }}
                                             </span>
                                         @endif
                                         <br>
@@ -297,19 +303,18 @@
 
                                         <span class="badge {{ $classColor }}"><i
                                                 class="fa fa-circle text-white font-12"></i>
-                                            @lang('Completed')</span>
+                                            {{ __('transaction.completed') }}</span>
                                         <br>
-                                        <span
-                                            class="{{ $classColor }}">{{ $fund->e_wallet_phone_number }}</span>
+                                        <span class="{{ $classColor }}">{{ $fund->e_wallet_phone_number }}</span>
                                     @elseif($fund->status == 'Reject')
                                         <span class="badge bg-danger"><i
                                                 class="fa fa-circle text-white danger font-12"></i>
-                                            @lang('Rejected')</span>
+                                            {{ __('transaction.rejected') }}</span>
                                         <br>
                                         <span class="text text-danger"> {{ $fund->e_wallet_phone_number }}</span>
                                     @endif
                                 </td>
-                                <td data-label="@lang('Method')">
+                                <td data-label="{{ __('transaction.method') }}">
                                     {{ optional($fund->api)->website }}
                                     <br>
                                     @if (!empty($fund->request_source))
@@ -327,14 +332,14 @@
                                 </td>
 
                                 @if (adminAccessRoute(config('role.payment_log.access.edit')))
-                                    <td data-label="@lang('Action')">
-                                        
+                                    <td data-label="{{ __('transaction.action') }}">
+
 
                                         {{-- @if ($fund->gateway_id > 999) --}}
                                         <button
                                             class="edit_button  btn  {{ $fund->status == 'Pending' ? 'btn-primary' : 'btn-success' }} text-white  btn-sm "
                                             data-bs-toggle="modal" data-bs-target="#myModal"
-                                            data-title="{{ $fund->status == 'Pending' ? trans('Edit') : trans('Details') }}"
+                                            data-title="{{ $fund->status == 'Pending' ? __('transaction.edit') : __('transaction.details') }}"
                                             data-id="{{ $fund->id }}" data-feedback="{{ $fund->feedback }}"
                                             data-info=""
                                             data-amount="{{ getAmount($fund->amount) }} {{ $basic->currency }}"
@@ -354,7 +359,8 @@
                                         {{-- - --}}
                                         {{-- @endif --}}
                                         <button class="edit_buttonc  btn btn-danger text-white  btn-sm"
-                                            data-bs-toggle="modal" data-bs-target="#myModalc" data-bs-title="Edit"
+                                            data-bs-toggle="modal" data-bs-target="#myModalc"
+                                            data-bs-title="{{ __('transaction.edit') }}"
                                             data-id="{{ $fund->id }}"
                                             data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
                                             <i class="icon-base ti tabler-device-mobile me-1"></i>
@@ -371,7 +377,7 @@
                         @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">{{ __('transaction.no_data_found') }}</p>
                                 </td>
                             </tr>
 
@@ -390,59 +396,67 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Deposit Information')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.deposit_information') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <?php
-                date_default_timezone_set('Asia/Kuala_Lumpur');
 
-                ?>
-                {{-- <form role="form" class="actionRoute" action=""> --}}
+                @php
+                    date_default_timezone_set('Asia/Kuala_Lumpur');
+                @endphp
+
                 <form role="form" method="POST" class="actionRoute" action=""
                     enctype="multipart/form-data" onsubmit="submitForm(this)">
                     @csrf
                     @method('put')
                     <div class="modal-body">
-
                         <div class="get-feedback">
-                            <label>Sender Acc. No.</label>
+                            <label>{{ __('transaction.sender_acc_no') }}</label>
                             <input class="form-control sender" name="sender" type="text" />
-                            <label>E-Wallet No.</label>
+
+                            <label>{{ __('transaction.e_wallet_no') }}</label>
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
-                            <label>Txn No.</label>
+
+                            <label>{{ __('transaction.txn_no') }}</label>
                             <input class="form-control" name="txn_id" type="text" />
-                            <label>E-Wallet Type</label>
+
+                            <label>{{ __('transaction.e_wallet_type') }}</label>
                             <select class="form-select" name="e_wallet_type">
-                                <option value="Personal">Personal</option>
-                                <option value="Merchant">Merchant</option>
+                                <option value="Personal">{{ __('transaction.personal') }}</option>
+                                <option value="Merchant">{{ __('transaction.merchant') }}</option>
                             </select>
+
                             <input type="hidden" name="status" value="Complete">
-                            <label>Payment Receiving DateTime.</label>
+
+                            <label>{{ __('transaction.payment_receiving_datetime') }}</label>
                             <input class="form-control" id="e_wallet_phone_number" required
-                                value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
+                                value="{{ date('Y-m-d\TH:i') }}" name="date_time" type="datetime-local" />
+
                             <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="status"
-                                value="Complete">@lang('Approve')</button>
+                                value="Complete">{{ __('transaction.approve') }}</button>
                         </div>
 
                         <input type="hidden" class="action_id" name="id">
                     </div>
                 </form>
+
                 <form role="form" method="POST" class="actionRoute" action=""
                     enctype="multipart/form-data">
                     @csrf
                     @method('put')
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">@lang('Close')</button>
+                            data-bs-dismiss="modal">{{ __('transaction.close') }}</button>
+
                         @if (Request::routeIs('admin.payment.pending'))
                             <!-- // -->
                         @endif
+
                         <input type="hidden" class="action_id" name="id">
                         <input type="hidden" name="status" value="Reject">
-                        <button type="submit" class="btn btn-danger" name="status"
-                            value="Reject">@lang('Reject')</button>
 
+                        <button type="submit" class="btn btn-danger" name="status"
+                            value="Reject">{{ __('transaction.reject') }}</button>
                     </div>
                 </form>
             </div>
@@ -454,39 +468,42 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Change E-Wallet No.')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.change_e_wallet_no') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <?php
-                date_default_timezone_set('Asia/Kuala_Lumpur');
 
-                ?>
+                @php
+                    date_default_timezone_set('Asia/Kuala_Lumpur');
+                @endphp
+
                 <form role="form" method="POST" action="{{ route('admin.payment.update_e_wallet') }}">
                     @csrf
                     @method('put')
                     <div class="modal-body">
-                       
-
                         <div class="get-feedback">
-
-                            <label>E-Wallet No.</label>
+                            <label>{{ __('transaction.e_wallet_no') }}</label>
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
-                            <button type="submit" class="btn btn-primary mt-2" name="status"
-                                value="1">@lang('Change')</button>
+
+                            <button type="submit" class="btn btn-primary mt-2" name="status" value="1">
+                                {{ __('transaction.change') }}
+                            </button>
                         </div>
                         <input type="hidden" class="action_id" name="id">
                     </div>
                 </form>
+
                 <form role="form" method="POST" class="actionRoute" action=""
                     enctype="multipart/form-data">
                     @csrf
                     @method('put')
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">@lang('Close')</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            {{ __('transaction.close') }}
+                        </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
@@ -496,9 +513,10 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Send Callback')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.send_callback') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <form id="addBalanceForm" action="{{ route('admin.run.deposit.callback') }}" method="POST">
                     @csrf
                     <div class="modal-body">
@@ -506,10 +524,9 @@
                             <input type="text" hidden id="account_id" class="form-control" name="id">
 
                             <div class="col-md-12">
-                                Callback Status
+                                {{ __('transaction.callback_status') }}
                                 <span id="spinner2" style="display: none;">
-                                    <span class="spinner-border text-primary" role="status">
-                                    </span>
+                                    <span class="spinner-border text-primary" role="status"></span>
                                 </span>
                                 <span id="tickMark2" style="display: none;">
                                     <i class="fa fa-check-circle text-success"></i>
@@ -517,36 +534,25 @@
                                 <span id="tickMark3" style="display: none;">
                                     <i class="fa fa-times-circle text-danger"></i>
                                 </span>
-                                <br>
-                                <br>
-                                <p>Message: <span id="text1"></span></p>
+                                <br><br>
+                                <p>{{ __('transaction.message') }}: <span id="text1"></span></p>
                                 <br>
                                 <div id="apiresponse" style="display: none;">
-                                    <h4>Response</h4>
-                                    <p>Response Code: <span id="text2"></span></p>
-                                    <p>Response Body: </p>
-                                    <div style="background-color: black;color:white;padding:10px"><span
-                                            id="text3"></span></div>
+                                    <h4>{{ __('transaction.response') }}</h4>
+                                    <p>{{ __('transaction.response_code') }}: <span id="text2"></span></p>
+                                    <p>{{ __('transaction.response_body') }}:</p>
+                                    <div style="background-color: black; color: white; padding: 10px">
+                                        <span id="text3"></span>
+                                    </div>
                                 </div>
-
                             </div>
-
-                            <!-- <br>
-                        <br> -->
-
-                            <!-- <div class="col-md-12">
-                            <button type="button" disabled id="runWithdrawalTest" class="btn btn-primary">Run Withdrawal Test</button>
-
-                        </div> -->
                         </div>
-
                     </div>
+                </form>
+
             </div>
-            </form>
         </div>
     </div>
-
-
 
 
     @push('js')
@@ -559,7 +565,8 @@
 
                     // Disable button and change text (optional)
                     $submitButton.prop('disabled', true);
-                    $submitButton.html('<i class="fa fa-spinner fa-spin me-1"></i> @lang('Processing...')');
+                    $submitButton.html(
+                        "<i class='fa fa-spinner fa-spin me-1'></i> {{ __('transaction.processing') }}");
 
                     // Allow form to proceed
                     return true;
@@ -656,7 +663,7 @@
                         jQuery('#apiresponse').hide();
 
                         document.getElementById("text1").innerText =
-                            'An error occurred while processing your request. Please try again.';
+                            "{{ __('transaction.processing_error') }}";
                         document.getElementById("text2").innerText = '';
                         document.getElementById("text3").innerText = '';
                     }
@@ -711,11 +718,11 @@
 
                     if (feedback == '') {
                         var res = `<div class="form-group"><br>
-                                        <label class="font-weight-bold">{{ trans('Send You Feedback') }}</label>
+                                        <label class="font-weight-bold">{{ __('transaction.send_you_feedback') }}</label>
                                         <textarea name="feedback" class="form-control" row="3" required>{{ old('feedback') }}</textarea>
                                 </div>`;
                     } else {
-                        var res = `<h5>{{ trans('Feedback') }}</h5>
+                        var res = `<h5>{{ __('transaction.feedback') }}</h5>
                                     <p>${feedback}</p>`;
                     }
 
@@ -724,56 +731,59 @@
             });
 
 
-        document.addEventListener("DOMContentLoaded", function () {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const todayStr = `${yyyy}-${mm}-${dd}`;
+            document.addEventListener("DOMContentLoaded", function() {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
 
-        function setDateInputs(from, to) {
-            document.getElementById('from_date').value = from;
-            document.getElementById('to_date').value = to;
-        }
+                function setDateInputs(from, to) {
+                    document.getElementById('from_date').value = from;
+                    document.getElementById('to_date').value = to;
+                }
 
-        function setActiveButton(buttonId) {
-            document.querySelectorAll('.btn-date-filter').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(buttonId).classList.add('active');
-        }
+                function setActiveButton(buttonId) {
+                    document.querySelectorAll('.btn-date-filter').forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(buttonId).classList.add('active');
+                }
 
-        document.getElementById('btn-today').addEventListener('click', function () {
-            setDateInputs(todayStr, todayStr);
-            setActiveButton('btn-today');
-               const form = document.querySelector('form[action="{{ route('admin.payment.report.search') }}"]');
-          form.submit();
-        });
+                document.getElementById('btn-today').addEventListener('click', function() {
+                    setDateInputs(todayStr, todayStr);
+                    setActiveButton('btn-today');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
 
-        document.getElementById('btn-yesterday').addEventListener('click', function () {
-            const yesterday = new Date();
-            yesterday.setDate(today.getDate() - 1);
-            const yyy = yesterday.getFullYear();
-            const mmm = String(yesterday.getMonth() + 1).padStart(2, '0');
-            const ddd = String(yesterday.getDate()).padStart(2, '0');
-            const yesterdayStr = `${yyy}-${mmm}-${ddd}`;
-            setDateInputs(yesterdayStr, yesterdayStr);
-            setActiveButton('btn-yesterday');
-             const form = document.querySelector('form[action="{{ route('admin.payment.report.search') }}"]');
-          form.submit();
-        });
+                document.getElementById('btn-yesterday').addEventListener('click', function() {
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+                    const yyy = yesterday.getFullYear();
+                    const mmm = String(yesterday.getMonth() + 1).padStart(2, '0');
+                    const ddd = String(yesterday.getDate()).padStart(2, '0');
+                    const yesterdayStr = `${yyy}-${mmm}-${ddd}`;
+                    setDateInputs(yesterdayStr, yesterdayStr);
+                    setActiveButton('btn-yesterday');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
 
-        document.getElementById('btn-last7').addEventListener('click', function () {
-            const from = new Date();
-            from.setDate(today.getDate() - 6);
-            const yyy = from.getFullYear();
-            const mmm = String(from.getMonth() + 1).padStart(2, '0');
-            const ddd = String(from.getDate()).padStart(2, '0');
-            const fromStr = `${yyy}-${mmm}-${ddd}`;
-            setDateInputs(fromStr, todayStr);
-            setActiveButton('btn-last7');
-             const form = document.querySelector('form[action="{{ route('admin.payment.report.search') }}"]');
-          form.submit();
-        });
-    });
+                document.getElementById('btn-last7').addEventListener('click', function() {
+                    const from = new Date();
+                    from.setDate(today.getDate() - 6);
+                    const yyy = from.getFullYear();
+                    const mmm = String(from.getMonth() + 1).padStart(2, '0');
+                    const ddd = String(from.getDate()).padStart(2, '0');
+                    const fromStr = `${yyy}-${mmm}-${ddd}`;
+                    setDateInputs(fromStr, todayStr);
+                    setActiveButton('btn-last7');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+            });
         </script>
     @endpush
 

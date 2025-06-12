@@ -15,8 +15,6 @@ use Illuminate\Support\Facades\Validator;
 class ManageRolePermissionController extends Controller
 {
 
-
-
     public function staff(Request $request)
     {
         $log = "View Staff";
