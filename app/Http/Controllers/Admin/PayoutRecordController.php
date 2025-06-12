@@ -429,7 +429,7 @@ class PayoutRecordController extends Controller
     {
         $gateways = Gateway::where('status', 1)
             ->get();
-        $pageTitle = "Payout Report";
+        $pageTitle = __('transaction.payout_report');
         $domains = Api::where('type', 'Admin')->get();
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
         $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();

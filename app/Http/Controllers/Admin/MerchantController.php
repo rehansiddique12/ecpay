@@ -448,7 +448,7 @@ class MerchantController extends Controller
         ->groupBy('api_id')
         ->get();
 
-        $pageTitle = "Merchants Summary Report On Date";
+        $pageTitle = __("merchant_reports.merchants_summary_report_on_date");
         return view('admin.merchant.report_by_date' , compact('pageTitle' , 'from_date' , 'results' , 'apis' , 'totalCommissionAll'));
     }
     public function export_by_date($from_date)
@@ -529,7 +529,7 @@ class MerchantController extends Controller
                 ->orWhereNull('website');
         })->pluck('name', 'id')->all();
 
-        $pageTitle = "Merchant Summary Report Between Dates";
+        $pageTitle = __('merchant_reports.summary_report_between_dates');
         return view('admin.merchant.report_by_name' , compact('from_date' , 'pageTitle' , 'results' , 'apis' , 'to_date' ,'totalSummary'));
     }
 
@@ -599,7 +599,7 @@ class MerchantController extends Controller
             $query->where('website', '!=', env('APP_WEBSITE'))
                 ->orWhereNull('website');
         })->pluck('name', 'id')->all();
-        $pageTitle = "Merchant Summary Report of Month";
+        $pageTitle = __('merchant_reports.merchant_summary_report_of_month');
         return view('admin.merchant.report_by_month' , compact('pageTitle' , 'from_date' , 'apis' , 'results' , 'months'));
     }
 
