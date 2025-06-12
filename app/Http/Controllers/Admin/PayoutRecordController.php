@@ -56,8 +56,7 @@ use Illuminate\Support\Facades\Session;
 use App\Exports\PartnerCommissionExport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
-
-
+use App\Models\Notification;
 class PayoutRecordController extends Controller
 {
     use Upload;
@@ -5424,17 +5423,44 @@ class PayoutRecordController extends Controller
     public function workboard(Request $request)
     {
         $EWalletAccount = EWalletAccount::where('status', 1)->get();
-        $notifications = EWalletAccount::whereColumn('live_balance', '<', 'low_balance_amount')
-            ->where('status', 1)
-            ->orderBy('id', 'desc')
-            ->take(5)
-            ->get();
+        $accountIds = EWalletAccount::
+            where('status', 1)
+            ->whereIn('account_type', ['Withdrawl', 'Both'])
+            ->pluck('id');
+
+        // Step 2: Check which IDs are already stored in Notification
+        $existingNotifications = Notification::whereIn('ewallet_account_id', $accountIds)
+            ->pluck('ewallet_account_id')
+            ->toArray();
+
+        // Step 3: Prepare new notifications (with user_id = null)
+        $newNotifications = [];
+        foreach ($accountIds as $accountId) {
+            if (!in_array($accountId, $existingNotifications)) {
+                $newNotifications[] = [
+                    'ewallet_account_id' => $accountId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+        }
+
+        // Step 4: Bulk insert (if new records exist)
+        if (!empty($newNotifications)) {
+            Notification::insert($newNotifications);
+        }
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
             ->where('status', 'Pending')
             ->where('check_by', 0)
             ->orderBy('id', 'desc')
             ->take(5)
             ->get();
+
+            $notifications = Notification::with('ewalletAccount')
+            ->where('user_id',0)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
 
         if ($request->ajax()) {
             return response()->json([
@@ -5449,6 +5475,16 @@ class PayoutRecordController extends Controller
         $apis = Api::get();
         return view('admin.payout.workboard', compact('pageTitle', 'apis'));
     }
+
+    // NotificationController.php
+public function markAsRead(Notification $notification)
+{
+    $notification->update([
+        'user_id' => auth()->id()
+    ]);
+
+    return response()->json(['success' => true]);
+}
 
     public function fetchrecords(Request $request)
     {

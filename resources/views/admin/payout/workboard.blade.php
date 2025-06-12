@@ -55,6 +55,9 @@
         #closeModal:hover {
             background-color: rgba(97, 96, 96, 0.137)
         }
+        div:where(.swal2-container).swal2-top-end>.swal2-popup, div:where(.swal2-container).swal2-top-right>.swal2-popup {
+            margin-top:3rem;
+        }
     </style>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -456,6 +459,19 @@
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const Toast = Swal.mixin({
+toast: true,
+position: "top-end",
+showConfirmButton: false,
+timer: 3000,
+timerProgressBar: true,
+didOpen: (toast) => {
+toast.onmouseenter = Swal.stopTimer;
+toast.onmouseleave = Swal.resumeTimer;
+}
+});
+    </script>
     <script>
         let transactionInterval;
 
@@ -892,15 +908,23 @@ if (existingIndex !== -1 && searchValue !== "") {
 
                 let buttonsHtml = '';
                 let accountDetailsHtml = '';
+                const walletColors = {
+    'bkash': 'rgb(226, 35, 26)',      // Bkash red
+    'nagad': 'rgb(255, 138, 0)',      // Nagad orange
+    'rocket': 'rgb(0, 174, 239)',     // Rocket blue
+    'default': 'rgb(100, 149, 237)'   // Fallback color (if needed)
+};
 
                 $.each(ewalletGroups, function (walletName, accounts) {
-                    buttonsHtml += `
-            <button class="px-4 btn btn-sm ewallet-btn"
-                    data-wallet="${walletName}"
-                    style="background-color: ${getRandomColor()}; color: white; border: none; cursor: pointer;">
-                ${walletName.toUpperCase()} (${accounts.length})
-            </button>
-        `;
+                    const walletKey = walletName.toLowerCase();
+    const color = walletColors[walletKey] || walletColors['default'];
+    buttonsHtml += `
+        <button class="px-4 btn btn-sm ewallet-btn"
+                data-wallet="${walletName}"
+                style="background-color: ${color}; color: white; border: none; cursor: pointer;">
+            ${walletName.toUpperCase()} (${accounts.length})
+        </button>
+    `;
 
                     accounts.forEach(function (account) {
                         accountDetailsHtml += `
@@ -928,46 +952,70 @@ if (existingIndex !== -1 && searchValue !== "") {
                 });
             }
 
-            function getRandomColor() {
-                // Optional: Generate a random color for each button
-                const colors = [
-                    "rgb(45, 199, 58)",
-                    "rgb(226, 213, 30)",
-                    "rgb(168, 32, 196)",
-                    "rgb(52, 152, 235)",
-                    "rgb(255, 99, 71)",
-                    "rgb(100, 149, 237)"
-                ];
-                return colors[Math.floor(Math.random() * colors.length)];
-            }
+
         });
 
         function fetchNotifications(notifications) {
-            $('#notifications-container').empty(); // clear previous
-            $.each(notifications, function (index, notification) {
-                // Calculate the time difference in minutes
-                const createdAt = new Date(notification
-                    .updated_at); // Assuming created_at is provided in the notification object
-                const currentTime = new Date();
-                const timeDiffInMs = currentTime - createdAt;
-                const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
+    $('#notifications-container').empty(); // clear previous
 
-                // Determine the display text for time difference
-                let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
+    $.each(notifications, function (index, notification) {
+        // Calculate the time difference in minutes
+        const createdAt = new Date(notification.updated_at);
+        const currentTime = new Date();
+        const timeDiffInMs = currentTime - createdAt;
+        const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
 
-                let notifHtml = `
-            <div class="w-full py-2 px-2 items-center text-white d-flex justify-content-between"
-                 style="background-color: #504c79;">
-                <p>Warning!! ${notification.e_wallet_name} ${notification.account_no} <br>balance is low.</p>
-                <div>
-                    <button type="button" class="btn-close" style="margin-left: 3rem;" aria-label="Close"></button>
-                    <p>${timeAgo}</p>
-                </div>
+        // Determine the display text for time difference
+        let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
+
+        // Access e-wallet data through relationship
+        const ewallet = notification.ewallet_account;
+
+        let notifHtml = `
+        <div class="w-full py-2 px-2 items-center text-white d-flex justify-content-between notification-item"
+             style="background-color: #504c79;" data-notification-id="${notification.id}">
+            <p>Warning!! ${ewallet.e_wallet_name} ${ewallet.account_no} <br>balance is low.</p>
+            <div>
+                <button type="button" class="btn-close notification-btn-close" style="margin-left: 3rem;" aria-label="Close"></button>
+                <p>${timeAgo}</p>
             </div>
+        </div>
         `;
-                $('#notifications-container').append(notifHtml);
-            });
-        }
+
+        $('#notifications-container').append(notifHtml);
+    });
+
+    // Add click handler for close buttons
+    $(document).on('click', '.notification-btn-close', function() {
+        const notificationItem = $(this).closest('.notification-item');
+        const notificationId = notificationItem.data('notification-id');
+
+        // Hide the notification immediately
+        notificationItem.slideUp(300, function() {
+            $(this).remove();
+        });
+
+        // Make AJAX call to update user_id
+        $.ajax({
+            url: 'notifications/' + notificationId + '/mark-as-read',
+            method: 'PATCH', // or 'POST' depending on your API
+            data: {
+                _token: "{{ csrf_token() }}",
+            },
+            success: function(response) {
+                Toast.fire({
+                                icon: "success",
+                                title: "Notfication Read Successfully"
+                                });
+            },
+            error: function(xhr) {
+                console.error('Error updating notification');
+                // Optional: Show the notification again if the request fails
+                notificationItem.slideDown();
+            }
+        });
+    });
+}
 
 
         function fetchPendingList(pendingList) {

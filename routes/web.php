@@ -238,6 +238,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
         Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
+        Route::patch('/notifications/{notification}/mark-as-read', [PayoutRecordController::class, 'markAsRead']);
 
         Route::post('/apis/add', [PayoutRecordController::class, 'apisAdd'])->name('apis.add');
         Route::post('/agent/add', [PayoutRecordController::class, 'agentAdd'])->name('agent.add');
