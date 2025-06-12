@@ -36,10 +36,13 @@
                 background: linear-gradient(to right, #28a745, #20c997);
             }
 
-            .slider.deactive {
-                background: linear-gradient(to right, #dc3545, #d1404f);
-            }
-        </style>
+        .slider.deactive {
+            background: linear-gradient(to right, #dc3545, #d1404f);
+        }
+        div:where(.swal2-container).swal2-top-end>.swal2-popup, div:where(.swal2-container).swal2-top-right>.swal2-popup {
+            margin-top:3rem;
+        }
+    </style>
     @endpush
 
     <div class="row ">
@@ -668,12 +671,17 @@
                         url: $form.attr('action'),
                         method: $form.attr('method'),
                         data: $form.serialize(),
-                        success: function(response) {
-                            console.log(response);
+                        success: function (response) {
                             if (response.status === 'success') {
                                 $('#newModal').modal('hide');
                                 $form[0].reset();
-
+                                Toast.fire({
+                                icon: "success",
+                                title: "Agent Added Successfully"
+                                });
+                               setTimeout(function() {
+        location.reload();
+    }, 3000);
                             }
                         },
                         error: function(xhr) {
