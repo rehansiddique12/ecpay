@@ -122,16 +122,17 @@
                                         <td style="max-width: 220px;">
                                             <span class="bg-success text-white p-1 d-inline-block mb-2"
                                                 style="border-radius: 6px; padding: 7px;">API Key:</span>
+                                                <a href="javascript:void(0);"
+                                                class="text-white p-1 d-inline-block mb-2 open-log-modal2"
+                                                style="margin-left: 50px; border-radius: 8px; padding: 10px;"
+                                               data-id="{{ $item['api_key'] }}">LOG</a>
                                             <span class="editable" data-id="{{ $item['id'] }}"
                                                 data-field="api_key">{{ $item['api_key'] }}</span>
                                             <br>
 
                                             <span class="bg-primary text-white p-1 d-inline-block mt-2 mb-2"
                                                 style="border-radius: 8px; padding: 7px;">Secret Key:</span>
-                                            <a href="javascript:void(0);"
-                                                class="text-white p-1 d-inline-block mb-2 open-log-modal2"
-                                                style="margin-left: 50px; border-radius: 8px; padding: 10px;"
-                                               data-id="{{ $item['secret_key'] }}">LOG</a>
+
                                             {{ $item['secret_key'] }}
                                         </td>
 
@@ -827,10 +828,11 @@
                                         <thead>
                                             <tr>
                                                 <th style="width: 10%">ID</th>
-                                                <th style="width: 40%">Request URL</th>
+                                                <th style="width: 30%">Request URL</th>
+                                                <th style="width: 30%">Request Payload</th>
                                                 <th style="width: 10%">Status Code</th>
                                                 <th style="width: 10%">Response</th>
-                                                <th style="width: 30%">Created At</th>
+                                                <th style="width: 20%">Created At</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -838,15 +840,21 @@
 
                                 // Loop through each log entry
                                 response.data.forEach(function(log) {
+                                    // Add alert to show request payload
+                                    alert('Request Payload: ' + JSON.stringify(log.request_payload, null, 2));
+
                                     html += `
                                         <tr>
                                             <td>${log.id}</td>
-                                            <td title="${log.request_url}" style="width: 40%; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <td title="${log.request_url}" style="width: 30%; max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                 ${log.request_url}
                                             </td>
-                                            <td>${log.status_code ?? 'N/A'}</td>
                                             <td style="max-width: 300px; overflow: auto;">
-                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response, null, 2) ?? 'N/A'}</pre>
+                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.request_payload, null, 2) ?? 'N/A'}</pre>
+                                            </td>
+                                            <td>${log.response_code ?? 'N/A'}</td>
+                                            <td style="max-width: 300px; overflow: auto;">
+                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
                                             <td>${log.created_at}</td>
                                         </tr>
@@ -876,23 +884,23 @@
             $(document).ready(function () {
                 $('.open-log-modal2').on('click', function () {
                     const apiUrl = $(this).data('id');
-                    alert(apiUrl);
-                    $('#log-content').html('<p>Loading...</p>');
+                    $('#logModal2 #log-content').html('<p>Loading...</p>');
 
                     $.ajax({
                         url: 'get-api-log2/' + apiUrl,
                         method: 'GET',
                         success: function (response) {
+                            console.log(response);
                             if (response.success && response.data.length > 0) {
                                 let html = `
-                                    <table class="table table-bordered table-striped">
+                                    <table class="table table-bordered table-striped w-[1000px]">
                                         <thead>
                                             <tr>
                                                 <th style="width: 10%">ID</th>
-                                                <th style="width: 40%">Request Payload</th>
+                                                <th style="width: 30%">Request Payload</th>
                                                 <th style="width: 10%">Status Code</th>
-                                                <th style="width: 10%">Response</th>
-                                                <th style="width: 30%">Created At</th>
+                                                <th style="width: 30%">Response</th>
+                                                <th style="width: 20%">Created At</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -903,12 +911,13 @@
                                     html += `
                                         <tr>
                                             <td>${log.id}</td>
-                                            <td title="${log.request_payload}" style="width: 40%; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                ${log.request_payload}
-                                            </td>
-                                            <td>${log.status_code ?? 'N/A'}</td>
                                             <td style="max-width: 300px; overflow: auto;">
-                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response, null, 2) ?? 'N/A'}</pre>
+                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.request_payload, null, 2) ?? 'N/A'}</pre>
+                                            </td>
+                                            alert(request_payload)
+                                            <td>${log.response_code ?? 'N/A'}</td>
+                                            <td style="max-width: 300px; overflow: auto;">
+                                                <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
                                             <td>${log.created_at}</td>
                                         </tr>
@@ -920,13 +929,13 @@
                                     </table>
                                 `;
 
-                                $('#log-content').html(html);
+                                $('#logModal2 #log-content').html(html);
                             } else {
-                                $('#log-content').html('<p>No logs found for this API endpoint.</p>');
+                                $('#logModal2 #log-content').html('<p>No logs found for this API endpoint.</p>');
                             }
                         },
                         error: function () {
-                            $('#log-content').html('<p>Something went wrong while loading log data.</p>');
+                            $('#logModal2 #log-content').html('<p>Something went wrong while loading log data.</p>');
                         }
                     });
 

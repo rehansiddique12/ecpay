@@ -6272,7 +6272,9 @@ class PayoutRecordController extends Controller
     public function getApiLog2($url)
 {
 
-    $log = \App\Models\ApiLog::where('request_payload',  $url)->orderby('id','Desc')->get();
+    $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $url . '%')
+    ->orderBy('id', 'DESC')
+    ->get();
 
     if ($log) {
         return response()->json([
