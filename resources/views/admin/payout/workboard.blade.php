@@ -455,7 +455,7 @@
 
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let transactionInterval;
 
@@ -563,161 +563,189 @@
     })(jQuery);
 
     function fetchrecords(search = '', source = '') {
-        console.log(search, source);
-        let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
-        const exists = history.some(item => item.search === search && item.source === source);
-        if (!exists) {
-            history.push({ search, source });
-            sessionStorage.setItem('searchHistory', JSON.stringify(history));
-        }
-        console.log(history);
+    console.log(search, source);
+    let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
-        $.ajax({
-            url: "{{ route('admin.fetchrecords') }}",
-            method: "GET",
-            dataType: "json",
-            data: {
-                search: search,
-                source: source
-            },
-            success: function (response) {
-                $.each(response.transactions, function (index, transaction) {
-                    $(document).off('click', '.edit-btn').on('click', '.edit-btn',
-                        function () {
-                            const transaction = $(this).data(
-                                'transaction'); // set below
-                            $('#editId').val(transaction.id);
-                            $('#editrejectId').val(transaction.id);
-                            $('#editType').val(transaction.type);
-                            $('#editrejectType').val(transaction.type);
-                            $('#editSender').val(transaction.sender || '');
-                            $('#editEwallet').val(transaction
-                                .e_wallet_phone_number || '');
-                            $('#editTxnId').val(transaction.txn_id || '');
-                            $('#editEwalletType').val(transaction
-                                .e_wallet_type || 'Personal');
-                            $('#editDateTime').val(transaction.date_time ||
-                                new Date().toISOString().slice(0, 16));
-                            $('#editModal').modal('show');
-                        });
+    // Check if the search already exists
+    const existingIndex = history.findIndex(item => item.search === search && item.source === source);
+    const searchInput = document.getElementById('transaction-search');
+const searchValue = searchInput.value.trim(); // Get and trim the search value
+if (existingIndex !== -1 && searchValue !== "") {
+        // If it exists, show an alert
+        Swal.fire({
+                                icon: 'error',
+                                title: 'Oops!',
+                                text: 'This card already exists!',
+                            });
 
-                    const currentUserId = response.user_id;
-                    let showAdjustment = transaction.adjusted_by == null ? '' :
-                        'd-none';
-                    let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' :
-                        'WITHDRAWL';
-                    let statusColor = transaction.status === 'pending' ?
-                        'text-warning' : 'text-success';
-                    let showEdit = transaction.adjusted_by == currentUserId ? '' :
-                        'd-none';
-                    let editButton = '';
-                    let typeClass = transaction.type === 'payment' ?
-                        'text-success' : 'text-primary';
 
-                    if (transaction.type === 'payment') {
-                        editButton = `
-                            <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
-                                Edit
-                            </button>`;
-                    } else if (transaction.type === 'payout') {
-                        const details = transaction.information ? JSON.stringify(
-                                transaction.information).replace(/"/g, '&quot;') :
-                            '';
-                        const feedback = transaction.feedback || '';
-                        const status = transaction.transfer_status || '';
-                        const statusb = transaction.status || '';
+        // Move the existing item to the top
+        const existingItem = history.splice(existingIndex, 1)[0]; // Remove from current position
+        history.unshift(existingItem); // Add to the beginning
 
-                        // Use a route pattern or inject it via JavaScript context if needed
-                        const payoutRoute =
-                            `/admin/payout-action/${transaction.id}`;
+        // Update sessionStorage
+        sessionStorage.setItem('searchHistory', JSON.stringify(history));
+    } else {
+        // If it doesn't exist, add it to the top
+        history.unshift({ search, source });
+        sessionStorage.setItem('searchHistory', JSON.stringify(history));
+    }
+    console.log(history);
 
-                        editButton = `
-                            <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
-                                data-bs-toggle="modal"
-                                data-bs-target="#myModal"
-                                data-route="${payoutRoute}"
-                                data-feedback="${feedback}"
-                                data-info="${details}"
-                                data-id="${transaction.id}"
-                                data-status="${status}"
-                                data-statusb="${statusb}">
-                                Edit P
-                            </button>`;
-                    }
-                    let inputTxnNo = transaction.txn_record && transaction
-                        .txn_record.txn_no ?
-                        transaction.txn_record.txn_no :
-                        '-';
-                    let callbackValue = transaction.callback != 0 ? 'Send' : null;
-                    let apiName = transaction.api ? transaction.api.name : 'N/A';
-                    let locationName = transaction.e_wallet_account && transaction
-                        .e_wallet_account.location ?
-                        transaction.e_wallet_account.location.location :
-                        'N/A';
+    $.ajax({
+        url: "{{ route('admin.fetchrecords') }}",
+        method: "GET",
+        dataType: "json",
+        data: {
+            search: search,
+            source: source
+        },
+        success: function (response) {
+            // Check if the card already exists in the DOM
+            const existingCard = $(`.transaction-card[data-id="${response.transactions[0]?.id}"]`);
 
-                    let card = `
-                        <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
-                            <div class="custom-card p-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="d-flex gap-4">
-                                        <p class="${typeClass} fw-semibold mb-1">${typeLabel}</p>
-                                        <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
-                                        <p class="text-white mb-1">${transaction.id }</p>
-                                    </div>
-                                    <div class="d-flex gap-3 text-white">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <button type="button" class="btn-close" aria-label="Close" data-id="${transaction.id}" data-type="${transaction.type}"></button>
-                                    </div>
+            if (existingCard.length > 0) {
+                existingCard.prependTo('#transactions-container');
+                return; // Skip adding a duplicate
+            }
+
+            $.each(response.transactions, function (index, transaction) {
+                $(document).off('click', '.edit-btn').on('click', '.edit-btn',
+                    function () {
+                        const transaction = $(this).data(
+                            'transaction'); // set below
+                        $('#editId').val(transaction.id);
+                        $('#editrejectId').val(transaction.id);
+                        $('#editType').val(transaction.type);
+                        $('#editrejectType').val(transaction.type);
+                        $('#editSender').val(transaction.sender || '');
+                        $('#editEwallet').val(transaction
+                            .e_wallet_phone_number || '');
+                        $('#editTxnId').val(transaction.txn_id || '');
+                        $('#editEwalletType').val(transaction
+                            .e_wallet_type || 'Personal');
+                        $('#editDateTime').val(transaction.date_time ||
+                            new Date().toISOString().slice(0, 16));
+                        $('#editModal').modal('show');
+                    });
+
+                const currentUserId = response.user_id;
+                let showAdjustment = transaction.adjusted_by == null ? '' :
+                    'd-none';
+                let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' :
+                    'WITHDRAWL';
+                let statusColor = transaction.status === 'pending' ?
+                    'text-warning' : 'text-success';
+                let showEdit = transaction.adjusted_by == currentUserId ? '' :
+                    'd-none';
+                let editButton = '';
+                let typeClass = transaction.type === 'payment' ?
+                    'text-success' : 'text-primary';
+
+                if (transaction.type === 'payment') {
+                    editButton = `
+                        <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
+                            Edit
+                        </button>`;
+                } else if (transaction.type === 'payout') {
+                    const details = transaction.information ? JSON.stringify(
+                            transaction.information).replace(/"/g, '&quot;') :
+                        '';
+                    const feedback = transaction.feedback || '';
+                    const status = transaction.transfer_status || '';
+                    const statusb = transaction.status || '';
+
+                    // Use a route pattern or inject it via JavaScript context if needed
+                    const payoutRoute =
+                        `/admin/payout-action/${transaction.id}`;
+
+                    editButton = `
+                        <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#myModal"
+                            data-route="${payoutRoute}"
+                            data-feedback="${feedback}"
+                            data-info="${details}"
+                            data-id="${transaction.id}"
+                            data-status="${status}"
+                            data-statusb="${statusb}">
+                            Edit P
+                        </button>`;
+                }
+                let inputTxnNo = transaction.txn_record && transaction
+                    .txn_record.txn_no ?
+                    transaction.txn_record.txn_no :
+                    '-';
+                let callbackValue = transaction.callback != 0 ? 'Send' : null;
+                let apiName = transaction.api ? transaction.api.name : 'N/A';
+                let locationName = transaction.e_wallet_account && transaction
+                    .e_wallet_account.location ?
+                    transaction.e_wallet_account.location.location :
+                    'N/A';
+
+                let card = `
+                    <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
+                        <div class="custom-card p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex gap-4">
+                                    <p class="${typeClass} fw-semibold mb-1">${typeLabel}</p>
+                                    <p class="text-success fw-semibold mb-1">${transaction.amount} TK</p>
+                                    <p class="text-white mb-1">${transaction.id }</p>
                                 </div>
-
-                                <div class="d-flex justify-content-between mt-3">
-                                    <p class="mb-0">Order Number: ${transaction.partner_transection_id }</p>
-                                    <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
-                                </div>
-
-                                <div class="d-flex gap-5 mt-2">
-                                    <p class="mb-0">Account Name: ${transaction.e_wallet_name }</p>
-                                    <p class="">${transaction.sender }</p>
-                                </div>
-                                <div>
-                                    <p class="">Location: ${locationName}</p>
-                                    <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
-                                    <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
-                                    <p class="">Input Transaction Number: ${inputTxnNo}</p>
-                                    <p class="">Verified Transaction Number:${transaction.txn_id }</p>
-                                </div>
-
-                                <div class="d-flex gap-4 mt-3">
-                                    <div class="justify-content-center">
-                                        <p class="">Callback Status: ${callbackValue !== null ? callbackValue : 'N/A'}</p>
-                                        <p class="">Merchant  : ${apiName}</p>
-                                    </div>
-                                    <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
-                                    <button
-                                        class="px-4 btn btn-sm activity-btn"
-                                        style="background-color: blue; color: white;"
-                                        data-partner-id="${transaction.partner_transection_id}">
-                                        Activity
-                                    </button>
-                                </div>
-                                <div class="d-flex gap-4 mt-3">
-                                    ${editButton}
-                                    <button class="px-4 btn btn-sm manual-process-btn"
-                                        style="background-color: rgb(226, 15, 15); color: white;"
-                                        data-id="${transaction.id}"
-                                        data-type="${transaction.type}">
-                                        Adjustment
-                                    </button>
-                                    <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Manual Process</button>
+                                <div class="d-flex gap-3 text-white">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <button type="button" class="btn-close" aria-label="Close" data-id="${transaction.id}" data-type="${transaction.type}"></button>
                                 </div>
                             </div>
+
+                            <div class="d-flex justify-content-between mt-3">
+                                <p class="mb-0">Order Number: ${transaction.partner_transection_id }</p>
+                                <p class="mb-0 ${statusColor} fw-semibold">STATUS: <span>${transaction.status.toUpperCase()}</span></p>
+                            </div>
+
+                            <div class="d-flex gap-5 mt-2">
+                                <p class="mb-0">Account Name: ${transaction.e_wallet_name }</p>
+                                <p class="">${transaction.sender }</p>
+                            </div>
+                            <div>
+                                <p class="">Location: ${locationName}</p>
+                                <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
+                                <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
+                                <p class="">Input Transaction Number: ${inputTxnNo}</p>
+                                <p class="">Verified Transaction Number:${transaction.txn_id }</p>
+                            </div>
+
+                            <div class="d-flex gap-4 mt-3">
+                                <div class="justify-content-center">
+                                    <p class="">Callback Status: ${callbackValue !== null ? callbackValue : 'N/A'}</p>
+                                    <p class="">Merchant  : ${apiName}</p>
+                                </div>
+                                <button class="px-4 btn btn-sm" style="background-color: rgb(52, 152, 235); color: white;" data-bs-toggle="modal" data-bs-target="#newModalb" onclick="setBalanceItem(${transaction.id})">Resend</button>
+                                <button
+                                    class="px-4 btn btn-sm activity-btn"
+                                    style="background-color: blue; color: white;"
+                                    data-partner-id="${transaction.partner_transection_id}">
+                                    Activity
+                                </button>
+                            </div>
+                            <div class="d-flex gap-4 mt-3">
+                                ${editButton}
+                                <button class="px-4 btn btn-sm manual-process-btn"
+                                    style="background-color: rgb(226, 15, 15); color: white;"
+                                    data-id="${transaction.id}"
+                                    data-type="${transaction.type}">
+                                    Adjustment
+                                </button>
+                                <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Manual Process</button>
+                            </div>
                         </div>
-                    `;
-                    $('#transactions-container').prepend(card);
-                });
-            }
-        });
-    }
+                    </div>
+                `;
+                $('#transactions-container').prepend(card);
+            });
+        }
+    });
+}
 
     // On page load, check for stored search parameters and fetch records if they exist
     $(document).ready(function () {
@@ -822,7 +850,6 @@
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Optional: prevent form submission if inside a form
                     const searchValue = $(this).val();
-                    alert(searchValue);
                     fetchrecords(searchValue, 'all');
                 }
             });
@@ -877,7 +904,7 @@
                     accounts.forEach(function (account) {
                         accountDetailsHtml += `
                 <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
-                    ${walletName}: ${account.account_no} Current Balance = ${account.balance}TK (${account.account_type})
+                    ${walletName}: ${account.account_no} Current Balance = ${account.low_balance_amount}TK (${account.account_type})
                 </p>
             `;
                     });

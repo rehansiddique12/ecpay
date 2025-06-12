@@ -51,7 +51,7 @@ class PaymentLogController extends Controller
         $fromDate = Carbon::parse($search['from_date']);
         $toDate = Carbon::parse($search['to_date'])->setSecond(59);
 
-        $pageTitle = "Payment Report";
+        $pageTitle = __('partner_basic.deposit_report_page_title');
         $domains = Api::where('type', 'Admin')->get();
         $funds = Payment::where('status', '!=', 'initiate')->where('api_id', $api_id)
         ->where('created_at', '>=', $fromDate)

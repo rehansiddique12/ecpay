@@ -62,15 +62,15 @@
                                         <label>Withdrawal %</label>
                                         <div class="input-group">
                                             <input type="number" step="0.01" class="form-control"
-                                                
+
                                                 value="{{ $commission->withdrawal_percentage }}" readonly>
                                             <div class="input-group-append"><span class="input-group-text">%</span></div>
                                         </div>
                                     </div>
-                                   
+
                                 </div>
                                 </div>
-                                
+
                                 @php
                                 $selectedGateways = json_decode($commission->gateway_id ?? '');
                                 $selectedtypes = json_decode($commission->type ?? '');
@@ -78,11 +78,11 @@
                                 <div class="col-md-2">
                                     <label>Type</label>
                                     <select class="form-select select2" multiple  required>
-                                        
+
                                         <option value="Agent" {{ in_array('Agent', $selectedtypes)? 'selected' : '' }}>Agent
                                         </option>
                                         <option value="Personal" {{ in_array('Personal', $selectedtypes)? 'selected' : '' }}>Personal</option>
-                                        <option value="Merchant" {{ in_array('Merchant', $selectedtypes)? 'selected' : '' }}>Merchant</option>    
+                                        <option value="Merchant" {{ in_array('Merchant', $selectedtypes)? 'selected' : '' }}>Merchant</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
@@ -97,7 +97,7 @@
                                     </select>
                                 </div>
 
-                                
+
                             </div>
 
                             <div class="row">
@@ -111,7 +111,7 @@
                                     <input style="border:2px solid green;" type="number" name="withdrawal_percentage[]" id="withdrawal" class="form-control" step="0.01"
                                         placeholder="Enter withdrawal percentage">
                                 </div>
-                                
+
                             </div>
                         </div>
                     </div>
@@ -120,7 +120,7 @@
                     @endphp
                     @endforeach
                     @else
-                    
+
                     @endif
 
                     <div class="col-md-12">
@@ -142,7 +142,7 @@
         });
 
 
-        
+
 
         // Prevent dropdown from opening on clear
         $select.on('select2:unselecting', function (e) {
@@ -156,9 +156,9 @@
             }
         });
 
-    
 
-    
+
+
     </script>
     @endpush
 </x-admin-layout>

@@ -73,8 +73,8 @@
         }
     </style>
 
-<div class="ps-4 pt-2">
-        <h3 class="card-title mb-3"><i class="icon-user"></i> @lang('Profile Setting')</h3>
+    <div class="ps-4 pt-2">
+        <h3 class="card-title mb-3"><i class="icon-user"></i>{{ __('partner_basic.profile_settings')}}</h3>
         <form action="" method="post" class="form-body file-upload" enctype="multipart/form-data">
             @csrf
             @method('put')
@@ -91,11 +91,9 @@
                                     <line x1="12" y1="3" x2="12" y2="15"></line>
                                 </svg>
                             </div>
-                            <h3 class="dropzone-title" id="dropzone-title">Drop files here or click
-                                to upload</h3>
+                            <h3 class="dropzone-title" id="dropzone-title">@lang('partner_basic.drag_and_drop')</h3>
                             <p class="dropzone-description" id="dropzone-description">
-                                (This is just a demo dropzone. Selected files are not actually
-                                uploaded.)
+                                @lang('partner_basic.drag_and_drop_desc')
                             </p>
 
                             <input type="file" name="image" id="image" class="hidden-input" accept="image/*"
@@ -118,19 +116,21 @@
 
                     @if($partner->type=="Admin")
                     <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>@lang('API Key') <span class="text-danger">*</span></label>
-                            <input type="text" name="api_key" class="form-control" value="{{$partner->api_key}}" readonly />
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>@lang('partner_basic.api_key_label') <span class="text-danger">*</span></label>
+                                <input type="text" name="api_key" class="form-control" value="{{$partner->api_key}}"
+                                    readonly />
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label>@lang('Website') <span class="text-danger">*</span></label>
-                            <input type="text" name="website" class="form-control" value="{{$partner->website}}" readonly />
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>@lang('partner_basic.website_label') <span class="text-danger">*</span></label>
+                                <input type="text" name="website" class="form-control" value="{{$partner->website}}"
+                                    readonly />
+                            </div>
                         </div>
-                    </div>
                     </div>
 
                     @endif
@@ -138,7 +138,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Name') <span class="text-danger">*</span></label>
+                                <label>@lang('partner_basic.name_label') <span class="text-danger">*</span></label>
                                 <input type="text" name="name" class="form-control form-control-lg"
                                     value="{{$partner->name}}" placeholder="@lang('Enter Name')">
 
@@ -150,7 +150,7 @@
 
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Username') <span class="text-danger">*</span></label>
+                                <label>@lang('partner_basic.username_label') <span class="text-danger">*</span></label>
                                 <input type="text" name="username" class="form-control" value="{{$partner->username}}"
                                     placeholder="@lang('Enter Username')">
 
@@ -164,12 +164,13 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label for="timezone">Select TimeZone</label>
+                                <label for="timezone">@lang('partner_basic.timezone_label')</label>
                                 <select class="form-control select2" id="timezone" name="timezone">
                                     @foreach ($data as $timezone)
-                                        <option value="{{ $timezone['timezone'] }}" {{ $usertimezone == $timezone['timezone'] ? 'selected' : '' }}>
-                                            [{{ $timezone['offset'] }}] {{ $timezone['timezone'] }}
-                                        </option>
+                                    <option value="{{ $timezone['timezone'] }}" {{ $usertimezone==$timezone['timezone']
+                                        ? 'selected' : '' }}>
+                                        [{{ $timezone['offset'] }}] {{ $timezone['timezone'] }}
+                                    </option>
                                     @endforeach
                                 </select>
 
@@ -184,7 +185,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Email Address') <span class="text-danger">*</span></label>
+                                <label>@lang('partner_basic.email_label') <span class="text-danger">*</span></label>
                                 <input type="text" name="email" class="form-control" value="{{$partner->email}}"
                                     placeholder="@lang('Enter Email Address')">
 
@@ -196,7 +197,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Phone Number') <span class="text-danger">*</span></label>
+                                <label>@lang('partner_basic.phone_label') <span class="text-danger">*</span></label>
                                 <input type="text" name="phone" class="form-control" value="{{$partner->phone}}"
                                     placeholder="@lang('Enter Phone Number')">
 
@@ -208,10 +209,10 @@
 
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label>@lang('Address') <span
+                                <label>@lang('partner_basic.address_label') <span
                                         class="text-muted text-sm">{{trans('(optional)')}}</span></label>
                                 <textarea name="address" class="form-control" rows="3"
-                                    placeholder="@lang('Your Address')">{{$partner->address}}</textarea>
+                                    placeholder="@lang('partner_basic.address_placeholder')">{{$partner->address}}</textarea>
 
                                 @error('address')
                                 <span class="text-danger">{{ $message }}</span>
@@ -222,12 +223,10 @@
                         <div class="col-md-12 mb-5">
                             <div class="text-right">
                                 <button type="submit"
-                                    class="btn waves-effect waves-light btn-rounded btn-primary btn-block mt-3">{{trans('Submit')}}</button>
+                                    class="btn waves-effect waves-light btn-rounded btn-primary btn-block mt-3">@lang('partner_basic.submit')</button>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </form>

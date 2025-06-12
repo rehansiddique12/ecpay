@@ -176,6 +176,7 @@ class ReportsController extends Controller
         $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d 00:00');
         $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d H:i');
         $orderval = $request->get('order', 'desc');
+        $pageTitle = __('partner_basic.partner_balance_log');
 
         $user = Auth::guard('partner')->user();
         $main_user = Api::where('api_key', $user->api_key)->where('type', 'Admin')->first();
@@ -193,7 +194,7 @@ class ReportsController extends Controller
 
         if ($logs->isEmpty()) {
             return view('partner.reports.logs', [
-                'pageTitle' => 'Partner Balance Logs',
+                'pageTitle' => $pageTitle,
                 'filter_data' => [],
                 'from_date' => $from_date,
                 'to_date' => $to_date,
@@ -338,9 +339,9 @@ class ReportsController extends Controller
 
             $filter_data[] = $entry;
         }
-
+        
         return view('partner.reports.logs', [
-            'pageTitle' => 'Partner Balance Logs',
+            'pageTitle' => $pageTitle,
             'filter_data' => $filter_data,
             'from_date' => $from_date,
             'to_date' => $to_date,

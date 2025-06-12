@@ -9,6 +9,14 @@ return [
     'my_profile' => 'Profil Saya',
     'password' => 'Kata Laluan',
     'logout' => 'Log Keluar',
+    'Dashboard' => 'Papan Pemuka',
+    'Staff' => 'Staf',
+    'commission_summary' => 'Ringkasan Komisen',
+    'commission_report' => 'Laporan Komisen',
+    'settlements' => 'Penyelesaian',
+    'daily_settlement_report' => 'Laporan Penyelesaian Harian',
+    'adjustments' => 'Pelarasan',
+'transaction_completions_logs' => 'Log Penyelesaian Transaksi',
 
     // Main Navigation Bar
 
@@ -43,6 +51,7 @@ return [
     'withdrawal_report' => 'Laporan Pengeluaran',
 
     'reports' => 'Laporan',
+'all_report' => 'Semua Laporan',
     'live_ewallet_balance' => 'Baki E-Dompet Langsung',
     'daily_ewallet_summary' => 'Ringkasan Harian E-Dompet',
     'daily_transection_summary' => 'Ringkasan Harian Transaksi',
