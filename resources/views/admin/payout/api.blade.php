@@ -279,7 +279,7 @@
     <!-- Log Modal -->
     <div class="modal fade" id="logModal" tabindex="-1" role="dialog" aria-labelledby="logModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-lg" style="width: 70%; max-width: 70%;" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">API Log Details</h5>
@@ -297,7 +297,7 @@
     <!-- Log Modal2 -->
     <div class="modal fade" id="logModal2" tabindex="-1" role="dialog" aria-labelledby="logModalLabel2"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-lg" style="width: 70%; max-width: 70%;" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">API Log Details</h5>
@@ -823,14 +823,14 @@
                         success: function (response) {
                             if (response.success && response.data.length > 0) {
                                 let html = `
-                                    <table class="table table-bordered table-striped">
+                                    <table class="table table-bordered table-striped w-[1000px]">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Request URL</th>
-                                                <th>Status Code</th>
-                                                <th>Response</th>
-                                                <th>Created At</th>
+                                                <th style="width: 10%">ID</th>
+                                                <th style="width: 40%">Request URL</th>
+                                                <th style="width: 10%">Status Code</th>
+                                                <th style="width: 10%">Response</th>
+                                                <th style="width: 30%">Created At</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -841,7 +841,7 @@
                                     html += `
                                         <tr>
                                             <td>${log.id}</td>
-                                            <td title="${log.request_url}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <td title="${log.request_url}" style="width: 40%; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                 ${log.request_url}
                                             </td>
                                             <td>${log.status_code ?? 'N/A'}</td>
@@ -888,11 +888,11 @@
                                     <table class="table table-bordered table-striped">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Request Payload</th>
-                                                <th>Status Code</th>
-                                                <th>Response</th>
-                                                <th>Created At</th>
+                                                <th style="width: 10%">ID</th>
+                                                <th style="width: 40%">Request Payload</th>
+                                                <th style="width: 10%">Status Code</th>
+                                                <th style="width: 10%">Response</th>
+                                                <th style="width: 30%">Created At</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -903,7 +903,7 @@
                                     html += `
                                         <tr>
                                             <td>${log.id}</td>
-                                            <td title="${log.request_payload}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <td title="${log.request_payload}" style="width: 40%; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                 ${log.request_payload}
                                             </td>
                                             <td>${log.status_code ?? 'N/A'}</td>
