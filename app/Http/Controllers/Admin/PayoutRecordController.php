@@ -1686,8 +1686,7 @@ class PayoutRecordController extends Controller
             ? $query->get()
             : $query->paginate(20);
 
-        $pageTitle = __('agent.agent_list');
-        // dd($records);
+        $pageTitle = "Agent List";
 
         return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
     }
@@ -5458,60 +5457,42 @@ class PayoutRecordController extends Controller
         $source = $request->input('source');
 
 
-        $payments = collect();
-        $payouts = collect();
-        if ($source === 'all' || $source === 'payment') {
-            $payments = Payment::with('txn_record', 'api', 'eWalletAccount.location')->select(
-                'id',
-                'amount',
-                'sender',
-                'e_wallet_phone_number',
-                'txn_id',
-                'e_wallet_type',
-                'callback',
-                'api_id',
-                'sender',
-                'e_wallet_name',
-                'status',
-                'created_at',
-                'updated_at',
-                'partner_transection_id',
-                'adjusted_by',
-                DB::raw("'payment' as type")
-            )
-                ->latest('created_at')
-                ->where('show_none', 0)
-                ->when($query, function ($q) use ($query) {
-                    $q->where(function ($subQuery) use ($query) {
-                        $subQuery->where('txn_id', '=', $query)
-                            ->orWhere('partner_transection_id', '=', $query);
-                    });
-                })
-                ->take(10)
-                ->get();
-        }
+    $payments = collect();
+    $payouts = collect();
+    if ($source === 'all' || $source === 'payment') {
+        $payments = Payment::with('txn_record','api','eWalletAccount.location')->select(
+            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type','callback','api_id',
+            'e_wallet_name', 'status', 'created_at','updated_at', 'partner_transection_id',
+            'adjusted_by', DB::raw("'payment' as type")
+        )
+        ->latest('created_at')
+        ->where('show_none', 0)
+        ->when($query, function ($q) use ($query) {
+            $q->where(function ($subQuery) use ($query) {
+                $subQuery->where('txn_id', '=', $query)
+                         ->orWhere('partner_transection_id', '=', $query);
+            });
+        })
+        ->take(10)
+        ->get();
+    }
 
-        if ($source === 'all' || $source === 'payout') {
-            $payouts = Payout::select(
-                'id',
-                'amount',
-                'status',
-                'created_at',
-                'partner_transection_id',
-                'adjusted_by',
-                DB::raw("'payout' as type")
-            )
-                ->latest('created_at')
-                ->where('show_none', 0)
-                ->when($query, function ($q) use ($query) {
-                    $q->where(function ($subQuery) use ($query) {
-                        $subQuery->where('txn_id', '=', $query)
-                            ->orWhere('partner_transection_id', '=', $query);
-                    });
-                })
-                ->take(10)
-                ->get();
-        }
+    if ($source === 'all' || $source === 'payout') {
+    $payouts = Payout::with('api')->select(
+            'id', 'amount', 'status', 'created_at', 'partner_transection_id','e_wallet_name', 'user_account_no as sender','api_id',
+            'updated_at', 'txn_id','adjusted_by', DB::raw("'payout' as type")
+        )
+        ->latest('created_at')
+        ->where('show_none', 0)
+        ->when($query, function ($q) use ($query) {
+            $q->where(function ($subQuery) use ($query) {
+                $subQuery->where('txn_id', '=', $query)
+                         ->orWhere('partner_transection_id', '=', $query);
+            });
+        })
+        ->take(10)
+        ->get();
+    }
 
 
         $merged = $payments->merge($payouts);
