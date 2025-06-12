@@ -39,6 +39,9 @@
         .slider.deactive {
             background: linear-gradient(to right, #dc3545, #d1404f);
         }
+        div:where(.swal2-container).swal2-top-end>.swal2-popup, div:where(.swal2-container).swal2-top-right>.swal2-popup {
+            margin-top:3rem;
+        }
     </style>
     @endpush
 
@@ -434,7 +437,17 @@
     @push('js')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
         $(document).on('click', '.delete_api_button', function(e) {
             e.preventDefault();
             var roleId = $(this).data('id');
@@ -641,6 +654,7 @@
     </script>
 
     <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+
     <script>
         "use strict";
             $(document).ready(function() {
@@ -662,11 +676,16 @@
                         method: $form.attr('method'),
                         data: $form.serialize(),
                         success: function (response) {
-                            console.log(response);
                             if (response.status === 'success') {
                                 $('#newModal').modal('hide');
                                 $form[0].reset();
-
+                                Toast.fire({
+                                icon: "success",
+                                title: "Agent Added Successfully"
+                                });
+                               setTimeout(function() {
+        location.reload();
+    }, 3000);
                             }
                         },
                         error: function (xhr) {

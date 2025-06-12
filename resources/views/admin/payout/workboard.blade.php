@@ -610,6 +610,7 @@ if (existingIndex !== -1 && searchValue !== "") {
             }
 
             $.each(response.transactions, function (index, transaction) {
+                console.log(transaction);
                 $(document).off('click', '.edit-btn').on('click', '.edit-btn',
                     function () {
                         const transaction = $(this).data(
@@ -711,8 +712,8 @@ if (existingIndex !== -1 && searchValue !== "") {
                                 <p class="">Location: ${locationName}</p>
                                 <p class="">Created At: ${new Date(transaction.created_at).toLocaleString()}</p>
                                 <p class="">Updated At: ${new Date(transaction.updated_at).toLocaleString()}</p>
-                                <p class="">Input Transaction Number: ${inputTxnNo}</p>
-                                <p class="">Verified Transaction Number:${transaction.txn_id }</p>
+                                ${transaction.type === 'payment' ? `<p class="">Input Transaction Number: ${inputTxnNo}</p>` : ''}
+                                <p class="">${transaction.type === 'payment' ? `Verified` : ''} Transaction Number:${transaction.txn_id }</p>
                             </div>
 
                             <div class="d-flex gap-4 mt-3">
@@ -904,7 +905,7 @@ if (existingIndex !== -1 && searchValue !== "") {
                     accounts.forEach(function (account) {
                         accountDetailsHtml += `
                 <p class="wallet-data" data-wallet="${walletName}" style="display:none;">
-                    ${walletName}: ${account.account_no} Current Balance = ${account.low_balance_amount}TK (${account.account_type})
+                    ${walletName}: ${account.account_no} Current Balance = ${account.live_balance}TK (${account.account_type})
                 </p>
             `;
                     });
