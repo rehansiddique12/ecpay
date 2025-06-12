@@ -24,40 +24,40 @@
     </style>
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="d-flex d-lg-flex d-md-block align-items-center">
-            <h4 class="mb-10 text-primary font-weight-medium ">Withdraw</h4>
+            <h4 class="mb-10 text-primary font-weight-medium ">{{ __('transaction.withdraw') }}</h4>
             <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-today">Today</button>
+                    id="btn-today">{{ __('transaction.today') }}</button>
 
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
-                    id="btn-yesterday">Yesterday</button>
+                    id="btn-yesterday">{{ __('transaction.yesterday') }}</button>
 
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-last7">Last 7 days</button>
+                    id="btn-last7">{{ __('transaction.last_7_days') }}</button>
             </div>
         </div>
         <form id="filterForm" action="{{ route('admin.payout-report.search') }}" method="get">
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>User</label>
+                        <label>{{ __('transaction.user') }}</label>
                         <input type="text" name="name" value="{{ @request()->name }}" class="form-control"
-                            placeholder="@lang('Email/ Username')">
+                            placeholder="{{ __('transaction.email_or_username') }}">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>From Date</label>
+                        <label>{{ __('transaction.from_date') }}</label>
                         <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
                             id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>To Date</label>
+                        <label>{{ __('transaction.to_date') }}</label>
                         <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
                             id="to_date" />
                     </div>
@@ -65,25 +65,25 @@
 
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>Transaction No</label>
+                        <label>{{ __('transaction.transaction_no') }}</label>
                         <input type="text" name="partner_transection_id"
                             value="{{ @request()->partner_transection_id }}" class="form-control"
-                            placeholder="@lang('Transection No.')">
+                            placeholder="{{ __('transaction.transaction_no') }}">
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>User Account No</label>
+                        <label>{{ __('transaction.user_account_no') }}</label>
                         <input type="text" class="form-control" value="{{ @request()->account_no }}"
                             name="account_no" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>E-Wallet</label>
+                        <label>{{ __('transaction.e_wallet') }}</label>
                         <select name="gateway" class="form-select">
-                            <option value="">All</option>
+                            <option value="">{{ __('transaction.all') }}</option>
                             @foreach ($gateways as $gateway)
                                 <option value="{{ $gateway->name }}" @if (@request()->gateway == $gateway->name) selected @endif>
                                     {{ $gateway->name }}</option>
@@ -94,14 +94,17 @@
 
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label>Status</label>
+                        <label>{{ __('transaction.status') }}</label>
                         <select name="status" class="form-select">
-                            <option value="">@lang('All Payment')</option>
-                            <option value="1" @if (@request()->status == '1') selected @endif>@lang('Pending Payment')
+                            <option value="">{{ __('transaction.all_payment') }}</option>
+                            <option value="1" @if (@request()->status == '1') selected @endif>
+                                {{ __('transaction.pending_payment') }}
                             </option>
-                            <option value="2" @if (@request()->status == '2') selected @endif>@lang('Complete Payment')
+                            <option value="2" @if (@request()->status == '2') selected @endif>
+                                {{ __('transaction.complete_payment') }}
                             </option>
-                            <option value="3" @if (@request()->status == '3') selected @endif>@lang('Cancel Payment')
+                            <option value="3" @if (@request()->status == '3') selected @endif>
+                                {{ __('transaction.cancel_payment') }}
                             </option>
                         </select>
                     </div>
@@ -109,11 +112,11 @@
 
                 <div class="col-md-3">
                     <div class="form-group mt-3">
-                        <label for="">Domain</label>
+                        <label for="">{{ __('transaction.domain') }}</label>
                         <select name="domain" class="form-select select2" data-allow-clear="true"
-                            data-placeholder="Select Domain">
+                            data-placeholder="{{ __('transaction.select_domain') }}">
                             <option></option>
-                            <option value="">@lang('Select Domain')</option>
+                            <option value="">{{ __('transaction.select_domain') }}</option>
                             @foreach ($domains as $domain)
                                 <option value="{{ $domain->id }}" @if (@request()->domain == $domain->id) selected @endif>
                                     {{ $domain->name }} ===> ( {{ $domain->website }} )</option>
@@ -125,13 +128,13 @@
                 <div class="col-md-12 d-flex justify-content-end align-items-center gap-6">
                     <div class="form-group mt-2">
                         <button type="submit" class="btn  btn-primary mt-2"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> {{ __('transaction.search') }}</button>
                     </div>
                     <div class="form-group mt-2">
                         <a href="{{ route('admin.merchant_reports.export_by_logs_for_WithDrawl', ['from_date' => $from_date]) }}"
-                        class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
-                     </a>
+                            class="btn waves-effect waves-light btn-success" id="exportButton">
+                            <i class="icon-base ti tabler-download me-1"></i>{{ __('transaction.export') }}
+                        </a>
                     </div>
 
                 </div>
@@ -150,8 +153,8 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_count }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total
-                                                                                                                                                                            Transactions')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">
+                                {{ __('transaction.total_transactions') }}
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
@@ -169,9 +172,8 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_sum }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Withdrawal
-                                                                                                                                                                            Amount')
-                            </h6>
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">
+                                {{ __('transaction.total_withdrawal_amount') }}</h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
                             <span class="opacity-7 text-muted"><i class="fa fa-hand-holding-usd"></i></span>
@@ -340,22 +342,22 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('ID')</th>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Acc No.')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Net Amount')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Remarks')</th>
-                            <th scope="col">@lang('Sent From')</th>
-                            <th scope="col">@lang('Source')</th>
+                            <th scope="col">{{ __('transaction.id') }}</th>
+                            <th scope="col">{{ __('transaction.date') }}</th>
+                            <th scope="col">{{ __('transaction.trx_number') }}</th>
+                            <th scope="col">{{ __('transaction.partner_trx_number') }}</th>
+                            <th scope="col">{{ __('transaction.username') }}</th>
+                            <th scope="col">{{ __('transaction.method') }}</th>
+                            <th scope="col">{{ __('transaction.acc_no') }}</th>
+                            <th scope="col">{{ __('transaction.amount') }}</th>
+                            <th scope="col">{{ __('transaction.merchant_charge') }}</th>
+                            <th scope="col">{{ __('transaction.net_amount') }}</th>
+                            <th scope="col">{{ __('transaction.status') }}</th>
+                            <th scope="col">{{ __('transaction.remarks') }}</th>
+                            <th scope="col">{{ __('transaction.sent_from') }}</th>
+                            <th scope="col">{{ __('transaction.source') }}</th>
                             @if (adminAccessRoute(config('role.payout_manage.access.edit')))
-                                <th scope="col">@lang('More')</th>
+                                <th scope="col">{{ __('transaction.more') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -363,9 +365,11 @@
                         @forelse($records as $key => $item)
                             <tr>
                                 <td>{{ $item->id }}</td>
-                                <td data-label="@lang('Date')"> {{ dateTime($item->created_at, 'd M,Y H:i') }}
+                                <td data-label="{{ __('transaction.date') }}">
+                                    {{ dateTime($item->created_at, 'd M,Y H:i') }}
                                 </td>
-                                <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
+                                <td data-label="{{ __('transaction.trx_number') }}"
+                                    class="font-weight-bold text-uppercase">
                                     {{ $item->trx_id }}<br>
                                     <span class="text text-success">{{ $item->txn_id }}</span>
 
@@ -374,54 +378,60 @@
                                     <br>
                                     {{ $item->member_id }}
                                 </td>
-                                <td data-label="@lang('Username')">
+                                <td data-label="{{ __('transaction.username') }}">
 
                                     @if ($item->api)
                                         {{ optional($item->api)->name }} <b>({{ optional($item->api)->acc_type }})</b>
                                     @else
-                                        Partner Transection
+                                        {{ __('transaction.partner_transection') }}
                                     @endif
 
                                 </td>
                                 <td>{{ $item->e_wallet_name }}</td>
                                 <td>{{ $item->user_account_no }}</td>
-                                <td data-label="@lang('Amount')" class="font-weight-bold">
+                                <td data-label="{{ __('transaction.amount') }}" class="font-weight-bold">
                                     {{ getAmount($item->amount, 2) }}
                                     {{ $basic->currency_symbol }}</td>
-                                <td data-label="@lang('Charge')" class="text-success">
+                                <td data-label="{{ __('transaction.charge') }}" class="text-success">
                                     {{ getAmount($item->charge, 2) }} {{ $basic->currency_symbol }}</td>
 
-                                <td data-label="@lang('Net Amount')" class="font-weight-bold">
+                                <td data-label="{{ __('transaction.net_amount') }}" class="font-weight-bold">
                                     {{ getAmount($item->amount + $item->charge, 2) }} {{ $basic->currency_symbol }}
                                 </td>
 
-                                <td data-label="@lang('Status')" class="text-center">
+                                <td data-label="{{ __('transaction.status') }}" class="text-center">
                                     <div class="d-flex flex-column align-items-center">
                                         @if ($item->transfer_status == 2)
                                             <span class="badge bg-success mb-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Request Approved')
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.request_approved') }}
                                             </span>
                                         @elseif($item->transfer_status == 1)
                                             <span class="badge bg-warning mb-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Request Pending')
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.request_pending') }}
                                             </span>
                                         @elseif($item->transfer_status == 3)
                                             <span class="badge bg-danger mb-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Request Rejected')
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.request_rejected') }}
                                             </span>
                                         @endif
 
                                         @if ($item->status == 'Complete')
                                             <span class="badge bg-success mt-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Transferred')
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.transferred') }}
                                             </span>
                                         @elseif($item->status == 'inititate' || $item->status == 'Pending')
                                             <span class="badge bg-warning mt-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Pending')
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.transfer_pending') }}
                                             </span>
                                         @elseif($item->status == 'Reject')
                                             <span class="badge bg-danger mt-1">
-                                                <i class="fa fa-circle text-white font-12"></i> @lang('Transfer Rejected')
+                                                <i class="fa fa-circle text-white font-12"></i>
+                                                {{ __('transaction.transfer_rejected') }}
                                             </span>
                                         @endif
                                     </div>
@@ -429,12 +439,12 @@
                                 <td>
                                     {{ $item->feedback }}
                                 </td>
-                                <td data-label="@lang('Method')">
+                                <td data-label="{{ __('transaction.method') }}">
                                     {{ $item->e_wallet_phone_number }}
                                     <br>
                                     {{ $item->e_wallet_type }}
                                 </td>
-                                <td data-label="@lang('Method')">{{ $item->request_source }}</td>
+                                <td data-label="{{ __('transaction.method') }}">{{ $item->request_source }}</td>
                                 <td>
                                     <div class="dropdown">
                                         <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -447,15 +457,16 @@
                                                 <button type="button" class="btn btn-sm edit_button"
                                                     data-bs-toggle="modal" data-bs-target="#newModalb"
                                                     onclick="setBalanceItem({{ $item->id }})">
-                                                    <i class="icon-base ti tabler-report-money me-1"></i> Send Callback
+                                                    <i class="icon-base ti tabler-report-money me-1"></i>
+                                                    {{ __('transaction.send_callback') }}
                                                 </button><br>
                                                 @if (isset($item))
                                                     <button class="btn  edit_buttonc  btn-sm" data-bs-toggle="modal"
                                                         data-bs-target="#myModalc" data-title="Edit"
                                                         data-id="{{ $item->id }}"
                                                         data-e_wallet_phone_number="{{ $item->e_wallet_phone_number }}">
-                                                        <i class="icon-base ti tabler-device-mobile  me-1"></i> Change
-                                                        E-Wallet No
+                                                        <i class="icon-base ti tabler-device-mobile  me-1"></i>
+                                                        {{ __('transaction.change_ewallet') }}
                                                     </button><br>
                                                 @endif
                                                 @php
@@ -472,9 +483,11 @@
                                                     data-status="{{ $item->transfer_status }}"
                                                     data-statusb="{{ $item->status ? $item->status : '' }}">
                                                     @if (Request::routeIs('admin.payout-request'))
-                                                        <i class="icon-base ti tabler-pencil me-1"></i> Edit
+                                                        <i class="icon-base ti tabler-pencil me-1"></i>
+                                                        {{ __('transaction.edit') }}
                                                     @else
-                                                        <i class="icon-base ti tabler-eye me-1"></i>View
+                                                        <i
+                                                            class="icon-base ti tabler-eye me-1"></i>{{ __('transaction.view') }}
                                                     @endif
                                                 </button>
                                             @endif
@@ -486,7 +499,7 @@
                         @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">{{ __('transaction.no_data_found') }}</p>
                                 </td>
                             </tr>
 
@@ -504,7 +517,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Change E-Wallet No.')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.change_ewallet_title') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <?php
@@ -519,11 +532,11 @@
 
                         <div class="get-feedback">
 
-                            <label>E-Wallet No.</label>
+                            <label>{{ __('transaction.ewallet_no') }}</label>
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
                             <button type="submit" class="btn btn-primary mt-3" name="status"
-                                value="1">@lang('Change')</button>
+                                value="1">{{ __('transaction.change') }}</button>
                         </div>
                         <input type="hidden" class="action_id" name="id">
                     </div>
@@ -531,7 +544,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
-                        data-bs-dismiss="modal">@lang('Close')</button>
+                        data-bs-dismiss="modal">{{ __('transaction.close') }}</button>
                 </div>
 
             </div>
@@ -542,7 +555,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Send Callback')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.send_callback') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="addBalanceForm" action="{{ route('admin.run.callback') }}" method="POST">
@@ -551,7 +564,7 @@
                         <div class="row justify-content-between align-items-center">
                             <input type="text" hidden id="account_id" class="form-control" name="id">
                             <div class="col-md-12">
-                                Callback Status
+                                {{ __('transaction.callback_status') }}
                                 <span id="spinner2" style="display: none;">
                                     <span class="spinner-border text-primary" role="status">
                                     </span>
@@ -564,12 +577,12 @@
                                 </span>
                                 <br>
                                 <br>
-                                <p>Message: <span id="text1"></span></p>
+                                <p>{{ __('transaction.message') }}: <span id="text1"></span></p>
                                 <br>
                                 <div id="apiresponse" style="display: none;">
-                                    <h4>Response</h4>
-                                    <p>Response Code: <span id="text2"></span></p>
-                                    <p>Response Body: </p>
+                                    <h4>{{ __('transaction.response') }}</h4>
+                                    <p>{{ __('transaction.response_code') }}: <span id="text2"></span></p>
+                                    <p>{{ __('transaction.response_body') }}: </p>
                                     <div style="background-color: black;color:white;padding:10px"><span
                                             id="text3"></span></div>
                                 </div>
@@ -622,7 +635,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Payout Information')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.payout_information') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form role="form" method="POST" class="actionRoute" id="actionRoutee" action=""
@@ -639,27 +652,26 @@
                     </div>
                     <div class="modal-footer">
                         <input type="hidden" id="status" name="status">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{{ __('transaction.close') }}
                         </button>
 
                         <input type="hidden" class="action_id" name="id">
                         <div id="submit1" style="display: none;">
                             <button type="submit" id="btn2" class="btn btn-primary" name="status"
-                                value="2">@lang('Approve')</button>
+                                value="2">{{ __('transaction.approve') }}</button>
                         </div>
                         <div id="submit2" style="display: none;">
                             <button type="submit" id="btn4" class="btn btn-dark" name="status"
-                                value="4">@lang('Mark As
-                                                                                                                                Complete')</button>
+                                value="4">{{ __('transaction.mark_as_complete') }}</button>
                         </div>
                         <div id="submit4" style="display: none;">
                             <button type="submit" id="btn5" class="btn btn-warning" name="status"
-                                value="5">@lang('Mark
-                                                                                                                                As Pending')</button>
+                                value="5">{{ __('transaction.mark_as_pending') }}</button>
                         </div>
                         <div id="submit3" style="display: none;">
                             <button type="submit" id="btn3" class="btn btn-danger" name="status"
-                                value="3">@lang('Reject')</button>
+                                value="3">{{ __('transaction.reject') }}</button>
                         </div>
                     </div>
                 </form>
@@ -691,7 +703,8 @@
                     $('form').on('submit', function() {
                         const $submitButton = $(this).find('button[type="submit"]');
                         $submitButton.prop('disabled', true).html(
-                            '<i class="fa fa-spinner fa-spin me-1"></i> @lang('Processing...')');
+                            "<i class='fa fa-spinner fa-spin me-1'></i> {{ __('transaction.processing') }}"
+                        );
                         return true;
                     });
 
@@ -781,16 +794,16 @@
                         // Show remarks dropdown
                         $('.addForm').html(`
                     <div class="form-group">
-                        <label for="feedback">@lang('Remarks')</label>
+                        <label for="feedback">{{ __('transaction.remarks') }}</label>
                         <select class="form-control" name="feedback" id="feedback" required>
-                            <option value="">@lang('Select Feedback')</option>
-                            <option value="invalid_phone_number">@lang('Invalid phone number')</option>
-                            <option value="account_limit_over">@lang('Account limit over')</option>
-                            <option value="kyc_incomplete">@lang('Customer account did not complete KYC')</option>
-                            <option value="nagad_server_down">@lang('Nagad server down')</option>
-                            <option value="bkash_server_down">@lang('bKash server down')</option>
-                            <option value="rocket_server_down">@lang('Rocket server down')</option>
-                            <option value="others">@lang('Others')</option>
+                            <option value="">{{ __('transaction.select_feedback') }}</option>
+                            <option value="invalid_phone_number">{{ __('transaction.invalid_phone_number') }}</option>
+                            <option value="account_limit_over">{{ __('transaction.account_limit_over') }}</option>
+                            <option value="kyc_incomplete">{{ __('transaction.kyc_incomplete') }}</option>
+                            <option value="nagad_server_down">{{ __('transaction.nagad_server_down') }}</option>
+                            <option value="bkash_server_down">{{ __('transaction.bkash_server_down') }}</option>
+                            <option value="rocket_server_down">{{ __('transaction.rocket_server_down') }}</option>
+                            <option value="others">{{ __('transaction.others') }}</option>
                         </select>
                     </div>
                 `);
@@ -809,7 +822,7 @@
                             if (btnId === 'btn3') {
                                 const selectBox = document.querySelector("select[name='feedback']");
                                 if (!selectBox || selectBox.value === '') {
-                                    alert("Please select an issue before proceeding.");
+                                    alert("{{ __('transaction.select_issue_alert') }}");
                                     return;
                                 }
                             }
@@ -829,7 +842,7 @@
                     // Withdrawal Test
                     $('#runWithdrawalTest').click(function() {
                         if ($('#acc_no').val() === "") {
-                            alert("Please select an Admin Account");
+                            alert("{{ __('transaction.select_admin_account') }}");
                             return;
                         }
                     });
@@ -873,9 +886,7 @@
                                 $('#spinner2').hide();
                                 $('#tickMark3').show();
                                 $('#apiresponse').hide();
-                                $("#text1").text(
-                                    'An error occurred while processing your request. Please try again.'
-                                );
+                                $("#text1").text("{{ __('transaction.processing_error') }}");
                                 $("#text2, #text3").text('');
                             }
                         });

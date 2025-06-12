@@ -49,7 +49,6 @@ return [
 
     // Buttons
     'save' => 'Save',
-
     'add_new_api' => 'Add New API',
     'topup' => 'Topup',
     'balance_adjustment' => 'Balance Adjustment',
@@ -82,7 +81,6 @@ return [
     // Clipboard Copy
     'clipboard_copy_success' => 'Copied to clipboard!',
     'clipboard_copy_failed' => 'Failed to copy text.',
-
     'delete' => 'Delete',
     'reload' => 'Reload',
     'copy' => 'Copy',
