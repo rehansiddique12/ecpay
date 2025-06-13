@@ -55,9 +55,12 @@
         #closeModal:hover {
             background-color: rgba(97, 96, 96, 0.137)
         }
-        div:where(.swal2-container).swal2-top-end>.swal2-popup, div:where(.swal2-container).swal2-top-right>.swal2-popup {
-            margin-top:3rem;
+
+        div:where(.swal2-container).swal2-top-end>.swal2-popup,
+        div:where(.swal2-container).swal2-top-right>.swal2-popup {
+            margin-top: 3rem;
         }
+
     </style>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -460,95 +463,69 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+
         const Toast = Swal.mixin({
-toast: true,
-position: "top-end",
-showConfirmButton: false,
-timer: 3000,
-timerProgressBar: true,
-didOpen: (toast) => {
-toast.onmouseenter = Swal.stopTimer;
-toast.onmouseleave = Swal.resumeTimer;
-}
-});
-    </script>
-    <script>
-        let transactionInterval;
-
-        function startTransactionInterval() {
-            $(document).trigger('fetchTransactions');
-            if (!transactionInterval) {
-                transactionInterval = setInterval(function () {
-                    console.log('Auto Fetching transactions...');
-                    $(document).trigger('fetchTransactions');
-                }, 60000); // every 60 seconds
-            }
-        }
-
-        function stopTransactionInterval() {
-            if (transactionInterval) {
-                clearInterval(transactionInterval);
-                transactionInterval = null;
-                console.log('Auto-fetching stopped.');
-            }
-        }
-
-        $('#transaction-search').on('input', function () {
-            const value = $(this).val().trim();
-
-            if (value === '') {
-                startTransactionInterval(); // resume when field is cleared
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
             }
         });
 
-        $('#closeAllBtn').on('click', function() {
-        // 1. Clear all session storage keys
-        sessionStorage.clear(); // this clears ALL keys stored in sessionStorage
+    </script>
+    <script>
+        $('#closeAllBtn').on('click', function () {
+            // 1. Clear all session storage keys
+            sessionStorage.clear(); // this clears ALL keys stored in sessionStorage
 
-        // 2. Empty the transactions container
-        $('#transactions-container').empty();
+            // 2. Empty the transactions container
+            $('#transactions-container').empty();
 
-        // Optional: Show a brief confirmation (toast/alert)
-        alert('All session data cleared and results reset.');
-    });
+            // Optional: Show a brief confirmation (toast/alert)
+            alert('All session data cleared and results reset.');
+        });
 
-    (function (jQuery) {
+        (function (jQuery) {
 
-        jQuery(document).ready(function () {
-            jQuery(document).on("click", '.edit_button', function (e) {
-                var id = jQuery(this).data('id');
-                jQuery(".action_id").val(id);
-                jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
-                // var details = Object.entries(jQuery(this).data('info'));
-                var list = [];
-                var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
+            jQuery(document).ready(function () {
+                jQuery(document).on("click", '.edit_button', function (e) {
+                    var id = jQuery(this).data('id');
+                    jQuery(".action_id").val(id);
+                    jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
+                    // var details = Object.entries(jQuery(this).data('info'));
+                    var list = [];
+                    var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
 
-                console.log(jQuery(this).data('status'));
+                    console.log(jQuery(this).data('status'));
 
-                if (jQuery(this).data('status') == '2') {
-                    jQuery('#submit1').hide();
-                    jQuery('#submit2').show();
-                    jQuery('#submit3').show();
-                } else if (jQuery(this).data('status') == '3') {
-                    jQuery('#submit1').hide();
-                    jQuery('#submit2').hide();
-                    jQuery('#submit3').hide();
-                } else {
-                    jQuery('#submit1').show();
-                    jQuery('#submit2').hide();
-                    jQuery('#submit3').show();
-                }
+                    if (jQuery(this).data('status') == '2') {
+                        jQuery('#submit1').hide();
+                        jQuery('#submit2').show();
+                        jQuery('#submit3').show();
+                    } else if (jQuery(this).data('status') == '3') {
+                        jQuery('#submit1').hide();
+                        jQuery('#submit2').hide();
+                        jQuery('#submit3').hide();
+                    } else {
+                        jQuery('#submit1').show();
+                        jQuery('#submit2').hide();
+                        jQuery('#submit3').show();
+                    }
 
-                if (jQuery(this).data('statusb') == 'Complete') {
-                    jQuery('#submit4').show();
-                    jQuery('#submit2').hide();
-                } else {
-                    jQuery('#submit4').hide();
-                }
+                    if (jQuery(this).data('statusb') == 'Complete') {
+                        jQuery('#submit4').show();
+                        jQuery('#submit2').hide();
+                    } else {
+                        jQuery('#submit4').hide();
+                    }
 
-                // list[details.length + 1] = ``;
+                    // list[details.length + 1] = ``;
 
-                jQuery('.addForm').html(`
+                    jQuery('.addForm').html(`
                 <div class="form-group">
                     <label for="feedback">@lang('Remarks')</label>
                     <select class="form-control" name="feedback" id="feedback">
@@ -564,119 +541,122 @@ toast.onmouseleave = Swal.resumeTimer;
                 </div>
             `);
 
-                jQuery('.withdraw-detail').html(list);
+                    jQuery('.withdraw-detail').html(list);
+                });
             });
-        });
 
-        jQuery(document).on("click", '.edit_buttonc', function (e) {
-            var id = jQuery(this).data('id');
-            var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
+            jQuery(document).on("click", '.edit_buttonc', function (e) {
+                var id = jQuery(this).data('id');
+                var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
 
-            jQuery(".action_id").val(id);
-            jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
-        });
+                jQuery(".action_id").val(id);
+                jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
+            });
 
-    })(jQuery);
+        })(jQuery);
 
-    function fetchrecords(search = '', source = '') {
-    console.log(search, source);
-    let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
+        function fetchrecords(search = '', source = '') {
+            console.log(search, source);
+            let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
-    // Check if the search already exists
-    const existingIndex = history.findIndex(item => item.search === search && item.source === source);
-    const searchInput = document.getElementById('transaction-search');
-const searchValue = searchInput.value.trim(); // Get and trim the search value
-if (existingIndex !== -1 && searchValue !== "") {
-        // If it exists, show an alert
-        Swal.fire({
-                                icon: 'error',
-                                title: 'Oops!',
-                                text: 'This card already exists!',
+            // Check if the search already exists
+            const existingIndex = history.findIndex(item => item.search === search && item.source === source);
+            const searchInput = document.getElementById('transaction-search');
+            const searchValue = searchInput.value.trim(); // Get and trim the search value
+            if (existingIndex !== -1 && searchValue !== "") {
+                // If it exists, show an alert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops!',
+                    text: 'This card already exists!',
+                });
+
+
+                // Move the existing item to the top
+                const existingItem = history.splice(existingIndex, 1)[0]; // Remove from current position
+                history.unshift(existingItem); // Add to the beginning
+
+                // Update sessionStorage
+                sessionStorage.setItem('searchHistory', JSON.stringify(history));
+            } else {
+                // If it doesn't exist, add it to the top
+                history.unshift({
+                    search,
+                    source
+                });
+                sessionStorage.setItem('searchHistory', JSON.stringify(history));
+            }
+            console.log(history);
+
+            $.ajax({
+                url: "{{ route('admin.fetchrecords') }}",
+                method: "GET",
+                dataType: "json",
+                data: {
+                    search: search,
+                    source: source
+                },
+                success: function (response) {
+                    // Check if the card already exists in the DOM
+                    const existingCard = $(`.transaction-card[data-id="${response.transactions[0]?.id}"]`);
+
+                    if (existingCard.length > 0) {
+                        existingCard.prependTo('#transactions-container');
+                        return; // Skip adding a duplicate
+                    }
+
+                    $.each(response.transactions, function (index, transaction) {
+                        console.log(transaction);
+                        $(document).off('click', '.edit-btn').on('click', '.edit-btn',
+                            function () {
+                                const transaction = $(this).data(
+                                    'transaction'); // set below
+                                $('#editId').val(transaction.id);
+                                $('#editrejectId').val(transaction.id);
+                                $('#editType').val(transaction.type);
+                                $('#editrejectType').val(transaction.type);
+                                $('#editSender').val(transaction.sender || '');
+                                $('#editEwallet').val(transaction
+                                    .e_wallet_phone_number || '');
+                                $('#editTxnId').val(transaction.txn_id || '');
+                                $('#editEwalletType').val(transaction
+                                    .e_wallet_type || 'Personal');
+                                $('#editDateTime').val(transaction.date_time ||
+                                    new Date().toISOString().slice(0, 16));
+                                $('#editModal').modal('show');
                             });
 
+                        const currentUserId = response.user_id;
+                        let showAdjustment = transaction.adjusted_by == null ? '' :
+                            'd-none';
+                        let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' :
+                            'WITHDRAWL';
+                        let statusColor = transaction.status === 'pending' ?
+                            'text-warning' : 'text-success';
+                        let showEdit = transaction.adjusted_by == currentUserId ? '' :
+                            'd-none';
+                        let editButton = '';
+                        let typeClass = transaction.type === 'payment' ?
+                            'text-success' : 'text-primary';
 
-        // Move the existing item to the top
-        const existingItem = history.splice(existingIndex, 1)[0]; // Remove from current position
-        history.unshift(existingItem); // Add to the beginning
-
-        // Update sessionStorage
-        sessionStorage.setItem('searchHistory', JSON.stringify(history));
-    } else {
-        // If it doesn't exist, add it to the top
-        history.unshift({ search, source });
-        sessionStorage.setItem('searchHistory', JSON.stringify(history));
-    }
-    console.log(history);
-
-    $.ajax({
-        url: "{{ route('admin.fetchrecords') }}",
-        method: "GET",
-        dataType: "json",
-        data: {
-            search: search,
-            source: source
-        },
-        success: function (response) {
-            // Check if the card already exists in the DOM
-            const existingCard = $(`.transaction-card[data-id="${response.transactions[0]?.id}"]`);
-
-            if (existingCard.length > 0) {
-                existingCard.prependTo('#transactions-container');
-                return; // Skip adding a duplicate
-            }
-
-            $.each(response.transactions, function (index, transaction) {
-                console.log(transaction);
-                $(document).off('click', '.edit-btn').on('click', '.edit-btn',
-                    function () {
-                        const transaction = $(this).data(
-                            'transaction'); // set below
-                        $('#editId').val(transaction.id);
-                        $('#editrejectId').val(transaction.id);
-                        $('#editType').val(transaction.type);
-                        $('#editrejectType').val(transaction.type);
-                        $('#editSender').val(transaction.sender || '');
-                        $('#editEwallet').val(transaction
-                            .e_wallet_phone_number || '');
-                        $('#editTxnId').val(transaction.txn_id || '');
-                        $('#editEwalletType').val(transaction
-                            .e_wallet_type || 'Personal');
-                        $('#editDateTime').val(transaction.date_time ||
-                            new Date().toISOString().slice(0, 16));
-                        $('#editModal').modal('show');
-                    });
-
-                const currentUserId = response.user_id;
-                let showAdjustment = transaction.adjusted_by == null ? '' :
-                    'd-none';
-                let typeLabel = transaction.type === 'payment' ? 'DEPOSIT' :
-                    'WITHDRAWL';
-                let statusColor = transaction.status === 'pending' ?
-                    'text-warning' : 'text-success';
-                let showEdit = transaction.adjusted_by == currentUserId ? '' :
-                    'd-none';
-                let editButton = '';
-                let typeClass = transaction.type === 'payment' ?
-                    'text-success' : 'text-primary';
-
-                if (transaction.type === 'payment') {
-                    editButton = `
+                        if (transaction.type === 'payment') {
+                            editButton = `
                         <button class="px-4 btn btn-sm edit-btn ${showEdit}" data-transaction='${JSON.stringify(transaction)}' style="background-color: rgb(124, 3, 180); color: white;">
                             Edit
                         </button>`;
-                } else if (transaction.type === 'payout') {
-                    const details = transaction.information ? JSON.stringify(
-                            transaction.information).replace(/"/g, '&quot;') :
-                        '';
-                    const feedback = transaction.feedback || '';
-                    const status = transaction.transfer_status || '';
-                    const statusb = transaction.status || '';
+                        } else if (transaction.type === 'payout') {
+                            const details = transaction.information ? JSON.stringify(
+                                    transaction.information).replace(/"/g, '&quot;') :
+                                '';
+                            const feedback = transaction.feedback || '';
+                            const status = transaction.transfer_status || '';
+                            const statusb = transaction.status || '';
 
-                    // Use a route pattern or inject it via JavaScript context if needed
-                    const payoutRoute =
-                        `/admin/payout-action/${transaction.id}`;
+                            // Use a route pattern or inject it via JavaScript context if needed
+                            const payoutRoute =
+                                `/admin/payout-action/${transaction.id}`;
 
-                    editButton = `
+                            editButton = `
                         <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
                             data-bs-toggle="modal"
                             data-bs-target="#myModal"
@@ -688,19 +668,19 @@ if (existingIndex !== -1 && searchValue !== "") {
                             data-statusb="${statusb}">
                             Edit P
                         </button>`;
-                }
-                let inputTxnNo = transaction.txn_record && transaction
-                    .txn_record.txn_no ?
-                    transaction.txn_record.txn_no :
-                    '-';
-                let callbackValue = transaction.callback != 0 ? 'Send' : null;
-                let apiName = transaction.api ? transaction.api.name : 'N/A';
-                let locationName = transaction.e_wallet_account && transaction
-                    .e_wallet_account.location ?
-                    transaction.e_wallet_account.location.location :
-                    'N/A';
+                        }
+                        let inputTxnNo = transaction.txn_record && transaction
+                            .txn_record.txn_no ?
+                            transaction.txn_record.txn_no :
+                            '-';
+                        let callbackValue = transaction.callback != 0 ? 'Send' : null;
+                        let apiName = transaction.api ? transaction.api.name : 'N/A';
+                        let locationName = transaction.e_wallet_account && transaction
+                            .e_wallet_account.location ?
+                            transaction.e_wallet_account.location.location :
+                            'N/A';
 
-                let card = `
+                        let card = `
                     <div class="col transaction-card" data-id="${transaction.id}" data-type="${transaction.type}">
                         <div class="custom-card p-4">
                             <div class="d-flex justify-content-between align-items-start">
@@ -758,44 +738,45 @@ if (existingIndex !== -1 && searchValue !== "") {
                         </div>
                     </div>
                 `;
-                $('#transactions-container').prepend(card);
+                        $('#transactions-container').prepend(card);
+                    });
+                }
             });
         }
-    });
-}
 
-    // On page load, check for stored search parameters and fetch records if they exist
-    $(document).ready(function () {
-        let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
+        // On page load, check for stored search parameters and fetch records if they exist
+        $(document).ready(function () {
+            let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
-        // Remove duplicates based on both search and source
-        const uniqueHistory = history.filter((value, index, self) =>
-            index === self.findIndex(item => item.search === value.search && item.source === value.source)
-        );
+            // Remove duplicates based on both search and source
+            const uniqueHistory = history.filter((value, index, self) =>
+                index === self.findIndex(item => item.search === value.search && item.source === value
+                    .source)
+            );
 
-        // Filter entries with empty values
-        const emptyEntries = uniqueHistory.filter(item => item.search === '' && item.source === '');
+            // Filter entries with empty values
+            const emptyEntries = uniqueHistory.filter(item => item.search === '' && item.source === '');
 
-        // Filter entries with non-empty values
-        const validEntries = uniqueHistory.filter(item => item.search !== '' && item.source !== '');
+            // Filter entries with non-empty values
+            const validEntries = uniqueHistory.filter(item => item.search !== '' && item.source !== '');
 
-        // Call fetchrecords on all empty entries first
-        emptyEntries.forEach(item => fetchrecords(item.search, item.source));
+            // Call fetchrecords on all empty entries first
+            emptyEntries.forEach(item => fetchrecords(item.search, item.source));
 
-        // If there are valid entries, call fetchrecords once for each
-        validEntries.forEach(item => fetchrecords(item.search, item.source));
+            // If there are valid entries, call fetchrecords once for each
+            validEntries.forEach(item => fetchrecords(item.search, item.source));
 
-        // Optional: if nothing in session, call fetchrecords without params
-        if (history.length === 0) {
-            fetchrecords();
-        }
-    });
+            // Optional: if nothing in session, call fetchrecords without params
+            if (history.length === 0) {
+                fetchrecords();
+            }
+        });
 
     </script>
     <script>
         $(document).ready(function () {
             fetchTransactions();
-            startTransactionInterval();
+
 
             $('#editTransactionForm').submit(function (e) {
                 e.preventDefault();
@@ -895,6 +876,11 @@ if (existingIndex !== -1 && searchValue !== "") {
                 fetchrecords(searchValue, source);
             });
 
+            setInterval(function () {
+            fetchTransactions();
+            console.log('fetched');
+        }, 60000);
+
             function renderEwallets(ewallets) {
                 // Group by ewallet name (like bKash, Nagad, Rocket)
                 let ewalletGroups = {};
@@ -909,16 +895,16 @@ if (existingIndex !== -1 && searchValue !== "") {
                 let buttonsHtml = '';
                 let accountDetailsHtml = '';
                 const walletColors = {
-    'bkash': 'rgb(226, 35, 26)',      // Bkash red
-    'nagad': 'rgb(255, 138, 0)',      // Nagad orange
-    'rocket': 'rgb(0, 174, 239)',     // Rocket blue
-    'default': 'rgb(100, 149, 237)'   // Fallback color (if needed)
-};
+                    'bkash': 'rgb(226, 35, 26)', // Bkash red
+                    'nagad': 'rgb(255, 138, 0)', // Nagad orange
+                    'rocket': 'rgb(0, 174, 239)', // Rocket blue
+                    'default': 'rgb(100, 149, 237)' // Fallback color (if needed)
+                };
 
                 $.each(ewalletGroups, function (walletName, accounts) {
                     const walletKey = walletName.toLowerCase();
-    const color = walletColors[walletKey] || walletColors['default'];
-    buttonsHtml += `
+                    const color = walletColors[walletKey] || walletColors['default'];
+                    buttonsHtml += `
         <button class="px-4 btn btn-sm ewallet-btn"
                 data-wallet="${walletName}"
                 style="background-color: ${color}; color: white; border: none; cursor: pointer;">
@@ -956,22 +942,22 @@ if (existingIndex !== -1 && searchValue !== "") {
         });
 
         function fetchNotifications(notifications) {
-    $('#notifications-container').empty(); // clear previous
+            $('#notifications-container').empty(); // clear previous
 
-    $.each(notifications, function (index, notification) {
-        // Calculate the time difference in minutes
-        const createdAt = new Date(notification.updated_at);
-        const currentTime = new Date();
-        const timeDiffInMs = currentTime - createdAt;
-        const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
+            $.each(notifications, function (index, notification) {
+                // Calculate the time difference in minutes
+                const createdAt = new Date(notification.updated_at);
+                const currentTime = new Date();
+                const timeDiffInMs = currentTime - createdAt;
+                const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
 
-        // Determine the display text for time difference
-        let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
+                // Determine the display text for time difference
+                let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
 
-        // Access e-wallet data through relationship
-        const ewallet = notification.ewallet_account;
+                // Access e-wallet data through relationship
+                const ewallet = notification.ewallet_account;
 
-        let notifHtml = `
+                let notifHtml = `
         <div class="w-full py-2 px-2 items-center text-white d-flex justify-content-between notification-item"
              style="background-color: #504c79;" data-notification-id="${notification.id}">
             <p>Warning!! ${ewallet.e_wallet_name} ${ewallet.account_no} <br>balance is low.</p>
@@ -982,40 +968,40 @@ if (existingIndex !== -1 && searchValue !== "") {
         </div>
         `;
 
-        $('#notifications-container').append(notifHtml);
-    });
+                $('#notifications-container').append(notifHtml);
+            });
 
-    // Add click handler for close buttons
-    $(document).on('click', '.notification-btn-close', function() {
-        const notificationItem = $(this).closest('.notification-item');
-        const notificationId = notificationItem.data('notification-id');
+            // Add click handler for close buttons
+            $(document).on('click', '.notification-btn-close', function () {
+                const notificationItem = $(this).closest('.notification-item');
+                const notificationId = notificationItem.data('notification-id');
 
-        // Hide the notification immediately
-        notificationItem.slideUp(300, function() {
-            $(this).remove();
-        });
+                // Hide the notification immediately
+                notificationItem.slideUp(300, function () {
+                    $(this).remove();
+                });
 
-        // Make AJAX call to update user_id
-        $.ajax({
-            url: 'notifications/' + notificationId + '/mark-as-read',
-            method: 'PATCH', // or 'POST' depending on your API
-            data: {
-                _token: "{{ csrf_token() }}",
-            },
-            success: function(response) {
-                Toast.fire({
-                                icon: "success",
-                                title: "Notfication Read Successfully"
-                                });
-            },
-            error: function(xhr) {
-                console.error('Error updating notification');
-                // Optional: Show the notification again if the request fails
-                notificationItem.slideDown();
-            }
-        });
-    });
-}
+                // Make AJAX call to update user_id
+                $.ajax({
+                    url: 'notifications/' + notificationId + '/mark-as-read',
+                    method: 'PATCH', // or 'POST' depending on your API
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                    },
+                    success: function (response) {
+                        Toast.fire({
+                            icon: "success",
+                            title: "Notfication Read Successfully"
+                        });
+                    },
+                    error: function (xhr) {
+                        console.error('Error updating notification');
+                        // Optional: Show the notification again if the request fails
+                        notificationItem.slideDown();
+                    }
+                });
+            });
+        }
 
 
         function fetchPendingList(pendingList) {
@@ -1074,11 +1060,9 @@ if (existingIndex !== -1 && searchValue !== "") {
                     },
                     success: function (response) {
                         $(document).trigger('fetchrecords', [txnId, 'payout']);
-                        stopTransactionInterval();
 
                         if (!$('#transaction-search').val().trim()) {
                             $(document).trigger('fetchrecords');
-                            startTransactionInterval();
                         }
 
                     },
