@@ -664,6 +664,25 @@ $arr = [
         ],
     ],
 
+
+    'merchant_accounts' => [
+        'label' => "Merchant Accounts",
+        'access' => [
+            'view' => [
+                'admin.merchant_accounts',
+            ],
+            'add' => [
+                'admin.merchant_accounts.add',
+            ],
+            'edit' => [
+                'admin.merchant_accounts.update',
+            ],
+            'delete' => [
+                'admin.merchant_accounts.delete',
+            ],
+        ],
+    ],
+
     'agents' => [
         'label' => 'Agent Managements',
         'access' => [

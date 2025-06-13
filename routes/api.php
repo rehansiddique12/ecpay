@@ -6,6 +6,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\TelegramGroupController;
+use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,4 +56,8 @@ Route::middleware('api_logs_middleware')->group(function () {
     Route::post('/addPayout', [PayoutRecordController::class, 'addPayout']);
     Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
     Route::post('/checkBalance', [PaymentController::class, 'checkBalance']);
+
+    
+
+    Route::match(['get','post'],'/bkashcallback', [PartnerPayoutRecordController::class, 'bkashcallback']);  
 });
