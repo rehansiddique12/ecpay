@@ -98,6 +98,41 @@ return [
     'sent_from_label' => 'Sent From',
     'more_info_label' => 'More',
 
+//rehan
+    'my_balance_page_title' => 'My Balance',
+    'Withdrawalable_Amount_en' => 'Withdrawalable Amount',
+    'Total_Deposit_Transactions_en' => 'Total Deposit Transactions',
+    'Deposit_Charges_en' => 'Deposit Charges',
+    'Today_Deposit_ransactions_en' => 'Today Deposit ransactions',
+    'Total_Withdrawal_Transactions_en' => 'Total Withdrawal Transactions',
+    'Total_Withdrawal_Amount_en' => 'Total Withdrawal Amount',
+    'Withdrawal_Charges_en' => 'Withdrawal Charges',
+    'Today_Deposit_Transactions_en' => 'Today Deposit Transactions',
+    'Today_Deposit_Amount_en' => 'Today Deposit Amount',
+    'Today_Withdrawal_Transactions_en' => 'Today Withdrawal Transactions',
+    'Today_Withdrawal_Amount_en' => 'Today Withdrawal Amount',
+    'This_Month_Statistics_en' => 'This Month Statistics',
+    'This_Month Deposit_Transactions_en' => 'This Month Deposit Transactions',
+    'This_Month_Deposit_Amount_en' => 'This Month Deposit Amount',
+    'This_Month_Deposit_Charges_en' => 'This Month Deposit Charges',
+    'This_Month_Withdrawal_Transactions_en' => 'This Month Withdrawal Transactions',
+    'This_Month_Withdrawal_Amount_en' => 'This Month Withdrawal Amount',
+    'This_Month_Withdrawal_Charges_en' => 'This Month Withdrawal Charges',
+    'Completed_Settlements_en' => 'Completed Settlements',
+    'Total_Settlements_Count_en' => 'Total Settlements Count',
+    'Total_Settlements_Amount_en' => 'Total Settlements Amount',
+    'Total_Settlements_Charges_en' => 'Total Settlements Charges',
+    'Today_Settlements_Count_en' => 'Today Settlements Count',
+    'Today_Settlements_Amount_en' => 'Today Settlements Amount',
+    'Today_Settlements_Charges_en' => 'Today Settlements Charges',
+    'Month_Settlements_Count_en' => 'Month Settlements Count',
+    'Month_Settlements_Amount_en' => 'Month Settlements Amount',
+    'Month_Settlements_Charges_en' => 'Month Settlements Charges',
+    'This_Months_Summary_en' => 'This Months Summary',
+    'Gateway_Uses_en' => 'Gateway Uses',
+
+
+
 
 
 
