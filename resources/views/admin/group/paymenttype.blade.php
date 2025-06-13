@@ -16,17 +16,17 @@
                         <div class="card-header">
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                                 data-bs-target="#newModal">
-                                Add User
+                                {{ __('reports.add_user') }}
                             </button>
                         </div>
                         <table
                             class="categories-show-table table table-hover table-striped table-bordered settable table-sm">
                             <thead class="thead-dark bg-primary">
                                 <tr>
-                                    <th scope="col">@lang('ID')</th>
-                                    <th scope="col">@lang('Category Name')</th>
-                                    <th scope="col">@lang('Status')</th>
-                                    <th>Action</th>
+                                    <th scope="col">{{ __('reports.id') }}</th>
+                                    <th scope="col">{{ __('reports.category_name') }}</th>
+                                    <th scope="col">{{ __('reports.status') }}</th>
+                                    <th>{{ __('reports.action') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -46,7 +46,7 @@
                                                 </span>
 
                                                 <span class="switch-label">
-                                                    {{ $item['status'] == 1 ? 'Active' : 'Inactive' }}
+                                                    {{ $item['status'] == 1 ? __('reports.active') : __('reports.inactive') }}
                                                 </span>
                                             </label>
                                         </td>
@@ -65,14 +65,15 @@
                                                         <button type="submit"
                                                             class="btn btn-sm btn-icon edit_button"><i
                                                                 class="icon-base ti tabler-trash me-1"></i>
-                                                            Delete</button>
+                                                            {{ __('reports.delete') }}</button>
                                                     </form>
                                                     {{-- @endif --}}
                                                     {{-- @if (adminAccessRoute(config('role.partners.access.edit'))) --}}
                                                     <button type="button" class="btn btn-sm btn-icon edit_button"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#editModal{{ $item['id'] }}">
-                                                        <i class="icon-base ti tabler-user me-1"></i> Edit
+                                                        <i class="icon-base ti tabler-user me-1"></i>
+                                                        {{ __('reports.edit_record') }}
                                                     </button><br>
                                                     {{-- @endif --}}
                                                 </div>
@@ -82,7 +83,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
+                                            <p class="text-dark">{{ __('reports.no_data_found') }}</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -103,7 +104,8 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header bg-primary modal-colored-header">
-                        <h5 class="modal-title" style="color: white" id="modalTopTitle">@lang('Edit Record') </h5>
+                        <h5 class="modal-title" style="color: white" id="modalTopTitle">{{ __('reports.edit_record') }}
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form action="{{ route('admin.type.update', $item['id']) }}" method="POST">
@@ -114,7 +116,7 @@
                                 <!-- Input fields for editing the record -->
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="pr-3">Category Name</label>
+                                        <label class="pr-3">{{ __('reports.category_name') }}</label>
                                         <input type="text" class="form-control" name="name"
                                             value="{{ $item['name'] }}" required />
                                     </div>
@@ -122,10 +124,10 @@
                                         <div class="col-lg-12 col-md-12">
                                             <div class="col-md-12">
                                                 <div class="form-group">
-                                                    <label class="pr-3">Status</label>
+                                                    <label class="pr-3">{{ __('reports.status') }}</label>
                                                     <select class="form-control" name="status" required>
-                                                        <option value="1">Active</option>
-                                                        <option value="0">InActive</option>
+                                                        <option value="1">{{ __('reports.active') }}</option>
+                                                        <option value="0">{{ __('reports.inactive') }}</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -134,9 +136,9 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">@lang('Update')</button>
+                                <button type="submit" class="btn btn-primary">{{ __('reports.update') }}</button>
                                 <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
-                                    aria-label="Close">@lang('Close')</button>
+                                    aria-label="Close">{{ __('reports.close') }}</button>
                             </div>
                         </div>
                     </form>
@@ -150,7 +152,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" style="color: #7367f0"" id="modalTopTitle">@lang('Add New')</h5>
+                    <h5 class="modal-title" style="color: #7367f0" id="modalTopTitle">{{ __('reports.add_new') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.type.add') }}" method="POST">
@@ -162,26 +164,26 @@
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Category Name</label>
+                                    <label class="pr-3">{{ __('reports.category_name') }}</label>
                                     <input type="text" class="form-control" name="name" required />
                                 </div>
                             </div>
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Status</label>
+                                    <label class="pr-3">{{ __('reports.status') }}</label>
                                     <select class="form-control" name="status" required>
-                                        <option value="1">Active</option>
-                                        <option value="0">InActive</option>
+                                        <option value="1">{{ __('reports.active') }}</option>
+                                        <option value="0">{{ __('reports.inactive') }}</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">@lang('Save')</button>
+                        <button type="submit" class="btn btn-primary">{{ __('reports.save') }}</button>
                         <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
-                            aria-label="Close">@lang('Close')</button>
+                            aria-label="Close">{{ __('reports.close') }}</button>
                     </div>
                 </form>
             </div>

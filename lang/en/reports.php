@@ -73,4 +73,70 @@ return [
     'difference' => 'Difference',
     'current_balance' => 'Current Balance',
     'total' => 'Total',
+    
+    // Partner Account Balance Summary Completions
+    'partner_account_balance_summary_completions' => 'Partner Account Balance Summary Completions',
+
+    // Revenue Center
+    'revenue_center' => 'Revenue Center',
+    'total_paid_commission' => 'Total Paid Commission',
+    'daily_profit' => 'Daily Profit',
+
+    // Partner Balance Logs
+    'partner_balance_logs' => 'Partner Balance Logs',
+    'transection_id' => 'Transaction ID',
+    'transection_date' => 'Transaction Date',
+    'txn_no' => 'Txn No.',
+    'partner_txn_no' => 'Partner Txn No.',
+    'type' => 'Type',
+    'ewallet_account_no' => 'E-Wallet Acc. No.',
+    'amount' => 'Amount',
+    'charges' => 'Charges',
+    'final_amount' => 'Final Amount',
+    'balance' => 'Balance',
+    'transection_type' => 'Transaction Type',
+    'created_at' => 'Created At',
+
+    // Transections Logs
+    'transections_logs' => 'Transections Logs',
+
+    // Transections Logs (Partner Balance R1)
+    'transactions_logs' => 'Transactions Logs',
+    'summary' => 'Summary',
+    'charge' => 'Charge',
+    'api_transactions' => 'API Transactions',
+    'settlements' => 'Settlements',
+    'partner_commissions' => 'Partner Commissions',
+
+    // Master Report / Partner Account Summary
+    'page_title' => 'Master Report',
+    'commission' => 'Commission',
+    'top_up' => 'Top Up',
+    'adjustment' => 'Adjustment',
+    'transfer_fees' => 'Transfer Fees (BDT)',
+    'settlement' => 'Settlement (BDT)',
+    'revenue' => 'Revenue (BDT)',
+    'total_balance' => 'Total Balance (BDT)',
+    'qty' => 'Qty',
+    'total' => 'Total (BDT)',
+    'merchant_charges' => 'Merchant Charges (BDT)',
+    'e_wallet_fee' => 'E-Wallet Fee (BDT)',
+    'e_wallet_commission' => 'E-Wallet Commission (BDT)',
+    'bdt' => 'BDT',
+    'charges' => 'Charges (BDT)',
+
+    // Payment Type Management
+    'payment_type_management' => 'Payment Type Management',
+    'add_user' => 'Add User',
+    'category_name' => 'Category Name',
+    'status' => 'Status',
+    'action' => 'Action',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'delete' => 'Delete',
+    'edit_record' => 'Edit Record',
+    'update' => 'Update',
+    'close' => 'Close',
+    'add_new' => 'Add New',
+    'save' => 'Save',
 ];
