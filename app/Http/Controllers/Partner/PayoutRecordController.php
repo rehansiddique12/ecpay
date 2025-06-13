@@ -2923,7 +2923,7 @@ class PayoutRecordController extends Controller
 
                     $trxID = $executeBkashPayment['trxID'] ?? "";
                     $transactionStatus = $executeBkashPayment['transactionStatus'] ?? "";
-                    $serviceFee = $executeBkashPayment['serviceFee'] ?? "";
+                    $serviceFee = $executeBkashPayment['serviceFee'] ?? 0;
                     $account_no = $executeBkashPayment['payerAccount'] ?? "";
 
                     if($transactionStatus=="Completed"){
