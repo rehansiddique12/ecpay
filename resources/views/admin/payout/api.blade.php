@@ -840,9 +840,6 @@
 
                                 // Loop through each log entry
                                 response.data.forEach(function(log) {
-                                    // Add alert to show request payload
-                                    alert('Request Payload: ' + JSON.stringify(log.request_payload, null, 2));
-
                                     html += `
                                         <tr>
                                             <td>${log.id}</td>
@@ -914,7 +911,6 @@
                                             <td style="max-width: 300px; overflow: auto;">
                                                 <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.request_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
-                                            alert(request_payload)
                                             <td>${log.response_code ?? 'N/A'}</td>
                                             <td style="max-width: 300px; overflow: auto;">
                                                 <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response_payload, null, 2) ?? 'N/A'}</pre>

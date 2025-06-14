@@ -7,6 +7,7 @@ Request::routeIs('admin.balance.logs');
 $isMainActive = in_array(Route::currentRouteName(), [
 'partner.apis',
 'partner.dashboard',
+'partner.staff',
 'partner.settlements',
 'partner.partner.balance',
 'partner.partner.balance.search',

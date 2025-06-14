@@ -12,13 +12,13 @@
 
              <div class="col-md-4">
                 <div class="form-group">
-                    <label>From Date</label>
+                    <label>@lang('partner_basic.from_date_label')</label>
                     <input type="text" class="form-control datetimepicker" value="{{$from_date}}" name="from_date"/>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label>To Date</label>
+                    <label>@lang('partner_basic.to_date_label')</label>
                     <input type="text" class="form-control datetimepicker" value="{{$to_date}}" name="to_date" />
                 </div>
             </div>
@@ -26,9 +26,9 @@
                 <div class="form-group mt-2">
                     <br>
                     <button type="submit" value="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     <a href="{{ route('partner.report.export_excel_record_completions', ['from_date' => $from_date, 'to_date' => $to_date , 'order' => request('order') === 'asc' ? 'asc' : 'desc']) }}" class="btn waves-effect waves-light btn-success">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
+                        <i class="icon-base ti tabler-download me-1"></i> @lang('partner_basic.export')
                     </a>
                 </div>
             </div>
@@ -41,16 +41,16 @@
         <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
             <div class="card-body">
                 <div class="table-responsive">
-                            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                            <h3 style="color: #7367f0">{{ __('partner_basic.Transactions_Completions_Logs_en')}}</h3>
                     <table class="categories-show-table table table-hover table-striped table-bordered">
                         <thead class="thead-dark">
                             <tr>
                                 <th scope="col">
-                                    Transaction Date
+                                    @lang('partner_basic.Transaction_Date_en')
                                 </th>
                                 <th scope="col">
                                     <a href="{{ route('partner.reports.log_completions', array_merge(request()->all(), ['sort_by' => 'updated_at', 'order' => request('order') === 'asc' ? 'desc' : 'asc'])) }}">
-                                        Completed Date
+                                        @lang('partner_basic.Completed_Date_en')
                                         @if (request('sort_by') === 'updated_at')
                                             @if (request('order') === 'asc')
                                                 <i class="bi bi-caret-up-fill"></i>
@@ -62,17 +62,18 @@
                                         @endif
                                     </a>
                                 </th>
-                                <th scope="col">Txn No.</th>
-                                <th scope="col">Partner Txn No.</th>
-                                <th scope="col">Account No.</th>
-                                <th scope="col">Source</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">E-Wallet Acc. No.</th>
-                                <th scope="col">Amount</th>
-                                <th scope="col">Charges</th>
-                                <th scope="col">Final Amount</th>
-                                <th scope="col">Balance</th>
-                                <th scope="col">Transaction Type</th>
+                                <th scope="col">@lang('partner_basic.Txn_No_en')</th>
+                                <th scope="col">@lang('partner_basic.Partner_Txn_No_en')</th>
+                                <th scope="col">@lang('partner_basic.Account_No_en')</th>
+                                <th scope="col">@lang('partner_basic.Source_en')</th>
+                                <th scope="col">@lang('partner_basic.Type_en')</th>
+                                <th scope="col">@lang('partner_basic.E_Wallet_Acc_No_en')</th>
+                                <th scope="col">@lang('partner_basic.Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Charges_en')</th>
+                                <th scope="col">@lang('partner_basic.Final_Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Balance_en')</th>
+                                <th scope="col">@lang('partner_basic.Transaction_Type_en')</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -121,7 +122,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
                             @endforelse
@@ -171,7 +172,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
                             @endforelse

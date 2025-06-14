@@ -26,19 +26,19 @@
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="d-flex d-lg-flex d-md-block align-items-center">
-            <h4 class="mb-10 text-primary font-weight-medium ">Adjustments</h4>
+            <h4 class="mb-10 text-primary font-weight-medium ">@lang('partner_basic.Adjustments_en')</h4>
             <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-today">Today</button>
+                    id="btn-today">@lang('partner_basic.Today_en')</button>
 
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
-                    id="btn-yesterday">Yesterday</button>
+                    id="btn-yesterday">@lang('partner_basic.Yesterday_en')</button>
 
                 <button type="button"
                     class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-last7">Last 7 days</button>
+                    id="btn-last7">@lang('partner_basic.Last_7_days_en')</button>
             </div>
         </div>
         <form action="{{ route('partner.partner.balance.search') }}" method="get">
@@ -47,14 +47,14 @@
 
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>@lang('partner_basic.from_date_label')</label>
                         <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
                             id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>@lang('partner_basic.to_date_label')</label>
                         <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
                             id="to_date" />
                     </div>
@@ -63,16 +63,16 @@
 
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Adjustment Type</label>
+                        <label>@lang('partner_basic.Adjustment_Type_en')</label>
                         <select name="adjustment" class="form-control">
-                            <option value="">@lang('All')</option>
-                            <option value="4" @if (@request()->adjustment == '4') selected @endif>@lang('Top-Up')
+                            <option value="">@lang('partner_basic.all_en')</option>
+                            <option value="4" @if (@request()->adjustment == '4') selected @endif>@lang('partner_basic.Top_Up_en')
                             </option>
-                            <option value="1" @if (@request()->adjustment == '1') selected @endif>@lang('Balance')
+                            <option value="1" @if (@request()->adjustment == '1') selected @endif>@lang('partner_basic.Balance_en')
                             </option>
-                            <option value="2" @if (@request()->adjustment == '2') selected @endif>@lang('Deposit')
+                            <option value="2" @if (@request()->adjustment == '2') selected @endif>@lang('partner_basic.deposit_label')
                             </option>
-                            <option value="3" @if (@request()->adjustment == '3') selected @endif>@lang('Withdrawal')
+                            <option value="3" @if (@request()->adjustment == '3') selected @endif>@lang('partner_basic.withdrawal_label')
                             </option>
                         </select>
                     </div>
@@ -80,7 +80,7 @@
 
 
                 <div class="col-md-4">
-                    <label>Search by Name</label>
+                    <label>@lang('partner_basic.Search_by_Name_en') </label>
                     <input type="text" class="form-control" name="search_by_name" id="searchInput" placeholder="Type name...">
                 </div>
 
@@ -89,7 +89,7 @@
                     <div class="form-group">
                         <br>
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     </div>
                 </div>
                 {{--
@@ -108,20 +108,21 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-                    <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                    <h3 style="color: #7367f0">{{ __('partner_basic.Adjustments_en')}}</h3>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
 
-                                    <th scope="col">@lang('Name')</th>
-                                    <th scope="col">@lang('User-Name')</th>
-                                    <th scope="col">Website</th>
-                                    <th scope="col">Amount</th>
-                                    <th scope="col">Charges</th>
-                                    <th scope="col">@lang('Ajustment Type')</th>
-                                    <th scope="col">Remarks</th>
-                                    <th scope="col">Created At</th>
+                                    <th scope="col">@lang('partner_basic.Name_en')</th>
+                                    <th scope="col">@lang('partner_basic.User_Name_en')</th>
+                                    <th scope="col">@lang('partner_basic.Website_en')</th>
+                                    <th scope="col">@lang('partner_basic.Amount_en')</th>
+                                    <th scope="col">@lang('partner_basic.Charges_en')</th>
+                                    <th scope="col">@lang('partner_basic.Adjustment_Type_en')</th>
+                                    <th scope="col">@lang('partner_basic.Remarks_en')</th>
+                                    <th scope="col">@lang('partner_basic.Created_At_en')</th>
+
 
                                 </tr>
                             </thead>
@@ -161,7 +162,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="100%">
-                                            <p class="text-dark">@lang('No Data Found')</p>
+                                            <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                         </td>
                                     </tr>
 

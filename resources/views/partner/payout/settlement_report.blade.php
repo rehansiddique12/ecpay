@@ -35,14 +35,14 @@
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>@lang('partner_basic.from_date_label')</label>
                         <input type="date" class="form-control" value="{{ $from_date }}" name="from_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>@lang('partner_basic.to_date_label')</label>
                         <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
@@ -50,9 +50,9 @@
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>E-Wallet</label>
+                        <label>@lang('partner_basic.e_wallet_label')</label>
                         <select name="gateway" class="form-control">
-                            <option value="">All</option>
+                            <option value="">@lang('partner_basic.all_en')</option>
                             @foreach ($gateways as $gateway)
                                 <option value="{{ $gateway->source_name }}"
                                     @if (@request()->gateway == $gateway->source_name) selected @endif>{{ $gateway->source_name }}
@@ -67,7 +67,7 @@
                     <div class="form-group mt-2">
                         <br>
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     </div>
                 </div>
             </div>
@@ -88,19 +88,19 @@
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
-            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+            <h3 style="color: #7367f0">{{ __('partner_basic.Daily_Settlement_Report_en')}}</h3>
 
             <div class="table-responsive">
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Pending (QTY)')</th>
-                            <th scope="col">@lang('Pending Amount')</th>
-                            <th scope="col">@lang('Approved (QTY)')</th>
-                            <th scope="col">@lang('Approved Amount')</th>
-                            <th scope="col">@lang('Total (QTY)')</th>
-                            <th scope="col">@lang('Total Amount')</th>
+                            <th scope="col">@lang('partner_basic.Date_en')</th>
+                            <th scope="col">@lang('partner_basic.Pending_(QTY)_en')</th>
+                            <th scope="col">@lang('partner_basic.Pending_Amount_en')</th>
+                            <th scope="col">@lang('partner_basic.Approved_(QTY)_en')</th>
+                            <th scope="col">@lang('partner_basic.Approved_Amount_en')</th>
+                            <th scope="col">@lang('partner_basic.Total_(QTY)_en')</th>
+                            <th scope="col">@lang('partner_basic.Total_Amount_en')</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -132,7 +132,7 @@
                         @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
                         @endforelse

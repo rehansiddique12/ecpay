@@ -2746,7 +2746,6 @@ class PayoutRecordController extends Controller
 
 
         $fund = new Payment();
-        $fund->user_id = 0;
         $fund->gateway_id = $gate->id;
         $fund->amount = $amount;
         $fund->partner_transection_id = $transection_id;
@@ -2924,7 +2923,7 @@ class PayoutRecordController extends Controller
 
                     $trxID = $executeBkashPayment['trxID'] ?? "";
                     $transactionStatus = $executeBkashPayment['transactionStatus'] ?? "";
-                    $serviceFee = $executeBkashPayment['serviceFee'] ?? "";
+                    $serviceFee = $executeBkashPayment['serviceFee'] ?? 0;
                     $account_no = $executeBkashPayment['payerAccount'] ?? "";
 
                     if($transactionStatus=="Completed"){
@@ -2939,7 +2938,6 @@ class PayoutRecordController extends Controller
                         $payment->txn_id = $trxID;
                         $payment->transaction_type = 'Received Money';
                         $payment->e_wallet_type = "Merchant";
-                        $payment->source = $source;
                         $payment->api_id = $api_id;
                         $payment->e_wallet_charges = $serviceFee;
                         $payment->sender = $account_no;

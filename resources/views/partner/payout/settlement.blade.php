@@ -1,23 +1,23 @@
 <x-partner-layout :title="$pageTitle">
 
     <h1 class="text-center">
-        <span class="badge badge-primary">Settlementable Amount: <b>{{ $settlementable_amount }} TK</b></span>
+        <span class="badge badge-primary">@lang('partner_basic.Settlementable_Amount_en') <b>{{ $settlementable_amount }} TK</b></span>
     </h1>
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <form action="{{ route('partner.settlements.search') }}" method="get">
-            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+            <h3 style="color: #7367f0">{{ __('partner_basic.Settlements_History_en')}}</h3>
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>@lang('partner_basic.from_date_label')</label>
                         <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>@lang('partner_basic.to_date_label')</label>
                         <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
@@ -26,9 +26,9 @@
 
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>E-Wallet</label>
+                        @lang('partner_basic.e_wallet_label')
                         <select name="gateway" class="form-select">
-                            <option value="">@lang('All')</option>
+                            <option value="">@lang('partner_basic.all_en')</option>
                             @foreach ($gateways as $gateway)
                             <option value="{{ $gateway->source_name }}" @if (@request()->gateway ==
                                 $gateway->source_name) selected @endif>{{ $gateway->source_name }}
@@ -40,14 +40,14 @@
 
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>Status</label>
+                        <label>@lang('partner_basic.status')</label>
                         <select name="status" class="form-select">
-                            <option value="all">@lang('All')</option>
-                            <option value="1" @if (@request()->status == '1') selected @endif>@lang('Approved')
+                            <option value="all">@lang('partner_basic.all_en')</option>
+                            <option value="1" @if (@request()->status == '1') selected @endif>@lang('partner_basic.Approved_en')
                             </option>
-                            <option value="0" @if (@request()->status == '0') selected @endif>@lang('Pending')
+                            <option value="0" @if (@request()->status == '0') selected @endif>@lang('partner_basic.Pending_en')
                             </option>
-                            <option value="2" @if (@request()->status == '2') selected @endif>@lang('Rejected')
+                            <option value="2" @if (@request()->status == '2') selected @endif>@lang('partner_basic.Rejected_en')
                             </option>
                         </select>
                     </div>
@@ -56,7 +56,7 @@
                     <div class="form-group">
                         <br>
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     </div>
                 </div>
             </div>
@@ -68,21 +68,21 @@
                 <div class="card-body">
                     <button type="button" class="btn btn-primary mb-4 hover:drop-shadow-xl" data-bs-toggle="modal"
                         data-bs-target="#newModal">
-                        Add New
+                        @lang('partner_basic.Add_New_en')
                     </button>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
 
-                                    <th scope="col">@lang('Source')</th>
-                                    <th scope="col">@lang('Source Name')</th>
-                                    <th scope="col">@lang('Account No.')</th>
-                                    <th scope="col">@lang('Amount')</th>
-                                    <th scope="col">@lang('Charges')</th>
-                                    <th scope="col">@lang('Net Amount')</th>
+                                    <th scope="col">@lang('partner_basic.Source_en')</th>
+                                    <th scope="col">@lang('partner_basic.Source_Name_en')</th>
+                                    <th scope="col">@lang('partner_basic.account_no')</th>
+                                    <th scope="col">@lang('partner_basic.Amount_en')</th>
+                                    <th scope="col">@lang('partner_basic.Charges_en')</th>
+                                    <th scope="col">@lang('partner_basic.Net_Amount_en')</th>
                                     <th scope="col" class="text-center">@lang('Status')</th>
-                                    <th scope="col">Created At</th>
+                                    <th scope="col">@lang('partner_basic.Created_At_en')</th>
                                     <!--<th>Action</th>-->
                                 </tr>
                             </thead>
@@ -99,15 +99,15 @@
                                         @if ($item->status == 2)
                                         <span class="badge badge-light">
                                             <i class="fa fa-circle text-danger danger font-12"></i>
-                                            @lang('Rejected') </span>
+                                            @lang('partner_basic.Rejected_en') </span>
                                         @elseif($item->status == 1)
                                         <span class="badge badge-light">
                                             <i class="fa fa-circle text-success success font-12"></i>
-                                            @lang('Approved')</span>
+                                            @lang('partner_basic.Approved_en')</span>
                                         @else
                                         <span class="badge badge-light">
                                             <i class="fa fa-circle text-warning success font-12"></i>
-                                            @lang('Pending')</span>
+                                            @lang('partner_basic.Pending_en')</span>
                                         @endif
                                     </td>
                                     <td>{{ convertToUserTimezone($item->created_at) }}</td>
@@ -116,7 +116,7 @@
                                 @empty
                                 <tr>
                                     <td colspan="100%">
-                                        <p class="text-dark">@lang('No Data Found')</p>
+                                        <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                     </td>
                                 </tr>
                                 @endforelse
@@ -138,7 +138,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header modal-colored-header bg-primary">
-                    <h5 class="modal-title">@lang('Add New')</h5>
+                    <h5 class="modal-title">@lang('partner_basic.Add_New_en')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('partner.settlements.add') }}" method="POST" id="settlementForm">
@@ -147,37 +147,37 @@
                         <div class="row justify-content-between align-items-center">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Source</label>
+                                    <label class="pr-3">@lang('partner_basic.Source_en')</label>
                                     <select class="form-select" name="source" required>
-                                        <option value="Bank">Bank</option>
-                                        <option value="EWallet">EWallet</option>
+                                        <option value="Bank">@lang('partner_basic.Bank_en')</option>
+                                        <option value="EWallet">@lang('partner_basic.e_wallet_label')</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Source Name</label>
+                                    <label class="pr-3">@lang('partner_basic.Source_Name_en')</label>
                                     <input type="text" class="form-control" name="source_name" required />
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Account No.</label>
+                                    <label class="pr-3">@lang('partner_basic.Account_No_en')</label>
                                     <input type="text" class="form-control" name="account_no" required />
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Amount</label>
+                                    <label class="pr-3">@lang('partner_basic.Amount_en')</label>
                                     <input type="number" step="0.01" class="form-control" name="amount" required />
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button id="submitBtn" type="submit" class="btn btn-primary">@lang('Save')</button>
+                        <button id="submitBtn" type="submit" class="btn btn-primary">@lang('partner_basic.Save_en')</button>
                         <button type="button" class="btn btn-dark"
-                            data-bs-dismiss="modal">@lang('Close')</button>
+                            data-bs-dismiss="modal">@lang('partner_basic.Close_en')</button>
                     </div>
                 </form>
             </div>

@@ -12,15 +12,15 @@
                         <thead class="thead-dark">
                             <tr>
 
-                                <th scope="col">@lang('Partner/Agent')</th>
-                                <th scope="col">@lang('Deposit Amount')</th>
-                                <th scope="col">@lang('Deposit Charges')</th>
-                                <th scope="col">@lang('Deposit Net Amount')</th>
-                                <th scope="col">@lang('Deposit Profit')</th>
-                                <th scope="col">@lang('Withdrawal Amount')</th>
-                                <th scope="col">@lang('Withdrawal Charges')</th>
-                                <th scope="col">@lang('Withdrawal Net Amount')</th>
-                                <th scope="col">@lang('Withdrawal Profit')</th>
+                                <th scope="col">@lang('partner_basic.Partner/Agent_en')</th>
+                                <th scope="col">@lang('partner_basic.Deposit_Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Deposit_Charges_en')</th>
+                                <th scope="col">@lang('partner_basic.Deposit_Net_Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Deposit_Profit_en')</th>
+                                <th scope="col">@lang('partner_basic.Withdrawal_Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Withdrawal_Charges_en')</th>
+                                <th scope="col">@lang('partner_basic.Withdrawal_Net_Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Withdrawal_Profit_en')</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -41,7 +41,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.No_Data_Found')</p>
                                 </td>
                             </tr>
 

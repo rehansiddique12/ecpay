@@ -11,14 +11,14 @@
             <div class="row align-items-center">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>@lang('partner_basic.from_date_label')</label>
                         <input type="date" class="form-control" value="{{ $from_date }}" name="from_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>To Date</label><label>@lang('partner_basic.to_date_label')</label>
                         <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
@@ -28,7 +28,7 @@
                     <div class="form-group mt-2">
                         <br>
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     </div>
                 </div>
             </div>
@@ -39,26 +39,26 @@
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
             <div class="table-responsive">
-                        <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                        <h3 style="color: #7367f0">{{ __('partner_basic.Payment_Gateway_Performance_Report_en')}}</h3>
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('Date')</th>
-                            {{-- <th scope="col">@lang('Partner')</th> --}}
-                            <th scope="col">@lang('Total Deposit Request')</th>
-                            <th scope="col">@lang('Total Auto Process')</th>
-                            <th scope="col">@lang('Total Manual Process')</th>
-                            <th scope="col">@lang('Total Abandoned')</th>
-                            <th scope="col">@lang('Success Rate')</th>
-                            <th scope="col">@lang('Within 10s')</th>
-                            <th scope="col">@lang('>10 seconds')</th>
-                            <th scope="col">@lang('>20 seconds')</th>
-                            <th scope="col">@lang('>30 seconds')</th>
-                            <th scope="col"> @lang('>40 seconds')</th>
-                            <th scope="col">@lang('>50 seconds')</th>
-                            <th scope="col">@lang('>1 min')</th>
-                            <th scope="col">@lang('>5 min')</th>
-                            <th scope="col">@lang('>10 min')</th>
+                            <th scope="col">@lang('partner_basic.Date_en')</th>
+                            <th scope="col">@lang('partner_basic.Total_Deposit_Request_en')</th>
+                            <th scope="col">@lang('partner_basic.Total_Auto_Process_en')</th>
+                            <th scope="col">@lang('partner_basic.Total_Manual_Process_en')</th>
+                            <th scope="col">@lang('partner_basic.Total_Abandoned_en')</th>
+                            <th scope="col">@lang('partner_basic.Success_Rate_en')</th>
+                            <th scope="col">@lang('partner_basic.Within_10s_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_10_seconds_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_20_seconds_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_30_seconds_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_40_seconds_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_50_seconds_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_1_min_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_5_min_en')</th>
+                            <th scope="col">@lang('partner_basic.gt_10_min_en')</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -108,7 +108,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="16" class="text-center">@lang('No data available')</td>
+                            <td colspan="16" class="text-center">@lang('partner_basic.No_Data_Available_en')</td>
                         </tr>
                         @endforelse
 
