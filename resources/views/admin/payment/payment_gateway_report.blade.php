@@ -92,6 +92,140 @@
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
             <div class="table-responsive">
+
+                <table class="categories-show-table table table-hover table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <td></td>
+                            <td colspan="5">Nagad</td>
+                            <td colspan="5">Bkash</td>
+                            <td colspan="5">Rocket</td>
+                        </tr>  
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Total Deposit Request</th>
+                            <th scope="col">Total Auto Process</th>
+                            <th scope="col">Total Manual Process</th>
+                            <th scope="col">Total Abandoned</th>
+                            <th scope="col">Success Rate</th>
+
+                            <th scope="col">Total Deposit Request</th>
+                            <th scope="col">Total Auto Process</th>
+                            <th scope="col">Total Manual Process</th>
+                            <th scope="col">Total Abandoned</th>
+                            <th scope="col">Success Rate</th>
+
+                            <th scope="col">Total Deposit Request</th>
+                            <th scope="col">Total Auto Process</th>
+                            <th scope="col">Total Manual Process</th>
+                            <th scope="col">Total Abandoned</th>
+                            <th scope="col">Success Rate</th>
+                        </tr>
+                        
+                    </thead>
+                    <tbody>
+                        @forelse ($e_combined as $date => $apis)
+                        
+                            <tr>
+                                <td>{{ $date }}</td>                               
+                               
+                                
+                                @if(isset($apis["bkash"]))
+                                @php
+                                $counts = $apis["bkash"];
+                                        $fundCount = $counts['fund_count'] ?? 0;
+                                        $autoProcessCount = $counts['auto_process_count'] ?? 0;
+                                        $manualProcessCount = $counts['manual_process_count'] ?? 0;
+                                        $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
+                                        $successRate =
+                                            $fundCount > 0 && $fundCount - $abandoned > 0
+                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
+                                                : 0;
+                                    @endphp
+                                  
+                            
+                                <td>{{ $fundCount }}</td>
+                                <td>{{ $autoProcessCount }}</td>
+                                <td>{{ $manualProcessCount }}</td>
+                                <td>{{ max(0, $abandoned) }}</td> <!-- Ensure no negative values -->
+                                <td>{{ number_format($successRate, 2) }}%</td> <!-- Format success rate -->
+                                
+                            
+                                
+
+                                @else
+                                <td colspan="5" class="text-center">-</td>
+                                @endif
+                                
+                                @if(isset($apis["nagad"]))
+                                @php
+                                $counts = $apis["nagad"];
+                                        $fundCount = $counts['fund_count'] ?? 0;
+                                        $autoProcessCount = $counts['auto_process_count'] ?? 0;
+                                        $manualProcessCount = $counts['manual_process_count'] ?? 0;
+                                        $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
+                                        $successRate =
+                                            $fundCount > 0 && $fundCount - $abandoned > 0
+                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
+                                                : 0;
+                                    @endphp
+                                  
+                            
+                                <td>{{ $fundCount }}</td>
+                                <td>{{ $autoProcessCount }}</td>
+                                <td>{{ $manualProcessCount }}</td>
+                                <td>{{ max(0, $abandoned) }}</td> <!-- Ensure no negative values -->
+                                <td>{{ number_format($successRate, 2) }}%</td> <!-- Format success rate -->
+                                
+                            
+                                
+
+                                @else
+                                <td colspan="5" class="text-center">-</td>
+                                @endif
+                                
+                                
+                                @if(isset($apis["rocket"]))
+                                @php
+                                $counts = $apis["rocket"];
+                                        $fundCount = $counts['fund_count'] ?? 0;
+                                        $autoProcessCount = $counts['auto_process_count'] ?? 0;
+                                        $manualProcessCount = $counts['manual_process_count'] ?? 0;
+                                        $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
+                                        $successRate =
+                                            $fundCount > 0 && $fundCount - $abandoned > 0
+                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
+                                                : 0;
+                                    @endphp
+                                  
+                            
+                                <td>{{ $fundCount }}</td>
+                                <td>{{ $autoProcessCount }}</td>
+                                <td>{{ $manualProcessCount }}</td>
+                                <td>{{ max(0, $abandoned) }}</td> <!-- Ensure no negative values -->
+                                <td>{{ number_format($successRate, 2) }}%</td> <!-- Format success rate -->
+                                
+                                @else
+                                <td colspan="5" class="text-center">-</td>
+                                @endif
+                            
+                                    
+                       
+                    </tr>
+                    @empty
+                        <tr>
+                            <td colspan="16" class="text-center">@lang('No data available')</td>
+                        </tr>
+                        @endforelse
+
+                    </tbody>
+                </table>
+
+
+                <br>
+                <br>
+                <br>
+
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
