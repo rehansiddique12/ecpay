@@ -9,19 +9,31 @@
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <form action="{{ route('admin.payment.payment_gateway_report') }}" method="get">
             <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+            @php
+            $today = \Carbon\Carbon::today()->format('Y-m-d');
+            $yesterday = \Carbon\Carbon::yesterday()->format('Y-m-d');
+            $last7Days = \Carbon\Carbon::today()->subDays(6)->format('Y-m-d');
+        @endphp
+        <div class="col-md-6 mb-3">
+            <div class="btn-group" role="group" id="dateFilterButtons">
+                <button type="button" class="btn btn-primary" data-range="today">Today</button>
+                <button type="button" class="btn btn-outline-primary" data-range="yesterday">Yesterday</button>
+                <button type="button" class="btn btn-outline-primary" data-range="last7">Last 7 Days</button>
+            </div>
+        </div>
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>From Date</label>
-                        <input type="date" class="form-control" value="{{ $from_date }}" name="from_date"
-                            id="datepicker" />
+                        <input type="date" class="form-control" value="{{ request()->from_date ?? $today }}" name="from_date" id="fromDate" />
+
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>To Date</label>
-                        <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
-                            id="datepicker" />
+                        <input type="date" class="form-control" value="{{ request()->to_date ?? $today }}" name="to_date" id="toDate" />
+
                     </div>
                 </div>
 
@@ -35,6 +47,32 @@
                                 <option value="{{ $key }}" @if (@request()->partner == $key) selected @endif>
                                     {{ $value }}</option>
                             @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Code</label>
+                        <select name="e_wallet_name[]" class="form-select select2" multiple data-placeholder="Select Codes" data-allow-clear="true">
+                            <option value="BKASH" @if (is_array(request()->e_wallet_name) && in_array('BKASH', request()->e_wallet_name)) selected @endif>BKASH</option>
+                            <option value="NAGAD" @if (is_array(request()->e_wallet_name) && in_array('NAGAD', request()->e_wallet_name)) selected @endif>NAGAD</option>
+                            <option value="Rocket" @if (is_array(request()->e_wallet_name) && in_array('Rocket', request()->e_wallet_name)) selected @endif>ROCKET</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Transaction Type</label>
+                        <select name="transaction_type" class="form-select select2" data-allow-clear="true" data-placeholder="Transaction Type">
+                            <option></option>
+                            <option value="">All</option>
+                                <option value="Received Money" @if (@request()->transaction_type == 'Received Money') selected @endif>Received Money</option>
+                                <option value="Send Money" @if (@request()->transaction_type == 'Send Money' ) selected @endif>Send Money</option>
+                                <option value="Cash Out" @if (@request()->transaction_type == 'Cash Out' ) selected @endif>Cash Out </option>
+
                         </select>
                     </div>
                 </div>
@@ -57,22 +95,22 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Partner')</th>
-                            <th scope="col">@lang('Total Deposit Request')</th>
-                            <th scope="col">@lang('Total Auto Process')</th>
-                            <th scope="col">@lang('Total Manual Process')</th>
-                            <th scope="col">@lang('Total Abandoned')</th>
-                            <th scope="col">@lang('Success Rate')</th>
-                            <th scope="col">@lang('Within 10s')</th>
-                            <th scope="col">@lang('>10 seconds')</th>
-                            <th scope="col">@lang('>20 seconds')</th>
-                            <th scope="col">@lang('>30 seconds')</th>
-                            <th scope="col"> @lang('>40 seconds')</th>
-                            <th scope="col">@lang('>50 seconds')</th>
-                            <th scope="col">@lang('>1 min')</th>
-                            <th scope="col">@lang('>5 min')</th>
-                            <th scope="col">@lang('>10 min')</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Partner</th>
+                            <th scope="col">Total Deposit Request</th>
+                            <th scope="col">Total Auto Process</th>
+                            <th scope="col">Total Manual Process</th>
+                            <th scope="col">Total Abandoned</th>
+                            <th scope="col">Success Rate</th>
+                            <th scope="col">Within 10s</th>
+                            <th scope="col">>10 seconds</th>
+                            <th scope="col">>20 seconds</th>
+                            <th scope="col">>30 seconds</th>
+                            <th scope="col"> >40 seconds</th>
+                            <th scope="col">>50 seconds</th>
+                            <th scope="col">>1 min</th>
+                            <th scope="col">>5 min</th>
+                            <th scope="col">>10 min</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
@@ -140,6 +178,56 @@
 
 @push('js')
 <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fromDateInput = document.getElementById('fromDate');
+        const toDateInput = document.getElementById('toDate');
+        const buttons = document.querySelectorAll('#dateFilterButtons button');
+
+        const today = new Date();
+        const formatDate = (date) => date.toISOString().split('T')[0];
+
+        const setDateRange = (range) => {
+            let fromDate, toDate;
+
+            switch (range) {
+                case 'today':
+                    fromDate = toDate = formatDate(today);
+                    break;
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(today.getDate() - 1);
+                    fromDate = toDate = formatDate(yesterday);
+                    break;
+                case 'last7':
+                    const start = new Date(today);
+                    start.setDate(today.getDate() - 6);
+                    fromDate = formatDate(start);
+                    toDate = formatDate(today);
+                    break;
+            }
+
+            fromDateInput.value = fromDate;
+            toDateInput.value = toDate;
+
+            // Update button styles
+            buttons.forEach(btn => btn.classList.remove('btn-primary'));
+            buttons.forEach(btn => btn.classList.add('btn-outline-primary'));
+
+            const activeBtn = document.querySelector(`[data-range="${range}"]`);
+            activeBtn.classList.remove('btn-outline-primary');
+            activeBtn.classList.add('btn-primary');
+        };
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const range = button.getAttribute('data-range');
+                setDateRange(range);
+            });
+        });
+    });
+    </script>
+
 <script>
     $(document).ready(function () {
         $('form').on('submit', function () {

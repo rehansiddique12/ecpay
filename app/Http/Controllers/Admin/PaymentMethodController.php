@@ -20,7 +20,7 @@ class PaymentMethodController extends Controller
             $data->status = 0;
         } else {
             $data->status = 1;
-        }   
+        }
         $data->save();
 
         return back()->with('success', 'Updated Successfully.');
@@ -32,6 +32,8 @@ class PaymentMethodController extends Controller
     $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
     $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d');
     $partner_id = $request->partner;
+    $e_wallet_names = $request->e_wallet_name;
+    $transaction_type = $request->transaction_type;
 
     $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
@@ -41,12 +43,28 @@ class PaymentMethodController extends Controller
         ->whereDate('created_at', '<=', $to_date)
         ->groupBy(DB::raw('DATE(created_at)'), 'api_id');
 
+
+    // Filter by partner(s)
     if (!empty($partner_id)) {
-        $fundsQuery->where('api_id', $partner_id);
+        // If it's multiple partners (i.e., an array)
+        if (is_array($partner_id)) {
+            $fundsQuery->whereIn('api_id', $partner_id);
+        } else {
+            $fundsQuery->where('api_id', $partner_id);
+        }
+    }
+
+    // Filter by e-wallet name(s)
+    if (!empty($e_wallet_names) && is_array($e_wallet_names)) {
+        $fundsQuery->whereIn('e_wallet_name', $e_wallet_names);
+    }
+
+    // Filter by transaction type
+    if (!empty($transaction_type)) {
+        $fundsQuery->where('transaction_type', $transaction_type);
     }
 
     $funds = $fundsQuery->get();
-
     // Query for payments data
     $paymentsQuery = Payment::selectRaw(
         'DATE(created_at) as completion_date,
