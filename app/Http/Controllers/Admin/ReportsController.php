@@ -915,7 +915,7 @@ class ReportsController extends Controller
             $currentDate = strtotime('+1 day', $currentDate);
         }
 
-        $pageTitle = "Partner Account Balance Summary Completions";
+        $pageTitle = "{{ __('reports.partner_account_balance_summary_completions') }}";
         return view('admin.reports.partner_account_balance_summary_completions', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
     }
 
@@ -1102,7 +1102,7 @@ class ReportsController extends Controller
         }
     }
 
-    $pageTitle = "Revenue Center";
+    $pageTitle = "{{ __('reports.revenue_center') }}";
     return view('admin.reports.revenue_center', compact('pageTitle', 'data', 'from_date', 'to_date'));
 }
 
@@ -1262,7 +1262,7 @@ public function logs(Request $request)
         }
     }
 
-    $pageTitle = "Partner Balance Logs";
+    $pageTitle = "{{ __('reports.partner_balance_logs') }}";
     return view('admin.reports.logs', compact('pageTitle', 'domains', 'filter_data', 'from_date', 'to_date', 'orderval'));
 }
 
@@ -1425,7 +1425,7 @@ public function logs(Request $request)
             ->values()
             ->toArray();
 
-        $pageTitle = "Transections Logs";
+        $pageTitle = "{{ __('reports.transections_logs') }}";
 
         return view('admin.reports.logs2', compact('pageTitle', 'filter_data', 'from_date', 'to_date', 'domains'));
     }
@@ -1504,7 +1504,7 @@ public function logs(Request $request)
         // dd($deposits);
         // $filter_data = $data;
 
-        $pageTitle = "Transections Logs";
+        $pageTitle = __('reports.transections_logs');
         return view('admin.reports.logs3', compact('deposits' , 'withdrawals' , 'ApiTransactions' , 'PartnerCommissions' , 'Settlements','pageTitle', 'from_date', 'to_date','domains'));
     }
 
@@ -1658,7 +1658,7 @@ public function logs(Request $request)
         ];
     }
 
-    $pageTitle = "Partner Account Summary";
+    $pageTitle = __('reports.partner_account_summary');
     return view('admin.reports.master_report', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
 }
 

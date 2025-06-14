@@ -13,7 +13,7 @@ class PaymentTypeController extends Controller
     {
         $records = PaymentType::paginate('20');
         $partners = Api::where('type', 'Admin')->pluck('name', 'id');
-        $pageTitle = $title = "Payment Type Management";
+        $pageTitle = $title = __('reports.payment_type_management');
 
         return view('admin.group.paymenttype', compact('records', 'pageTitle', 'title', 'partners'));
     }

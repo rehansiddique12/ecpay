@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\ManualGatewayController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\TelegramGroupController;
+use App\Http\Controllers\Admin\MerchantAccountController;
 use App\Http\Controllers\Admin\AccountManagementController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
@@ -28,8 +29,8 @@ use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
 use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogController;
-use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 // rehan
+use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 use App\Http\Controllers\Partner\SummaryReportController as PartnerSummaryReportController;
 use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManageRolePermissionController;
 
@@ -238,6 +239,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
         Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
+        Route::patch('/notifications/{notification}/mark-as-read', [PayoutRecordController::class, 'markAsRead']);
 
         Route::post('/apis/add', [PayoutRecordController::class, 'apisAdd'])->name('apis.add');
         Route::post('/agent/add', [PayoutRecordController::class, 'agentAdd'])->name('agent.add');
@@ -443,6 +445,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
         Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
 
+
+        Route::get('/merchant_accounts', [MerchantAccountController::class, 'apis'])->name('merchant_accounts');
+        Route::post('/merchant_accounts/add', [MerchantAccountController::class, 'apisAdd'])->name('merchant_accounts.add');
+        Route::delete('/merchant_accounts/delete/{id}', [MerchantAccountController::class, 'apisDelete'])->name('merchant_accounts.delete');
+        Route::put('/merchant_accounts/update/{id}', [MerchantAccountController::class, 'updateApi'])->name('merchant_accounts.update');
 
         Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
             Route::get('/', [CCategoryController::class, 'index'])->name('index');

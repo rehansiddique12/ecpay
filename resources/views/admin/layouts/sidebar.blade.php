@@ -804,6 +804,15 @@ $languages = [
                             </a>
                         </li>
                         @endif
+                        @if (adminAccessRoute(config('role.merchant_accounts.access.view')))
+                        <li class="menu-item {{ Request::routeIs('admin.merchant_accounts') ? 'active' : '' }}">
+                            <a href="{{ route('admin.merchant_accounts') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Merchant Account Management">Merchant Account Management
+                                </div>
+                            </a>
+                        </li>
+                        @endif
                         @if (adminAccessRoute(config('role.e_wallet_accounts_test.access.view')))
                         <li class="menu-item {{ Request::routeIs('admin.ewallet.accounts') ? 'active' : '' }}">
                             <a href="{{ route('admin.ewallet.accounts') }}" class="menu-link">
