@@ -166,7 +166,7 @@
 
 
             <div class="col-md-12">
-                <h6 class="text-dark font-weight-bold">@lang('Today Statistics')</h6>
+                <h6 class="text-dark font-weight-bold">@lang('partner_basic.Today_Statistics_en')</h6>
             </div>
 
 
@@ -292,7 +292,7 @@
 
 
             <div class="col-md-12">
-                <h6 class="text-dark font-weight-bold">@lang('This Month Statistics')</h6>
+                <h6 class="text-dark font-weight-bold">@lang('partner_basic.This_Month_Statistics_en')</h6>
             </div>
 
             <div class="col-sm-6 col-md-6 col-lg-4 col-xl-2">
@@ -413,7 +413,7 @@
             </div>
 
             <div class="col-md-12">
-                <h6 class="text-dark font-weight-bold">@lang('Completed Settlements')</h6>
+                <h6 class="text-dark font-weight-bold">@lang('partner_basic.Completed_Settlements_en')</h6>
             </div>
 
         </div>

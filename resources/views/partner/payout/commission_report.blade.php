@@ -2,34 +2,34 @@
 
 <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
     <form action="{{ route('partner.api.commissions') }}" method="get">
-        <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+        <h3 style="color: #7367f0">{{ __('partner_basic.Commission_history_en')}}</h3>
         <div class="row justify-content-between align-items-center">
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>From Date</label>
+                    <label>@lang('partner_basic.from_date_label')</label>
                     <input type="date" class="form-control" value="{{$from_date}}" name="from_date" id="datepicker" />
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>To Date</label>
+                    <label>@lang('partner_basic.to_date_label')</label>
                     <input type="date" class="form-control" value="{{$to_date}}" name="to_date" id="datepicker" />
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Type</label>
+                    <label>@lang('partner_basic.type')</label>
                     <select name="type" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain">
                             <option></option>
                         <option value="">@lang('All')</option>
-                        <option value="1" @if(@request()->type == '1') selected @endif>@lang('Deposit')</option>
-                        <option value="2" @if(@request()->type == '2') selected @endif>@lang('Withdrawal')</option>
+                        <option value="1" @if(@request()->type == '1') selected @endif>@lang('partner_basic.deposit_label')</option>
+                        <option value="2" @if(@request()->type == '2') selected @endif>@lang('partner_basic.withdrawal_label')</option>
                     </select>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Partner</label>
+                    <label>@lang('partner_basic.Partner_en')</label>
                     <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select Domain">
                             <option></option>
                         <option value="">All</option>
@@ -42,7 +42,7 @@
             <div class="col-md-2">
                 <div class="form-group">
                     <br>
-                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                 </div>
             </div>
 
@@ -65,13 +65,13 @@
                         <thead class="thead-dark">
                             <tr>
 
-                                <th scope="col">@lang('Partner/Agent')</th>
-                                <th scope="col">@lang('Type')</th>
-                                <th scope="col">@lang('Amount')</th>
-                                <th scope="col">@lang('Charges')</th>
-                                <th scope="col">@lang('Net Amount')</th>
-                                <th scope="col">@lang('Profit')</th>
-                                <th scope="col">Created At</th>
+                                <th scope="col">@lang('partner_basic.Partner/Agent_en')</th>
+                                <th scope="col">@lang('partner_basic.Type_en')</th>
+                                <th scope="col">@lang('partner_basic.Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Charges_en')</th>
+                                <th scope="col">@lang('partner_basic.Net_Amount_en')</th>
+                                <th scope="col">@lang('partner_basic.Profit_en')</th>
+                                <th scope="col">@lang('partner_basic.Created_At_en')</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,10 +81,10 @@
                                 <td data-label="@lang('Status')" class="text-lg-center text-right">
                                     @if ($item->type == 2)
                                     <span class="badge badge-light">
-                                        <i class="fa fa-circle text-danger danger font-12"></i> @lang('Withdrawal') </span>
+                                        <i class="fa fa-circle text-danger danger font-12"></i> @lang('partner_basic.withdrawal_label') </span>
                                     @elseif($item->type == 1)
                                     <span class="badge badge-light">
-                                        <i class="fa fa-circle text-success success font-12"></i> @lang('Deposit')</span>
+                                        <i class="fa fa-circle text-success success font-12"></i> @lang('partner_basic.deposit_label')</span>
                                     @endif
                                 </td>
                                 <td>{{ $item->amount }}</td>
@@ -98,7 +98,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
 

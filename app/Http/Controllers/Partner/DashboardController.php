@@ -59,7 +59,7 @@ class DashboardController extends Controller
     public function dashboard()
     {
 
-        $pageTitle = " Dashboard View";
+        $pageTitle = "Dashboard View";
         $log = "View Dashboard";
         $this->addLogs($log);
 

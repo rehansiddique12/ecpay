@@ -99,6 +99,10 @@ return [
     'sent_from_label' => '发起来源',
     'more_info_label' => '更多信息',
 
+
+    // rehan
+
+    // Dashbord
     'my_balance_page_title' => '我的余额',
     'Withdrawalable_Amount_en' => '可提现金额',
     'Total_Deposit_Transactions_en' => '总存款交易笔数',
@@ -130,5 +134,151 @@ return [
     'Month_Settlements_Charges_en' => '本月结算手续费',
     'This_Months_Summary_en' => '本月摘要',
     'Gateway_Uses_en' => '网关使用情况',
+    'Today_Statistics_en' => '今日统计',
+    'This_Month_Statistics_en' => '本月统计',
+    'Completed_Settlements_en' => '已完成结算',
+
+    // End Dashbord
+
+    // Start Staff
+
+    'SL_en' => '序号',
+    'Add_New_en' => '添加新的',
+    'Email_en' => '电子邮箱',
+    'Username_en' => '用户名',
+    'Phone_en' => '手机号',
+    'Status_en' => '状态',
+    'Action_en' => '操作',
+    'Manage_Staff_Role_en' => '管理员工角色',
+    'Name_en' => '姓名',
+    'Username_en' => '用户名',
+    'E-Mail_en' => '电子邮箱',
+    'Phone_en' => '手机号',
+    'Password_en' => '密码',
+    'Select_Status_en' => '选择状态',
+    'Active_en' => '启用',
+    'DeActive_en' => '停用',
+    'View_en' => '查看',
+    'Add_en' => '添加',
+    'Edit_en' => '编辑',
+    'Delete_en' => '删除',
+    'Select_All_en' => '全选',
+    'Accessibility_en' => '可访问性',
+    'Close_en' => '关闭',
+    'Save_en' => '保存',
+    'Permissions_en' => '权限',
+    'Dashboard_en' => '仪表盘',
+
+
+
+    'Partner/Agent_en' => '合作代理',
+    'Deposit_Amount_en' => '存款金额',
+    'Deposit_Charges_en' => '存款手续费',
+    'Deposit_Net_Amount_en' => '存款净额',
+    'Deposit_Profit_en' => '存款利润',
+    'Withdrawal_Amount_en' => '提现金额',
+    'Withdrawal_Charges_en' => '提现手续费',
+    'Withdrawal_Net_Amount_en' => '提现净额',
+    'Withdrawal_Profit_en' => '提现利润',
+    'No_Data_Found_en' => '未找到数据',
+    'Partner_en' => '合作伙伴',
+    'Partner/Agent_en' => '合作伙伴/代理',
+    'Type_en' => '类型',
+    'Amount_en' => '金额',
+    'Charges_en' => '手续费',
+    'Net_Amount_en' => '净额',
+    'Profit_en' => '利润',
+    'Created_At_en' => '创建时间',
+    'Commission_history_en' => '佣金歷史',
+
+
+    'all_en' => '全部',
+    'Bank_en' => '银行',
+    'Source_en' => '来源',
+    'Pending_en' => '待处理',
+    'Approved_en' => '已批准',
+    'Rejected_en' => '已拒绝',
+    'Source_Name_en' => '来源名称',
+    'Account_No_en' => '账号',
+    'Settlements_History_en' => '结算记录',
+    'Settlementable_Amount_en' => '可结算金额',
+
+
+
+
+    'Daily_Settlement_Report_en' => '每日结算报告',
+    'Date_en' => '日期',
+    'Pending_(QTY)_en' => '待处理（数量）',
+    'Pending_Amount_en' => '待处理金额',
+    'Approved_(QTY)_en' => '已批准（数量）',
+    'Approved_Amount_en' => '已批准金额',
+    'Total_(QTY)_en' => '总计（数量）',
+    'Total_Amount_en' => '总计金额',
+
+
+
+    'Adjustments_en' => '调整',
+    'Today_en' => '今天',
+    'Yesterday_en' => '昨天',
+    'Last_7_days_en' => '过去7天',
+    'Top_Up_en' => '充值',
+    'Balance_en' => '余额',
+    'Adjustment_Type_en' => '调整类型',
+    'Search_by_Name_en' => '按姓名搜索',
+    'Name_en' => '姓名',
+    'User_Name_en' => '用户名',
+    'Website_en' => '网站',
+    'Amount_en' => '金额',
+    'Charges_en' => '手续费',
+    'Adjustment_Type_en' => '调整类型',
+    'Remarks_en' => '备注',
+    'Created_At_en' => '创建时间',
+
+    'Transactions_Completions_Logs_en' => '交易完成日志',
+    'Txn_No_en' => '交易编号',
+    'Partner_Txn_No_en' => '合作方交易编号',
+    'Account_No_en' => '账号',
+    'Source_en' => '来源',
+    'Type_en' => '类型',
+    'E_Wallet_Acc_No_en' => '电子钱包账号',
+    'Amount_en' => '金额',
+    'Charges_en' => '手续费',
+    'Final_Amount_en' => '最终金额',
+    'Balance_en' => '余额',
+    'Transaction_Type_en' => '交易类型',
+    'Transaction_Date_en' => '交易日期',
+    'Completed_Date_en' => '完成日期',
+
+
+
+    'Payment_Gateway_Performance_Report_en' => '支付网关性能报告',
+    'Total_Deposit_Request_en' => '总存款请求',
+    'Total_Auto_Process_en' => '自动处理总数',
+    'Total_Manual_Process_en' => '手动处理总数',
+    'Total_Abandoned_en' => '放弃总数',
+    'Success_Rate_en' => '成功率',
+    'Within_10s_en' => '10秒内',
+    'gt_10_seconds_en' => '超过10秒',
+    'gt_20_seconds_en' => '超过20秒',
+    'gt_30_seconds_en' => '超过30秒',
+    'gt_40_seconds_en' => '超过40秒',
+    'gt_50_seconds_en' => '超过50秒',
+    'gt_1_min_en' => '超过1分钟',
+    'gt_5_min_en' => '超过5分钟',
+    'gt_10_min_en' => '超过10分钟',
+    'No_Data_Available_en' => '暂无数据',
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ];

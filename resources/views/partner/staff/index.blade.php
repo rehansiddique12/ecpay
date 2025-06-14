@@ -23,7 +23,7 @@
                 {{-- @if(partnerAccessRoute(config('rolep.manage_staff.access.add'))) --}}
                 <div class="d-flex justify-content-end mb-2 text-right">
                     <button data-bs-target="#addModal" data-bs-toggle="modal" class="btn btn-primary btn-sm"><i
-                            class="fa fa-user-plus"></i> {{trans('Add New')}} </button>
+                            class="fa fa-user-plus"></i> {{trans('partner_basic.Add_New_en')}} </button>
                 </div>
                 {{-- @endif --}}
 
@@ -32,12 +32,12 @@
                         class="categories-show-table table table-hover table-striped table-bordered">
                         <thead class="thead-dark">
                             <tr>
-                                <th scope="col">@lang('SL')</th>
-                                <th scope="col">@lang('Username')</th>
-                                <th scope="col">@lang('Email')</th>
-                                <th scope="col">@lang('Phone')</th>
-                                <th scope="col">@lang('Status')</th>
-                                <th scope="col">@lang('Action')</th>
+                                <th scope="col">@lang('partner_basic.SL_en')</th>
+                                <th scope="col">@lang('partner_basic.Username_en')</th>
+                                <th scope="col">@lang('partner_basic.Email_en')</th>
+                                <th scope="col">@lang('partner_basic.Phone_en')</th>
+                                <th scope="col">@lang('partner_basic.Status_en')</th>
+                                <th scope="col">@lang('partner_basic.Action_en')</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,7 +129,7 @@
                                 <div class="form-group col-md-12 mt-4">
                                     <div class="card">
                                         <div class="card-header">
-                                            <h5 class="card-title">{{ __('Accessibility') }}</h5>
+                                            <h5 class="card-title">{{ __('partner_basic.Accessibility_en') }}</h5>
                                         </div>
                                         <div class="card-body select-all-access">
                                             <div class="form-check mb-2">
@@ -144,11 +144,11 @@
                                                     class="table table-hover table-striped table-bordered text-center">
                                                     <thead class="table-dark">
                                                         <tr>
-                                                            <th class="text-start">@lang('Permissions')</th>
-                                                            <th>@lang('View')</th>
-                                                            <th>@lang('Add')</th>
-                                                            <th>@lang('Edit')</th>
-                                                            <th>@lang('Delete')</th>
+                                                           <th class="text-left">@lang('partner_basic.Permissions_en')</th>
+                                                        <th>@lang('partner_basic.View_en')</th>
+                                                        <th>@lang('partner_basic.Add_en')</th>
+                                                        <th>@lang('partner_basic.Edit_en')</th>
+                                                        <th>@lang('partner_basic.Delete_en')</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -234,7 +234,7 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content ">
                     <div class="modal-header modal-colored-header bg-primary">
-                        <h4 class="modal-title" id="myModalLabel">@lang('Manage Staff Role')</h4>
+                        <h4 class="modal-title" id="myModalLabel">@lang('partner_basic.Manage_Staff_Role_en')</h4>
                         {{-- <button type="button" class="close" data-dismiss="modal"
                             aria-hidden="true">&times;</button> --}}
                     </div>
@@ -246,44 +246,44 @@
 
                             <div class="row">
                                 <div class="form-group col-md-6">
-                                    <label class="text-dark"> {{trans('Name')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.Name_en')}} :</label>
                                     <input class="form-control" id="name" name="name" placeholder="{{trans('Name')}}"
                                         value="{{old('name')}}" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label class="text-dark"> {{trans('Username')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.Username_en')}} :</label>
                                     <input class="form-control " name="username" placeholder="{{trans('Username')}}"
                                         value="{{old('username')}}" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label class="text-dark"> {{trans('E-Mail')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.E-Mail_en')}} :</label>
                                     <input class="form-control " name="email" placeholder="Email Address"
                                         value="{{old('email')}}" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label class="text-dark"> {{trans('Phone')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.Phone_en')}} :</label>
                                     <input class="form-control " name="phone" placeholder="{{trans('Mobile Number')}}"
                                         value="{{old('phone')}}" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label class="text-dark"> {{trans('Password')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.Password_en')}} :</label>
                                     <input type="password" name="password" placeholder="Password" class="form-control "
                                         value="{{old('password')}}" autocomplete="off">
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label class="text-dark"> {{trans('Password')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.Password_en')}} :</label>
                                     <input id="password_confirmation" type="password" name="password_confirmation"
                                         placeholder="Password" class="form-control " value="{{old('password')}}"
                                         autocomplete="off">
                                 </div>
                                 <div class="form-group col-md-12">
-                                    <label class="text-dark"> {{trans('Select Status')}} :</label>
+                                    <label class="text-dark"> {{trans('partner_basic.Select_Status_en')}} :</label>
                                     <select name="status" id="event-status" class="form-control " required>
                                         <option value="1" @if(old('status')=='1' ) selected @endif>
-                                            {{trans('Active')}}
+                                            {{trans('partner_basic.Active_en')}}
                                         </option>
                                         <option value="0" @if(old('status')=='0' ) selected @endif>
-                                            {{trans('DeActive')}}
+                                            {{trans('partner_basic.DeActive_en')}}
                                         </option>
                                     </select>
                                     <br>
@@ -293,23 +293,23 @@
                                 <div class="form-group col-md-12">
                                     <div class="card">
                                         <div class="card-header d-flex justify-content-between text-center">
-                                            <h5 class="card-title text-center">{{trans('Accessibility')}}</h5>
+                                            <h5 class="card-title text-center">{{trans('partner_basic.Accessibility_en')}}</h5>
                                         </div>
 
                                         <div class="card-body select-all-access">
                                             <div class="form-group">
                                                 <label><input type="checkbox" class="selectAll" name="accessAll">
-                                                    {{trans('Select All')}}</label>
+                                                    {{trans('partner_basic.Select_All_en')}}</label>
                                             </div>
 
                                             <table class=" table table-hover table-striped table-bordered text-center">
                                                 <thead class="thead-dark">
                                                     <tr>
-                                                        <th class="text-left">@lang('Permissions')</th>
-                                                        <th>@lang('View')</th>
-                                                        <th>@lang('Add')</th>
-                                                        <th>@lang('Edit')</th>
-                                                        <th>@lang('Delete')</th>
+                                                        <th class="text-left">@lang('partner_basic.Permissions_en')</th>
+                                                        <th>@lang('partner_basic.View_en')</th>
+                                                        <th>@lang('partner_basic.Add_en')</th>
+                                                        <th>@lang('partner_basic.Edit_en')</th>
+                                                        <th>@lang('partner_basic.Delete_en')</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -366,8 +366,8 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary"
-                                data-bs-dismiss="modal">@lang('Close')</button>
-                            <button type="submit" class="btn btn-primary">@lang('Save')</button>
+                                data-bs-dismiss="modal">@lang('partner_basic.Close_en')</button>
+                            <button type="submit" class="btn btn-primary">@lang('partner_basic.Save_en')</button>
                         </div>
 
                     </form>
