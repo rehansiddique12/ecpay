@@ -116,7 +116,7 @@
                                 </td>
 
                                 <td>
-                                    {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
+                                    {{ !empty($fund->txn_record) && $fund->partner_transection_id != 0	 ? $fund->txn_record->txn_no : '' }}
                                 </td>
 
                                 <td data-label="{{ __('transaction.username') }}">
@@ -323,7 +323,7 @@
                 </div>
                 <?php
                 date_default_timezone_set('Asia/Kuala_Lumpur');
-                
+
                 ?>
                 {{-- <form role="form" class="actionRoute" action=""> --}}
                 <form role="form" method="POST" class="actionRoute" action=""
@@ -389,7 +389,7 @@
                 </div>
                 <?php
                 date_default_timezone_set('Asia/Kuala_Lumpur');
-                
+
                 ?>
                 <form role="form" method="POST" action="{{ route('admin.payment.update_e_wallet') }}">
                     @csrf
