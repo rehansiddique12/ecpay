@@ -5426,7 +5426,7 @@ class PayoutRecordController extends Controller
         $EWalletAccount = EWalletAccount::where('status', 1)->get();
         $accountIds = EWalletAccount::
             where('status', 1)
-            ->whereIn('account_type', ['Withdrawl', 'Both'])
+            ->whereIn('account_type', ['Withdrawal', 'Both'])
             ->pluck('id');
 
         // Step 2: Check which IDs are already stored in Notification
