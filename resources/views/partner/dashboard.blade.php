@@ -1,7 +1,7 @@
 <x-partner-layout :title="$pageTitle">
     <div class="container-fluid">
         <div class="row justify-content-center">
-            <h3 style="color: #7376f0">{{ $pageTitle }}</h3>
+            <h3 style="color: #7376f0">{{ __('partner_basic.Dashboard_View_en')}}</h3>
             <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3" style="margin-bottom: 60px;">
                 <div class="card shadow border-right">
                     <div class="card-body">

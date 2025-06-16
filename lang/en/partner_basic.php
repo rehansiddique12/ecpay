@@ -163,7 +163,7 @@ return [
     'Close_en' => 'Close',
     'Save_en' => 'Save',
     'Dashboard_en' => 'Dashboard',
-'Permissions_en' => 'Permissions',
+    'Permissions_en' => 'Permissions',
 
 // End staff
 
@@ -272,8 +272,54 @@ return [
 
 
 
+'Pending_QTY_en' => 'Pending QTY',
+'Pending_Amount_en' => 'Pending Amount',
+'Approved_QTY_en' => 'Approved QTY',
+'Approved_Amount_en' => 'Approved Amount',
+'Total_QTY_en' => 'Total QTY',
+'Total_Amount_en' => 'Total Amount',
 
 
+
+'Opening_Balance_en' => 'Opening Balance',
+'Total_Deposit_en' => 'Total Deposit',
+'Total_Deposit_Charges_en' => 'Total Deposit Charges',
+'Total_Withdrawal_en' => 'Total Withdrawal',
+'Total_Withdrawal_Charges_en' => 'Total Withdrawal Charges',
+'Total_Settlement_en' => 'Total Settlement',
+'Total_Settlement_Charges_en' => 'Total Settlement Charges',
+'Total_Adjustment_en' => 'Total Adjustment',
+'Commission_Earned_en' => 'Commission Earned',
+'Closing_Balance_en' => 'Closing Balance',
+
+
+'Total_Charges_en' => 'Total Charges',
+'Daily_Balance_en' => 'Daily Balance',
+'Total_Receive_en' => 'Total Receive',
+'Partner_Account_Summary_en' => 'Partner Account Summary',
+
+
+'Export_Data_en' => 'Export Data',
+'Pending_Payment_en' => 'Pending Payment',
+'Complete_Payment_en' => 'Complete Payment',
+'Cancel_Payment_en' => 'Cancel Payment',
+'Trx_Number_en' => 'Trx Number',
+'Method_en' => 'Method',
+'Amount_en' => 'Amount',
+'Merchant_Charge_en' => 'Merchant Charge',
+'Net_Amount_en' => 'Net Amount',
+'Request_Status_en' => 'Request Status',
+'Remarks_en' => 'Remarks',
+'Sent_From_en' => 'Sent From',
+
+
+
+// titles:
+'Dashboard_View_en' => 'Dashboard View',
+'Manage_Staff_&_Permission_en' => 'Manage Staff & Permission',
+'Commissions_Summary_en' => 'Commissions Summary',
+'All_Report_en' => 'All Report',
+'Partner_Account_Balance_Summary_en' => 'Partner Account Balance Summary',
 
 
 

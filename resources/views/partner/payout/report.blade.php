@@ -19,14 +19,14 @@
 
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label>From Date</label>
+                            <label>@lang('partner_basic.from_date_label')</label>
                             <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $from_date }}" name="from_date"
                                  />
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label>To Date</label>
+                            <label>@lang('partner_basic.to_date_label')</label>
                             <input type="text" class="form-control datetimepicker" autocomplete="off" value="{{ $to_date }}" name="to_date"
                                 />
                         </div>
@@ -34,13 +34,13 @@
 
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>User Account No</label>
+                        <label>@lang('partner_basic.user_account_no')</label>
                         <input type="text" class="form-control" value="{{ @request()->account_no }}" name="account_no" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>Transection No</label>
+                        <label>@lang('partner_basic.transaction_no')</label>
                         <input type="text" name="partner_transection_id" value="{{ @request()->partner_transection_id }}"
                             class="form-control" placeholder="@lang('Transection No.')">
                     </div>
@@ -48,9 +48,9 @@
 
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>E-Wallet</label>
+                        <label>@lang('partner_basic.e_wallet_label')</label>
                         <select name="gateway" class="form-select">
-                            <option value="">All</option>
+                            <option value="">@lang('partner_basic.all_en')</option>
                             @foreach ($gateways as $gateway)
                                 <option value="{{ $gateway->name }}" @if (@request()->gateway == $gateway->name) selected @endif>
                                     {{ $gateway->name }}</option>
@@ -61,14 +61,14 @@
 
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label>Status</label>
+                        <label>@lang('partner_basic.Status_en')</label>
                         <select name="status" class="form-select">
-                            <option value="">@lang('All Payment')</option>
-                            <option value="Pending" @if (@request()->status == 'Pending') selected @endif>@lang('Pending Payment')
+                            <option value="">@lang('partner_basic.all_payment')</option>
+                            <option value="Pending" @if (@request()->status == 'Pending') selected @endif>@lang('partner_basic.Pending_Payment_en')
                             </option>
-                            <option value="Complete" @if (@request()->status == 'Complete') selected @endif>@lang('Complete Payment')
+                            <option value="Complete" @if (@request()->status == 'Complete') selected @endif>@lang('partner_basic.Complete_Payment_en')
                             </option>
-                            <option value="Reject" @if (@request()->status == 'Reject') selected @endif>@lang('Cancel Payment')
+                            <option value="Reject" @if (@request()->status == 'Reject') selected @endif>@lang('partner_basic.Cancel_Payment_en')
                             </option>
                         </select>
                     </div>
@@ -84,10 +84,11 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <br>
-                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                         <button type="submit" name="export" value="export"
                             class="btn btn-success mt-2"><i class="icon-base ti tabler-download me-1"></i>
-                            @lang('Export Data')</button>
+                            @lang('partner_basic.Export_Data_en')
+                        </button>
                     </div>
                 </div>
 
@@ -108,7 +109,7 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_count }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Transactions')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('partner_basic.total_transactions')
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
@@ -126,7 +127,7 @@
                             <div class="d-inline-flex align-items-center">
                                 <h2 class="text-dark mb-1 font-weight-medium">{{ $fund_sum }}</h2>
                             </div>
-                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Withdrawal Amount')
+                            <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('partner_basic.Total_Withdrawal_Amount_en')
                             </h6>
                         </div>
                         <div class="ml-auto mt-md-3 mt-lg-0">
@@ -146,17 +147,17 @@
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
+                            <th scope="col">@lang('partner_basic.Date_label')</th>
+                            <th scope="col">@lang('partner_basic.Trx_Number_en')</th>
                             <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('User Account')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Net Amount')</th>
-                            <th scope="col">@lang('Request Status')</th>
-                            <th scope="col">@lang('Remarks')</th>
-                            <th scope="col">@lang('Sent From')</th>
+                            <th scope="col">@lang('partner_basic.user_account')</th>
+                            <th scope="col">@lang('partner_basic.Method_en')</th>
+                            <th scope="col">@lang('partner_basic.Amount_en')</th>
+                            <th scope="col">@lang('partner_basic.Merchant_Charge_en')</th>
+                            <th scope="col">@lang('partner_basic.Net_Amount_en')</th>
+                            <th scope="col">@lang('partner_basic.Request_Status_en')</th>
+                            <th scope="col">@lang('partner_basic.Remarks_en')</th>
+                            <th scope="col">@lang('partner_basic.Sent_From_en')</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -226,7 +227,7 @@
                         @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
                         @endforelse

@@ -5,7 +5,7 @@
     <div class="col-md-12">
         <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
             <div class="card-body">
-                <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+                <h3 style="color: #7367f0">{{ __('partner_basic.Commissions_Summary_en')}}</h3>
 
                 <div class="table-responsive">
                     <table class="categories-show-table table table-hover table-striped table-bordered">
@@ -41,7 +41,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('partner_basic.No_Data_Found')</p>
+                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                 </td>
                             </tr>
 

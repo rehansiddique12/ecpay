@@ -3,7 +3,7 @@
     <link rel="stylesheet" href="{{asset('assets/DataTables/datatables.min.css')}}" />
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
-        <h4 class="py-4 mb-6">{{ $pageTitle }}</h4>
+        <h3 class="card-title mb-3" style="color: #7367f0">{{ __('partner_basic.Manage_Staff_&_Permission_en')}}</h3>
         @if(count($errors) > 0 )
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">

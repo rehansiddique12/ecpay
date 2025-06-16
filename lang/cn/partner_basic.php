@@ -269,7 +269,50 @@ return [
     'No_Data_Available_en' => '暂无数据',
 
 
+    'Pending_QTY_en' => '待处理数量',
+    'Pending_Amount_en' => '待处理金额',
+    'Approved_QTY_en' => '已批准数量',
+    'Approved_Amount_en' => '已批准金额',
+    'Total_QTY_en' => '总数量',
+    'Total_Amount_en' => '总金额',
 
+
+    'Opening_Balance_en' => '期初余额',
+    'Total_Deposit_en' => '总存款',
+    'Total_Deposit_Charges_en' => '总存款手续费',
+    'Total_Withdrawal_en' => '总提款',
+    'Total_Withdrawal_Charges_en' => '总提款手续费',
+    'Total_Settlement_en' => '总结算',
+    'Total_Settlement_Charges_en' => '总结算手续费',
+    'Total_Adjustment_en' => '总调整',
+    'Commission_Earned_en' => '已赚佣金',
+    'Closing_Balance_en' => '期末余额',
+
+
+
+    'Total_Charges_en' => '总手续费',
+    'Daily_Balance_en' => '每日余额',
+    'Total_Receive_en' => '总接收金额',
+    'Partner_Account_Summary_en' => '合作伙伴账户摘要',
+    'Pending_Payment_en' => '待付款',
+    'Complete_Payment_en' => '已完成付款',
+    'Cancel_Payment_en' => '已取消付款',
+    'Export_Data_en' => '导出数据',
+    'Trx_Number_en' => '交易编号',
+    'Method_en' => '方式',
+    'Amount_en' => '金额',
+    'Merchant_Charge_en' => '商户手续费',
+    'Net_Amount_en' => '净金额',
+    'Request_Status_en' => '请求状态',
+    'Remarks_en' => '备注',
+    'Sent_From_en' => '发送方',
+
+
+    'Dashboard_View_en' => '仪表板视图',
+    'Manage_Staff_&_Permission_en' => '管理员与权限',
+    'Commissions_Summary_en' => '佣金摘要',
+    'All_Report_en' => '所有报告',
+    'Partner_Account_Balance_Summary_en' => '合作伙伴账户余额摘要',
 
 
 

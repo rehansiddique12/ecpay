@@ -39,7 +39,7 @@
                     <div class="form-group">
                         <label>@lang('partner_basic.e_wallet_label')</label>
                         <select name="gateway" class="form-select">
-                            <option value="">All</option>
+                            <option value="">@lang('partner_basic.all_en')</option>
                             @foreach ($gateways as $gateway)
                                 <option value="{{ $gateway->name }}" @if (@request()->gateway == $gateway->name) selected @endif>
                                     {{ $gateway->name }}</option>
@@ -71,7 +71,7 @@
                                                                                                                                                                             Payment')
                             </option>
                         </select>
-                        
+
                     </div>
                 </div>
 
@@ -140,7 +140,7 @@
 
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-        
+
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
@@ -159,7 +159,7 @@
                                     <th scope="col">@lang('partner_basic.status')</th>
                                     <th scope="col">@lang('partner_basic.completed_at')</th>
                                     <th scope="col">@lang('partner_basic.receipt')</th>
-                                   
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,18 +171,18 @@
                                         <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
                                             {{ $fund->transaction }}<br>
                                             <span class="text text-success">{{ $fund->txn_id }}</span>
-        
+
                                         </td>
                                         <td>{{ !empty($fund->partner_transection_id) ? $fund->partner_transection_id : '' }}
                                             <br>
                                             {{ !empty($fund->member_id) ? $fund->member_id : '' }}
                                         </td>
-        
+
                                         <td>
                                             {{ !empty($fund->txn_record) ? $fund->txn_record->txn_no : '' }}
                                         </td>
-        
-                                        
+
+
                                         <td data-label="@lang('Type')">{{ $fund->gateway?->category?->name ?? 'N/A' }}</td>
                                         <td data-label="@lang('Code')">{{ optional($fund->gateway)->name }}</td>
                                         <td class="font-weight-bold">{{ $fund->sender }}</td>
@@ -196,7 +196,7 @@
                                             {{ getAmount($fund->amount) - getAmount($fund->charge) }}
                                             {{ $fund->gateway?->currency }}
                                         </td>
-        
+
                                         <td data-label="@lang('Status')" class="text-lg-center text-right">
                                             @if ($fund->status == 'Pending')
                                                 @php
@@ -205,7 +205,7 @@
                                                     $currentTime = \Carbon\Carbon::now();
                                                     $diffInMinutes = $createdAt->diffInMinutes($currentTime);
                                                 @endphp
-        
+
                                                 @if ($diffInMinutes > 10 && @request()->status != 'Pending')
                                                     <span class="badge bg-warning">
                                                         <i class="fa fa-circle text-white warning font-12"></i>
@@ -233,8 +233,8 @@
                                                         $classColor = 'bg-primary';
                                                     }
                                                 @endphp
-        
-        
+
+
                                                 <span class="badge {{ $classColor }}"><i
                                                         class="fa fa-circle text-white font-12"></i>
                                                     @lang('Completed')</span>
@@ -249,7 +249,7 @@
                                                 <span class="text text-danger"> {{ $fund->e_wallet_phone_number }}</span>
                                             @endif
                                         </td>
-                                        
+
                                         <td>{{ $fund->created_at }}</td>
                                         <td>
                                             @if (!empty($fund->receipt_image))
@@ -259,8 +259,8 @@
                                                 </a>
                                             @endif
                                         </td>
-        
-                                        
+
+
                                     </tr>
                                 @empty
                                     <tr>
@@ -268,7 +268,7 @@
                                             <p class="text-dark">@lang('partner_basic.no_data_found')</p>
                                         </td>
                                     </tr>
-        
+
                                 @endforelse
                             </tbody>
                         </table>
@@ -278,16 +278,6 @@
                     </div>
                 </div>
             </div>
-
-
-
-
-
-
-
-
-
-
         </div>
     </div>
 

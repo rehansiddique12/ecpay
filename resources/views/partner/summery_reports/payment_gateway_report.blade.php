@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>To Date</label><label>@lang('partner_basic.to_date_label')</label>
+                        </label><label>@lang('partner_basic.to_date_label')</label>
                         <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="datepicker" />
                     </div>

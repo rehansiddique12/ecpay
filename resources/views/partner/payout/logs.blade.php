@@ -36,13 +36,13 @@
                     <div class="form-group">
                         <select name="status" class="form-select">
 
-                            <option value="1" @if(@request()->status == '1') selected @endif>@lang('Pending Payment')
+                            <option value="1" @if(@request()->status == '1') selected @endif>@lang('partner_basic.Pending_Payment_en')
                             </option>
-                            <option value="4" @if(@request()->status == '4') selected @endif>@lang('All Payment')
+                            <option value="4" @if(@request()->status == '4') selected @endif>@lang('partner_basic.all_payment')
                             </option>
-                            <option value="2" @if(@request()->status == '2') selected @endif>@lang('Complete Payment')
+                            <option value="2" @if(@request()->status == '2') selected @endif>@lang('partner_basic.Complete_Payment_en')
                             </option>
-                            <option value="3" @if(@request()->status == '3') selected @endif>@lang('Cancel Payment')
+                            <option value="3" @if(@request()->status == '3') selected @endif>@lang('partner_basic.Cancel_Payment_en')
                             </option>
                         </select>
                     </div>
@@ -51,7 +51,7 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
                     </div>
                 </div>
 
