@@ -5588,6 +5588,7 @@ public function markAsRead(Notification $notification)
                 if (empty($request->txn_id)) {
                     $request->txn_id = "none";
                     $payment = PendingPayment::where('e_wallet_name', $data->gateway->code)
+                    ->where('status', 0)
                         ->where('amount', $data->amount)
                         ->where('sender', $data->account_no)
                         ->whereDate('date', '=', $formattedDate)
@@ -5606,11 +5607,20 @@ public function markAsRead(Notification $notification)
                         throw new \Exception("This Payment Already Completed.");
                     }
 
-                    $payment = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
+                    $payment = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->first();
                     if ($payment) {
                         if ($payment->amount != $data->amount) {
                             throw new \Exception("Wrong TXN.");
                         }
+                    }
+                }
+
+
+                if($payment){
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        throw new \Exception("By This Txn no, Payment Already Completed.");
                     }
                 }
 
@@ -5632,6 +5642,10 @@ public function markAsRead(Notification $notification)
                     $data->commission = $payment->commission;
                     $data->e_wallet_charges = $payment->e_wallet_charges;
                     $data->payment_received_at = $payment->created_at;
+
+                    $payment->status = 1;
+                    $payment->save();
+                    $payment=null;
 
                     // $payment->delete();
                 }
@@ -5808,37 +5822,40 @@ public function markAsRead(Notification $notification)
                     $PartnerCommission->status = 1;
                     $PartnerCommission->save();
                     $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                    $parent_api_key->balance += $PartnerCommission->profit;
-                    $parent_api_key->save();
+                    if($parent_api_key){
+                        $parent_api_key->balance += $PartnerCommission->profit;
+                        $parent_api_key->save();
 
-                    $Log = new Log();
-                    $Log->date_time = $PartnerCommission->created_at;
-                    $Log->final_amount = $PartnerCommission->profit;
-                    $Log->balance = $parent_api_key->balance;
-                    $Log->transection_type = 5;
-                    $Log->transection_id = $PartnerCommission->id;
-                    $Log->partner_id = $PartnerCommission->from_id;
-                    $Log->source = 'AdminPanel';
-                    $Log->save();
+                        $Log = new Log();
+                        $Log->date_time = $PartnerCommission->created_at;
+                        $Log->final_amount = $PartnerCommission->profit;
+                        $Log->balance = $parent_api_key->balance;
+                        $Log->transection_type = 5;
+                        $Log->transection_id = $PartnerCommission->id;
+                        $Log->partner_id = $PartnerCommission->from_id;
+                        $Log->source = 'AdminPanel';
+                        $Log->save();
 
-                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                        $amount_to_update = round($amount_to_update, 2);
-                        // $amount_to_update = floor($amount_to_update * 100) / 100;
-                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                        $DailyPartnerSummary_record->save();
+                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                            $amount_to_update = round($amount_to_update, 2);
+                            // $amount_to_update = floor($amount_to_update * 100) / 100;
+                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                            $DailyPartnerSummary_record->save();
 
-                        $summary_log = new DailyPartnerSummaryLog();
-                        $summary_log->partner_id = $parent_api_key->id;
-                        $summary_log->partner_balance = $parent_api_key->balance;
-                        $summary_log->payment_id = $PartnerCommission->id;
-                        $summary_log->total_amount = $PartnerCommission->profit;
-                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                        $summary_log->source = 'AdminPanel';
-                        $summary_log->save();
+                            $summary_log = new DailyPartnerSummaryLog();
+                            $summary_log->partner_id = $parent_api_key->id;
+                            $summary_log->partner_balance = $parent_api_key->balance;
+                            $summary_log->payment_id = $PartnerCommission->id;
+                            $summary_log->total_amount = $PartnerCommission->profit;
+                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                            $summary_log->source = 'AdminPanel';
+                            $summary_log->save();
+                        }
                     }
+                        
                 }
 
 
