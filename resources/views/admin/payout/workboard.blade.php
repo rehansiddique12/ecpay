@@ -60,6 +60,9 @@
         div:where(.swal2-container).swal2-top-right>.swal2-popup {
             margin-top: 3rem;
         }
+        .btn-purple:hover{
+            background-color: #7267f0a4;
+        }
 
     </style>
     @endpush
@@ -560,7 +563,7 @@
         })(jQuery);
 
         function fetchrecords(search = '', source = '') {
-            // alert('fetched');
+            alert('fetched');
             let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
             // Check if the search already exists
@@ -601,6 +604,7 @@
                     source: source
                 },
                 success: function (response) {
+                    alert('hello');
                     // Check if the card already exists in the DOM
                     const existingCard = $(`.transaction-card[data-id="${response.transactions[0]?.id}"]`);
 
@@ -805,7 +809,8 @@
         console.log(res);
         $('#editModal').modal('hide');
         // Optionally trigger reload
-        $(document).trigger('fetchrecords');
+       $(document).trigger('fetchrecords', ['', '']);
+
     }).fail(function (xhr) {
         if (xhr.status === 422) {
             const errors = xhr.responseJSON.errors;
@@ -837,7 +842,8 @@
 
                 $.post(url, formData, function (res) {
                     $('#editModal').modal('hide');
-                    $(document).trigger('fetchrecords');
+                   $(document).trigger('fetchrecords', ['', '']);
+
                 }).fail(() => alert('Something went wrong. Please try again.'));
             });
 
@@ -1089,7 +1095,11 @@
                     },
                     success: function (response) {
                         $(document).trigger('fetchrecords', [txnId, 'payout']);
-
+                        Swal.fire({
+                    icon: 'success',
+                    title: 'Hurry!',
+                    text: 'Pending Item Checked.',
+                });
                         if (!$('#transaction-search').val().trim()) {
                             $(document).trigger('fetchrecords');
                         }
