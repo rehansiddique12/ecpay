@@ -791,7 +791,7 @@
 
                 $.post(url, formData, function (res) {
                     $('#editModal').modal('hide');
-                    fetchTransactions(); // Refresh the card list
+                    fetchrecords('','' ); // Refresh the card list
                 }).fail(() => alert('Something went wrong. Please try again.'));
             });
 
@@ -808,7 +808,7 @@
 
                 $.post(url, formData, function (res) {
                     $('#editModal').modal('hide');
-                    fetchTransactions(); // Refresh the card list
+                    fetchrecords('','' ); // Refresh the card list
                 }).fail(() => alert('Something went wrong. Please try again.'));
             });
 
@@ -835,7 +835,7 @@
                         $('#manualProcessModal').modal('hide');
                         alert('New record added successfully!');
                         $('#manualProcessModal').find('input').val('');
-                        fetchTransactions();
+                        fetchrecords('','' );
                         // Optional: reload or update your data table here
                     },
                     error: function (xhr) {
