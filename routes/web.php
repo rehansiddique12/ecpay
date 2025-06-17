@@ -33,6 +33,9 @@ use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogContro
 use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 use App\Http\Controllers\Partner\SummaryReportController as PartnerSummaryReportController;
 use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManageRolePermissionController;
+use Illuminate\Http\Request;
+use App\Models\Payout;
+use App\Models\AuditLog;
 
 /*```php
 // No code was selected, so I'll provide a general improvement suggestion.
@@ -140,14 +143,37 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
         Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
         Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
-        Route::post('/update-adjusted-by', function (Illuminate\Http\Request $request) {
+
+
+
+        Route::post('/update-adjusted-by', function (Request $request) {
             $txnId = $request->txnId;
             $adjustedBy = $request->adjusted_by;
 
-            \App\Models\Payout::where('partner_transection_id', $txnId)->update(['adjusted_by' => $adjustedBy,'check_by' => $adjustedBy]);
+            // Fetch the payout record first
+            $payout = Payout::where('partner_transection_id', $txnId)->first();
 
-            return response()->json(['success' => true]);
+            if ($payout) {
+                // Update the fields
+                $payout->update([
+                    'adjusted_by' => $adjustedBy,
+                    'check_by' => $adjustedBy
+                ]);
+
+                // Log into audit log
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Workboard WITHDRAWAL PENDING LIST',
+                    'module_id' => $payout->id, // storing the Payout ID here
+                    'description' => "Pending Withdrawl Payout ID {$payout->id} checked by user."
+                ]);
+
+                return response()->json(['success' => true]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Payout not found.'], 404);
         });
+
 
 
         Route::get('/get-api-balance/{id}', function ($id) {

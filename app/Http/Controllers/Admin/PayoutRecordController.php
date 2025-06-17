@@ -57,6 +57,7 @@ use App\Exports\PartnerCommissionExport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
 use App\Models\Notification;
+use App\Models\AuditLog;
 class PayoutRecordController extends Controller
 {
     use Upload;
@@ -5452,7 +5453,7 @@ class PayoutRecordController extends Controller
         }
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
             ->where('status', 'Pending')
-            ->where('check_by', 0)
+            // ->where('check_by', 0)
             ->orderBy('id', 'desc')
             ->take(5)
             ->get();
@@ -5482,6 +5483,12 @@ public function markAsRead(Notification $notification)
 {
     $notification->update([
         'user_id' => auth()->id()
+    ]);
+    AuditLog::create([
+        'user_id' => auth()->id(),
+        'module' => 'Notification Workboard',
+        'description' => 'Notification marked as read by user.',
+        'module_id' => $notification->ewallet_account_id,
     ]);
 
     return response()->json(['success' => true]);
