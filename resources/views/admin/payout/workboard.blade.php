@@ -563,7 +563,7 @@
         })(jQuery);
 
         function fetchrecords(search = '', source = '') {
-            alert('fetched');
+            // alert('fetched');
             let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
             // Check if the search already exists
@@ -604,7 +604,7 @@
                     source: source
                 },
                 success: function (response) {
-                    alert('hello');
+                    // alert('hello');
                     // Check if the card already exists in the DOM
                     const existingCard = $(`.transaction-card[data-id="${response.transactions[0]?.id}"]`);
 
@@ -663,7 +663,7 @@
 
                             // Use a route pattern or inject it via JavaScript context if needed
                             const payoutRoute =
-                                `/admin/payout-action/${transaction.id}`;
+                                `payout-action/${transaction.id}`;
 
                             editButton = `
                         <button type="button" class="btn btn-sm edit_button ${showEdit}" style="background-color: rgb(124, 3, 180); color: white;"
@@ -756,7 +756,6 @@
                 fetchrecords(searchValue, source);
             });
 
-        // On page load, check for stored search parameters and fetch records if they exist
         $(document).ready(function () {
             let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
@@ -784,14 +783,10 @@
             }
         });
 
-    </script>
-    <script>
         $(document).ready(function () {
             fetchTransactions();
-
-
             $('#editTransactionForm').submit(function (e) {
-    e.preventDefault();
+            e.preventDefault();
 
     // Clear previous errors and the search input
     $('#edit-form-errors').html('');
@@ -806,7 +801,6 @@
         "{{ route('admin.update.payout') }}";
 
     $.post(url, formData, function (res) {
-        console.log(res);
         $('#editModal').modal('hide');
         // Optionally trigger reload
        $(document).trigger('fetchrecords', ['', '']);
@@ -868,10 +862,12 @@
                     },
                     success: function (response) {
                         $('#manualProcessModal').modal('hide');
-                        alert('New record added successfully!');
                         $('#manualProcessModal').find('input').val('');
                         fetchrecords('','' );
-                        // Optional: reload or update your data table here
+                        Toast.fire({
+                            icon: "success",
+                            title: "New record added successfully!"
+                        });
                     },
                     error: function (xhr) {
                         alert('Something went wrong. Please try again.');
@@ -1254,6 +1250,10 @@
                 success: function (response) {
                     if (response.success) {
                         card.remove();
+                        Toast.fire({
+                            icon: "success",
+                            title: "Card Removed Successfully"
+                        });
                     } else {
                         alert(response.message || 'Failed to hide transaction');
                     }

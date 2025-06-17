@@ -751,6 +751,12 @@ class PayoutRecordController extends Controller
         DB::beginTransaction();
         try {
             $data = Payout::where('id', $request->id)->whereIn('transfer_status', [1, 2])->with('user', 'gateway')->lockForUpdate()->first();
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'Payout Action Attempt',
+                'module_id' => $data->id,
+                'description' => "Attempting to update payout ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
+            ]);
             // 1 in pending // 2 success
             $basic = (object) config('basic');
 
@@ -5419,8 +5425,17 @@ class PayoutRecordController extends Controller
         $new->status = 'Complete';
         $new->save();
 
+        // Save to audit log
+        AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => ucfirst($request->type).' Workboard',
+            'module_id'   => $new->id,
+            'description' => auth()->user()->name . ' manually processed and duplicated a ' . $request->type . ' record. Original ID: ' . $original->id . ', New ID: ' . $new->id . ', New Amount: ' . $request->new_amount,
+        ]);
+
         return response()->json(['success' => true, 'message' => 'Record duplicated successfully.']);
     }
+
 
     public function workboard(Request $request)
     {
@@ -5487,7 +5502,7 @@ public function markAsRead(Notification $notification)
     AuditLog::create([
         'user_id' => auth()->id(),
         'module' => 'Notification Workboard',
-        'description' => 'Notification marked as read by user.',
+        'description' => 'Notification marked as read by user'. auth()->user()->name,
         'module_id' => $notification->ewallet_account_id,
     ]);
 
@@ -5542,6 +5557,15 @@ public function markAsRead(Notification $notification)
         ->take(10)
         ->get();
     }
+    if (!empty($query)) {
+        AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'Transaction Search Workboard',
+            'module_id'   => 0,
+            'description' => auth()->user()->name . ' searched transactions using keyword: "' . $query . '". Source: ' . $source,
+        ]);
+    }
+
         $merged = $payments->merge($payouts);
         $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
         return response()->json([
@@ -5559,9 +5583,21 @@ public function markAsRead(Notification $notification)
         DB::beginTransaction();
         try {
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'Payment Update Attempt',
+                'module_id' => $data->id,
+                'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
+            ]);
             if (!empty($request->sender)) {
                 $data->sender = $request->sender;
                 $data->save();
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Payment Sender Update',
+                    'module_id' => $data->id,
+                    'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'",
+                ]);
             }
 
 
@@ -5570,7 +5606,12 @@ public function markAsRead(Notification $notification)
             $commit = 0;
 
             if ($request->status == 'Complete') {
-
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Payment Completed',
+                    'module_id' => $data->id,
+                    'description' => "Payment ID {$data->id} was successfully completed by user ".auth()->user()->name,
+                ]);
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
                     ->where('status', 1)
@@ -5855,7 +5896,7 @@ public function markAsRead(Notification $notification)
                             $summary_log->save();
                         }
                     }
-                        
+
                 }
 
 
@@ -5948,8 +5989,14 @@ public function markAsRead(Notification $notification)
 
                 $data->status = "Reject";
                 $data->feedback = $request->feedback;
-
                 $data->update();
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Payment Rejected',
+                    'module_id' => $data->id,
+                    'description' => "Payment ID {$data->id} was rejected by user ".auth()->user()->name,
+                ]);
+
                 //$user = $data->user;
 
                 $commit = 1;
@@ -6033,11 +6080,23 @@ public function markAsRead(Notification $notification)
                 session()->flash('success', 'Reject Successfully');
             }
             if ($commit == 0) {
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Payment Update No Change',
+                    'module_id' => $data->id,
+                    'description' => "Payment ID {$data->id} update resulted in no status change",
+                ]);
                 DB::commit();
             }
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             DB::rollBack();
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'Payment Update Failed',
+                'module_id' => $request->id ?? null,
+                'description' => "Failed to update payment: ".$e->getMessage(),
+            ]);
             session()->flash('error', $e->getMessage());
             return back();
         }
@@ -6061,6 +6120,13 @@ public function markAsRead(Notification $notification)
         $record->adjusted_by = auth()->id();
         $record->save();
 
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'module' => ucfirst($request->type) . ' Transaction Workboard Adjustment',
+            'module_id' => $record->id,
+            'description' => ucfirst($request->type) . " transaction with ID {$record->id} was adjusted by user ". auth()->user()->name,
+        ]);
+
         return response()->json(['success' => true]);
     }
 
@@ -6081,6 +6147,15 @@ public function markAsRead(Notification $notification)
         if ($record) {
             $record->show_none = 1;
             $record->save();
+
+            // Save to audit_logs
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => ucfirst($type) . ' Transaction Workboard Card',
+                'module_id' => $record->id,
+                'description' => ucfirst($type) . " transaction with ID {$record->id} was closed by user ".auth()->user()->name,
+            ]);
+
             return response()->json(['success' => true]);
         }
 
