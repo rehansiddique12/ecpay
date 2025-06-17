@@ -28,7 +28,7 @@ class PaymentMethodController extends Controller
 
     public function payment_gateway_report(Request $request)
     {
-        $pageTitle = "Payment Gateway Performance Report";
+        $pageTitle = __('reports.payment_gateway_performance_report');
 
         $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
         $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d');

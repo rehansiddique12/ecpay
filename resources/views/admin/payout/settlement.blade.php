@@ -1,11 +1,11 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-    <link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}">
-    <style>
-        tr th {
-            color: white !important
-        }
-    </style>
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+        <style>
+            tr th {
+                color: white !important
+            }
+        </style>
     @endpush
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
@@ -15,27 +15,28 @@
 
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>From Date</label>
-                        <input type="date" class="form-control" value="{{@request()->from_date}}" name="from_date"
+                        <label>{{ __('partner.from_date') }}</label>
+                        <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>To Date</label>
-                        <input type="date" class="form-control" value="{{@request()->to_date}}" name="to_date"
+                        <label>{{ __('partner.to_date') }}</label>
+                        <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Partner</label>
-                        <select name="partner" class="form-select select2" data-allow-clear="true" data-placeholder="Select a partner">
+                        <label>{{ __('partner.partner') }}</label>
+                        <select name="partner" class="form-select select2" data-allow-clear="true"
+                            data-placeholder="Select a partner">
                             <option></option>
-                            <option value="">All</option>
-                            @foreach($partners as $partner)
-                            <option value="{{ $partner->id }}" @if(@request()->partner == $partner->id) selected
-                                @endif>{{ $partner->website }}</option>
+                            <option value="">{{ __('partner.all') }}</option>
+                            @foreach ($partners as $partner)
+                                <option value="{{ $partner->id }}" @if (@request()->partner == $partner->id) selected @endif>
+                                    {{ $partner->website }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -45,13 +46,15 @@
 
                 <div class="col-md-4  mt-4">
                     <div class="form-group">
-                        <label>E-Wallet</label>
-                        <select name="gateway" class="form-select select2" data-allow-clear="true" data-placeholder="Select a partner">
+                        <label>{{ __('partner.e_wallet') }}</label>
+                        <select name="gateway" class="form-select select2" data-allow-clear="true"
+                            data-placeholder="{{ __('partner.select_partner') }}">
                             <option></option>
-                            <option value="">All</option>
-                            @foreach($gateways as $gateway)
-                            <option value="{{ $gateway->source_name }}" @if(@request()->gateway ==
-                                $gateway->source_name) selected @endif>{{ $gateway->source_name }}</option>
+                            <option value="">{{ __('partner.all') }}</option>
+                            @foreach ($gateways as $gateway)
+                                <option value="{{ $gateway->source_name }}"
+                                    @if (@request()->gateway == $gateway->source_name) selected @endif>{{ $gateway->source_name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -59,12 +62,18 @@
 
                 <div class="col-md-4  mt-4">
                     <div class="form-group">
-                        <label>Status</label>
+                        <label>{{ __('partner.status') }}</label>
                         <select name="status" class="form-select">
-                            <option value="">@lang('All')</option>
-                            <option value="1" @if(@request()->status == '1') selected @endif>@lang('Approved')</option>
-                            <option value="0" @if(@request()->status == '0') selected @endif>@lang('Pending')</option>
-                            <option value="2" @if(@request()->status == '2') selected @endif>@lang('Rejected')</option>
+                            <option value="">{{ __('partner.all') }}</option>
+                            <option value="1" @if (@request()->status == '1') selected @endif>
+                                {{ __('partner.approved') }}
+                            </option>
+                            <option value="0" @if (@request()->status == '0') selected @endif>
+                                {{ __('partner.pending') }}
+                            </option>
+                            <option value="2" @if (@request()->status == '2') selected @endif>
+                                {{ __('partner.rejected') }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -73,7 +82,7 @@
                     <div class="form-group">
                         <br>
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('Search')</button>
+                                class="icon-base ti tabler-search me-1"></i> {{ __('partner.search') }}</button>
                     </div>
                 </div>
 
@@ -91,7 +100,7 @@
 
                     <button type="button" class="btn btn-primary mb-4 hover:drop-shadow-xl" data-bs-toggle="modal"
                         data-bs-target="#newModal">
-                        Add New Settlement
+                        {{ __('partner.add_new_settlement') }}
                     </button>
 
                     <div class="table-responsive">
@@ -100,76 +109,81 @@
                                 style="background: var(--bs-menu-active-bg); color:#ffffff;">
                                 <tr>
 
-                                    <th scope="col">@lang('Source')</th>
-                                    <th scope="col">@lang('Source Name')</th>
-                                    <th scope="col">@lang('Account No.')</th>
-                                    <th scope="col">@lang('Amount')</th>
-                                    <th scope="col">@lang('Charges')</th>
-                                    <th scope="col">@lang('Net Amount')</th>
-                                    <th scope="col">@lang('Status')</th>
-                                    <th scope="col">@lang('Partner')</th>
-                                    <th scope="col">Created At</th>
-                                    <th>Action</th>
+                                    <th scope="col">{{ __('partner.source') }}</th>
+                                    <th scope="col">{{ __('partner.source_name') }}</th>
+                                    <th scope="col">{{ __('partner.account_no') }}</th>
+                                    <th scope="col">{{ __('partner.amount') }}</th>
+                                    <th scope="col">{{ __('partner.charges') }}</th>
+                                    <th scope="col">{{ __('partner.net_amount') }}</th>
+                                    <th scope="col">{{ __('partner.status') }}</th>
+                                    <th scope="col">{{ __('partner.partner') }}</th>
+                                    <th scope="col">{{ __('partner.created_at') }}</th>
+                                    <th>{{ __('partner.action') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
-                                <tr>
-                                    <td>{{ $item->source }}</td>
-                                    <td>{{ $item->source_name }}</td>
-                                    <td>{{ $item->account_no }}</td>
-                                    <td>{{ $item->amount }}</td>
-                                    <td>{{ $item->charges }}</td>
-                                    <td>{{ $item->amount + $item->charge }}</td>
-                                    <td data-label="@lang('Status')" class="text-lg-center text-right">
-                                        @if ($item->status == 2)
-                                        <span class="badge  bg-danger">
-                                            {{-- <i class="fa fa-circle text-white font-12"></i> --}}
-                                            @lang('Rejected')
-                                        </span>
-                                        @elseif($item->status == 1)
-                                        <span class="badge bg-success">
-                                            {{-- <i class="fa fa-circle text-white font-12"></i> --}}
-                                            @lang('Approved')</span>
-                                        @else
-                                        <span class="badge bg-warning">
-                                            {{-- <i class="fa fa-circle text-white font-12"></i> --}}
-                                            @lang('Pending')</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $item->api->website ?? '' }}</td>
-                                    <td>{{ $item->created_at }}</td>
-                                    <td data-label="@lang('Action')">
-                                        <div class="dropdown show ">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                data-bs-toggle="dropdown">
-                                                <i class="icon-base ti tabler-dots-vertical"></i>
-                                            </button>
-                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                                @if(adminAccessRoute(config('role.settlements.access.edit')))
-                                                <form action="{{ route('admin.settlements.approve', $item['id']) }}"
-                                                    method="GET">
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"><i
-                                                            class="fa fa-check"></i> Approve</button>
-                                                </form>
-                                                <form action="{{ route('admin.settlements.reject', $item['id']) }}"
-                                                    method="GET">
-                                                    <button type="submit" class="btn btn-sm btn-icon edit_button"><i
-                                                            class="fa fa-times"></i> Reject</button>
-                                                </form>
-                                                @endif
+                                    <tr>
+                                        <td>{{ $item->source }}</td>
+                                        <td>{{ $item->source_name }}</td>
+                                        <td>{{ $item->account_no }}</td>
+                                        <td>{{ $item->amount }}</td>
+                                        <td>{{ $item->charges }}</td>
+                                        <td>{{ $item->amount + $item->charge }}</td>
+                                        <td data-label="{{ __('partner.status') }}" class="text-lg-center text-right">
+                                            @if ($item->status == 2)
+                                                <span class="badge  bg-danger">
+                                                    {{-- <i class="fa fa-circle text-white font-12"></i> --}}
+                                                    {{ __('partner.rejected') }}
+                                                </span>
+                                            @elseif($item->status == 1)
+                                                <span class="badge bg-success">
+                                                    {{-- <i class="fa fa-circle text-white font-12"></i> --}}
+                                                    {{ __('partner.approved') }}</span>
+                                            @else
+                                                <span class="badge bg-warning">
+                                                    {{-- <i class="fa fa-circle text-white font-12"></i> --}}
+                                                    {{ __('partner.pending') }}</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $item->api->website ?? '' }}</td>
+                                        <td>{{ $item->created_at }}</td>
+                                        <td data-label="{{ __('partner.action') }}">
+                                            <div class="dropdown show ">
+                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                    <i class="icon-base ti tabler-dots-vertical"></i>
+                                                </button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                                    @if (adminAccessRoute(config('role.settlements.access.edit')))
+                                                        <form
+                                                            action="{{ route('admin.settlements.approve', $item['id']) }}"
+                                                            method="GET">
+                                                            <button type="submit"
+                                                                class="btn btn-sm btn-icon edit_button"><i
+                                                                    class="fa fa-check"></i>
+                                                                {{ __('partner.approve') }}</button>
+                                                        </form>
+                                                        <form
+                                                            action="{{ route('admin.settlements.reject', $item['id']) }}"
+                                                            method="GET">
+                                                            <button type="submit"
+                                                                class="btn btn-sm btn-icon edit_button"><i
+                                                                    class="fa fa-times"></i>
+                                                                {{ __('partner.reject') }}</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
+                                        </td>
 
-                                </tr>
+                                    </tr>
                                 @empty
-                                <tr>
-                                    <td colspan="100%">
-                                        <p class="text-dark">@lang('No Data Found')</p>
-                                    </td>
-                                </tr>
-
+                                    <tr>
+                                        <td colspan="100%">
+                                            <p class="text-dark">{{ __('partner.no_data_found') }}</p>
+                                        </td>
+                                    </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -191,7 +205,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Add New')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('partner.add_new') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="settlementForm" action="{{ route('admin.settlements.add') }}" method="POST">
@@ -201,11 +215,12 @@
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label>Partner</label>
+                                    <label>{{ __('partner.partner') }}</label>
                                     <select name="partner" class="form-select" required>
-                                        @foreach($partners as $partner)
-                                        <option value="{{ $partner->id }}" @if(@request()->partner == $partner->id)
-                                            selected @endif>{{ $partner->website }}</option>
+                                        @foreach ($partners as $partner)
+                                            <option value="{{ $partner->id }}"
+                                                @if (@request()->partner == $partner->id) selected @endif>
+                                                {{ $partner->website }}</option>
                                         @endforeach
                                     </select>
                                     <div class="text-danger error-partner"></div>
@@ -214,31 +229,32 @@
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Source</label>
+                                    <label class="pr-3">{{ __('partner.source') }}</label>
                                     <select class="form-select" name="source" required>
-                                        <option value="Bank">Bank</option>
-                                        <option value="EWallet">EWallet</option>
+                                        <option value="Bank">{{ __('partner.bank') }}</option>
+                                        <option value="EWallet">{{ __('partner.ewallet') }}</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Source Name</label>
+                                    <label class="pr-3">{{ __('partner.source_name') }}</label>
                                     <input type="text" class="form-control" name="source_name" required />
                                 </div>
                             </div>
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Account No.</label>
+                                    <label class="pr-3">{{ __('partner.account_no') }}</label>
                                     <input type="text" class="form-control" name="account_no" required />
                                 </div>
                             </div>
 
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="pr-3">Amount</label>
-                                    <input type="number" step="0.01" class="form-control" name="amount" required />
+                                    <label class="pr-3">{{ __('partner.amount') }}</label>
+                                    <input type="number" step="0.01" class="form-control" name="amount"
+                                        required />
                                     <div class="text-danger error-amount"></div>
                                 </div>
                             </div>
@@ -246,9 +262,10 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" id="submitBtn" class="btn btn-primary">@lang('Save')</button>
+                        <button type="submit" id="submitBtn"
+                            class="btn btn-primary">{{ __('partner.save') }}</button>
                         <button type="button" class="btn btn-dark" data-bs-dismiss="modal"
-                            aria-label="Close">@lang('Close')</button>
+                            aria-label="Close">{{ __('partner.close') }}</button>
                     </div>
                 </form>
             </div>
@@ -256,66 +273,65 @@
     </div>
 
     @push('js')
-    <script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
 
-    <script>
-        "use strict";
-        $(document).ready(function(e) {
-            $('#settlementForm').on('submit', function (e) {
-                e.preventDefault();
-                let form = $(this);
-                let submitBtn = $('#submitBtn');
+        <script>
+            "use strict";
+            $(document).ready(function(e) {
+                $('#settlementForm').on('submit', function(e) {
+                    e.preventDefault();
+                    let form = $(this);
+                    let submitBtn = $('#submitBtn');
 
-                // Clear all previous errors
-                $('.text-danger').text('');
+                    // Clear all previous errors
+                    $('.text-danger').text('');
 
-                // Disable button and show processing text
-                submitBtn.prop('disabled', true).text('Processing...');
+                    // Disable button and show processing text
+                    submitBtn.prop('disabled', true).text("{{ __('partner.processing') }}");
 
-                $.ajax({
-                    type: 'POST',
-                    url: form.attr('action'),
-                    data: form.serialize(),
-                    success: function (response) {
-                        $('#newModal').modal('hide');
-                        location.reload(); // or show a success message
-                    },
-                    error: function (xhr) {
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            $.each(errors, function (key, messages) {
-                                $('.error-' + key).text(messages[0]);
-                            });
-                        } else {
-                            alert('Something went wrong.');
+                    $.ajax({
+                        type: 'POST',
+                        url: form.attr('action'),
+                        data: form.serialize(),
+                        success: function(response) {
+                            $('#newModal').modal('hide');
+                            location.reload(); // or show a success message
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 422) {
+                                let errors = xhr.responseJSON.errors;
+                                $.each(errors, function(key, messages) {
+                                    $('.error-' + key).text(messages[0]);
+                                });
+                            } else {
+                                alert("{{ __('partner.something_went_wrong') }}");
+                            }
+                        },
+                        complete: function() {
+                            // Re-enable button and reset text to Save
+                            submitBtn.prop('disabled', false).text('Save');
                         }
-                    },
-                    complete: function () {
-                        // Re-enable button and reset text to Save
-                        submitBtn.prop('disabled', false).text('Save');
+                    });
+                });
+
+                let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    selectOnClose: true,
+                });
+
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function(e) {
+                    $(this).data('unselecting', true);
+                });
+
+                $select.on('select2:opening', function(e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
                     }
                 });
             });
-
-            let $select = $('.select2').select2({
-                // placeholder: "Select Partner",
-                allowClear: true,
-                selectOnClose: true,
-            });
-
-            // Prevent dropdown from opening on clear
-            $select.on('select2:unselecting', function (e) {
-                $(this).data('unselecting', true);
-            });
-
-            $select.on('select2:opening', function (e) {
-                if ($(this).data('unselecting')) {
-                    $(this).removeData('unselecting');
-                    e.preventDefault();
-                }
-            });
-        });
-    </script>
-
+        </script>
     @endpush
 </x-admin-layout>
