@@ -3587,7 +3587,7 @@ class PayoutRecordController extends Controller
             ->groupBy('source_name')
             ->get();
 
-        $pageTitle = "Partners Settlements History";
+        $pageTitle = __('partner.partners_settlements_history');
         $partners = Api::where('type', 'Admin')->get();
         return view('admin.payout.settlement', compact('records', 'pageTitle', 'gateways', 'partners'));
     }
@@ -6329,7 +6329,7 @@ public function markAsRead(Notification $notification)
     public function apilogs(Request $request)
     {
         $data = ApiLog::where('type', 'API')->orderBy('id', 'DESC')->paginate(20);
-        $pageTitle = "API Logs";
+        $pageTitle = __('partner.api_logs');
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }
 
@@ -6373,7 +6373,7 @@ public function markAsRead(Notification $notification)
     public function functionlogs(Request $request)
     {
         $data = ApiLog::where('type', 'Function')->orderBy('id', 'DESC')->paginate(20);
-        $pageTitle = "API Logs";
+        $pageTitle = __('partner.api_logs');
         return view('admin.payout.functionLogs', compact('data', 'pageTitle'));
     }
 
