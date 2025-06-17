@@ -5505,10 +5505,14 @@ public function markAsRead(Notification $notification)
         ->where('show_none', 0)
         ->when($query, function ($q) use ($query) {
             $q->where(function ($subQuery) use ($query) {
-                $subQuery->where('txn_id', '=', $query)
-                         ->orWhere('partner_transection_id', '=', $query);
+                $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
+                         ->orWhere('transaction', 'like', '%' . $query . '%')
+                         ->orWhere('member_id', 'like', '%' . $query . '%')
+                         ->orWhere('txn_id', 'like', '%' . $query . '%');
             });
         })
+
+
         ->take(10)
         ->get();
     }
@@ -5522,15 +5526,15 @@ public function markAsRead(Notification $notification)
         ->where('show_none', 0)
         ->when($query, function ($q) use ($query) {
             $q->where(function ($subQuery) use ($query) {
-                $subQuery->where('txn_id', '=', $query)
-                         ->orWhere('partner_transection_id', '=', $query);
+                $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
+                         ->orWhere('member_id', 'like', '%' . $query . '%')
+                         ->orWhere('txn_id', 'like', '%' . $query . '%');
             });
         })
+
         ->take(10)
         ->get();
     }
-
-
         $merged = $payments->merge($payouts);
         $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
         return response()->json([
@@ -5541,7 +5545,6 @@ public function markAsRead(Notification $notification)
 
     public function updatePayment(Request $request)
     {
-
         $this->validate($request, [
             'id' => 'required',
             'status' => ['required', Rule::in(['Complete', 'Reject'])],

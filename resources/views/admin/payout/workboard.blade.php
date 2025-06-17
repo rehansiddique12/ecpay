@@ -486,7 +486,11 @@
             $('#transactions-container').empty();
 
             // Optional: Show a brief confirmation (toast/alert)
-            alert('All session data cleared and results reset.');
+            Swal.fire({
+                    icon: 'success',
+                    title: 'Hurry!',
+                    text: 'All session data cleared and results reset.',
+                });
         });
 
         (function (jQuery) {
@@ -556,7 +560,7 @@
         })(jQuery);
 
         function fetchrecords(search = '', source = '') {
-            console.log(search, source);
+            // alert('fetched');
             let history = JSON.parse(sessionStorage.getItem('searchHistory')) || [];
 
             // Check if the search already exists
@@ -586,7 +590,7 @@
                 });
                 sessionStorage.setItem('searchHistory', JSON.stringify(history));
             }
-            console.log(history);
+            // console.log(history);
 
             $.ajax({
                 url: "{{ route('admin.fetchrecords') }}",
@@ -606,11 +610,12 @@
                     }
 
                     $.each(response.transactions, function (index, transaction) {
-                        console.log(transaction);
+                        // console.log(transaction);
                         $(document).off('click', '.edit-btn').on('click', '.edit-btn',
                             function () {
                                 const transaction = $(this).data(
                                     'transaction'); // set below
+                                    console.log(transaction);
                                 $('#editId').val(transaction.id);
                                 $('#editrejectId').val(transaction.id);
                                 $('#editType').val(transaction.type);
@@ -743,6 +748,9 @@
                 }
             });
         }
+        $(document).on('fetchrecords', function (e, searchValue, source) {
+                fetchrecords(searchValue, source);
+            });
 
         // On page load, check for stored search parameters and fetch records if they exist
         $(document).ready(function () {
@@ -779,25 +787,46 @@
 
 
             $('#editTransactionForm').submit(function (e) {
-                e.preventDefault();
+    e.preventDefault();
 
-                const id = $('#editId').val();
-                const type = $('#editType').val();
-                const formData = $(this).serialize();
+    // Clear previous errors and the search input
+    $('#edit-form-errors').html('');
+    $('#transaction-search').val('');
 
-                let url = (type === 'payment') ?
-                    "{{ route('admin.update.payment') }}" :
-                    "{{ route('admin.update.payout') }}";
+    const id = $('#editId').val();
+    const type = $('#editType').val();
+    const formData = $(this).serialize();
 
-                $.post(url, formData, function (res) {
-                    $('#editModal').modal('hide');
-                    fetchrecords('','' ); // Refresh the card list
-                }).fail(() => alert('Something went wrong. Please try again.'));
+    let url = (type === 'payment') ?
+        "{{ route('admin.update.payment') }}" :
+        "{{ route('admin.update.payout') }}";
+
+    $.post(url, formData, function (res) {
+        console.log(res);
+        $('#editModal').modal('hide');
+        // Optionally trigger reload
+        $(document).trigger('fetchrecords');
+    }).fail(function (xhr) {
+        if (xhr.status === 422) {
+            const errors = xhr.responseJSON.errors;
+            let errorHtml = '<ul class="text-danger">';
+            $.each(errors, function (key, messages) {
+                messages.forEach(function (msg) {
+                    errorHtml += '<li>' + msg + '</li>';
+                });
             });
+            errorHtml += '</ul>';
+            $('#edit-form-errors').html(errorHtml);
+        } else {
+            alert('Something went wrong. Please try again.');
+        }
+    });
+});
+
 
             $('#editTransactionForm1').submit(function (e) {
                 e.preventDefault();
-
+                document.getElementById('transaction-search').value = '';
                 const id = $('#editrejectId').val();
                 const type = $('#editrejectType').val();
                 const formData = $(this).serialize();
@@ -808,7 +837,7 @@
 
                 $.post(url, formData, function (res) {
                     $('#editModal').modal('hide');
-                    fetchrecords('','' ); // Refresh the card list
+                    $(document).trigger('fetchrecords');
                 }).fail(() => alert('Something went wrong. Please try again.'));
             });
 
@@ -872,9 +901,9 @@
                 });
             }
 
-            $(document).on('fetchrecords', function (e, searchValue, source) {
-                fetchrecords(searchValue, source);
-            });
+            // $(document).on('fetchrecords', function (e, searchValue, source) {
+            //     fetchrecords(searchValue, source);
+            // });
 
             setInterval(function () {
             fetchTransactions();
