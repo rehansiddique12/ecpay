@@ -951,7 +951,16 @@ $languages = [
                                 <div data-i18n="Deposit Log">{{ __('sidebar.deposit_log') }}</div>
                             </a>
                         </li>
+
                         @endif
+                        <li
+                        class="menu-item {{ in_array(Route::currentRouteName(), ['admin.audit_logs.index']) ? 'active' : '' }}">
+                        <a href="{{ route('admin.audit_logs.index') }}" class="menu-link">
+                            <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                            <div data-i18n="Audit Log">{{ __('sidebar.audit_log') }}</div>
+                        </a>
+                    </li>
+
                         @if (adminAccessRoute(config('role.deposit_last_hour_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log2']) ? 'active' : '' }}">

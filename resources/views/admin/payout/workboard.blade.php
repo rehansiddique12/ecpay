@@ -879,6 +879,11 @@
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Optional: prevent form submission if inside a form
                     const searchValue = $(this).val();
+                    Swal.fire({
+                    icon: 'success',
+                    title: 'Hurry!',
+                    text: 'Please wait while we fetch your records.',
+                });
                     fetchrecords(searchValue, 'all');
                 }
             });

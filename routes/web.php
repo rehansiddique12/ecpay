@@ -143,6 +143,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/update/payment', [PayoutRecordController::class, 'updatePayment'])->name('update.payment');
         Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
         Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
+        Route::get('/audit-logs', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit_logs.index');
 
 
 

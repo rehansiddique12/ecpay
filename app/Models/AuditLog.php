@@ -16,4 +16,9 @@ class AuditLog extends Model
         'module_id',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(Admin::class);
+    }
+
 }
