@@ -290,8 +290,17 @@ class CategoryController extends Controller
         $account->status = $request->status;
         $account->save();
 
+        // Add audit log
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'EWalletAccount Account Management',
+            'module_id'   => $account->id,
+            'description' => auth()->user()->name . ' ' . ($account->status ? 'activated' : 'deactivated') . ' eWallet account ( ' . $account->e_wallet_name . ')',
+        ]);
+
         return response()->json(['success' => true, 'message' => 'Status updated.']);
     }
+
 
     public function onOffAccount()
     {
@@ -312,13 +321,25 @@ class CategoryController extends Controller
             'id' => 'required|exists:e_wallet_accounts,id',
             'account_type' => 'nullable|in:Deposit,Withdrawal,Both',
         ]);
+
         $wallet = EWalletAccount::findOrFail($request->id);
+        $oldType = $wallet->account_type;
+
         $wallet->account_type = $request->account_type;
         $wallet->save();
+
+        // Log the change
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'EWalletAccount Account Management',
+            'module_id'   => $wallet->id,
+            'description' => auth()->user()->name . " changed account type from '{$oldType}' to '{$wallet->account_type}' for eWallet account ( {$wallet->e_wallet_name})",
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Account type updated successfully!',
         ]);
     }
+
 }

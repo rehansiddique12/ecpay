@@ -749,7 +749,7 @@
 
                         enableText.classList.remove("text-primary");
                         enableText.classList.add("text-secondary");
-                    }
+
                 });
             });
 
