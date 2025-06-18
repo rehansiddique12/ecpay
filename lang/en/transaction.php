@@ -289,5 +289,6 @@ return [
     'nagad_server_down' => 'Nagad server down',
     'bkash_server_down' => 'bKash server down',
     'rocket_server_down' => 'Rocket server down',
+    'select_user'=> 'Select User',
 
 ];

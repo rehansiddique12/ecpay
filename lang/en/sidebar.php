@@ -81,5 +81,5 @@ return [
     'summary_by_date' => 'Summary By Date',
     'summary_by_name' => 'Summary By Name',
     'summary_by_year' => 'Summary By Year ',
-
+    'audit_log' => 'Audit Log',
 ];
