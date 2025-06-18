@@ -14,6 +14,7 @@ use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\CCategory;
 use App\Models\Signature;
@@ -25,9 +26,10 @@ use App\Models\Settlement;
 use App\Http\Traits\Upload;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
-use App\Models\AccountGroup;
 // rehan
+use App\Models\AccountGroup;
 use App\Models\AdminAccount;
+use App\Models\Notification;
 use App\Models\UserLocation;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
@@ -49,6 +51,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
+use App\Exports\PartnerBalanceExport;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\EWalletAccountTimeSlot;
 use Stevebauman\Purify\Facades\Purify;
@@ -56,8 +59,7 @@ use Illuminate\Support\Facades\Session;
 use App\Exports\PartnerCommissionExport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
-use App\Models\Notification;
-use App\Models\AuditLog;
+
 class PayoutRecordController extends Controller
 {
     use Upload;
@@ -1073,7 +1075,7 @@ class PayoutRecordController extends Controller
                     $data->status = "Reject";
                     $data->save();
                 }
-                
+
 
 
                 $status_to_show = "Payout ID {$data->id} Status changed to Rejected by user ".auth()->user()->name;
@@ -1201,8 +1203,8 @@ class PayoutRecordController extends Controller
 
 
                     $status_to_show = "Payout ID {$data->id} Transfer Status changed to Completed by user ".auth()->user()->name;
-    
-    
+
+
                     AuditLog::create([
                         'user_id' => auth()->id(),
                         'module' => 'Payout Action Attempt',
@@ -5642,7 +5644,7 @@ public function markAsRead(Notification $notification)
             $commit = 0;
 
             if ($request->status == 'Complete') {
-                
+
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
                     ->where('status', 1)
@@ -6433,11 +6435,26 @@ public function markAsRead(Notification $notification)
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
     }
 
+    public function export_for_blance(Request $request)
+    {
+        $from_date = $request->input('from_date');
+        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+
+        $user = Auth::guard('partner')->user();
+        $userID = $user->id;
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new PartnerMerchantExport($from_date , $userID), "merchant_report_by_date_{$sanitizedDate}.csv");
+    }
+
     public function partnerBalanceSearch(Request $request)
     {
 
         $partners = Api::where('type', 'Admin')->paginate(20);
-
         $records = ApiTransaction::with('api');
 
         if (!empty($request->from_date) && !empty($request->to_date)) {
@@ -6456,11 +6473,32 @@ public function markAsRead(Notification $notification)
         if (!empty($request->adjustment) || $request->adjustment == '0') {
             $records->where('adjustment', $request->adjustment);
         }
-
+        if (!empty($request->search_by_name)) {
+            $searchTerm = $request->search_by_name;
+            $records->whereHas('api', function ($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('username', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('website', 'like', '%' . $searchTerm . '%');
+            });
+        }
         $records = $records->orderBy('id', 'DESC')->paginate(20);
 
         $pageTitle = "Search Partner Adjustments";
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+      public function export_for_blance2($from_date=null, $to_date=null, $partner=null, $search_by_name=null, $adjustment=null)
+    {
+        $from_date = str_replace('/', '', $from_date);
+        $to_date = str_replace('/', '', $to_date);
+        // dd($from_date);
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new PartnerBalanceExport($from_date, $to_date, $partner, $search_by_name, $adjustment), "partner_balance_by_date_{$sanitizedDate}.csv");
     }
 
 
