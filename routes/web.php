@@ -253,6 +253,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/partner/balance', [PayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
         Route::get('partner/balance/search', [PayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
+        Route::get('partner/balance/export/{from_date?}/{to_date?}/{partner?}/{search_by_name?}/{adjustment?}', [PayoutRecordController::class,'export_for_blance2'])->name('blance_export');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
         Route::get('transections/functionlogs', [PayoutRecordController::class, 'functionlogs'])->name('transections.functionlogs');
 

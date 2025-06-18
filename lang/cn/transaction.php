@@ -268,4 +268,17 @@ return [
     'nagad_server_down' => 'Nagad服务器故障',
     'bkash_server_down' => 'bKash服务器故障',
     'rocket_server_down' => 'Rocket服务器故障',
+
+    // Audit Page
+    'audit_page'=> '审计页面',
+    'audit_logs' => '审计日志',
+    'select_user' => '选择用户',
+    'filter_by_user' => '按用户筛选',
+    'module' => '模块',
+    'search' => '搜索',
+    'id' => 'ID',
+    'user' => '用户',
+    'description' => '描述',
+    'created_at' => '创建时间',
+    'processing' => '处理中...',
 ];

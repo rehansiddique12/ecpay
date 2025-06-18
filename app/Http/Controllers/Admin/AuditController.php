@@ -25,7 +25,7 @@ class AuditController extends Controller
                 ->paginate(20);
 
             $users = \App\Models\Admin::select('id', 'name')->orderBy('name')->get();
-            $pageTitle = "Audit Page";
+            $pageTitle = __('transaction.audit_page');
 
             return view('admin.audit_logs.index', compact('logs', 'users','pageTitle'));
         }

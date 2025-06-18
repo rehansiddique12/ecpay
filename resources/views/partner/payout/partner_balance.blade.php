@@ -249,25 +249,7 @@
                 });
             });
         </script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                const input = document.getElementById('searchInput');
-                const table = document.getElementById('adjustmentTable').getElementsByTagName('tbody')[0];
 
-                input.addEventListener('keyup', function() {
-                    const filter = input.value.toLowerCase();
-                    const rows = table.getElementsByTagName('tr');
-
-                    for (let i = 0; i < rows.length; i++) {
-                        const firstColumn = rows[i].getElementsByTagName('td')[0]; // Name column
-                        if (firstColumn) {
-                            const textValue = firstColumn.textContent || firstColumn.innerText;
-                            rows[i].style.display = textValue.toLowerCase().includes(filter) ? '' : 'none';
-                        }
-                    }
-                });
-            });
-        </script>
     @endpush
 
 </x-partner-layout>
