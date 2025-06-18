@@ -1,21 +1,61 @@
 <x-admin-layout :title="$pageTitle">
+    @push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+@endpush
+
+@php
+    $today = \Carbon\Carbon::today()->toDateString();
+    $yesterday = \Carbon\Carbon::yesterday()->toDateString();
+    $last7 = \Carbon\Carbon::today()->subDays(6)->toDateString();
+@endphp
+
+
+<style>
+    .hover:hover {
+        background-color: #ffc000;
+        color: white;
+    }
+
+    .btn-yellow.active {
+        background-color: #ffc000 !important;
+        color: white !important;
+        border: 2px solid #e0a800;
+    }
+</style>
+
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
+        <div class="d-flex d-lg-flex d-md-block align-items-center">
+            <h4 class="mb-10 text-primary font-weight-medium ">{{ __('partner_basic.Adjustments_en') }}</h4>
+            <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
+                    id="btn-today">{{ __('transaction.today') }}</button>
+
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
+                    id="btn-yesterday">{{ __('transaction.yesterday') }}</button>
+
+                <button type="button"
+                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
+                    id="btn-last7">{{ __('transaction.last_7_days') }}</button>
+            </div>
+        </div>
         <form action="{{ route('admin.partner.balance.search') }}" method="get">
-            <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
+
             <div class="row justify-content-between align-items-center">
 
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>{{ __('partner.from_date') }}</label>
                         <input type="date" class="form-control" value="{{ @request()->from_date }}" name="from_date"
-                            id="datepicker" />
+                        id="from_date" />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>{{ __('partner.to_date') }}</label>
                         <input type="date" class="form-control" value="{{ @request()->to_date }}" name="to_date"
-                            id="datepicker" />
+                        id="to_date" />
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -54,13 +94,34 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-4 mt-3">
+                        <label>@lang('partner_basic.Search_by_Name_en') </label>
+                        <input type="text" class="form-control" name="search_by_name" id="searchInput" placeholder="Input Search ...">
+                    </div>
+
+
+                        <div class="col-md-4 d-flex justify-content-start align-items-center gap-6">
                         <div class="form-group">
                             <br>
                             <button type="submit" class="btn waves-effect waves-light btn-primary"><i
                                     class="icon-base ti tabler-search me-1"></i> {{ __('partner.search') }}</button>
+
                         </div>
-                    </div>
+                        {{-- <div class="form-group mt-8">
+                            <input type="hidden" name="export" id="exportInput" value="">
+                            <button type="submit" class="btn waves-effect waves-light btn-success"
+                                onclick="document.getElementById('exportInput').value = 1;">
+                                <i class="fas fa-download"></i> {{ __('transaction.export_data') }}
+                            </button>
+                        </div> --}}
+
+                        <a href="{{ route('admin.blance_export', ['from_date' => @request()->from_date, 'to_date' => @request()->to_date, 'partner' => @request()->partner, 'search_by_name' => @request()->search_by_name, 'adjustment' => @request()->adjustment ]) }}"
+                            class="btn waves-effect waves-light btn-success" id="exportButton">
+                            <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
+                        </a>
+
+                </div>
+
                 </div>
 
             </div>
@@ -78,6 +139,7 @@
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
+                                    <th scope="col">{{ __('partner.created_at') }}</th>
                                     <th scope="col">{{ __('partner.name') }}</th>
                                     <th scope="col">{{ __('partner.user_name') }}</th>
                                     <th scope="col">{{ __('partner.website') }}</th>
@@ -85,14 +147,14 @@
                                     <th scope="col">{{ __('partner.charges') }}</th>
                                     <th scope="col">{{ __('partner.adjustment_type') }}</th>
                                     <th scope="col" style="width: 500px;">{{ __('partner.remarks') }}</th>
-                                    <th scope="col">{{ __('partner.created_at') }}</th>
                                 </tr>
 
                             </thead>
                             <tbody>
                                 @forelse($records as $key => $item)
                                     @if (isset($item->api))
-                                        <tr>
+                                    <tr>
+                                            <td>{{ $item->created_at }}</td>
                                             <td>{{ $item->api->name }}</td>
                                             <td>{{ $item->api->username }}</td>
                                             <td>{{ $item->api->website }}</td>
@@ -126,7 +188,6 @@
                                             <td data-label="{{ __('partner.remarks') }}">
                                                 {{ $item->reason }}
                                             </td>
-                                            <td>{{ $item->created_at }}</td>
                                         </tr>
                                     @endif
                                 @empty
@@ -173,6 +234,61 @@
                     }
                 });
             });
-        </script>
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                function setDateInputs(from, to) {
+                    document.getElementById('from_date').value = from;
+                    document.getElementById('to_date').value = to;
+                }
+
+                function setActiveButton(buttonId) {
+                    document.querySelectorAll('.btn-date-filter').forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(buttonId).classList.add('active');
+                }
+
+                document.getElementById('btn-today').addEventListener('click', function() {
+                    setDateInputs(todayStr, todayStr);
+                    setActiveButton('btn-today');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+
+                document.getElementById('btn-yesterday').addEventListener('click', function() {
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+                    const yyy = yesterday.getFullYear();
+                    const mmm = String(yesterday.getMonth() + 1).padStart(2, '0');
+                    const ddd = String(yesterday.getDate()).padStart(2, '0');
+                    const yesterdayStr = `${yyy}-${mmm}-${ddd}`;
+                    setDateInputs(yesterdayStr, yesterdayStr);
+                    setActiveButton('btn-yesterday');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+
+                document.getElementById('btn-last7').addEventListener('click', function() {
+                    const from = new Date();
+                    from.setDate(today.getDate() - 6);
+                    const yyy = from.getFullYear();
+                    const mmm = String(from.getMonth() + 1).padStart(2, '0');
+                    const ddd = String(from.getDate()).padStart(2, '0');
+                    const fromStr = `${yyy}-${mmm}-${ddd}`;
+                    setDateInputs(fromStr, todayStr);
+                    setActiveButton('btn-last7');
+                    const form = document.querySelector(
+                        'form[action="{{ route('admin.payment.report.search') }}"]');
+                    form.submit();
+                });
+            });
+
+                   </script>
     @endpush
 </x-admin-layout>
