@@ -3278,11 +3278,13 @@ class PayoutRecordController extends Controller
         }
 
         $basic = (object) config('basic');
+  
 
         if ($request->status == '2') {
 
-            if ($data->e_wallet_name == "Nagad" || $data->e_wallet_name == "Rocket" || $data->e_wallet_name == "Bkash") {
-
+            if (strtolower($data->e_wallet_name) == "nagad" || strtolower($data->e_wallet_name) == "rocket" || strtolower($data->e_wallet_name) == "bkash") {
+                
+                
                 $log = "Approve Withdrawal Requests of " . $data->e_wallet_name . " Acc No:" . $data->user_account_no . " Amount:" . $data->amount;
                 $this->addLogs($log);
 
@@ -3371,6 +3373,15 @@ class PayoutRecordController extends Controller
                     ->values()
                     ->first();
 
+
+                    if (!$account) {
+                        DB::rollBack();
+                        throw new \Exception("No E-wallet account Available at this time to proceed this request.");
+                    }
+
+
+                   
+
                 // $pre_payout = Payout::where('payout_log_id', $data->id)->first();
                 // if (!$pre_payout) {
                 //     $pre_payout = new Payout();
@@ -3382,6 +3393,9 @@ class PayoutRecordController extends Controller
                     $user_account_no =  $data->user_account_no;
                 }
 
+
+                
+
                 // $pre_payout->payout_log_id = $data->id;
                 // $pre_payout->api_id = $data->api_id;
                 // $pre_payout->e_wallet_name = $data->method->name;
@@ -3392,7 +3406,78 @@ class PayoutRecordController extends Controller
                 $data->status = 'Pending';
                 // $data->payout_id = $pre_payout->id;
                 $data->feedback = $request->feedback;
+               
+
+
+
+                $partner_api_key = Api::where('id', $data->api_id)->firstOrFail();
+
+                $sum = Payout::whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->where('api_id', $partner_api_key->id)
+                    ->where('status', 'Complete')
+                    ->sum('amount');
+
+                if (!$sum) {
+                    $sum = 0;
+                }
+
+                $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                if ($commissions) {
+                    $charge = $commissions->withdrawal_percentage * $data->amount / 100;
+                } else {
+                    $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    if ($commissions) {
+                        $charge = $commissions->withdrawal_percentage * $data->amount / 100;
+                    }
+                }
+
+
+                
+
+
+                $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
+                    ->pluck('parent_id')
+                    ->unique()
+                    ->values();
+                foreach ($parentIds as  $parentId) {
+
+                    $parent_charge = 0;
+
+                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                    if ($parent_commission) {
+                        $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
+                    } else {
+                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        if ($parent_commission) {
+                            $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
+                        }
+                    }
+
+                    if ($parent_charge > 0) {
+                        $PartnerCommission = new PartnerCommission();
+                        $PartnerCommission->api_id = $partner_api_key->id;
+                        $PartnerCommission->from_id = $parentId;
+                        $PartnerCommission->type = 2;
+                        $PartnerCommission->amount = $data->amount;
+                        $PartnerCommission->charges = $charge;
+                        $PartnerCommission->total_amount =  $data->amount + $charge;
+                        $PartnerCommission->charges_p = $commissions->withdrawal_percentage ?? 0;
+                        $profit_p = $parent_commission->withdrawal_percentage;
+                        $profit = $profit_p * $data->amount / 100;
+                        $PartnerCommission->profit = $profit;
+                        $PartnerCommission->profit_p = $profit_p;
+                        $PartnerCommission->transaction_id = $data->id;
+                        $PartnerCommission->status = 0;
+                        $PartnerCommission->save();
+                    }
+                }
+
+                $data->charge = $charge;
+                $data->transfer_status = 2;
                 $data->save();
+
+                DB::commit();
 
                 session()->flash('success', 'Payout Request has been sent');
                 return back();

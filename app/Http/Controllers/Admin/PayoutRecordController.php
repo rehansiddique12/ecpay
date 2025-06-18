@@ -932,6 +932,7 @@ class PayoutRecordController extends Controller
                     }
                 }
 
+                $data->charge = $charge;
                 $data->transfer_status = 2;
                 $data->feedback = $request->feedback;
                 $data->save();
