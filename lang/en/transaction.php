@@ -291,4 +291,19 @@ return [
     'rocket_server_down' => 'Rocket server down',
     'select_user'=> 'Select User',
 
+    // Audit Page
+    'audit_page'=> 'Audit Page',
+    'audit_logs' => 'Audit Logs',
+    'select_user' => 'Select User',
+    'filter_by_user' => 'Filter by User',
+    'module' => 'Module',
+    'search' => 'Search',
+    'id' => 'ID',
+    'user' => 'User',
+    'description' => 'Description',
+    'created_at' => 'Created At',
+    'processing' => 'Processing...',
+    
+
+
 ];
