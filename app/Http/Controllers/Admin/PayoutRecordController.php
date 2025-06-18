@@ -751,12 +751,6 @@ class PayoutRecordController extends Controller
         DB::beginTransaction();
         try {
             $data = Payout::where('id', $request->id)->whereIn('transfer_status', [1, 2])->with('user', 'gateway')->lockForUpdate()->first();
-            AuditLog::create([
-                'user_id' => auth()->id(),
-                'module' => 'Payout Action Attempt',
-                'module_id' => $data->id,
-                'description' => "Attempting to update payout ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
-            ]);
             // 1 in pending // 2 success
             $basic = (object) config('basic');
 
@@ -937,6 +931,17 @@ class PayoutRecordController extends Controller
                 $data->feedback = $request->feedback;
                 $data->save();
 
+
+                $status_to_show = "Payout ID {$data->id} Reqeust Status changed to Approved by user ".auth()->user()->name;
+
+
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Payout Action Attempt',
+                    'module_id' => $data->id,
+                    'description' => $status_to_show,
+                ]);
+
                 $commit = 1;
                 DB::commit();
 
@@ -1068,6 +1073,18 @@ class PayoutRecordController extends Controller
                     $data->status = "Reject";
                     $data->save();
                 }
+                
+
+
+                $status_to_show = "Payout ID {$data->id} Status changed to Rejected by user ".auth()->user()->name;
+
+
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Payout Action Attempt',
+                    'module_id' => $data->id,
+                    'description' => $status_to_show,
+                ]);
 
 
                 $commit = 1;
@@ -1181,6 +1198,17 @@ class PayoutRecordController extends Controller
                     $data->transfer_status = 2;
                     $data->feedback = $request->feedback;
                     $data->save();
+
+
+                    $status_to_show = "Payout ID {$data->id} Transfer Status changed to Completed by user ".auth()->user()->name;
+    
+    
+                    AuditLog::create([
+                        'user_id' => auth()->id(),
+                        'module' => 'Payout Action Attempt',
+                        'module_id' => $data->id,
+                        'description' => $status_to_show,
+                    ]);
 
                     $net_amount = $data->amount + $data->charge;
 
@@ -5166,6 +5194,11 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'Wrong API key'], 404);
         }
 
+        $remarks = "";
+        if ($request->filled('remarks')) {
+            $remarks = $request->remarks;
+        }
+
         $commit = 0;
 
         DB::beginTransaction();
@@ -5173,12 +5206,14 @@ class PayoutRecordController extends Controller
             $payout = Payout::where('id', $request->id)->lockForUpdate()->first();
             if ($payout->try < 2) {
                 $payout->try = $payout->try + 1;
+                $payout->feedback = $remarks;
                 $payout->save();
                 DB::commit();
                 return response()->json(['message' => 'Payout Tried ' . $payout->try . ' out of 3.'], 200);
             } else {
                 $payout->try = $payout->try + 1;
                 $payout->status = "Reject";
+                $payout->feedback = $remarks;
                 $payout->save();
 
                 $payout_data = Payout::where('id', $payout->id)->first();
@@ -5607,12 +5642,7 @@ public function markAsRead(Notification $notification)
             $commit = 0;
 
             if ($request->status == 'Complete') {
-                AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Completed',
-                    'module_id' => $data->id,
-                    'description' => "Payment ID {$data->id} was successfully completed by user ".auth()->user()->name,
-                ]);
+                
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
                     ->where('status', 1)
@@ -5688,6 +5718,14 @@ public function markAsRead(Notification $notification)
                     $payment->status = 1;
                     $payment->save();
                     $payment=null;
+
+
+                    AuditLog::create([
+                        'user_id' => auth()->id(),
+                        'module' => 'Payment Completed',
+                        'module_id' => $data->id,
+                        'description' => "Payment ID {$data->id} was successfully completed by user ".auth()->user()->name,
+                    ]);
 
                     // $payment->delete();
                 }
