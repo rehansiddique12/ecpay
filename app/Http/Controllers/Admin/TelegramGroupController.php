@@ -523,33 +523,6 @@ class TelegramGroupController extends Controller
                                                                                 $image_processed=1;
                                                                                 return response()->json(['status' => 'success'], 200);
                                                                             }
-                                                                            // Add amount validation
-                                                                            if(isset($amount) && $amount > 0) {
-                                                                                $expectedAmount = $deposit->amount;
-                                                                                $extractedAmount = (float)$amount;
-                                                                                
-                                                                                // Check if amounts don't match
-                                                                                if(abs($extractedAmount - $expectedAmount) > 0.01) {
-                                                                                    // Save the new TRX ID to the deposit/order
-                                                                                    $deposit->txn_id = $txnId; // Save the new TRX ID
-                                                                                    $deposit->save();
-
-                                                                                    $message = "⚠️ *Amount Mismatch* ⚠️\n\n";
-                                                                                    $message .= "Expected Amount: `" . $expectedAmount . "`\n";
-                                                                                    $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
-                                                                                    $message .= "New TRX number submitted and callback sent with correct amount.";
-
-                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                                        'chat_id' => $TG_message['chat']['id'],
-                                                                                        'text' => $message,
-                                                                                        'parse_mode' => 'Markdown',
-                                                                                        'reply_to_message_id' => $TG_message['message_id']
-                                                                                    ]);
-
-                                                                                    $image_processed=1;
-                                                                                }
-                                                                            }
-
 
                                                                             if(isset($phone_number)) {
                                                                                 $another_phone_number = $payment->e_wallet_phone_number;
@@ -564,6 +537,7 @@ class TelegramGroupController extends Controller
 
                                                                                     if ($cleaned === $another_phone_number) {
                                                                                         $matched = "yes";
+                                                                                        $e_wallet_phone_number = $cleaned;
                                                                                     } else {
                                                                                         $matched = "no";
                                                                                     }
@@ -588,6 +562,8 @@ class TelegramGroupController extends Controller
                                                                                         str_ends_with($another_phone_number, $endDigits)
                                                                                     ) {
                                                                                         $matched = "yes";
+                                                                                        $e_wallet_phone_number = $another_phone_number;
+                                                                                        
                                                                                     } else {
                                                                                         $matched = "no";
                                                                                     }
@@ -595,15 +571,24 @@ class TelegramGroupController extends Controller
 
                                                                                 if($matched=="no"){
                                                                                     $message = "⚠️ *E-Wallet Mismatch* ⚠️\n\n";
-                                                                                    $message .= "Expected Amount: `" . $expectedAmount . "`\n";
-                                                                                    $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
+                                                                                    $message .= "Our E-Wallet: `" . $another_phone_number . "`\n";
+                                                                                    $message .= "User E-wallet: `" . $phone_number . "`\n\n";
+                                                                                    $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                    $message .= " *Transaction ID:* `".$txnId."`\n";
+                                                                                    $message .= " *Amount:* `".(isset($deposit->amount) ? $deposit->amount : "Not found")."`\n";
+                                                                                    $message .= " *Status:* `Pending`\n";
+                                                                                    $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
                                                                                     $message .= "User E-Wellet no. Does not Match with our E-Wallet no.";
 
-                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                                        'chat_id' => $TG_message['chat']['id'],
+
+                                                                                    $support_chat_id = "-4786890063";
+                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+
+                                                                                    $response = Http::post($url_support, [
+                                                                                        'chat_id' => $support_chat_id,
                                                                                         'text' => $message,
                                                                                         'parse_mode' => 'Markdown',
-                                                                                        'reply_to_message_id' => $TG_message['message_id']
                                                                                     ]);
 
 
@@ -625,6 +610,44 @@ class TelegramGroupController extends Controller
                                                                                 
                                                                                 
                                                                             }
+
+
+                                                                            // Add amount validation
+                                                                            if(isset($amount) && $amount > 0) {
+                                                                                $expectedAmount = $deposit->amount;
+                                                                                $extractedAmount = (float)$amount;
+                                                                                
+                                                                                // Check if amounts don't match
+                                                                                if(abs($extractedAmount - $expectedAmount) > 0.01) {
+                                                                                    // Save the new TRX ID to the deposit/order
+                                                                                    $deposit->txn_id = $txnId; // Save the new TRX ID
+                                                                                    $deposit->save();
+
+                                                                                    $message = "⚠️ *Amount Mismatch* ⚠️\n\n";
+                                                                                    $message .= "Expected Amount: `" . $expectedAmount . "`\n";
+                                                                                    $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
+                                                                                    $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                    $message .= " *Transaction ID:* `".$txnId."`\n";
+                                                                                    $message .= " *Status:* `Pending`\n";
+                                                                                    $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                                    $message .= "New TRX number submitted and callback sent with correct amount.";
+
+                                                                                    $support_chat_id = "-4786890063";
+                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+
+                                                                                    $response = Http::post($url_support, [
+                                                                                        'chat_id' => $support_chat_id,
+                                                                                        'text' => $message,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                    ]);
+
+                                                                                    $image_processed=1;
+                                                                                }
+                                                                            }
+
+
+                                                                            
                                                                         
                                                                             $partner_api_key = $api_key;
                                                                             $source = $partner_api_key->website;
@@ -638,8 +661,7 @@ class TelegramGroupController extends Controller
                                                                                 ->sum('amount');
 
                                                                             $account = EWalletAccount::where('e_wallet_name', $deposit->gateway->code)
-                                                                                ->where('account_no', $request->e_wallet_phone_number)
-                                                                                ->where('status', 1)
+                                                                                ->where('account_no', $e_wallet_phone_number)
                                                                                 ->first();
                                                                             if (!$account) {
                                                                                 Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
@@ -695,7 +717,6 @@ class TelegramGroupController extends Controller
                                                                                         $order->transaction = strRandom();
                                                                                         $order->try = 0;
                                                                                         $order->status = "Pending";
-                                                                                        $order->api_key = $partner_api_key->api_key;
                                                                                         $order->api_id = $api_id;
                                                                                         $order->e_wallet_phone_number = $deposit->e_wallet_phone_number;
                                                                                         $order->request_source = "Telegram";
