@@ -5,7 +5,7 @@
         }
     </style>
     <div class="container">
-        <h2 class="mb-4">{{ __('transaction.audit_logs') }}</h>
+        <h2 class="mb-4">{{ __('transaction.audit_logs') }}</h2>
             <form method="GET" class="mb-5 row g-2">
                 <div class="col-md-3">
                     <select name="user_id" class="form-select select2" data-allow-clear="true"
@@ -33,7 +33,7 @@
                     <button class="btn btn-primary">{{ __('transaction.search') }}</button>
                 </div>
             </form>
-            <table class="table table-bordered mt-5">
+            <table class="table table-hover table-striped table-bordered table-sm">
                 <thead>
                     <tr>
                         <th>{{ __('transaction.id') }}</th>
