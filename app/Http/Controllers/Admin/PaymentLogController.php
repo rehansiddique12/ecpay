@@ -10,6 +10,7 @@ use App\Models\Payout;
 use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
+use App\Models\AuditLog;
 use App\Models\Signature;
 use App\Models\Commission;
 use App\Models\EWalletLog;
