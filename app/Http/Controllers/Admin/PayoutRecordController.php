@@ -14,6 +14,7 @@ use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\CCategory;
 use App\Models\Signature;
@@ -25,9 +26,10 @@ use App\Models\Settlement;
 use App\Http\Traits\Upload;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
-use App\Models\AccountGroup;
 // rehan
+use App\Models\AccountGroup;
 use App\Models\AdminAccount;
+use App\Models\Notification;
 use App\Models\UserLocation;
 use Illuminate\Http\Request;
 use App\Models\EWalletCharge;
@@ -49,6 +51,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
+use App\Exports\PartnerBalanceExport;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\EWalletAccountTimeSlot;
 use Stevebauman\Purify\Facades\Purify;
@@ -56,8 +59,7 @@ use Illuminate\Support\Facades\Session;
 use App\Exports\PartnerCommissionExport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log as LaravelLog;
-use App\Models\Notification;
-use App\Models\AuditLog;
+
 class PayoutRecordController extends Controller
 {
     use Upload;
@@ -1073,7 +1075,7 @@ class PayoutRecordController extends Controller
                     $data->status = "Reject";
                     $data->save();
                 }
-                
+
 
 
                 $status_to_show = "Payout ID {$data->id} Status changed to Rejected by user ".auth()->user()->name;
@@ -1201,8 +1203,8 @@ class PayoutRecordController extends Controller
 
 
                     $status_to_show = "Payout ID {$data->id} Transfer Status changed to Completed by user ".auth()->user()->name;
-    
-    
+
+
                     AuditLog::create([
                         'user_id' => auth()->id(),
                         'module' => 'Payout Action Attempt',
@@ -2549,7 +2551,73 @@ class PayoutRecordController extends Controller
                 // First iteration: update existing account
                 if ($index === 0 && $firstAccountId) {
                     $account = EWalletAccount::findOrFail($firstAccountId);
+                    $oldAccountType = $account->account_type;
+    $newAccountType = $request->in_out[$index];
+
+    // Log only if changed
+    if ($oldAccountType !== $newAccountType) {
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'EWalletAccount',
+            'module_id'   => $account->id,
+            'description' => auth()->user()->name . " changed account type from '{$oldAccountType}' to '{$newAccountType}' for eWallet account ID {$account->id}",
+        ]);
+    }
+
                     $account->update($accountData);
+
+                    $savedSlots = EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->pluck('time_saved')->toArray();
+                    $newSlots = $request->time_slots ?? [];
+
+                    $added = array_diff($newSlots, $savedSlots);
+                    $removed = array_diff($savedSlots, $newSlots);
+
+                    // Group time slot ranges (inline, no helper)
+                    $groupRanges = function ($slots) {
+                        sort($slots);
+                        $ranges = [];
+                        $currentStart = null;
+                        $previousEnd = null;
+
+                        foreach ($slots as $slot) {
+                            [$start, $end] = explode(' - ', $slot);
+                            if ($currentStart === null) {
+                                $currentStart = $start;
+                            }
+                            if ($previousEnd !== null && $start !== $previousEnd) {
+                                $ranges[] = "$currentStart - $previousEnd";
+                                $currentStart = $start;
+                            }
+                            $previousEnd = $end;
+                        }
+
+                        if ($currentStart !== null && $previousEnd !== null) {
+                            $ranges[] = "$currentStart - $previousEnd";
+                        }
+
+                        return $ranges;
+                    };
+
+                    $addedRanges = $groupRanges($added);
+                    $removedRanges = $groupRanges($removed);
+
+                    $logParts = [];
+
+                    if (!empty($addedRanges)) {
+                        $logParts[] = 'Checked: ' . implode(', ', $addedRanges);
+                    }
+                    if (!empty($removedRanges)) {
+                        $logParts[] = 'Unchecked: ' . implode(', ', $removedRanges);
+                    }
+
+                    if (!empty($logParts)) {
+                        \App\Models\AuditLog::create([
+                            'user_id'     => auth()->id(),
+                            'module'      => 'EWalletAccount',
+                            'module_id'   => $account->id,
+                            'description' => auth()->user()->name . ' updated time slots. ' . implode(' | ', $logParts),
+                        ]);
+                    }
 
                     // Delete existing time slots and groups before re-adding
                     EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->delete();
@@ -5504,7 +5572,7 @@ class PayoutRecordController extends Controller
         }
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
             ->where('status', 'Pending')
-            // ->where('check_by', 0)
+            ->where('check_by', 0)
             ->orderBy('id', 'desc')
             ->take(5)
             ->get();
@@ -5621,7 +5689,7 @@ public function markAsRead(Notification $notification)
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             AuditLog::create([
                 'user_id' => auth()->id(),
-                'module' => 'Payment Update Attempt',
+                'module' => 'Payment Update Attempt Workboard',
                 'module_id' => $data->id,
                 'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
             ]);
@@ -5630,7 +5698,7 @@ public function markAsRead(Notification $notification)
                 $data->save();
                 AuditLog::create([
                     'user_id' => auth()->id(),
-                    'module' => 'Payment Sender Update',
+                    'module' => 'Payment Sender Update Workboard',
                     'module_id' => $data->id,
                     'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'",
                 ]);
@@ -5642,7 +5710,7 @@ public function markAsRead(Notification $notification)
             $commit = 0;
 
             if ($request->status == 'Complete') {
-                
+
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
                     ->where('status', 1)
@@ -6031,7 +6099,7 @@ public function markAsRead(Notification $notification)
                 $data->update();
                 AuditLog::create([
                     'user_id' => auth()->id(),
-                    'module' => 'Payment Rejected',
+                    'module' => 'Payment Rejected Workboard',
                     'module_id' => $data->id,
                     'description' => "Payment ID {$data->id} was rejected by user ".auth()->user()->name,
                 ]);
@@ -6121,7 +6189,7 @@ public function markAsRead(Notification $notification)
             if ($commit == 0) {
                 AuditLog::create([
                     'user_id' => auth()->id(),
-                    'module' => 'Payment Update No Change',
+                    'module' => 'Payment Update No Change Workboard',
                     'module_id' => $data->id,
                     'description' => "Payment ID {$data->id} update resulted in no status change",
                 ]);
@@ -6433,11 +6501,26 @@ public function markAsRead(Notification $notification)
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
     }
 
+    public function export_for_blance(Request $request)
+    {
+        $from_date = $request->input('from_date');
+        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+
+        $user = Auth::guard('partner')->user();
+        $userID = $user->id;
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new PartnerMerchantExport($from_date , $userID), "merchant_report_by_date_{$sanitizedDate}.csv");
+    }
+
     public function partnerBalanceSearch(Request $request)
     {
 
         $partners = Api::where('type', 'Admin')->paginate(20);
-
         $records = ApiTransaction::with('api');
 
         if (!empty($request->from_date) && !empty($request->to_date)) {
@@ -6456,11 +6539,32 @@ public function markAsRead(Notification $notification)
         if (!empty($request->adjustment) || $request->adjustment == '0') {
             $records->where('adjustment', $request->adjustment);
         }
-
+        if (!empty($request->search_by_name)) {
+            $searchTerm = $request->search_by_name;
+            $records->whereHas('api', function ($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('username', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('website', 'like', '%' . $searchTerm . '%');
+            });
+        }
         $records = $records->orderBy('id', 'DESC')->paginate(20);
 
         $pageTitle = "Search Partner Adjustments";
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+      public function export_for_blance2($from_date=null, $to_date=null, $partner=null, $search_by_name=null, $adjustment=null)
+    {
+        $from_date = str_replace('/', '', $from_date);
+        $to_date = str_replace('/', '', $to_date);
+        // dd($from_date);
+
+        try {
+            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+        return Excel::download(new PartnerBalanceExport($from_date, $to_date, $partner, $search_by_name, $adjustment), "partner_balance_by_date_{$sanitizedDate}.csv");
     }
 
 
@@ -6673,22 +6777,46 @@ public function markAsRead(Notification $notification)
 
     public function changeStatus($id)
     {
-        $account = EWalletAccount::findOrFail($id);
-        $account->status = $account->status == 1 ? 0 : 1;
-        $account->save();
+        try {
+            $account = EWalletAccount::findOrFail($id);
+            $newStatus = $account->status == 1 ? 0 : 1;
+            $account->status = $newStatus;
+            $account->save();
 
+            if ($newStatus == 1) {
+                $setting = Setting::where('name', 'last_account_active')->first();
+                $setting->value = \Carbon\Carbon::now();
+                $setting->save();
+            }
 
-        if ($account->status == 1) {
+            // Log success
+            \App\Models\AuditLog::create([
+                'user_id'     => auth()->id(),
+                'module'      => 'EWalletAccount',
+                'module_id'   => $account->id,
+                'description' => auth()->user()->name . ' ' . ($newStatus == 1 ? 'activated' : 'deactivated') . ' the eWallet account (ID: ' . $account->id . ')',
+            ]);
 
-            $Setting = Setting::where('name', 'last_account_active')->first();
-            $Setting->value = Carbon::now();
-            $Setting->save();
+            return response()->json([
+                'success' => true,
+                'status' => $account->status,
+                'message' => 'Status updated successfully.'
+            ]);
+        } catch (\Exception $e) {
+            // Log failure
+            \App\Models\AuditLog::create([
+                'user_id'     => auth()->id(),
+                'module'      => 'EWalletAccount',
+                'module_id'   => $id,
+                'description' => auth()->user()->name . ' failed to change status for EWallet account (ID: ' . $id . '). Error: ' . $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status. ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'status' => $account->status,
-            'message' => 'Status updated successfully.'
-        ]);
     }
+
+
 }

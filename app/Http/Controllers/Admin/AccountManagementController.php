@@ -277,6 +277,14 @@ class AccountManagementController extends Controller
             $record->status = $record->status == 1 ? 0 : 1;
             $record->save();
 
+            // Log the status change
+            \App\Models\AuditLog::create([
+                'user_id'     => auth()->id(),
+                'module'      => 'Gateway',
+                'module_id'   => $record->id,
+                'description' => auth()->user()->name . ' ' . ($record->status ? 'activated' : 'deactivated') . ' the gateway ( ' . $record->name . ')',
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Gateway status updated successfully.',
@@ -289,6 +297,7 @@ class AccountManagementController extends Controller
             ], 500);
         }
     }
+
 
     public function accountGroup()
     {

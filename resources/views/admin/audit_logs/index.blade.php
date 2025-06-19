@@ -1,73 +1,95 @@
 <x-admin-layout :title="$pageTitle">
-<style>
-    #pagination{
-        margin-top: 1rem;
-    }
-</style>
-<div class="container">
-    <h2 class="mb-4">Audit Logs</h2>
-    <form method="GET" class="mb-5 row g-2">
-        <div class="col-md-3">
-            <select name="user_id" class="form-select select2" data-allow-clear="true"
-            data-placeholder="{{ __('transaction.select_user') }}">
-            <option></option>
-                <option value="">Filter by User</option>
-                @foreach($users as $user)
-                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                        {{ $user->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+    <style>
+        #pagination {
+            margin-top: 1rem;
+        }
+    </style>
+    <div class="container">
+        <h2 class="mb-4">{{ __('transaction.audit_logs') }}</h2>
+            <form method="GET" class="mb-5 row g-2">
+                <div class="col-md-3">
+                    <select name="user_id" class="form-select select2" data-allow-clear="true"
+                        data-placeholder="{{ __('transaction.select_user') }}">
+                        <option></option>
+                        <option value="">{{ __('transaction.filter_by_user') }}</option>
+                        @foreach ($users as $user)
+                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-        <div class="col-md-3">
-            <input type="text" name="module" value="{{ request('module') }}" placeholder="Module"
-                   class="form-control" />
-        </div>
+                <div class="col-md-3">
+                    <input type="text" name="module" value="{{ request('module') }}"
+                        placeholder="{{ __('transaction.module') }}" class="form-control" />
+                </div>
 
-        <div class="col-md-3">
-            <input type="date" name="date" value="{{ request('date') }}" class="form-control" />
-        </div>
+                <div class="col-md-3">
+                    <input type="date" name="date" value="{{ request('date') }}" class="form-control" />
+                </div>
 
-        <div class="col-md-3">
-            <button class="btn btn-primary">Search</button>
-        </div>
-    </form>
-    <table class="table table-bordered mt-5">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Module</th>
-                {{-- <th>Module ID</th> --}}
-                <th>Description</th>
-                <th>Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach($logs as $log)
-            <tr>
-                <td>{{ $log->id }}</td>
-                <td>{{ $log->user->name ?? 'N/A' }}</td>
-                <td>{{ $log->module }}</td>
-                {{-- <td>{{ $log->module_id }}</td> --}}
-                <td>{{ $log->description }}</td>
-                <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
-            </tr>
-        @endforeach
-        </tbody>
-    </table>
+                <div class="col-md-3">
+                    <button class="btn btn-primary">{{ __('transaction.search') }}</button>
+                </div>
+            </form>
+            <table class="table table-hover table-striped table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>{{ __('transaction.id') }}</th>
+                        <th>{{ __('transaction.user') }}</th>
+                        <th>{{ __('transaction.action') }}</th>
+                        <th>{{ __('transaction.module') }}</th>
+                        <th>{{ __('transaction.description') }}</th>
+                        <th>{{ __('transaction.created_at') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($logs as $log)
+                        <tr>
+                            <td>{{ $log->id }}</td>
+                            <td>{{ $log->user->name ?? 'N/A' }}</td>
+                            <td>{{ $log->module }}</td>
+                            <td>
+                                @php
+                                    $module = $log->module;
+                                    $label = 'N/A';
 
-    {{ $logs->appends($_GET)->links('partials.pagination') }}
-</div>
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
-@endpush
+                                    if (str_contains($module, 'Workboard')) {
+                                        $label = 'Workboard';
+                                    } elseif (str_contains($module, 'Payment')) {
+                                        $label = 'Deposit Log';
+                                    } elseif (str_contains($module, 'Payout')) {
+                                        $label = 'Withdrawal Log';
+                                    } elseif (
+                                        str_contains(strtolower($module), 'gateway') ||
+                                        str_contains($module, 'EWalletAccount') ||
+                                        str_contains($module, 'Account Management')
+                                    ) {
+                                        $label = 'Account Management';
+                                    }
+                                @endphp
+                                {{ $label }}
+                            </td>
 
-@push('js')
-<script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-<script>
-      $(document).ready(function() {
+
+                            <td>{{ $log->description }}</td>
+                            <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            {{ $logs->appends($_GET)->links('partials.pagination') }}
+    </div>
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+    @endpush
+
+    @push('js')
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+        <script>
+            $(document).ready(function() {
                 $('form').on('submit', function() {
                     const $form = $(this);
                     const $submitButton = $form.find('button[type="submit"]');
@@ -98,6 +120,6 @@
                     }
                 });
             });
-</script>
-@endpush
+        </script>
+    @endpush
 </x-admin-layout>
