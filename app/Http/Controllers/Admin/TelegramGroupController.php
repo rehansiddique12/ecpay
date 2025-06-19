@@ -455,655 +455,56 @@ class TelegramGroupController extends Controller
                                                         
                                                         if (isset($extractedText)) {
                                                             
-                                                            /////////////////////////////
-                                                            //////////////////////////////
-                                                            /////////////////////////////////
-                                                            
-                                                            // Initialize the gateway_name variable with a default value
-                                                            $gateway_name = $deposit->gateway->name ?? '';
-                                                            if (!empty($deposit->gateway) && !empty($deposit->gateway->name)) {
-                                                                $gateway_name = $deposit->gateway->name;
-                                                            }
-                                                            
-                                                            
-                                                            if(strtolower($gateway_name)=="bkash"){
-                                                                    // Enhanced bKash transaction ID patterns
-                                                                    $txnId = null;
-                                                                    $patterns = [
-                                                                        // CDR/CD/CDP patterns with more flexible length
-                                                                        '/\b(?:CDR|CD|CDP)[0-9A-Z]{6,12}\b/i',
-                                                                        // Generic bKash transaction pattern
-                                                                        '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        // Transaction ID with ID label
-                                                                        '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        // Fallback pattern for any alphanumeric sequence that looks like a transaction ID
-                                                                        '/\b(?:[A-Z]{2,4}[0-9A-Z]{6,12})\b/'
-                                                                    ];
-
-                                                                    foreach ($patterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            $txnId = $matches[0];
-                                                                            LaravelLog::info("Found bKash Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
-                                                                            break;
-                                                                        }
-                                                                    }
-
-                                                                    // Phone number patterns
-                                                                    if (preg_match('/(?:Account|Number)\s*:?\s*(01\d{9})/', $extractedText, $matches) ||
-                                                                        preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
-                                                                        $phone_number_by_telegram_message = $matches[1];
-                                                                        LaravelLog::info("Found phone number: " . $phone_number_by_telegram_message);
-                                                                    }
-
-                                                                    // bKash specific amount patterns
-                                                                    $amount = null;
-                                                                    if (preg_match('/Amount\s*:?\s*৳\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Found bKash amount with ৳ symbol: " . $amount);
-                                                                    } elseif (preg_match('/Amount\s*:?\s*Tk\.?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Found bKash amount with Tk: " . $amount);
-                                                                    } elseif (preg_match('/Cash\s+Out\s+৳\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Found bKash Cash Out amount: " . $amount);
-                                                                    }
-
-                                                                } elseif(strtolower($gateway_name)=="nagad"){
-                                                                    LaravelLog::info("Processing Nagad payment with text: " . $extractedText);
-                                                                    
-                                                                    // First extract e-wallet number (it's the most reliable identifier)
-                                                                    $ewallet_number = null;
-                                                                    if (preg_match('/01[0-9]{3}-[0-9]{6}/', $extractedText, $matches)) {
-                                                                        $ewallet_number = $matches[0];
-                                                                        LaravelLog::info("Found Nagad e-wallet number: " . $ewallet_number);
-                                                                    }
-
-                                                                    // Extract transaction ID from Bengali text
-                                                                    $txnId = null;
-                                                                    if (preg_match('/ট্রানজেকশন\s*আইডি\s*([A-Z0-9]+)/u', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Found transaction ID from Bengali text: " . $txnId);
-                                                                    } elseif (preg_match('/[A-Z0-9]{8}/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[0];
-                                                                        LaravelLog::info("Found transaction ID from alphanumeric: " . $txnId);
-                                                                    }
-
-                                                                    // Extract amount from Nagad receipt with multiple patterns
-                                                                    // First try the standard format: "পরিমাণ X,XXX.XX টাকা"
-                                                                    if (preg_match('/পরিমাণ\s+(\d+(?:,\d{3})*(?:\.\d{2})?)\s*টাকা/u', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted Nagad amount from পরিমাণ: " . $amount);
-                                                                    } 
-                                                                    // Try alternative format without space: "পরিমাণ X,XXX.XXটাকা"
-                                                                    else if (preg_match('/পরিমাণ\s+(\d+(?:,\d{3})*(?:\.\d{2})?)টাকা/u', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted Nagad amount from পরিমাণ (no space): " . $amount);
-                                                                    }
-                                                                    // Try simple format: "X,XXX.XX টাকা"
-                                                                    else if (preg_match('/(\d+(?:,\d{3})*(?:\.\d{2})?)\s*টাকা/u', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted Nagad amount from simple format: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Validate the amount to ensure it's not "00" or too small
-                                                                    if (isset($amount) && ($amount == "00" || floatval($amount) < 1)) {
-                                                                        LaravelLog::info("Invalid amount detected: " . $amount . ", trying alternative patterns");
-                                                                        // Try to find amount in the full text with a more general pattern
-                                                                        if (preg_match('/(\d{2,3}(?:,\d{3})*(?:\.\d{2})?)\s*টাকা/u', $extractedText, $matches)) {
-                                                                            $amount = str_replace(',', '', $matches[1]);
-                                                                            LaravelLog::info("Found valid amount with alternative pattern: " . $amount);
-                                                                        }
-                                                                    }
-
-                                                                    // Format the message
-                                                                    $message = "?? *Extracted Information:*\n\n";
-                                                                    
-                                                                    if ($txnId) {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                    }
-                                                                    
-                                                                    if ($ewallet_number) {
-                                                                        $message .= "?? *E-Wallet:* `" . $ewallet_number . "`\n";
-                                                                    }
-                                                                    
-                                                                    if ($amount) {
-                                                                        $message .= "?? *Amount:* `" . $amount . "`\n";
-                                                                    }
-                                                                    
-                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                    
-                                                                    LaravelLog::info("Final message being sent: " . $message);
-                                                                    
-                                                                    $response = Http::post($url, [
-                                                                        'chat_id' => $sender_chat['id'],
-                                                                        'text' => $message,
-                                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                                        'parse_mode' => 'Markdown',
-                                                                    ]);
-                                                                    
-                                                                    return response()->json(['status' => 'success'], 200);
-
-                                                                } elseif(strtolower($gateway_name)=="rocket"){
-                                                                    LaravelLog::info("Processing Rocket payment with text: " . $extractedText);
-                                                                    
-                                                                    // Exactly match what we need with very simple patterns
-                                                                    $txnId = null;
-                                                                    $agent_account = null;
-                                                                    $cashout_account = null;
-                                                                    $amount = null;
-                                                                    
-                                                                    // Case 1: Look for "Transaction ID" followed by 10 digits - more precise pattern
-                                                                    if (preg_match('/Transaction\s+ID\s*:?\s*(\d{10})/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Found Transaction ID: " . $txnId);
-                                                                    } 
-                                                                    
-                                                                    // Case 2: Look for "ID: #" followed by digits
-                                                                    if (!$txnId && preg_match('/ID:\s*#?(\d+)/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Found ID with # format: " . $txnId);
-                                                                    }
-                                                                    
-                                                                    // Look for Transaction Amount pattern
-                                                                    if (preg_match('/Transaction\s+Amount\s*:?\s*(\d+\.\d+)/', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found Transaction Amount: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Look for amount after ID pattern (with Bengali symbol)
-                                                                    if (!$amount && preg_match('/ID:\s*#?\d+\s*৳?(\d+\.\d+)/', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found Amount with ৳ symbol: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Look for Agent A/C pattern - more precise pattern
-                                                                    if (preg_match('/Agent\s+A\/C\s+No\.\s*:?\s*(\d+)/', $extractedText, $matches)) {
-                                                                        $agent_account = $matches[1];
-                                                                        LaravelLog::info("Found Agent A/C: " . $agent_account);
-                                                                    }
-                                                                    
-                                                                    // Look for Cash-out pattern with parentheses
-                                                                    if (preg_match('/Cash-out\s*\((\d+)\)/', $extractedText, $matches)) {
-                                                                        $cashout_account = $matches[1];
-                                                                        LaravelLog::info("Found Cash-out with parentheses: " . $cashout_account);
-                                                                    }
-                                                                    
-                                                                    // Look for Cash-out pattern without parentheses (for Mini Statement)
-                                                                    if (!$cashout_account && preg_match('/Cash-out\s+(\d+)/', $extractedText, $matches)) {
-                                                                        $cashout_account = $matches[1];
-                                                                        LaravelLog::info("Found Cash-out without parentheses: " . $cashout_account);
-                                                                    }
-                                                                    
-                                                                    // Create the message exactly as requested
-                                                                    $message = "?? *Extracted Information:*\n\n";
-                                                                    
-                                                                    // Always include Transaction ID if found
-                                                                    if ($txnId) {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                    } else {
-                                                                        // Try harder to find Transaction ID in Mini Statement format
-                                                                        if (strpos($extractedText, "Mini Statement") !== false && preg_match('/ID:\s*#?(\d+)/', $extractedText, $matches)) {
-                                                                            $txnId = $matches[1];
-                                                                            $message .= "?? *ID:* `" . $txnId . "`\n";
-                                                                            LaravelLog::info("Found ID from Mini Statement: " . $txnId);
-                                                                        }
-                                                                    }
-                                                                    
-                                                                    // Always include Amount if found
-                                                                    if ($amount) {
-                                                                        if (strpos($extractedText, '৳') !== false) {
-                                                                            $message .= "?? *Amount:* `৳" . $amount . "`\n";
-                                                                        } else {
-                                                                            $message .= "?? *Amount:* `" . $amount . "`\n";
-                                                                        }
-                                                                    }
-                                                                    
-                                                                    // Always include Agent A/C if found
-                                                                    if ($agent_account) {
-                                                                        $message .= "?? *Agent A/C:* `" . $agent_account . "`\n";
-                                                                    }
-                                                                    
-                                                                    // Always include Cash-out if found
-                                                                    if ($cashout_account) {
-                                                                        $message .= "?? *Cash-out:* `" . $cashout_account . "`\n";
-                                                                    }
-                                                                    
-                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                    
-                                                                    LaravelLog::info("Final message being sent: " . $message);
-                                                                    
-                                                                    $response = Http::post($url, [
-                                                                        'chat_id' => $sender_chat['id'],
-                                                                        'text' => $message,
-                                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                                        'parse_mode' => 'Markdown',
-                                                                    ]);
-                                                                    
-                                                                    return response()->json(['status' => 'success'], 200);
-                                                                }
                                                                 
-                                                                // Handle Rocket Mini Statement specially
-                                                                if (strpos($extractedText, "Mini Statement") !== false) {
-                                                                    // For Mini Statement format, extract ID and amount in special way
-                                                                    if (preg_match('/ID:[\s#]*(\d+)[\s]*৳?(\d+(?:\.\d+)?)/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        $amount = $matches[2];
-                                                                        LaravelLog::info("Mini Statement format found - ID: " . $txnId . ", Amount: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Look for Cash-out pattern in Mini Statement
-                                                                    if (preg_match('/Cash-out[\s\(]*(\d+)[\)\s]*/', $extractedText, $matches)) {
-                                                                        $cashout_account = $matches[1];
-                                                                        LaravelLog::info("Mini Statement - Found Cash-out: " . $cashout_account);
-                                                                    }
-                                                                }
                                                                 
-                                                                // If no specific provider pattern matched, try generic patterns as fallback
-                                                                if (!isset($txnId) || empty($txnId)) {
-                                                                    $genericPatterns = [
-                                                                        // Generic transaction ID patterns
-                                                                        '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        // Look for any sequence that might be a transaction ID
-                                                                        '/\b(?:[A-Z]{2,4}[0-9A-Z]{6,12})\b/',
-                                                                        '/\b(?:[0-9A-Z]{6,12})\b/'
-                                                                    ];
-
-                                                                    foreach ($genericPatterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            $txnId = $matches[0];
-                                                                            LaravelLog::info("Found Transaction ID using generic pattern: " . $pattern . " - ID: " . $txnId);
-                                                                            break;
-                                                                        }
-                                                                    }
+                                                                // Initialize the gateway_name variable with a default value
+                                                                $gateway_name = $deposit->gateway->name ?? '';
+                                                                if (!empty($deposit->gateway) && !empty($deposit->gateway->name)) {
+                                                                    $gateway_name = $deposit->gateway->name;
                                                                 }
-
-                                                                // Validate the found transaction ID
-                                                                if (isset($txnId) && !empty($txnId)) {
-                                                                    // Remove any non-alphanumeric characters
-                                                                    $txnId = preg_replace('/[^A-Z0-9]/i', '', $txnId);
-                                                                    
-                                                                    // Log the final transaction ID
-                                                                    LaravelLog::info("Final Transaction ID after validation: " . $txnId);
-                                                                }
+                                                            
+                                                            
+                                                                $extracted_text_values = $this->extractTransactionDetails($extractedText);
 
                                                                 // For Rocket, use a simpler and more direct approach to get Transaction ID
                                                                 // Remove any previous Transaction ID extraction that might be causing issues
-                                                                $txnId = null;
-                                                                $cashout_number = null;
-                                                                $phone_number = null;
-                                                                
-                                                                // Check for different receipt formats and extract Transaction ID accordingly
-                                                                if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                    // Mini Statement format - Extract ID from format "ID: #number"
-                                                                    if (preg_match('/ID:\s*#?(\d+)/i', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted ID from Mini Statement: " . $txnId);
-                                                                    }
-                                                                    
-                                                                    // Extract Cash-out number from Mini Statement
-                                                                    if (preg_match('/Cash-out\s*\((\d+)\)/i', $extractedText, $matches)) {
-                                                                        $cashout_number = $matches[1];
-                                                                        LaravelLog::info("Extracted Cash-out number from Mini Statement: " . $cashout_number);
-                                                                    }
-                                                                    
-                                                                    // Extract amount from Mini Statement with proper handling of Bengali currency symbol
-                                                                    if (preg_match('/ID:\s*#?\d+\s*-?\s*(?:৳|6)([0-9.,]+)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted amount from Mini Statement with Bengali symbol: " . $amount);
-                                                                    }
-                                                                } else if (preg_match('/TxnId:(\d+)/i', $extractedText, $matches)) {
-                                                                    // Format with TxnId: pattern (typically found in the Cash-Out receipts)
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Extracted TxnId from Cash-Out receipt: " . $txnId);
-                                                                } else if (stripos($extractedText, "ক্যাশ আউট") !== false) {
-                                                                    // Nagad case - Extract transaction ID (alphanumeric code)
-                                                                    // First try to find it after "ট্রানজেকশন আইডি"
-                                                                    if (preg_match('/ট্রানজেকশন\s+আইডি\s*([A-Z0-9]{7,8})/u', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad transaction ID from Bengali text: " . $txnId);
-                                                                    }
-                                                                    // If not found, try general pattern
-                                                                    else if (preg_match('/\b([A-Z0-9]{7,8})\b/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad transaction ID from general pattern: " . $txnId);
-                                                                    }
-                                                                    
-                                                                    // Extract phone number from Nagad receipt
-                                                                    // First try to find it directly in the format 01336-736805
-                                                                    if (preg_match('/\b(01\d{3}-\d{6})\b/', $extractedText, $matches)) {
-                                                                        $phone_number = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad phone number from direct format: " . $phone_number);
-                                                                    }
-                                                                    // Then try Bengali text format
-                                                                    else if (preg_match('/একাউন্ট\s+নং\s*(\d{3}-\d{6})/u', $extractedText, $matches) || 
-                                                                            preg_match('/একাউন্ট\s+নং\s*(\d{9})/u', $extractedText, $matches)) {
-                                                                        $phone_number = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad phone number from Bengali text: " . $phone_number);
-                                                                    }
-                                                                } else {
-                                                                    // Regular receipt format - Direct pattern to match Transaction ID
-                                                                    if (preg_match('/Transaction\s+ID\s+(\d+)/i', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted Transaction ID directly: " . $txnId);
-                                                                    }
-                                                                }
-                                                                
-                                                                // For Rocket, check specifically for Agent A/C No
-                                                                if (preg_match('/Agent\s+A\/C\s+No\.\s*:?\s*(\d+)/', $extractedText, $matches) || 
-                                                                    preg_match('/Agent\s+A\/C\s+No\.\s+(\d+)/', $extractedText, $matches)) {
-                                                                    $agent_account = $matches[1];
-                                                                    LaravelLog::info("Found Agent A/C No from Rocket format: " . $agent_account);
-                                                                }
-
-                                                                // Add specific Rocket transaction ID pattern
-                                                                if (preg_match('/Transaction\s+ID\s+(\d{10})/', $extractedText, $matches)) {
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Found Rocket Transaction ID: " . $txnId);
-                                                                }
-                                                                // Add pattern for Txnld: format
-                                                                else if (preg_match('/Txnld:(\d{10})/', $extractedText, $matches)) {
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Found Rocket Transaction ID from Txnld format: " . $txnId);
-                                                                }
-                                                                // Add pattern for 1D: format (OCR misreading)
-                                                                else if (preg_match('/1D:\s*#?(\d{10})/', $extractedText, $matches)) {
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Found Rocket Transaction ID from 1D format: " . $txnId);
-                                                                }
-
-                                                                // Extract cash-out number
-                                                                if (preg_match('/Cash-out\s*\((\d+)\)/', $extractedText, $matches)) {
-                                                                    $cashout_number = $matches[1];
-                                                                    LaravelLog::info("Found Cash-out number: " . $cashout_number);
-                                                                }
-
-                                                                // Generic phone number pattern as fallback
-                                                                if (!isset($phone_number_by_telegram_message) || empty($phone_number_by_telegram_message)) {
-                                                                    if (preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
-                                                                        $phone_number_by_telegram_message = $matches[1];
-                                                                    }
-                                                                }
+                                                                $txnId = $extracted_text_values['txn'];
+                                                                $amount = $extracted_text_values['amount'];
+                                                                $phone_number = $extracted_text_values['ewallet'];
                                                                 
                                                                 
-                                                                /////////////////////////////
-                                                                //////////////////////////////
-                                                                /////////////////////////////////
                                                                 
-                                                                // Extract amount from text if not already found
-                                                                if (!isset($amount) || empty($amount)) {
-                                                                    // Check for specific Rocket pattern with ID and misinterpreted Bengali symbol
-                                                                    if (preg_match('/ID:\s*#?\d+\s+6([0-9.,]+)/', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Fixed Rocket receipt with ৳ misread as 6: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Try to find amount in common formats
-                                                                    $amountPatterns = [
-                                                                        // Add pattern for ID: #number - ৳amount format
-                                                                        '/ID:\s*#?\d+\s*-\s*৳(\d+(?:,\d{3})*(?:\.\d{2})?)/',
-                                                                        // Add pattern for ¥ symbol
-                                                                        '/¥(\d+(?:\.\d{2})?)/',
-                                                                        // Add pattern for Bengali numerals
-                                                                        '/[০-৯]+(?:\.[০-৯]{2})?/u',
-                                                                        // Add specific pattern for TkK format
-                                                                        '/TkK(\d+(?:\.\d{2})?)/',
-                                                                        // TxnAmount format specific to Rocket
-                                                                        '/TxnAmount\s*:?\s*(?:Tk\.?|৳)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Cash-out with amount in parentheses format
-                                                                        '/Cash-out.*?(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Special case for OCR misreading Bengali currency symbol as "6"
-                                                                        '/ID:\s*#?\d+\s+6(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // ID: #number amount format (where amount follows the ID)
-                                                                        '/ID:\s*#?\d+\s+(?:৳)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Amount with comma and Tk/টাকা
-                                                                        '/(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:Tk\.?|টাকা)/i',
-                                                                        // Amount with ৳ symbol
-                                                                        '/৳\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Amount after "Amount" word
-                                                                        '/Amount\s*:?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Amount after "Cash Out" or "ক্যাশ আউট"
-                                                                        '/(?:Cash Out|ক্যাশ আউট).*?(\d+(?:,\d{3})*(?:\.\d{2})?)/s',
-                                                                        // Simple digits with commas that might be amount
-                                                                        '/\b(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)\b/',
-                                                                        // Special case for Rocket receipt with "Tk" followed by amount
-                                                                        '/Tk\.?(\d+(?:,\d{3})*(?:\.\d{2})?)/i'
-                                                                    ];
-
-                                                                    foreach ($amountPatterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            // Skip if the match is part of a cash-out number
-                                                                            if (strpos($matches[0], 'Cash-out') !== false) {
-                                                                                continue;
-                                                                            }
-                                                                            $amount = $matches[0];
-                                                                            // Convert Bengali numerals to English if needed
-                                                                            if (preg_match('/[০-৯]/u', $amount)) {
-                                                                                $amount = str_replace(
-                                                                                    ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'],
-                                                                                    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                                                                                    $amount
-                                                                                );
-                                                                            }
-                                                                            // Remove currency symbols and clean up
-                                                                            $amount = preg_replace('/[¥৳Tk]/', '', $amount);
-                                                                            $amount = str_replace(',', '', $amount);
-                                                                            
-                                                                            // Validate amount is reasonable (not too large)
-                                                                            if (floatval($amount) > 100000) {
-                                                                                continue; // Skip if amount seems too large
-                                                                            }
-                                                                            
-                                                                            LaravelLog::info("Found amount using pattern: " . $pattern . " - Amount: " . $amount);
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    
-                                                                                                                                        // Validate extracted amount to ensure it's not a phone number
-                                                                if (isset($amount) && !empty($amount)) {
-                                                                    // If the amount looks like a phone number (01XXXXXXXX format), it's likely incorrect
-                                                                    if (preg_match('/^01\d{8,9}$/', $amount) || strlen($amount) >= 9 && strlen($amount) <= 11) {
-                                                                        LaravelLog::info("Possible phone number detected as amount, discarding: " . $amount);
-                                                                        $amount = null;
-                                                                        
-                                                                        // Try to find amount by checking specific patterns in the Mini Statement
-                                                                        if (strpos($extractedText, "Mini Statement") !== false) {
-                                                                            if (preg_match('/ID:\s*#?\d+\s+6([0-9.,]+)/', $extractedText, $matches)) {
-                                                                                $amount = str_replace(',', '', $matches[1]);
-                                                                                LaravelLog::info("Fixed amount from Mini Statement with ID: " . $amount);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                                
-                                                                // Additional check for Mini Statement case with misread Bengali currency symbol
-                                                                if ((!isset($amount) || empty($amount)) && strpos($extractedText, "Mini Statement") !== false) {
-                                                                    if (preg_match('/ID:\s*#?\d+\s+6([0-9.,]+)/', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Fixed amount from Mini Statement as fallback: " . $amount);
-                                                                    }
-                                                                }
-                                                                }
                                                                 
                                                                 // Format the message with extracted information
                                                                 $message = "?? *Extracted Information:*\n\n";
-                                                                
-                                                                // Add Transaction ID or ID from Mini Statement to message if found
-                                                                if (isset($txnId) && !empty($txnId)) {
-                                                                    // Check the format of the receipt to use the appropriate label
-                                                                    if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                        // For Rocket Mini Statement, extract ID from the format "ID: #number"
-                                                                        if (preg_match('/ID:\s*#?(\d+)/', $extractedText, $matches)) {
-                                                                            $txnId = $matches[1];
-                                                                            $message .= "?? *ID:* `" . $txnId . "`\n";
-                                                                            LaravelLog::info("Adding ID from Mini Statement to message: " . $txnId);
-                                                                        }
-                                                                    } else if (stripos($extractedText, "TxnId:") !== false) {
-                                                                        $message .= "?? *TxnId:* `" . $txnId . "`\n";
-                                                                        LaravelLog::info("Adding TxnId from Cash-Out receipt to message: " . $txnId);
-                                                                    } else if (stripos($extractedText, "ক্যাশ আউট") !== false) {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                        LaravelLog::info("Adding Nagad transaction ID to message: " . $txnId);
-                                                                    } else {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                        LaravelLog::info("Adding transaction ID to message: " . $txnId);
-                                                                    }
-                                                                }
-                                                                
-                                                                // Add Agent A/C to message if found (Rocket specific)
-                                                                if (isset($agent_account) && !empty($agent_account)) {
-                                                                    $message .= "?? *Agent A/C:* `" . $agent_account . "`\n";
-                                                                    LaravelLog::info("Adding Agent A/C to message: " . $agent_account);
-                                                                }
-                                                                
-                                                                // Add Cash-out number to message if found (from Mini Statement)
-                                                                if (isset($cashout_number) && !empty($cashout_number)) {
-                                                                    $message .= "?? *Cash-out:* `" . $cashout_number . "`\n";
-                                                                    LaravelLog::info("Adding Cash-out number to message: " . $cashout_number);
-                                                                }
-                                                                
-                                                                // Add phone number to message if found (from Nagad receipt)
-                                                                if (isset($phone_number) && !empty($phone_number)) {
-                                                                    $message .= "?? *Phone:* `" . $phone_number . "`\n";
-                                                                    LaravelLog::info("Adding phone number to message: " . $phone_number);
-                                                                }
-
-                                                                // Skip Rocket A/C as requested
-                                                                // We'll just check for other e-wallet patterns
-                                                                {
-                                                                    // We already skipped Rocket A/C, now look for other patterns
-                                                                    // Ensure we have the Transaction ID for Rocket receipts by using a more precise pattern
-                                                                    if (!isset($txnId) || empty($txnId) || $txnId == "Transaction") {
-                                                                        if (preg_match('/Transaction\s+Information:[\s\S]*?Transaction\s+ID\s+(\d+)/i', $extractedText, $matches)) {
-                                                                            $txnId = $matches[1];
-                                                                            LaravelLog::info("Found Transaction ID from Transaction Information section: " . $txnId);
-                                                                        }
-                                                                    }
-                                                                    
-                                                                    $ewallet_patterns = [
-                                                                        '/\b(01\d{3})-(\d{6})\b/',  // Pattern with hyphen
-                                                                        '/\b(01\d{3})(\d{6})\b/',   // Pattern without hyphen
-                                                                        '/ক্যাশ আউট\s*(01\d{3})-?(\d{6})\b/u',  // Pattern after ক্যাশ আউট
-                                                                        '/\b(01\d{9})\b/'  // Continuous 11 digit pattern
-                                                                    ];
-                                                                    
-                                                                    foreach ($ewallet_patterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            if (count($matches) === 2) {
-                                                                                // For continuous number pattern
-                                                                                $ewallet_number = substr($matches[1], 0, 5) . '-' . substr($matches[1], 5);
-                                                                            } else if (count($matches) === 3) {
-                                                                                // For split patterns
-                                                                                $ewallet_number = $matches[1] . '-' . $matches[2];
-                                                                            }
-                                                                            // Only add E-Wallet if it's different from the phone number
-                                                                            if (!isset($phone_number) || $ewallet_number !== $phone_number) {
-                                                                                $message .= "?? *E-Wallet:* `" . $ewallet_number . "`\n";
-                                                                                LaravelLog::info("Adding e-wallet number: " . $ewallet_number);
-                                                                            }
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
-                                                                
-                                                                // No longer needed here as we handle Transaction ID earlier in the code
-                                                                // and add it to the message at the beginning of the message formatting section
-
-                                                                // Check if the amount might be a phone number (to avoid confusion with Cash-out numbers)
-                                                                if (isset($amount) && !empty($amount)) {
-                                                                    // Verify this isn't actually a phone number
-                                                                    if (preg_match('/^01\d{8,9}$/', $amount) || strlen($amount) > 8) {
-                                                                        LaravelLog::info("Detected phone number as amount, discarding: " . $amount);
-                                                                        
-                                                                        // Try again to find the correct amount in Mini Statement
-                                                                        if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                            if (preg_match('/ID:\s*#?\d+\s*-?\s*(?:৳|6)([0-9.,]+)/i', $extractedText, $matches)) {
-                                                                                $amount = str_replace(',', '', $matches[1]);
-                                                                                LaravelLog::info("Corrected amount from Mini Statement: " . $amount);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                // Add amount to message if found
-                                                                if (isset($amount) && !empty($amount)) {
-                                                                    // Special handling for Rocket Mini Statement
-                                                                    if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                        // Simply remove first 6 if amount starts with it
-                                                                        if (substr($amount, 0, 1) === '6') {
-                                                                            $amount = substr($amount, 1);
-                                                                        }
-                                                                        $message .= "?? *Amount:* `৳" . $amount . "`\n";
-                                                                        LaravelLog::info("Rocket Mini Statement amount: ৳" . $amount);
-                                                                    } else {
-                                                                        $message .= "?? *Amount:* `" . $amount . "`\n";
-                                                                        LaravelLog::info("Adding amount to message: " . $amount);
-                                                                    }
-                                                                } else {
-                                                                    // Last attempt to find amount in Mini Statement pattern
-                                                                    if (strpos($extractedText, "Mini Statement") !== false) {
-                                                                        // Try different patterns for Mini Statement
-                                                                        if (preg_match('/ID:\s*#?\d+\s*-?\s*[৳6]([0-9.,]+)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        $message .= "?? *Amount:* `৳" . $amount . "`\n";
-                                                                            LaravelLog::info("Last attempt - Adding amount with Bengali symbol: ৳" . $amount);
-                                                                        } else {
-                                                                            LaravelLog::info("No amount found in Mini Statement text");
-                                                                        }
-                                                                } else {
-                                                                    LaravelLog::info("No amount found in the text");
-                                                                    }
-                                                                }
-                                                                
-                                                                if (isset($phone_number_by_telegram_message) && !empty($phone_number_by_telegram_message)) {
-                                                                    $message .= "?? *Phone:* `" . $phone_number_by_telegram_message . "`\n";
-                                                                    LaravelLog::info("Adding phone to message: " . $phone_number_by_telegram_message);
-                                                                }
-                                                                
-                                                                // Fix the full text to replace misread "6" with Bengali currency symbol "৳" where appropriate
-                                                                $fixedText = $extractedText;
-                                                                
-                                                                // Common patterns where Bengali currency symbol gets misread as "6"
-                                                                $replacementPatterns = [
-                                                                    // ID pattern (e.g., ID: #5473918508 6300.00 -> ID: #5473918508 ৳300.00)
-                                                                    '/(ID:\s*#?\d+\s+)6([0-9.,]+)/' => '$1৳$2',
-                                                                    
-                                                                    // Space followed by 6 and then digits (e.g., " 6300.00" -> " ৳300.00")
-                                                                    '/(\s)6([0-9]{2,3}(?:\.[0-9]{2})?)/' => '$1৳$2',
-                                                                    
-                                                                    // Amount format in Rocket receipts
-                                                                    '/(Amount\s*:?\s*)6([0-9.,]+)/' => '$1৳$2',
-                                                                    
-                                                                    // Transaction amount format
-                                                                    '/(Transaction\s+Amount\s*:?\s*)6([0-9.,]+)/' => '$1৳$2',
-                                                                    
-                                                                    // General case where 6 precedes a standard amount pattern
-                                                                    '/(\s)6(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/' => '$1৳$2'
-                                                                ];
-                                                                
-                                                                // Apply all replacements
-                                                                foreach ($replacementPatterns as $pattern => $replacement) {
-                                                                    $fixedText = preg_replace($pattern, $replacement, $fixedText);
-                                                                }
+                                                                $message .= "\n*E-Wallet:* " . $extracted_text_values['ewallet'] . "\n";
+                                                                $message .= "\n*TXN:* " . $extracted_text_values['txn'] . "\n";
+                                                                $message .= "\n*Amount:* " . $extracted_text_values['amount'] . "\n";    
                                                                 
                                                                 // Add the fixed extracted text at the bottom
-                                                                $message .= "\n?? *Full Text:*\n```\n" . $fixedText . "```\n";
+                                                                $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
                                                                 
-                                                                LaravelLog::info("Final message being sent: " . $message);
-                                                            
-                                                            
-                                                            
-                                                            
-                                                    
-                                                            
-                                                            // Add instructions for verification with the correct transaction ID
-                                                                if ($txnId) {
+                                                                LaravelLog::info("Final message being sent 3: " . $message);
+
+                                                                if(empty($extracted_text_values['ewallet']) && empty($extracted_text_values['txn']) && empty($extracted_text_values['amount'])){
+                                                                    $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'], 
+                                                                        $deposit->partner_transection_id,
+                                                                        $deposit->id
+                                                                    );
+                                                                    $response = Http::post($url, [
+                                                                        'chat_id' => $sender_chat['id'],
+                                                                        'text' => $message,
+                                                                        'reply_to_message_id' => $TG_message['message_id'],
+                                                                        'parse_mode' => 'Markdown',
+                                                                    ]);
+                                                                }else{
                                                                 
-                                                            
+                                                                    LaravelLog::info("if if: ".$txnId);
                                                             
                                                                     DB::beginTransaction();
                                                                     $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
                                                                     if($payment){
+                                                                        LaravelLog::info("if if: ");
                                                                         if($payment){
 
                                                                             $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
@@ -1128,7 +529,7 @@ class TelegramGroupController extends Controller
                                                                                 $extractedAmount = (float)$amount;
                                                                                 
                                                                                 // Check if amounts don't match
-                                                                                if(abs($extractedAmount - $expectedAmount) > 0.01) { // Using small epsilon for float comparison
+                                                                                if(abs($extractedAmount - $expectedAmount) > 0.01) {
                                                                                     // Save the new TRX ID to the deposit/order
                                                                                     $deposit->txn_id = $txnId; // Save the new TRX ID
                                                                                     $deposit->save();
@@ -1146,8 +547,83 @@ class TelegramGroupController extends Controller
                                                                                     ]);
 
                                                                                     $image_processed=1;
+                                                                                }
+                                                                            }
+
+
+                                                                            if(isset($phone_number)) {
+                                                                                $another_phone_number = $payment->e_wallet_phone_number;
+                                                                                $cleaned = str_replace(['-', ' '], '', $phone_number);
+                                                                                $matched = "no";
+                                                                                if (ctype_digit($cleaned)) {
+
+                                                                                    $data = [
+                                                                                        'type' => 'all_digits',
+                                                                                        'value' => $cleaned
+                                                                                    ];
+
+                                                                                    if ($cleaned === $another_phone_number) {
+                                                                                        $matched = "yes";
+                                                                                    } else {
+                                                                                        $matched = "no";
+                                                                                    }
+                                                                                }elseif (preg_match('/\*{2,}|x{2,}|X{2,}/', $cleaned)) {
+                                                                                    preg_match('/^(\d+)/', $cleaned, $startMatch);
+                                                                                    preg_match('/(\d+)$/', $cleaned, $endMatch);
+
+                                                                                    $startDigits = $startMatch[1] ?? '';
+                                                                                    $endDigits   = $endMatch[1] ?? '';
+
+                                                                                    $data =  [
+                                                                                        'type' => 'masked',
+                                                                                        'start_digits' => $startDigits,
+                                                                                        'start_count'  => strlen($startDigits),
+                                                                                        'end_digits'   => $endDigits,
+                                                                                        'end_count'    => strlen($endDigits),
+                                                                                        'original'     => $phone_number
+                                                                                    ];
+
+                                                                                    if (
+                                                                                        str_starts_with($another_phone_number, $startDigits) &&
+                                                                                        str_ends_with($another_phone_number, $endDigits)
+                                                                                    ) {
+                                                                                        $matched = "yes";
+                                                                                    } else {
+                                                                                        $matched = "no";
+                                                                                    }
+                                                                                }
+
+                                                                                if($matched=="no"){
+                                                                                    $message = "⚠️ *E-Wallet Mismatch* ⚠️\n\n";
+                                                                                    $message .= "Expected Amount: `" . $expectedAmount . "`\n";
+                                                                                    $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
+                                                                                    $message .= "User E-Wellet no. Does not Match with our E-Wallet no.";
+
+                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => $message,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+
+
+                                                                                    $message = sprintf($this->messages[$api->lang]['account_not_belong'], 
+                                                                                        $deposit->partner_transection_id,
+                                                                                        $deposit->id
+                                                                                    );
+                                                                                    $response = Http::post($url, [
+                                                                                        'chat_id' => $sender_chat['id'],
+                                                                                        'text' => $message,
+                                                                                        'reply_to_message_id' => $TG_message['message_id'],
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                    ]);
+
+                                                                                    $image_processed=1;
                                                                                     return response()->json(['status' => 'success'], 200);
                                                                                 }
+                                                                                
+                                                                                
+                                                                                
                                                                             }
                                                                         
                                                                             $partner_api_key = $api_key;
@@ -1573,6 +1049,7 @@ class TelegramGroupController extends Controller
                                                                         }
                                                                         
                                                                     }else{
+                                                                        LaravelLog::info("else else: ");
                                                                         $support_chat_id = "-4786890063";
                                                                         $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
                                                                         $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
@@ -1611,21 +1088,14 @@ class TelegramGroupController extends Controller
                                                                         DB::commit();
                                                                     }
                                                                     
-                                                            
-                                                                } else {
-                                                                    $message = sprintf($this->messages[$api->lang]['invalid_command'], 
-                                                                        $deposit->partner_transection_id,
-                                                                        $deposit->id
-                                                                    );
-                                                                    $response = Http::post($url, [
-                                                                        'chat_id' => $sender_chat['id'],
-                                                                        'text' => $message,
-                                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                                        'parse_mode' => 'Markdown',
-                                                                    ]);
                                                                     
-                                                                    $image_processed=1;
+                                                                    
+                                                                    
+                                                            
                                                                 }
+                                                                
+                                                                
+                                                                LaravelLog::info("re else else: ".$txnId);
                                                                 
                                                             } else {
                                                                 LaravelLog::info('No text found in the image');
@@ -2299,7 +1769,7 @@ class TelegramGroupController extends Controller
                                                                 $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
                                                                 
                                                                 
-                                                                LaravelLog::info("Final message being sent: " . $message);
+                                                                LaravelLog::info("Final message being sent 4: " . $message);
                                                                 
                                                                 $response = Http::post($url, [
                                                                     'chat_id' => $sender_chat['id'],
@@ -2506,637 +1976,31 @@ class TelegramGroupController extends Controller
                                                                 
                                                                 LaravelLog::info("Successfully extracted text from image: " . $extractedText);
                                                                 
-                                                                /////////////////////////////
-                                                                //////////////////////////////
-                                                                /////////////////////////////////
                                                                 
                                                                 // Initialize the gateway_name variable with a default value
                                                                 $gateway_name = $deposit->gateway->name ?? '';
                                                                 
-                                                                if(strtolower($gateway_name)=="bkash"){
-                                                                    // Enhanced bKash transaction ID patterns
-                                                                    $txnId = null;
-                                                                    $patterns = [
-                                                                        // CDR/CD/CDP patterns with more flexible length
-                                                                        '/\b(?:CDR|CD|CDP)[0-9A-Z]{6,12}\b/i',
-                                                                        // Generic bKash transaction pattern
-                                                                        '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        // Transaction ID with ID label
-                                                                        '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        // Fallback pattern for any alphanumeric sequence that looks like a transaction ID
-                                                                        '/\b(?:[A-Z]{2,4}[0-9A-Z]{6,12})\b/'
-                                                                    ];
-
-                                                                    foreach ($patterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            $txnId = $matches[0];
-                                                                            LaravelLog::info("Found bKash Transaction ID using pattern: " . $pattern . " - ID: " . $txnId);
-                                                                            break;
-                                                                        }
-                                                                    }
-
-                                                                    // Phone number patterns
-                                                                    if (preg_match('/(?:Account|Number)\s*:?\s*(01\d{9})/', $extractedText, $matches) ||
-                                                                        preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
-                                                                        $phone_number_by_telegram_message = $matches[1];
-                                                                        LaravelLog::info("Found phone number: " . $phone_number_by_telegram_message);
-                                                                    }
-
-                                                                    // bKash specific amount patterns
-                                                                    $amount = null;
-                                                                    if (preg_match('/Amount\s*:?\s*৳\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Found bKash amount with ৳ symbol: " . $amount);
-                                                                    } elseif (preg_match('/Amount\s*:?\s*Tk\.?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Found bKash amount with Tk: " . $amount);
-                                                                    } elseif (preg_match('/Cash\s+Out\s+৳\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Found bKash Cash Out amount: " . $amount);
-                                                                    }
-
-                                                                } elseif(strtolower($gateway_name)=="nagad"){
-                                                                    LaravelLog::info("Processing Nagad payment with text: " . $extractedText);
-                                                                    
-                                                                    // First extract e-wallet number (it's the most reliable identifier)
-                                                                    $ewallet_number = null;
-                                                                    if (preg_match('/01[0-9]{3}-[0-9]{6}/', $extractedText, $matches)) {
-                                                                        $ewallet_number = $matches[0];
-                                                                        LaravelLog::info("Found Nagad e-wallet number: " . $ewallet_number);
-                                                                    }
-
-                                                                    // Extract transaction ID from Bengali text
-                                                                    $txnId = null;
-                                                                    if (preg_match('/ট্রানজেকশন\s*আইডি\s*([A-Z0-9]+)/u', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Found transaction ID from Bengali text: " . $txnId);
-                                                                    } elseif (preg_match('/[A-Z0-9]{8}/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[0];
-                                                                        LaravelLog::info("Found transaction ID from alphanumeric: " . $txnId);
-                                                                    }
-
-                                                                    // Extract amount from Nagad receipt with multiple patterns
-                                                                    // First try the standard format: "পরিমাণ X,XXX.XX টাকা"
-                                                                    if (preg_match('/পরিমাণ\s+(\d+(?:,\d{3})*(?:\.\d{2})?)\s*টাকা/u', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted Nagad amount from পরিমাণ: " . $amount);
-                                                                    } 
-                                                                    // Try alternative format without space: "পরিমাণ X,XXX.XXটাকা"
-                                                                    else if (preg_match('/পরিমাণ\s+(\d+(?:,\d{3})*(?:\.\d{2})?)টাকা/u', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted Nagad amount from পরিমাণ (no space): " . $amount);
-                                                                    }
-                                                                    // Try simple format: "X,XXX.XX টাকা"
-                                                                    else if (preg_match('/(\d+(?:,\d{3})*(?:\.\d{2})?)\s*টাকা/u', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted Nagad amount from simple format: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Validate the amount to ensure it's not "00" or too small
-                                                                    if (isset($amount) && ($amount == "00" || floatval($amount) < 1)) {
-                                                                        LaravelLog::info("Invalid amount detected: " . $amount . ", trying alternative patterns");
-                                                                        // Try to find amount in the full text with a more general pattern
-                                                                        if (preg_match('/(\d{2,3}(?:,\d{3})*(?:\.\d{2})?)\s*টাকা/u', $extractedText, $matches)) {
-                                                                            $amount = str_replace(',', '', $matches[1]);
-                                                                            LaravelLog::info("Found valid amount with alternative pattern: " . $amount);
-                                                                        }
-                                                                    }
-
-                                                                    // Format the message
-                                                                    $message = "?? *Extracted Information:*\n\n";
-                                                                    
-                                                                    if ($txnId) {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                    }
-                                                                    
-                                                                    if ($ewallet_number) {
-                                                                        $message .= "?? *E-Wallet:* `" . $ewallet_number . "`\n";
-                                                                    }
-                                                                    
-                                                                    if ($amount) {
-                                                                        $message .= "?? *Amount:* `" . $amount . "`\n";
-                                                                    }
-                                                                    
-                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                    
-                                                                    LaravelLog::info("Final message being sent: " . $message);
-                                                                    
-                                                                    $response = Http::post($url, [
-                                                                        'chat_id' => $sender_chat['id'],
-                                                                        'text' => $message,
-                                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                                        'parse_mode' => 'Markdown',
-                                                                    ]);
-                                                                    
-                                                                    return response()->json(['status' => 'success'], 200);
-
-                                                                } elseif(strtolower($gateway_name)=="rocket"){
-                                                                    LaravelLog::info("Processing Rocket payment with text: " . $extractedText);
-                                                                    
-                                                                    // Exactly match what we need with very simple patterns
-                                                                    $txnId = null;
-                                                                    $agent_account = null;
-                                                                    $cashout_account = null;
-                                                                    $amount = null;
-                                                                    
-                                                                    // Case 1: Look for "Transaction ID" followed by 10 digits - more precise pattern
-                                                                    if (preg_match('/Transaction\s+ID\s*:?\s*(\d{10})/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Found Transaction ID: " . $txnId);
-                                                                    } 
-                                                                    
-                                                                    // Case 2: Look for "ID: #" followed by digits
-                                                                    if (!$txnId && preg_match('/ID:\s*#?(\d+)/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Found ID with # format: " . $txnId);
-                                                                    }
-                                                                    
-                                                                    // Look for Transaction Amount pattern
-                                                                    if (preg_match('/Transaction\s+Amount\s*:?\s*(\d+\.\d+)/', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found Transaction Amount: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Look for amount after ID pattern (with Bengali symbol)
-                                                                    if (!$amount && preg_match('/ID:\s*#?\d+\s*৳?(\d+\.\d+)/', $extractedText, $matches)) {
-                                                                        $amount = $matches[1];
-                                                                        LaravelLog::info("Found Amount with ৳ symbol: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Look for Agent A/C pattern - more precise pattern
-                                                                    if (preg_match('/Agent\s+A\/C\s+No\.\s*:?\s*(\d+)/', $extractedText, $matches)) {
-                                                                        $agent_account = $matches[1];
-                                                                        LaravelLog::info("Found Agent A/C: " . $agent_account);
-                                                                    }
-                                                                    
-                                                                    // Look for Cash-out pattern with parentheses
-                                                                    if (preg_match('/Cash-out\s*\((\d+)\)/', $extractedText, $matches)) {
-                                                                        $cashout_account = $matches[1];
-                                                                        LaravelLog::info("Found Cash-out with parentheses: " . $cashout_account);
-                                                                    }
-                                                                    
-                                                                    // Look for Cash-out pattern without parentheses (for Mini Statement)
-                                                                    if (!$cashout_account && preg_match('/Cash-out\s+(\d+)/', $extractedText, $matches)) {
-                                                                        $cashout_account = $matches[1];
-                                                                        LaravelLog::info("Found Cash-out without parentheses: " . $cashout_account);
-                                                                    }
-                                                                    
-                                                                    // Create the message exactly as requested
-                                                                    $message = "?? *Extracted Information:*\n\n";
-                                                                    
-                                                                    // Always include Transaction ID if found
-                                                                    if ($txnId) {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                    } else {
-                                                                        // Try harder to find Transaction ID in Mini Statement format
-                                                                        if (strpos($extractedText, "Mini Statement") !== false && preg_match('/ID:\s*#?(\d+)/', $extractedText, $matches)) {
-                                                                            $txnId = $matches[1];
-                                                                            $message .= "?? *ID:* `" . $txnId . "`\n";
-                                                                            LaravelLog::info("Found ID from Mini Statement: " . $txnId);
-                                                                        }
-                                                                    }
-                                                                    
-                                                                    // Always include Amount if found
-                                                                    if ($amount) {
-                                                                        if (strpos($extractedText, '৳') !== false) {
-                                                                            $message .= "?? *Amount:* `৳" . $amount . "`\n";
-                                                                        } else {
-                                                                            $message .= "?? *Amount:* `" . $amount . "`\n";
-                                                                        }
-                                                                    }
-                                                                    
-                                                                    // Always include Agent A/C if found
-                                                                    if ($agent_account) {
-                                                                        $message .= "?? *Agent A/C:* `" . $agent_account . "`\n";
-                                                                    }
-                                                                    
-                                                                    // Always include Cash-out if found
-                                                                    if ($cashout_account) {
-                                                                        $message .= "?? *Cash-out:* `" . $cashout_account . "`\n";
-                                                                    }
-                                                                    
-                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                    
-                                                                    LaravelLog::info("Final message being sent: " . $message);
-                                                                    
-                                                                    $response = Http::post($url, [
-                                                                        'chat_id' => $sender_chat['id'],
-                                                                        'text' => $message,
-                                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                                        'parse_mode' => 'Markdown',
-                                                                    ]);
-                                                                    
-                                                                    return response()->json(['status' => 'success'], 200);
-                                                                }
+                                                                $extracted_text_values = $this->extractTransactionDetails($extractedText);
                                                                 
-                                                                // Handle Rocket Mini Statement specially
-                                                                if (strpos($extractedText, "Mini Statement") !== false) {
-                                                                    // For Mini Statement format, extract ID and amount in special way
-                                                                    if (preg_match('/ID:[\s#]*(\d+)[\s]*৳?(\d+(?:\.\d+)?)/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        $amount = $matches[2];
-                                                                        LaravelLog::info("Mini Statement format found - ID: " . $txnId . ", Amount: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Look for Cash-out pattern in Mini Statement
-                                                                    if (preg_match('/Cash-out[\s\(]*(\d+)[\)\s]*/', $extractedText, $matches)) {
-                                                                        $cashout_account = $matches[1];
-                                                                        LaravelLog::info("Mini Statement - Found Cash-out: " . $cashout_account);
-                                                                    }
-                                                                }
-                                                                
-                                                                // If no specific provider pattern matched, try generic patterns as fallback
-                                                                if (!isset($txnId) || empty($txnId)) {
-                                                                    $genericPatterns = [
-                                                                        // Generic transaction ID patterns
-                                                                        '/\b(?:TRX|TXN|TRANS)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        '/\b(?:ID|Transaction ID)[\s#:]*([0-9A-Z]{6,12})\b/i',
-                                                                        // Look for any sequence that might be a transaction ID
-                                                                        '/\b(?:[A-Z]{2,4}[0-9A-Z]{6,12})\b/',
-                                                                        '/\b(?:[0-9A-Z]{6,12})\b/'
-                                                                    ];
-
-                                                                    foreach ($genericPatterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            $txnId = $matches[0];
-                                                                            LaravelLog::info("Found Transaction ID using generic pattern: " . $pattern . " - ID: " . $txnId);
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                // Validate the found transaction ID
-                                                                if (isset($txnId) && !empty($txnId)) {
-                                                                    // Remove any non-alphanumeric characters
-                                                                    $txnId = preg_replace('/[^A-Z0-9]/i', '', $txnId);
-                                                                    
-                                                                    // Log the final transaction ID
-                                                                    LaravelLog::info("Final Transaction ID after validation: " . $txnId);
-                                                                }
-
-                                                                // For Rocket, use a simpler and more direct approach to get Transaction ID
-                                                                // Remove any previous Transaction ID extraction that might be causing issues
-                                                                $txnId = null;
-                                                                $cashout_number = null;
-                                                                $phone_number = null;
-                                                                
-                                                                // Check for different receipt formats and extract Transaction ID accordingly
-                                                                if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                    // Mini Statement format - Extract ID from format "ID: #number"
-                                                                    if (preg_match('/ID:\s*#?(\d+)/i', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted ID from Mini Statement: " . $txnId);
-                                                                    }
-                                                                    
-                                                                    // Extract Cash-out number from Mini Statement
-                                                                    if (preg_match('/Cash-out\s*\((\d+)\)/i', $extractedText, $matches)) {
-                                                                        $cashout_number = $matches[1];
-                                                                        LaravelLog::info("Extracted Cash-out number from Mini Statement: " . $cashout_number);
-                                                                    }
-                                                                    
-                                                                    // Extract amount from Mini Statement with proper handling of Bengali currency symbol
-                                                                    if (preg_match('/ID:\s*#?\d+\s*-?\s*(?:৳|6)([0-9.,]+)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Extracted amount from Mini Statement with Bengali symbol: " . $amount);
-                                                                    }
-                                                                } else if (preg_match('/TxnId:(\d+)/i', $extractedText, $matches)) {
-                                                                    // Format with TxnId: pattern (typically found in the Cash-Out receipts)
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Extracted TxnId from Cash-Out receipt: " . $txnId);
-                                                                } else if (stripos($extractedText, "ক্যাশ আউট") !== false) {
-                                                                    // Nagad case - Extract transaction ID (alphanumeric code)
-                                                                    // First try to find it after "ট্রানজেকশন আইডি"
-                                                                    if (preg_match('/ট্রানজেকশন\s+আইডি\s*([A-Z0-9]{7,8})/u', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad transaction ID from Bengali text: " . $txnId);
-                                                                    }
-                                                                    // If not found, try general pattern
-                                                                    else if (preg_match('/\b([A-Z0-9]{7,8})\b/', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad transaction ID from general pattern: " . $txnId);
-                                                                    }
-                                                                    
-                                                                    // Extract phone number from Nagad receipt
-                                                                    // First try to find it directly in the format 01336-736805
-                                                                    if (preg_match('/\b(01\d{3}-\d{6})\b/', $extractedText, $matches)) {
-                                                                        $phone_number = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad phone number from direct format: " . $phone_number);
-                                                                    }
-                                                                    // Then try Bengali text format
-                                                                    else if (preg_match('/একাউন্ট\s+নং\s*(\d{3}-\d{6})/u', $extractedText, $matches) || 
-                                                                            preg_match('/একাউন্ট\s+নং\s*(\d{9})/u', $extractedText, $matches)) {
-                                                                        $phone_number = $matches[1];
-                                                                        LaravelLog::info("Extracted Nagad phone number from Bengali text: " . $phone_number);
-                                                                    }
-                                                                } else {
-                                                                    // Regular receipt format - Direct pattern to match Transaction ID
-                                                                    if (preg_match('/Transaction\s+ID\s+(\d+)/i', $extractedText, $matches)) {
-                                                                        $txnId = $matches[1];
-                                                                        LaravelLog::info("Extracted Transaction ID directly: " . $txnId);
-                                                                    }
-                                                                }
-                                                                
-                                                                // For Rocket, check specifically for Agent A/C No
-                                                                if (preg_match('/Agent\s+A\/C\s+No\.\s*:?\s*(\d+)/', $extractedText, $matches) || 
-                                                                    preg_match('/Agent\s+A\/C\s+No\.\s+(\d+)/', $extractedText, $matches)) {
-                                                                    $agent_account = $matches[1];
-                                                                    LaravelLog::info("Found Agent A/C No from Rocket format: " . $agent_account);
-                                                                }
-
-                                                                // Add specific Rocket transaction ID pattern
-                                                                if (preg_match('/Transaction\s+ID\s+(\d{10})/', $extractedText, $matches)) {
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Found Rocket Transaction ID: " . $txnId);
-                                                                }
-                                                                // Add pattern for Txnld: format
-                                                                else if (preg_match('/Txnld:(\d{10})/', $extractedText, $matches)) {
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Found Rocket Transaction ID from Txnld format: " . $txnId);
-                                                                }
-                                                                // Add pattern for 1D: format (OCR misreading)
-                                                                else if (preg_match('/1D:\s*#?(\d{10})/', $extractedText, $matches)) {
-                                                                    $txnId = $matches[1];
-                                                                    LaravelLog::info("Found Rocket Transaction ID from 1D format: " . $txnId);
-                                                                }
-
-                                                                // Extract cash-out number
-                                                                if (preg_match('/Cash-out\s*\((\d+)\)/', $extractedText, $matches)) {
-                                                                    $cashout_number = $matches[1];
-                                                                    LaravelLog::info("Found Cash-out number: " . $cashout_number);
-                                                                }
-
-                                                                // Generic phone number pattern as fallback
-                                                                if (!isset($phone_number_by_telegram_message) || empty($phone_number_by_telegram_message)) {
-                                                                    if (preg_match('/\b(01[3-9]\d{8})\b/', $extractedText, $matches)) {
-                                                                        $phone_number_by_telegram_message = $matches[1];
-                                                                    }
-                                                                }
+                                                                $message = "";
+                                                                $message .= "\n*E-Wallet:* " . $extracted_text_values['ewallet'] . "\n";
+                                                                $message .= "\n*TXN:* " . $extracted_text_values['txn'] . "\n";
+                                                                $message .= "\n*Amount:* " . $extracted_text_values['amount'] . "\n";
                                                                 
                                                                 
-                                                                /////////////////////////////
-                                                                //////////////////////////////
-                                                                /////////////////////////////////
+                                                                $message .= "\n-----------------------\n";
                                                                 
-                                                                // Extract amount from text if not already found
-                                                                if (!isset($amount) || empty($amount)) {
-                                                                    // Check for specific Rocket pattern with ID and misinterpreted Bengali symbol
-                                                                    if (preg_match('/ID:\s*#?\d+\s+6([0-9.,]+)/', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Fixed Rocket receipt with ৳ misread as 6: " . $amount);
-                                                                    }
-                                                                    
-                                                                    // Try to find amount in common formats
-                                                                    $amountPatterns = [
-                                                                        // Add pattern for ID: #number - ৳amount format
-                                                                        '/ID:\s*#?\d+\s*-\s*৳(\d+(?:,\d{3})*(?:\.\d{2})?)/',
-                                                                        // Add pattern for ¥ symbol
-                                                                        '/¥(\d+(?:\.\d{2})?)/',
-                                                                        // Add pattern for Bengali numerals
-                                                                        '/[০-৯]+(?:\.[০-৯]{2})?/u',
-                                                                        // Add specific pattern for TkK format
-                                                                        '/TkK(\d+(?:\.\d{2})?)/',
-                                                                        // TxnAmount format specific to Rocket
-                                                                        '/TxnAmount\s*:?\s*(?:Tk\.?|৳)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Cash-out with amount in parentheses format
-                                                                        '/Cash-out.*?(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Special case for OCR misreading Bengali currency symbol as "6"
-                                                                        '/ID:\s*#?\d+\s+6(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // ID: #number amount format (where amount follows the ID)
-                                                                        '/ID:\s*#?\d+\s+(?:৳)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Amount with comma and Tk/টাকা
-                                                                        '/(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:Tk\.?|টাকা)/i',
-                                                                        // Amount with ৳ symbol
-                                                                        '/৳\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Amount after "Amount" word
-                                                                        '/Amount\s*:?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i',
-                                                                        // Amount after "Cash Out" or "ক্যাশ আউট"
-                                                                        '/(?:Cash Out|ক্যাশ আউট).*?(\d+(?:,\d{3})*(?:\.\d{2})?)/s',
-                                                                        // Simple digits with commas that might be amount
-                                                                        '/\b(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)\b/',
-                                                                        // Special case for Rocket receipt with "Tk" followed by amount
-                                                                        '/Tk\.?(\d+(?:,\d{3})*(?:\.\d{2})?)/i'
-                                                                    ];
-
-                                                                    foreach ($amountPatterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            // Skip if the match is part of a cash-out number
-                                                                            if (strpos($matches[0], 'Cash-out') !== false) {
-                                                                                continue;
-                                                                            }
-                                                                            $amount = $matches[0];
-                                                                            // Convert Bengali numerals to English if needed
-                                                                            if (preg_match('/[০-৯]/u', $amount)) {
-                                                                                $amount = str_replace(
-                                                                                    ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'],
-                                                                                    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                                                                                    $amount
-                                                                                );
-                                                                            }
-                                                                            // Remove currency symbols and clean up
-                                                                            $amount = preg_replace('/[¥৳Tk]/', '', $amount);
-                                                                            $amount = str_replace(',', '', $amount);
-                                                                            
-                                                                            // Validate amount is reasonable (not too large)
-                                                                            if (floatval($amount) > 100000) {
-                                                                                continue; // Skip if amount seems too large
-                                                                            }
-                                                                            
-                                                                            LaravelLog::info("Found amount using pattern: " . $pattern . " - Amount: " . $amount);
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    
-                                                                                                                                        // Validate extracted amount to ensure it's not a phone number
-                                                                if (isset($amount) && !empty($amount)) {
-                                                                    // If the amount looks like a phone number (01XXXXXXXX format), it's likely incorrect
-                                                                    if (preg_match('/^01\d{8,9}$/', $amount) || strlen($amount) >= 9 && strlen($amount) <= 11) {
-                                                                        LaravelLog::info("Possible phone number detected as amount, discarding: " . $amount);
-                                                                        $amount = null;
-                                                                        
-                                                                        // Try to find amount by checking specific patterns in the Mini Statement
-                                                                        if (strpos($extractedText, "Mini Statement") !== false) {
-                                                                            if (preg_match('/ID:\s*#?\d+\s+6([0-9.,]+)/', $extractedText, $matches)) {
-                                                                                $amount = str_replace(',', '', $matches[1]);
-                                                                                LaravelLog::info("Fixed amount from Mini Statement with ID: " . $amount);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
                                                                 
-                                                                // Additional check for Mini Statement case with misread Bengali currency symbol
-                                                                if ((!isset($amount) || empty($amount)) && strpos($extractedText, "Mini Statement") !== false) {
-                                                                    if (preg_match('/ID:\s*#?\d+\s+6([0-9.,]+)/', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        LaravelLog::info("Fixed amount from Mini Statement as fallback: " . $amount);
-                                                                    }
-                                                                }
-                                                                }
-                                                                
-                                                                // Format the message with extracted information
-                                                                $message = "?? *Extracted Information:*\n\n";
-                                                                
-                                                                // Add Transaction ID or ID from Mini Statement to message if found
-                                                                if (isset($txnId) && !empty($txnId)) {
-                                                                    // Check the format of the receipt to use the appropriate label
-                                                                    if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                        // For Rocket Mini Statement, extract ID from the format "ID: #number"
-                                                                        if (preg_match('/ID:\s*#?(\d+)/', $extractedText, $matches)) {
-                                                                            $txnId = $matches[1];
-                                                                            $message .= "?? *ID:* `" . $txnId . "`\n";
-                                                                            LaravelLog::info("Adding ID from Mini Statement to message: " . $txnId);
-                                                                        }
-                                                                    } else if (stripos($extractedText, "TxnId:") !== false) {
-                                                                        $message .= "?? *TxnId:* `" . $txnId . "`\n";
-                                                                        LaravelLog::info("Adding TxnId from Cash-Out receipt to message: " . $txnId);
-                                                                    } else if (stripos($extractedText, "ক্যাশ আউট") !== false) {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                        LaravelLog::info("Adding Nagad transaction ID to message: " . $txnId);
-                                                                    } else {
-                                                                        $message .= "?? *Transaction ID:* `" . $txnId . "`\n";
-                                                                        LaravelLog::info("Adding transaction ID to message: " . $txnId);
-                                                                    }
-                                                                }
-                                                                
-                                                                // Add Agent A/C to message if found (Rocket specific)
-                                                                if (isset($agent_account) && !empty($agent_account)) {
-                                                                    $message .= "?? *Agent A/C:* `" . $agent_account . "`\n";
-                                                                    LaravelLog::info("Adding Agent A/C to message: " . $agent_account);
-                                                                }
-                                                                
-                                                                // Add Cash-out number to message if found (from Mini Statement)
-                                                                if (isset($cashout_number) && !empty($cashout_number)) {
-                                                                    $message .= "?? *Cash-out:* `" . $cashout_number . "`\n";
-                                                                    LaravelLog::info("Adding Cash-out number to message: " . $cashout_number);
-                                                                }
-                                                                
-                                                                // Add phone number to message if found (from Nagad receipt)
-                                                                if (isset($phone_number) && !empty($phone_number)) {
-                                                                    $message .= "?? *Phone:* `" . $phone_number . "`\n";
-                                                                    LaravelLog::info("Adding phone number to message: " . $phone_number);
-                                                                }
-
-                                                                // Skip Rocket A/C as requested
-                                                                // We'll just check for other e-wallet patterns
-                                                                {
-                                                                    // We already skipped Rocket A/C, now look for other patterns
-                                                                    // Ensure we have the Transaction ID for Rocket receipts by using a more precise pattern
-                                                                    if (!isset($txnId) || empty($txnId) || $txnId == "Transaction") {
-                                                                        if (preg_match('/Transaction\s+Information:[\s\S]*?Transaction\s+ID\s+(\d+)/i', $extractedText, $matches)) {
-                                                                            $txnId = $matches[1];
-                                                                            LaravelLog::info("Found Transaction ID from Transaction Information section: " . $txnId);
-                                                                        }
-                                                                    }
-                                                                    
-                                                                    $ewallet_patterns = [
-                                                                        '/\b(01\d{3})-(\d{6})\b/',  // Pattern with hyphen
-                                                                        '/\b(01\d{3})(\d{6})\b/',   // Pattern without hyphen
-                                                                        '/ক্যাশ আউট\s*(01\d{3})-?(\d{6})\b/u',  // Pattern after ক্যাশ আউট
-                                                                        '/\b(01\d{9})\b/'  // Continuous 11 digit pattern
-                                                                    ];
-                                                                    
-                                                                    foreach ($ewallet_patterns as $pattern) {
-                                                                        if (preg_match($pattern, $extractedText, $matches)) {
-                                                                            if (count($matches) === 2) {
-                                                                                // For continuous number pattern
-                                                                                $ewallet_number = substr($matches[1], 0, 5) . '-' . substr($matches[1], 5);
-                                                                            } else if (count($matches) === 3) {
-                                                                                // For split patterns
-                                                                                $ewallet_number = $matches[1] . '-' . $matches[2];
-                                                                            }
-                                                                            // Only add E-Wallet if it's different from the phone number
-                                                                            if (!isset($phone_number) || $ewallet_number !== $phone_number) {
-                                                                                $message .= "?? *E-Wallet:* `" . $ewallet_number . "`\n";
-                                                                                LaravelLog::info("Adding e-wallet number: " . $ewallet_number);
-                                                                            }
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
-                                                                
-                                                                // No longer needed here as we handle Transaction ID earlier in the code
-                                                                // and add it to the message at the beginning of the message formatting section
-
-                                                                // Check if the amount might be a phone number (to avoid confusion with Cash-out numbers)
-                                                                if (isset($amount) && !empty($amount)) {
-                                                                    // Verify this isn't actually a phone number
-                                                                    if (preg_match('/^01\d{8,9}$/', $amount) || strlen($amount) > 8) {
-                                                                        LaravelLog::info("Detected phone number as amount, discarding: " . $amount);
-                                                                        
-                                                                        // Try again to find the correct amount in Mini Statement
-                                                                        if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                            if (preg_match('/ID:\s*#?\d+\s*-?\s*(?:৳|6)([0-9.,]+)/i', $extractedText, $matches)) {
-                                                                                $amount = str_replace(',', '', $matches[1]);
-                                                                                LaravelLog::info("Corrected amount from Mini Statement: " . $amount);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                // Add amount to message if found
-                                                                if (isset($amount) && !empty($amount)) {
-                                                                    // Special handling for Rocket Mini Statement
-                                                                    if (stripos($extractedText, "Mini Statement") !== false) {
-                                                                        // Simply remove first 6 if amount starts with it
-                                                                        if (substr($amount, 0, 1) === '6') {
-                                                                            $amount = substr($amount, 1);
-                                                                        }
-                                                                        $message .= "?? *Amount:* `৳" . $amount . "`\n";
-                                                                        LaravelLog::info("Rocket Mini Statement amount: ৳" . $amount);
-                                                                    } else {
-                                                                        $message .= "?? *Amount:* `" . $amount . "`\n";
-                                                                        LaravelLog::info("Adding amount to message: " . $amount);
-                                                                    }
-                                                                } else {
-                                                                    // Last attempt to find amount in Mini Statement pattern
-                                                                    if (strpos($extractedText, "Mini Statement") !== false) {
-                                                                        // Try different patterns for Mini Statement
-                                                                        if (preg_match('/ID:\s*#?\d+\s*-?\s*[৳6]([0-9.,]+)/i', $extractedText, $matches)) {
-                                                                        $amount = str_replace(',', '', $matches[1]);
-                                                                        $message .= "?? *Amount:* `৳" . $amount . "`\n";
-                                                                            LaravelLog::info("Last attempt - Adding amount with Bengali symbol: ৳" . $amount);
-                                                                        } else {
-                                                                            LaravelLog::info("No amount found in Mini Statement text");
-                                                                        }
-                                                                } else {
-                                                                    LaravelLog::info("No amount found in the text");
-                                                                    }
-                                                                }
-                                                                
-                                                                if (isset($phone_number_by_telegram_message) && !empty($phone_number_by_telegram_message)) {
-                                                                    $message .= "?? *Phone:* `" . $phone_number_by_telegram_message . "`\n";
-                                                                    LaravelLog::info("Adding phone to message: " . $phone_number_by_telegram_message);
-                                                                }
-                                                                
-                                                                // Fix the full text to replace misread "6" with Bengali currency symbol "৳" where appropriate
-                                                                $fixedText = $extractedText;
-                                                                
-                                                                // Common patterns where Bengali currency symbol gets misread as "6"
-                                                                $replacementPatterns = [
-                                                                    // ID pattern (e.g., ID: #5473918508 6300.00 -> ID: #5473918508 ৳300.00)
-                                                                    '/(ID:\s*#?\d+\s+)6([0-9.,]+)/' => '$1৳$2',
-                                                                    
-                                                                    // Space followed by 6 and then digits (e.g., " 6300.00" -> " ৳300.00")
-                                                                    '/(\s)6([0-9]{2,3}(?:\.[0-9]{2})?)/' => '$1৳$2',
-                                                                    
-                                                                    // Amount format in Rocket receipts
-                                                                    '/(Amount\s*:?\s*)6([0-9.,]+)/' => '$1৳$2',
-                                                                    
-                                                                    // Transaction amount format
-                                                                    '/(Transaction\s+Amount\s*:?\s*)6([0-9.,]+)/' => '$1৳$2',
-                                                                    
-                                                                    // General case where 6 precedes a standard amount pattern
-                                                                    '/(\s)6(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/' => '$1৳$2'
-                                                                ];
-                                                                
-                                                                // Apply all replacements
-                                                                foreach ($replacementPatterns as $pattern => $replacement) {
-                                                                    $fixedText = preg_replace($pattern, $replacement, $fixedText);
-                                                                }
                                                                 
                                                                 // Add the fixed extracted text at the bottom
-                                                                $message .= "\n?? *Full Text:*\n```\n" . $fixedText . "```\n";
+                                                                $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
                                                                 
-                                                                LaravelLog::info("Final message being sent: " . $message);
+                                                                //  $message = preg_replace('/[\x00-\x1F\x7F]/u', '', $message);
+                                                                $message = mb_convert_encoding($message, 'UTF-8', 'UTF-8');
+                                                                
+                                                                LaravelLog::info("Final message being sent 7: " . $message);
+                                                                
+                                                               
                                                                 
                                                                 $response = Http::post($url, [
                                                                     'chat_id' => $sender_chat['id'],
@@ -4045,7 +2909,7 @@ class TelegramGroupController extends Controller
                                                             $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
                                                             
                                                             
-                                                            LaravelLog::info("Final message being sent: " . $message);
+                                                            LaravelLog::info("Final message being sent 8: " . $message);
                                                             
                                                             // Add instructions for verification with the correct transaction ID
                                                             if ($txnId) {
@@ -5254,7 +4118,7 @@ class TelegramGroupController extends Controller
                                                                 $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
                                                                 
                                                                 
-                                                                LaravelLog::info("Final message being sent: " . $message);
+                                                                LaravelLog::info("Final message being sent 9: " . $message);
                                                                 
                                                                 $response = Http::post($url, [
                                                                     'chat_id' => $sender_chat['id'],
@@ -6698,4 +5562,92 @@ class TelegramGroupController extends Controller
     {
     return "https://api.telegram.org/bot" . self::TELEGRAM_BOT_TOKEN . "/sendMessage";
     }
+    
+    
+    
+    function extractValueByStartPattern($text, $startKeywords, $valuePattern) {
+
+        foreach ($startKeywords as $start) {
+            $startPos = stripos($text, $start);
+            if ($startPos !== false) {
+                $substr = substr($text, $startPos + strlen($start), 100); // check next 100 chars
+                if (preg_match($valuePattern, $substr, $match)) {
+                    return trim($match[1]);
+                }
+            }
+        }
+        return null;
+    }
+    
+    
+    function extractTransactionDetails($text) {
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        $text = str_replace('BUG', '', $text);
+        $text = str_replace('Date', ' Date', $text);
+        $text = preg_replace('/\s+/', ' ', $text); // normalize
+        $text = str_replace(["\n", "\r"], ' ', $text);
+    
+        $text = preg_replace('/(Date|Time|Txnid|Transaction)(\d)/i', '$1 $2', $text);
+    
+    
+        $ewallet = "";
+        $amount = "";
+        $txn = "";
+        
+    
+    
+        $ewalletStarts = ['একাউন্ট নং','ক্যাশ আউট', 'Cash Out from A/C', 'Cash-out (', 'C:', 'Smrity Store_', 'Agent A/C No.', 'Rocket A/C No.', 'কাস্টমার', 'Mehedi Telecom'];
+        $amountStarts = ['পরিমাণ', 'Amount', 'Transaction Amount', 'TxnAmount:', '৳', 'Tk', 'TkK', '%', '- ৳'];
+        $txnStarts = ['ট্রানজেকশন আইডি রেফারেন্স', 'ট্রানজেকশন আইডি', 'Transaction ID', 'Txnid:', 'Txnld:', 'ID: #', 'সময় ট্রানজেকশন আইডি'];
+    
+    
+        if (stripos($text, 'সময় ট্রানজেকশন আইডি') !== false) {
+            if (preg_match('/সময় ট্রানজেকশন আইডি\s+[^\s]+\s+[^\s]+\s+([A-Z0-9]+)/i', $text, $match)) {
+                $txn = $match[1];
+            }
+    
+            if (preg_match('/([\d,]+\.\d{2})\s*\+/', $text, $match2)) {
+                $amount = str_replace(',', '', $match2[1]);
+            }
+    
+            $pos = stripos($text, 'সময় ট্রানজেকশন আইডি');
+            $beforeText = substr($text, 0, $pos);
+    
+            if (preg_match('/([0-9\-]{6,20})\s*$/', trim($beforeText), $m3)) {
+                $ewallet = str_replace('-', '', $m3[1]);
+            }
+        }elseif (stripos($text, 'কাস্টমার') !== false) {
+            $txn     = $this->extractValueByStartPattern($text, $txnStarts, '/([A-Z0-9]{6,15})/i'); 
+            $ewallet = $this->extractValueByStartPattern($text, $ewalletStarts, '/([0-9xX\-\*]{6,20})/');
+        
+    
+            if (preg_match('/[%৳]\s*([0-9,]+(?:\.\d{1,2})?)/u', $text, $m2)) {
+                $amount = str_replace(',', '', $m2[1]);
+            }
+    
+        
+        }
+        else{
+            $amount  = $this->extractValueByStartPattern($text, $amountStarts, '/([\d]{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/');
+            $txn     = $this->extractValueByStartPattern($text, $txnStarts, '/([A-Z0-9]{6,15})/i'); 
+            $ewallet = $this->extractValueByStartPattern($text, $ewalletStarts, '/([0-9xX\-\*]{6,20})/');   
+        }
+    
+    
+        
+        
+        $amount = str_replace(',', '', $amount);
+        $ewallet = str_replace('-', '', $ewallet);
+    
+    
+    
+    
+    
+        return [
+            'ewallet' => $ewallet,
+            'amount' => $amount,
+            'txn' => $txn,
+        ];
+    }
+
 }
