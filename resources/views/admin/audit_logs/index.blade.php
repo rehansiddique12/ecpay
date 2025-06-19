@@ -38,6 +38,7 @@
                     <tr>
                         <th>{{ __('transaction.id') }}</th>
                         <th>{{ __('transaction.user') }}</th>
+                        <th>{{ __('transaction.action') }}</th>
                         <th>{{ __('transaction.module') }}</th>
                         <th>{{ __('transaction.description') }}</th>
                         <th>{{ __('transaction.created_at') }}</th>
@@ -49,7 +50,29 @@
                             <td>{{ $log->id }}</td>
                             <td>{{ $log->user->name ?? 'N/A' }}</td>
                             <td>{{ $log->module }}</td>
-                            {{-- <td>{{ $log->module_id }}</td> --}}
+                            <td>
+                                @php
+                                    $module = $log->module;
+                                    $label = 'N/A';
+
+                                    if (str_contains($module, 'Workboard')) {
+                                        $label = 'Workboard';
+                                    } elseif (str_contains($module, 'Payment')) {
+                                        $label = 'Deposit Log';
+                                    } elseif (str_contains($module, 'Payout')) {
+                                        $label = 'Withdrawal Log';
+                                    } elseif (
+                                        str_contains(strtolower($module), 'gateway') ||
+                                        str_contains($module, 'EWalletAccount') ||
+                                        str_contains($module, 'Account Management')
+                                    ) {
+                                        $label = 'Account Management';
+                                    }
+                                @endphp
+                                {{ $label }}
+                            </td>
+
+
                             <td>{{ $log->description }}</td>
                             <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
                         </tr>
