@@ -131,9 +131,7 @@
                             <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
                         </a>
                 </div>
-
                 </div>
-
             </div>
         </form>
 
@@ -145,6 +143,9 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
+                    <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
+                        Add Balance / Adjustment
+                    </button>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
@@ -218,6 +219,114 @@
             </div>
         </div>
 
+    </div>
+
+    <div class="modal modal-top fade" id="newModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('merchant.add_new_api') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('admin.apis.balance.add') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row justify-content-between align-items-center">
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="">Select Domain</label>
+                                    <select name="partner_id" class="form-select" data-allow-clear="true"
+                                        data-placeholder="{{ __('partner.select_domain') }}" required>
+                                        <option></option>
+                                        <option value="">{{ __('partner.select_domain') }}</option>
+                                        @foreach ($domains as $domain)
+                                            <option value="{{ $domain->id }}"
+                                                @if (@request()->domain == $domain->id) selected @endif>
+                                                {{ $domain->name }} ===> ( {{ $domain->website }} )
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3 mt-4">{{ __('partner.amount') }}</label>
+                                    <input type="number" step="0.01" class="form-control" name="amount" required />
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group mt-4">
+                                    <label class="pr-3">{{ __('partner.charges') }}</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" name="charges" class="form-control" placeholder="{{ __('partner.charges') }}" required>
+                                        <select name="charges_type" class="form-select">
+                                            <option value="1">{{ __('partner.amount_option_amount') }}</option>
+                                            <option value="2">{{ __('partner.amount_option_percentage') }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3 mt-4">{{ __('partner.type') }}</label>
+                                    <select class="form-select" name="adjustment" id="adjustment" required>
+                                        <option value="4">{{ __('partner.type_top_up') }}</option>
+                                        <option value="1">{{ __('partner.type_balance_adjustment') }}</option>
+                                        <option value="2">{{ __('partner.type_deposit_adjustment') }}</option>
+                                        <option value="3">{{ __('partner.type_withdrawal_adjustment') }}</option>
+
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-group mt-4">
+                                    <input value="1" type="radio" name="amount_type" id="amount_type1" checked>
+                                    <label class="pr-3">(+) {{ __('partner.add') }}</label>
+                                    <input value="2" type="radio" name="amount_type" id="amount_type2">
+                                    <label class="pr-3">(-) {{ __('partner.deduct') }}</label>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="pr-3 mt-4">{{ __('partner.source') }}</label>
+                                        <select class="form-select" name="source" required>
+                                            <option value="E-Wallet">{{ __('partner.source_e_wallet') }}</option>
+                                            <option value="Cash">{{ __('partner.source_cash') }}</option>
+                                            <option value="Bank Transfer">{{ __('partner.source_bank_transfer') }}</option>
+                                            <option value="Other">{{ __('partner.source_other') }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="pr-3 mt-4">{{ __('partner.transactions_id') }}</label>
+                                        <input type="text" class="form-control" name="txn" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="pr-3 mt-4">{{ __('partner.remarks') }}</label>
+                                    <textarea name="reason" class="form-control"></textarea>
+                                </div>
+                            </div>
+
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4">{{ __('partner.add') }}</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
     </div>
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
@@ -302,3 +411,5 @@
                    </script>
     @endpush
 </x-admin-layout>
+
+

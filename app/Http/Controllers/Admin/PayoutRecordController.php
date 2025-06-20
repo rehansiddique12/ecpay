@@ -6498,8 +6498,8 @@ public function markAsRead(Notification $notification)
         $records = ApiTransaction::with('api')->orderBy('id', 'DESC')->paginate(20);
         $pageTitle = "Partners Adjustments";
         $partners = Api::where('type', 'Admin')->paginate(10);
-
-        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+        $domains = Api::where('type', 'Admin')->get();
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners','domains'));
     }
 
     public function export_for_blance(Request $request)
@@ -6548,10 +6548,11 @@ public function markAsRead(Notification $notification)
                     ->orWhere('website', 'like', '%' . $searchTerm . '%');
             });
         }
+        $domains = Api::where('type', 'Admin')->get();
         $records = $records->orderBy('id', 'DESC')->paginate(20);
 
         $pageTitle = "Search Partner Adjustments";
-        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners','domains'));
     }
 
     public function export_for_blance2(Request $request)
