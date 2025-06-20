@@ -115,11 +115,21 @@
                             </button>
                         </div> --}}
 
-                        <a href="{{ route('admin.blance_export', ['from_date' => @request()->from_date, 'to_date' => @request()->to_date, 'partner' => @request()->partner, 'search_by_name' => @request()->search_by_name, 'adjustment' => @request()->adjustment ]) }}"
+                        {{-- <a href="{{ route('admin.blance_export', ['from_date' => @request()->from_date, 'to_date' => @request()->to_date, 'partner' => @request()->partner, 'search_by_name' => @request()->search_by_name, 'adjustment' => @request()->adjustment ]) }}"
                             class="btn waves-effect waves-light btn-success" id="exportButton">
                             <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
-                        </a>
+                        </a> --}}
 
+                        <a href="{{ route('admin.blance_export', [
+                            'from_date' => request()->from_date,
+                            'to_date' => request()->to_date,
+                            'partner' => request()->partner,
+                            'search_by_name' => request()->search_by_name,
+                            'adjustment' => request()->adjustment,
+                        ]) }}"
+                        class="btn waves-effect waves-light btn-success" id="exportButton">
+                            <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
+                        </a>
                 </div>
 
                 </div>

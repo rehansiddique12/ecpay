@@ -52,6 +52,7 @@ use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
 use App\Exports\PartnerBalanceExport;
+use App\Exports\PartnerMerchantExport;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\EWalletAccountTimeSlot;
 use Stevebauman\Purify\Facades\Purify;
@@ -6553,19 +6554,30 @@ public function markAsRead(Notification $notification)
         return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
     }
 
-      public function export_for_blance2($from_date=null, $to_date=null, $partner=null, $search_by_name=null, $adjustment=null)
+    public function export_for_blance2(Request $request)
     {
-        $from_date = str_replace('/', '', $from_date);
-        $to_date = str_replace('/', '', $to_date);
-        // dd($from_date);
-
+        $from_date = $request->query('from_date');
+        $to_date = $request->query('to_date');
+        $partner = $request->query('partner');
+        $search_by_name = $request->query('search_by_name');
+        $adjustment = $request->query('adjustment');
         try {
-            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+            // Use Carbon::parse() to handle various common date formats
+            $carbonFrom = $from_date ? Carbon::parse($from_date) : null;
+            $carbonTo = $to_date ? Carbon::parse($to_date) : null;
+
+            $sanitizedDate = $carbonFrom ? $carbonFrom->format('Y-m-d') : 'no_date';
+            $toDateFormatted = $carbonTo ? $carbonTo->format('Y-m-d') : null;
         } catch (\Exception $e) {
             return response()->json(['error' => 'Invalid date format.'], 400);
         }
-        return Excel::download(new PartnerBalanceExport($from_date, $to_date, $partner, $search_by_name, $adjustment), "partner_balance_by_date_{$sanitizedDate}.csv");
+
+        return Excel::download(
+            new PartnerBalanceExport($sanitizedDate, $toDateFormatted, $partner, $search_by_name, $adjustment),
+            "partner_balance_by_date_{$sanitizedDate}.csv"
+        );
     }
+
 
 
     public function apilogs(Request $request)
