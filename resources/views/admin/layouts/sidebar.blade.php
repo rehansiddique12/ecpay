@@ -71,6 +71,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
 'admin.payout-report.search',
 'admin.payout.report.daily',
 'admin.payout.report.daily.search',
+'admin.audit_logs.index',
 ]);
 // $isAccountsActive =
 // Request::routeIs('admin.accounts.add') ||
@@ -104,7 +105,7 @@ $currentLocale = App::getLocale();
 $languages = [
 'en' => 'English',
 //'ms' => 'Malaysian',
-'cn' =>'Chinese'
+'cn' => 'Chinese',
 ];
 
 @endphp
@@ -951,16 +952,16 @@ $languages = [
                                 <div data-i18n="Deposit Log">{{ __('sidebar.deposit_log') }}</div>
                             </a>
                         </li>
-
                         @endif
+                        @if (adminAccessRoute(config('role.audit_logs.access.view')))
                         <li
-                        class="menu-item {{ in_array(Route::currentRouteName(), ['admin.audit_logs.index']) ? 'active' : '' }}">
-                        <a href="{{ route('admin.audit_logs.index') }}" class="menu-link">
-                            <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                            <div data-i18n="Audit Log">{{ __('sidebar.audit_log') }}</div>
-                        </a>
-                    </li>
-
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.audit_logs.index']) ? 'active' : '' }}">
+                            <a href="{{ route('admin.audit_logs.index') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                                <div data-i18n="Audit Log">{{ __('sidebar.audit_log') }}</div>
+                            </a>
+                        </li>
+                        @endif
                         @if (adminAccessRoute(config('role.deposit_last_hour_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log2']) ? 'active' : '' }}">
@@ -994,7 +995,8 @@ $languages = [
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.apiLogunclaimed', 'admin.payment.apiLogunclaimed.search']) ? 'active' : '' }}">
                             <a href="{{ route('admin.payment.apiLogunclaimed') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-messages"></i>
-                                <div data-i18n="Unclaimed Payment">{{ __('sidebar.unclaimed_payment') }}</div>
+                                <div data-i18n="Unclaimed Payment">{{ __('sidebar.unclaimed_payment') }}
+                                </div>
                             </a>
                         </li>
                         @endif

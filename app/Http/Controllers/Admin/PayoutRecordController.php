@@ -2551,7 +2551,73 @@ class PayoutRecordController extends Controller
                 // First iteration: update existing account
                 if ($index === 0 && $firstAccountId) {
                     $account = EWalletAccount::findOrFail($firstAccountId);
+                    $oldAccountType = $account->account_type;
+    $newAccountType = $request->in_out[$index];
+
+    // Log only if changed
+    if ($oldAccountType !== $newAccountType) {
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'EWalletAccount',
+            'module_id'   => $account->id,
+            'description' => auth()->user()->name . " changed account type from '{$oldAccountType}' to '{$newAccountType}' for eWallet account ID {$account->id}",
+        ]);
+    }
+
                     $account->update($accountData);
+
+                    $savedSlots = EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->pluck('time_saved')->toArray();
+                    $newSlots = $request->time_slots ?? [];
+
+                    $added = array_diff($newSlots, $savedSlots);
+                    $removed = array_diff($savedSlots, $newSlots);
+
+                    // Group time slot ranges (inline, no helper)
+                    $groupRanges = function ($slots) {
+                        sort($slots);
+                        $ranges = [];
+                        $currentStart = null;
+                        $previousEnd = null;
+
+                        foreach ($slots as $slot) {
+                            [$start, $end] = explode(' - ', $slot);
+                            if ($currentStart === null) {
+                                $currentStart = $start;
+                            }
+                            if ($previousEnd !== null && $start !== $previousEnd) {
+                                $ranges[] = "$currentStart - $previousEnd";
+                                $currentStart = $start;
+                            }
+                            $previousEnd = $end;
+                        }
+
+                        if ($currentStart !== null && $previousEnd !== null) {
+                            $ranges[] = "$currentStart - $previousEnd";
+                        }
+
+                        return $ranges;
+                    };
+
+                    $addedRanges = $groupRanges($added);
+                    $removedRanges = $groupRanges($removed);
+
+                    $logParts = [];
+
+                    if (!empty($addedRanges)) {
+                        $logParts[] = 'Checked: ' . implode(', ', $addedRanges);
+                    }
+                    if (!empty($removedRanges)) {
+                        $logParts[] = 'Unchecked: ' . implode(', ', $removedRanges);
+                    }
+
+                    if (!empty($logParts)) {
+                        \App\Models\AuditLog::create([
+                            'user_id'     => auth()->id(),
+                            'module'      => 'EWalletAccount',
+                            'module_id'   => $account->id,
+                            'description' => auth()->user()->name . ' updated time slots. ' . implode(' | ', $logParts),
+                        ]);
+                    }
 
                     // Delete existing time slots and groups before re-adding
                     EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->delete();
@@ -5506,7 +5572,7 @@ class PayoutRecordController extends Controller
         }
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
             ->where('status', 'Pending')
-            // ->where('check_by', 0)
+            ->where('check_by', 0)
             ->orderBy('id', 'desc')
             ->take(5)
             ->get();
@@ -5623,7 +5689,7 @@ public function markAsRead(Notification $notification)
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             AuditLog::create([
                 'user_id' => auth()->id(),
-                'module' => 'Payment Update Attempt',
+                'module' => 'Payment Update Attempt Workboard',
                 'module_id' => $data->id,
                 'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
             ]);
@@ -5632,7 +5698,7 @@ public function markAsRead(Notification $notification)
                 $data->save();
                 AuditLog::create([
                     'user_id' => auth()->id(),
-                    'module' => 'Payment Sender Update',
+                    'module' => 'Payment Sender Update Workboard',
                     'module_id' => $data->id,
                     'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'",
                 ]);
@@ -6033,7 +6099,7 @@ public function markAsRead(Notification $notification)
                 $data->update();
                 AuditLog::create([
                     'user_id' => auth()->id(),
-                    'module' => 'Payment Rejected',
+                    'module' => 'Payment Rejected Workboard',
                     'module_id' => $data->id,
                     'description' => "Payment ID {$data->id} was rejected by user ".auth()->user()->name,
                 ]);
@@ -6123,7 +6189,7 @@ public function markAsRead(Notification $notification)
             if ($commit == 0) {
                 AuditLog::create([
                     'user_id' => auth()->id(),
-                    'module' => 'Payment Update No Change',
+                    'module' => 'Payment Update No Change Workboard',
                     'module_id' => $data->id,
                     'description' => "Payment ID {$data->id} update resulted in no status change",
                 ]);
@@ -6712,22 +6778,46 @@ public function markAsRead(Notification $notification)
 
     public function changeStatus($id)
     {
-        $account = EWalletAccount::findOrFail($id);
-        $account->status = $account->status == 1 ? 0 : 1;
-        $account->save();
+        try {
+            $account = EWalletAccount::findOrFail($id);
+            $newStatus = $account->status == 1 ? 0 : 1;
+            $account->status = $newStatus;
+            $account->save();
 
+            if ($newStatus == 1) {
+                $setting = Setting::where('name', 'last_account_active')->first();
+                $setting->value = \Carbon\Carbon::now();
+                $setting->save();
+            }
 
-        if ($account->status == 1) {
+            // Log success
+            \App\Models\AuditLog::create([
+                'user_id'     => auth()->id(),
+                'module'      => 'EWalletAccount',
+                'module_id'   => $account->id,
+                'description' => auth()->user()->name . ' ' . ($newStatus == 1 ? 'activated' : 'deactivated') . ' the eWallet account (ID: ' . $account->id . ')',
+            ]);
 
-            $Setting = Setting::where('name', 'last_account_active')->first();
-            $Setting->value = Carbon::now();
-            $Setting->save();
+            return response()->json([
+                'success' => true,
+                'status' => $account->status,
+                'message' => 'Status updated successfully.'
+            ]);
+        } catch (\Exception $e) {
+            // Log failure
+            \App\Models\AuditLog::create([
+                'user_id'     => auth()->id(),
+                'module'      => 'EWalletAccount',
+                'module_id'   => $id,
+                'description' => auth()->user()->name . ' failed to change status for EWallet account (ID: ' . $id . '). Error: ' . $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status. ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'status' => $account->status,
-            'message' => 'Status updated successfully.'
-        ]);
     }
+
+
 }
