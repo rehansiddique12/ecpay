@@ -2812,7 +2812,7 @@ class PayoutRecordController extends Controller
                     }
                 }
             }
-                
+
 
 
 
@@ -2889,7 +2889,7 @@ class PayoutRecordController extends Controller
         $data = $request->all();
         $redirect_url = "https://ecpay.asia/index.html";
         $paymentID = $data['paymentID'];
-        
+
         $fund = Payment::where('live_payment_id', $paymentID)->latest()->first();
         if($fund){
 
@@ -2918,8 +2918,8 @@ class PayoutRecordController extends Controller
                 $accessToken = $this->getBkashToken($account);
                 $executeBkashPayment = $this->executeBkashPayment($accessToken, $paymentID, $account);
                 if(isset($executeBkashPayment['paymentID'])){
-                    
-                    
+
+
 
                     $trxID = $executeBkashPayment['trxID'] ?? "";
                     $transactionStatus = $executeBkashPayment['transactionStatus'] ?? "";
@@ -2945,19 +2945,19 @@ class PayoutRecordController extends Controller
                         $payment->completed_source = 'I-frame';
                         $payment->trans_complete_date = Carbon::now();
                         $payment->save();
-                        
-                        
-                        
 
-                        
+
+
+
+
 
                         $commit = 0;
                         if ($fund) {
-                            
+
 
                             if ($source != env('APP_WEBSITE')) {
 
-                                
+
                                 $charge = $fund->charge;
 
                                 $partner_api_key_to_update = Api::where('id', $fund->api_id)->lockForUpdate()->first();
@@ -2975,9 +2975,9 @@ class PayoutRecordController extends Controller
                                 $Log->source = 'Iframe';
                                 $Log->save();
                             }
-                            
 
-                            
+
+
                             $fund->status = "Complete";
                             $fund->save();
 
@@ -3133,15 +3133,15 @@ class PayoutRecordController extends Controller
 
                 }
             }
-            
 
-                
 
-                
+
+
+
         }
 
-            
-        
+
+
         return redirect()->away($redirect_url);
 
     }
@@ -3278,13 +3278,13 @@ class PayoutRecordController extends Controller
         }
 
         $basic = (object) config('basic');
-  
+
 
         if ($request->status == '2') {
 
             if (strtolower($data->e_wallet_name) == "nagad" || strtolower($data->e_wallet_name) == "rocket" || strtolower($data->e_wallet_name) == "bkash") {
-                
-                
+
+
                 $log = "Approve Withdrawal Requests of " . $data->e_wallet_name . " Acc No:" . $data->user_account_no . " Amount:" . $data->amount;
                 $this->addLogs($log);
 
@@ -3380,7 +3380,7 @@ class PayoutRecordController extends Controller
                     }
 
 
-                   
+
 
                 // $pre_payout = Payout::where('payout_log_id', $data->id)->first();
                 // if (!$pre_payout) {
@@ -3394,7 +3394,7 @@ class PayoutRecordController extends Controller
                 }
 
 
-                
+
 
                 // $pre_payout->payout_log_id = $data->id;
                 // $pre_payout->api_id = $data->api_id;
@@ -3406,7 +3406,7 @@ class PayoutRecordController extends Controller
                 $data->status = 'Pending';
                 // $data->payout_id = $pre_payout->id;
                 $data->feedback = $request->feedback;
-               
+
 
 
 
@@ -3433,7 +3433,7 @@ class PayoutRecordController extends Controller
                 }
 
 
-                
+
 
 
                 $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
@@ -3499,7 +3499,7 @@ class PayoutRecordController extends Controller
             $data->transfer_status = 3;
             $data->feedback = $request->feedback;
             $data->status = 'Reject';
-           
+
             $data->save();
 
             session()->flash('success', 'Reject Successfully');
@@ -4468,12 +4468,27 @@ class PayoutRecordController extends Controller
         // Search by name, username, or website from related API model
         if (!empty($request->search_by_name)) {
             $searchTerm = $request->search_by_name;
-            $records->whereHas('api', function ($query) use ($searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('username', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('website', 'like', '%' . $searchTerm . '%');
+
+            $records->where(function ($q) use ($searchTerm) {
+                // Search in transaction fields
+                $q->where('created_at', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('amount', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('charges', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('reason', 'like', '%' . $searchTerm . '%');
+
+                // Search by adjustment type (label matching)
+                if (stripos($searchTerm, 'deposit') !== false) {
+                    $q->orWhere('adjustment', 2);
+                } elseif (stripos($searchTerm, 'withdrawal') !== false) {
+                    $q->orWhere('adjustment', 3);
+                } elseif (stripos($searchTerm, 'top-up') !== false || stripos($searchTerm, 'topup') !== false) {
+                    $q->orWhere('adjustment', 4);
+                } elseif (stripos($searchTerm, 'balance') !== false) {
+                    $q->orWhere('adjustment', 1);
+                }
             });
         }
+
 
         $records = $records->orderBy('id', 'DESC')->get();
 
