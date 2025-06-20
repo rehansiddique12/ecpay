@@ -1343,7 +1343,7 @@ public function logs(Request $request)
         }
     }
 
-    $pageTitle = "{{ __('reports.partner_balance_logs') }}";
+    $pageTitle = __('reports.partner_balance_logs');
     return view('admin.reports.logs', compact('pageTitle', 'domains', 'filter_data', 'from_date', 'to_date', 'orderval'));
 }
 
