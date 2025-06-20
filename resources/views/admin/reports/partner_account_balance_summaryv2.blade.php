@@ -71,6 +71,7 @@
                                     <th scope="col">{{ __('reports.commission_earned') }}</th>
                                     <th scope="col">{{ __('reports.closing_balance') }}</th>
                                     <th scope="col">{{ __('reports.difference') }}</th>
+                                    <th scope="col">Fix</th>
                                     <th scope="col">{{ __('reports.current_balance') }}</th>
                                 </tr>
                             </thead>
@@ -127,6 +128,17 @@
                                                 echo '<td></td>';
                                             }
                                             ?>
+
+                                            @php
+                                                $rawAmount = str_replace(',', '', $item['differance']);
+                                                $formattedAmount = number_format((float) $rawAmount, 2, '.', '');
+                                            @endphp
+
+                                            <td>
+                                                <a href="{{ route('admin.dev_partner_summary_fix_balance', ['amount' => $formattedAmount , 'id' => $item['id'] , 'record_date' => $item['date'] ]) }}" class="text-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
 
                                             @if ($item['date'] == date('Y-m-d'))
                                                 @if ($item['current_balance'] - $item['closing_balance'] < 1 && $item['current_balance'] - $item['closing_balance'] > -1)

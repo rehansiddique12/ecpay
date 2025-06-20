@@ -224,6 +224,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment_gateway_performance_report_detail/{id?}/{from_date?}/{to_date?}', [PaymentMethodController::class, 'payment_gateway_report_detail'])->name('payment.payment_gateway_report_detail');
         Route::get('reports/merchant_charges_summary/search', [ReportsController::class, 'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
         Route::get('reports/partner_account_balance_summary', [ReportsController::class, 'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
+        Route::get('fix-partner-balance-summary-balance', [ReportsController::class, 'fix_partner_summary_closing_balance'])->name('dev_partner_summary_fix_balance');
+
         Route::get('reports/partner_account_balance_summaryv2', [ReportsController::class, 'partner_account_balance_summaryv2'])->name('reports.partner_account_balance_summaryv2');
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class, 'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
         Route::post('/apis/inline-update', [PayoutRecordController::class, 'inlineUpdate'])->name('apis.inlineUpdate');
