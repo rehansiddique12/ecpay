@@ -191,7 +191,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/accounts-management/on-off', [CategoryController::class, 'onOffAccount'])->name('account_management.on_off_account');
         Route::post('/wallet/update-account-type', [CategoryController::class, 'updateAccountType'])->name('wallet.updateAccountType');
-
+        Route::post('/wallet/update-gateway-deposit', [CategoryController::class, 'updateGatewayDeposit'])->name('wallet.updateGatewayDeposit');
+        Route::post('/wallet/update-gateway-withdrawal', [CategoryController::class, 'updateGatewayWithdrawal'])->name('wallet.updateGatewayWithdrawal');
         Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
 
 
@@ -433,7 +434,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
         Route::get('/payout-report', [PayoutRecordController::class, 'report'])->name('payout-report');
-        Route::get('reports/exportwithdrawl/{from_date?}', [PayoutRecordController::class, 'export_by_logs_for_WithDrawl'])->name('merchant_reports.export_by_logs_for_WithDrawl');
+        Route::get('withdrawl_export', [PayoutRecordController::class, 'export_Withdrawl'])->name('export_Withdrawl');
         Route::get('/payout-report/search', [PayoutRecordController::class, 'reportSearch'])->name('payout-report.search');
         Route::get('payout/report/daily', [PayoutRecordController::class, 'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PayoutRecordController::class, 'dailyReportSearch'])->name('payout.report.daily.search');
@@ -476,6 +477,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
         Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
+        Route::post('/ewallet-account/send-gateway-notice', [CategoryController::class, 'sendGatewayNotice'])->name('gateway.send_notice');
 
 
         Route::get('/merchant_accounts', [MerchantAccountController::class, 'apis'])->name('merchant_accounts');

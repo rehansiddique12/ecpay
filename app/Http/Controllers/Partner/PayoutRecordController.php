@@ -49,6 +49,7 @@ class PayoutRecordController extends Controller
 {
     public function methods($username)
     {
+
         $open_user = API::where('username', $username)->where('status', 1)->first();
         if ($open_user && $open_user->type == "Admin") {
             return view('partner.payout.methods', compact('username'));
@@ -69,7 +70,7 @@ class PayoutRecordController extends Controller
                 return redirect(route('user.payment'));
             }
             $totalPayment = null;
-            $gateways = Gateway::where('status', 1)
+            $gateways = Gateway::where('status', 1)->where('deposit_on' ,1)
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'ewallet');
                 })
@@ -89,7 +90,7 @@ class PayoutRecordController extends Controller
         if ($open_user && $open_user->type == "Admin") {
             $min_withdrawal = $open_user->min_withdrawal;
             $title = "Payout Money";
-            $gateways = Gateway::where('status', 1)
+            $gateways = Gateway::where('status', 1)->where('withdrawal_on' , 1)
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'ewallet');
                 })
@@ -162,7 +163,7 @@ class PayoutRecordController extends Controller
             }
 
             $basic = (object)config('basic');
-            $gate = Gateway::where('code', $request->gateway)->where('status', 1)->first();
+            $gate = Gateway::where('code', $request->gateway)->where('status', 1)->where('deposit_on' ,1)->first();
             if (!$gate) {
                 DB::rollBack();
                 return response()->json(['error' => 'Invalid Gateway'], 422);
@@ -575,7 +576,6 @@ class PayoutRecordController extends Controller
         if (session()->has('txn_verified')) {
             session()->forget('txn_verified');
         }
-
         $remainingTime = 0;
 
         $data = [];
@@ -597,8 +597,13 @@ class PayoutRecordController extends Controller
             $logo = asset('assets/images/iframe_rocket_logo.png');
             $banner = asset('assets/images/Rocket_Background.jpg');
         }
-
         $txn_verification = "";
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        if (!$gate) {
+            $message = "Gateway is inactive.";
+            return view('partner.payout.process_transection', compact('data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+        }
+
 
         $api_key = API::where('username', $username)->where('status', 1)->first();
         if ($api_key && $api_key->type == "Admin") {
@@ -687,11 +692,7 @@ class PayoutRecordController extends Controller
         }
 
         $amount = str_replace(',', '', $amount);
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->first();
-        if (!$gate) {
-            $message = "Wrong E-Wallet OR E-Wallet Disabled by Admin!";
-            return view('partner.payout.process_transection', compact('data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
-        }
+
 
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
@@ -1808,6 +1809,12 @@ class PayoutRecordController extends Controller
             $ewallet_to_show = "Rocket";
         }
 
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        if (!$gate) {
+            $message = "Gateway is inactive.";
+            return view('partner.payout.process_transection2', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+        }
+
         $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
         if ($api_key && $api_key->type == "Admin") {
             $api_id = $api_key->id;
@@ -1893,12 +1900,7 @@ class PayoutRecordController extends Controller
         }
 
 
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->first();
 
-        if (!$gate) {
-            $message = "Wrong E-Wallet OR E-Wallet Disabled by Admin!";
-            return view('partner.payout.process_transection2', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
-        }
 
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
@@ -2605,6 +2607,12 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'You are only allowed to proceed with Bkash E-Wallet'], 404);
         }
 
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        if (!$gate) {
+            $message = "Gateway is inactive.";
+            return response()->json(['message' => $message], 404);
+        }
+
         $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
         if ($api_key && $api_key->type == "Admin") {
             $api_id = $api_key->id;
@@ -2656,12 +2664,7 @@ class PayoutRecordController extends Controller
         }
 
 
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->first();
 
-        if (!$gate) {
-            $message = "Wrong E-Wallet OR E-Wallet Disabled by Admin!";
-            return response()->json(['message' => $message], 404);
-        }
 
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
@@ -4039,7 +4042,7 @@ class PayoutRecordController extends Controller
 
 
         $basic = (object)config('basic');
-        $method = Gateway::where('id', $request->gateway)->where('status', 1)->firstOrFail();
+        $method = Gateway::where('id', $request->gateway)->where('status', 1)->where('withdrawal_on' ,1)->firstOrFail();
 
 
 
@@ -4971,7 +4974,7 @@ class PayoutRecordController extends Controller
                 $PhoneNumber = $collection['PhoneNumber'];
             }
 
-            $method = Gateway::where('id', $withdraw->gateway_id)->where('status', 1)->firstOrFail();
+            $method = Gateway::where('id', $withdraw->gateway_id)->where('status', 1)->where('withdrawal_on' ,1)->firstOrFail();
 
             $acc = $PhoneNumber;
             $ewalletee = strtolower($method->name);
