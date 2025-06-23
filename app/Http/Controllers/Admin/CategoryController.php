@@ -434,7 +434,7 @@ class CategoryController extends Controller
             $withdrawalStatus = $gateway->withdrawal_on == 1 ? 'Active' : 'Inactive';
 
             // Telegram Message (escaped properly)
-            $message_support = "*Account Log*\n\n";
+            $message_support = "*Gateway Log*\n\n";
             $message_support .= "*Gateway Name:* `{$gateway->name}`\n";
             $message_support .= "*Status:* `{$status}`\n";
             $message_support .= "*Deposit Status:* `{$depositStatus}`\n";
