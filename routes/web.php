@@ -191,7 +191,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/accounts-management/on-off', [CategoryController::class, 'onOffAccount'])->name('account_management.on_off_account');
         Route::post('/wallet/update-account-type', [CategoryController::class, 'updateAccountType'])->name('wallet.updateAccountType');
-
+        Route::post('/wallet/update-gateway-deposit', [CategoryController::class, 'updateGatewayDeposit'])->name('wallet.updateGatewayDeposit');
+        Route::post('/wallet/update-gateway-withdrawal', [CategoryController::class, 'updateGatewayWithdrawal'])->name('wallet.updateGatewayWithdrawal');
         Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
 
 
@@ -224,6 +225,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment_gateway_performance_report_detail/{id?}/{from_date?}/{to_date?}', [PaymentMethodController::class, 'payment_gateway_report_detail'])->name('payment.payment_gateway_report_detail');
         Route::get('reports/merchant_charges_summary/search', [ReportsController::class, 'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
         Route::get('reports/partner_account_balance_summary', [ReportsController::class, 'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
+        Route::get('fix-partner-balance-summary-balance', [ReportsController::class, 'fix_partner_summary_closing_balance'])->name('dev_partner_summary_fix_balance');
+
         Route::get('reports/partner_account_balance_summaryv2', [ReportsController::class, 'partner_account_balance_summaryv2'])->name('reports.partner_account_balance_summaryv2');
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class, 'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
         Route::post('/apis/inline-update', [PayoutRecordController::class, 'inlineUpdate'])->name('apis.inlineUpdate');
@@ -254,7 +257,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/partner/balance', [PayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
         Route::get('partner/balance/search', [PayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
-        Route::get('partner/balance/export/{from_date?}/{to_date?}/{partner?}/{search_by_name?}/{adjustment?}', [PayoutRecordController::class,'export_for_blance2'])->name('blance_export');
+        // Route::get('partner/balance/export/{from_date?}/{to_date?}/{partner?}/{search_by_name?}/{adjustment?}', [PayoutRecordController::class,'export_for_blance2'])->name('blance_export');
+        Route::get('partner/balance/export', [PayoutRecordController::class,'export_for_blance2'])->name('blance_export');
         Route::get('transections/apilogs', [PayoutRecordController::class, 'apilogs'])->name('transections.apilogs');
         Route::get('transections/functionlogs', [PayoutRecordController::class, 'functionlogs'])->name('transections.functionlogs');
 
@@ -430,7 +434,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PaymentLogController::class, 'reportDetail'])->name('payment.report.detail');
         Route::get('payout/report/detail/{date}/{gateway}/{status}', [PayoutRecordController::class, 'reportDetail'])->name('payout.report.detail');
         Route::get('/payout-report', [PayoutRecordController::class, 'report'])->name('payout-report');
-        Route::get('reports/exportwithdrawl/{from_date?}', [PayoutRecordController::class, 'export_by_logs_for_WithDrawl'])->name('merchant_reports.export_by_logs_for_WithDrawl');
+        Route::get('withdrawl_export', [PayoutRecordController::class, 'export_Withdrawl'])->name('export_Withdrawl');
         Route::get('/payout-report/search', [PayoutRecordController::class, 'reportSearch'])->name('payout-report.search');
         Route::get('payout/report/daily', [PayoutRecordController::class, 'dailyReport'])->name('payout.report.daily');
         Route::get('payout/report/daily/search', [PayoutRecordController::class, 'dailyReportSearch'])->name('payout.report.daily.search');
@@ -473,6 +477,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
         Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
+        Route::post('/ewallet-account/send-gateway-notice', [CategoryController::class, 'sendGatewayNotice'])->name('gateway.send_notice');
 
 
         Route::get('/merchant_accounts', [MerchantAccountController::class, 'apis'])->name('merchant_accounts');

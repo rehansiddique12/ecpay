@@ -142,9 +142,9 @@
                                 <td>{{ $date }}</td>
 
 
-                                @if (isset($apis['bkash']))
+                                @if (isset($apis['nagad']))
                                     @php
-                                        $counts = $apis['bkash'];
+                                        $counts = $apis['nagad'];
                                         $fundCount = $counts['fund_count'] ?? 0;
                                         $autoProcessCount = $counts['auto_process_count'] ?? 0;
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
@@ -165,9 +165,9 @@
                                     <td colspan="5" class="text-center">-</td>
                                 @endif
 
-                                @if (isset($apis['nagad']))
+                                @if (isset($apis['bkash']))
                                     @php
-                                        $counts = $apis['nagad'];
+                                        $counts = $apis['bkash'];
                                         $fundCount = $counts['fund_count'] ?? 0;
                                         $autoProcessCount = $counts['auto_process_count'] ?? 0;
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;

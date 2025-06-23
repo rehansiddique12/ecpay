@@ -124,6 +124,7 @@
                         </select>
                     </div>
                 </div>
+                {{-- @dd(@request()->all()) --}}
 
                 <div class="col-md-12 d-flex justify-content-end align-items-center gap-6">
                     <div class="form-group mt-2">
@@ -131,10 +132,14 @@
                                 class="icon-base ti tabler-search me-1"></i> {{ __('transaction.search') }}</button>
                     </div>
                     <div class="form-group mt-2">
-                        <a href="{{ route('admin.merchant_reports.export_by_logs_for_WithDrawl', ['from_date' => $from_date]) }}"
-                            class="btn waves-effect waves-light btn-success" id="exportButton">
-                            <i class="icon-base ti tabler-download me-1"></i>{{ __('transaction.export') }}
+                        <a href="{{ route('admin.export_Withdrawl', request()->only([
+                            'from_date', 'to_date', 'partner_transection_id', 'account_no', 'gateway', 'status', 'domain'
+                        ])) }}"
+                        class="btn btn-success">
+                            <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
                         </a>
+
+
                     </div>
 
                 </div>
@@ -184,155 +189,6 @@
         </div>
     </div>
 
-
-    {{-- <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="categories-show-table table table-hover table-striped table-bordered">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">@lang('Date')</th>
-                            <th scope="col">@lang('Trx Number')</th>
-                            <th scope="col">@lang('Partner Trx Number')</th>
-                            <th scope="col">@lang('Username')</th>
-                            <th scope="col">@lang('User Account')</th>
-                            <th scope="col">@lang('Method')</th>
-                            <th scope="col">@lang('Amount')</th>
-                            <th scope="col">@lang('Merchant Charge')</th>
-                            <th scope="col">@lang('Net Amount')</th>
-                            <th scope="col">@lang('Status')</th>
-                            <th scope="col">@lang('Sent From')</th>
-                            <th scope="col">@lang('Source')</th>
-                            @if (adminAccessRoute(config('role.payout_manage.access.edit')))
-                                <th scope="col">@lang('More')</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($records as $key => $item)
-                            <tr>
-                                <td data-label="@lang('Date')"> {{ dateTime($item->created_at, 'd M,Y H:i') }}
-                                </td>
-                                <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                    {{ $item->trx_id }}<br>
-                                    <span class="text text-success">{{ $item->txn_id }}</span>
-
-                                </td>
-                                <td>{{ $item->partner_transection_id }}
-                                    <br>
-                                    {{ $item->member_id }}
-                                </td>
-                                <td data-label="@lang('Username')">
-                                    @if (optional($item->user)->username != null && optional($item->user)->username != 'dummyuser')
-                                        <a href="{{ route('admin.user-edit', [$item->user_id]) }}">
-                                            <div class="d-lg-flex d-block align-items-center ">
-                                                <div class="mr-3"><img
-                                                        src="{{ getFile(config('location.user.path') . optional($item->user)->image) }}"
-                                                        alt="user" class="rounded-circle" width="45"
-                                                        height="45"></div>
-                                                <div class="">
-                                                    <h5 class="text-dark mb-0 font-16 font-weight-medium">
-                                                        {{ optional($item->user)->username }}</h5>
-                                                    <span
-                                                        class="text-muted font-14">{{ optional($item->user)->email }}</span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    @else
-                                        @if ($item->api)
-                                            {{ optional($item->api)->name }}
-                                            <b>({{ optional($item->api)->acc_type }})</b>
-                                        @else
-                                            Partner Transaction
-                                        @endif
-                                    @endif
-
-                                </td>
-                                <td data-label="@lang('Method')">{{ $item->user_account_no }}</td>
-                                <td>{{ $item->e_wallet_name }}</td>
-                                <td data-label="@lang('Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->amount) }} {{ $basic->currency_symbol }}</td>
-                                <td data-label="@lang('Charge')" class="text-success">
-                                    {{ getAmount($item->charge, 2) }} {{ $basic->currency_symbol }}</td>
-
-                                <td data-label="@lang('Net Amount')" class="font-weight-bold">
-                                    {{ getAmount($item->amount + $item->charge) }}
-                                    {{ $basic->currency_symbol }}</td>
-
-                                <td data-label="@lang('Status')" class="d-flex flex-column align-items-center">
-                                    @if ($item->transfer_status == 2)
-                                        <span class="badge bg-success mb-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Request Approved')</span>
-                                    @elseif($item->transfer_status == 1)
-                                        <span class="badge bg-warning mb-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Request Pending')</span>
-                                    @elseif($item->transfer_status == 3)
-                                        <span class="badge bg-danger mb-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Request Rejected')</span>
-                                    @endif
-                                    @if ($item->status == 'Complete')
-                                        <span class="badge bg-success mt-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Transferred')</span>
-                                    @elseif($item->status == 'Pending')
-                                        <span class="badge bg-warning mt-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Transfer Pending')</span>
-                                    @elseif($item->status == 'Reject')
-                                        <span class="badge bg-danger mt-1"><i
-                                                class="fa fa-circle text-white font-12"></i>
-                                            @lang('Transfer Rejected')</span>
-                                    @endif
-                                </td>
-                                <td data-label="@lang('Method')">
-                                    {{ $item->e_wallet_phone_number }}
-                                    <br>
-                                    {{ $item->e_wallet_type }}
-                                </td>
-                                <td data-label="@lang('Method')">{{ $item->e_wallet_name }}</td>
-
-
-                                @if (adminAccessRoute(config('role.payout_manage.access.edit')))
-                                    <td data-label="@lang('More')">
-                                        @php
-                                            $details =
-                                                $item->information != null ? json_encode($item->information) : null;
-                                        @endphp
-                                        <button type="button" class="btn btn-primary btn-icon edit_button"
-                                            data-bs-toggle="modal" data-bs-target="#myModal"
-                                            data-route="{{ route('admin.payout-action', $item->id) }}"
-                                            data-feedback="{{ $item->feedback }}" data-info="{{ $details }}"
-                                            data-id="{{ $item->id }}"
-                                            data-status="{{ $item->transfer_status }}">
-                                            @if (Request::routeIs('admin.payout-request'))
-                                                <i class="icon-base ti tabler-pencil me-1"></i>
-                                            @else
-                                                <i class="icon-base ti tabler-eye me-1"></i>
-                                            @endif
-                                        </button>
-                                    </td>
-                                @endif
-
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="100%">
-                                    <p class="text-dark">@lang('No Data Found')</p>
-                                </td>
-                            </tr>
-
-                        @endforelse
-                    </tbody>
-                </table>
-                <div class="mt-5">
-                    {{ $records->appends($_GET)->links('partials.pagination') }}
-                </div>
-            </div>
-        </div>
-    </div> --}}
 
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">

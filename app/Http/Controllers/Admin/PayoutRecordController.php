@@ -52,6 +52,8 @@ use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
 use App\Exports\PartnerBalanceExport;
+use App\Exports\PartnerMerchantExport;
+use App\Exports\PartnerWithdrawExport;
 use App\Models\DailyPartnerSummaryLog;
 use App\Models\EWalletAccountTimeSlot;
 use Stevebauman\Purify\Facades\Purify;
@@ -427,19 +429,7 @@ class PayoutRecordController extends Controller
         return view('admin.payout.report_detail', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
     }
 
-    public function report()
-    {
-        $gateways = Gateway::where('status', 1)
-            ->get();
-        $pageTitle = __('transaction.payout_report');
-        $domains = Api::where('type', 'Admin')->get();
-        $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
-        $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
-        $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
-        $from_date = date('Y-m-d');
-        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'from_date'));
-    }
+
 
     public function reportSearch(Request $request)
     {
@@ -714,17 +704,49 @@ class PayoutRecordController extends Controller
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
-    public function export_by_logs_for_WithDrawl($from_date)
+    public function report()
     {
-        $from_date = str_replace('/', '', $from_date); // Remove any slashes if present
+        $gateways = Gateway::where('status', 1)
+            ->get();
+        $pageTitle = __('transaction.payout_report');
+        $domains = Api::where('type', 'Admin')->get();
+        $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
+        $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = round($funds_t->fund_sum, 2);
+        $from_date = date('Y-m-d');
+        return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'from_date'));
+    }
+
+
+    public function export_Withdrawl(Request $request)
+    {
+        // dd($request->all());
+        $from_date = $request->query('from_date');
+        $to_date = $request->query('to_date');
+        $account_no = $request->query('account_no');
+        $gateway = $request->query('gateway');
+        // dd($gateway);
+        $status = $request->query('status');
+        $domain = $request->query('domain');
+        $partner_transection_id = $request->query('partner_transection_id');
 
         try {
-            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+            $carbonFrom = $from_date ? \Carbon\Carbon::parse($from_date) : null;
+            $carbonTo = $to_date ? \Carbon\Carbon::parse($to_date) : null;
+
+            $sanitizedDate = $carbonFrom ? $carbonFrom->format('Y-m-d') : 'no_date';
+            $toDateFormatted = $carbonTo ? $carbonTo->format('Y-m-d') : null;
         } catch (\Exception $e) {
             return response()->json(['error' => 'Invalid date format.'], 400);
         }
-        return Excel::download(new MerchantReportExport($from_date), "merchant_report_by_date_{$sanitizedDate}.csv");
+
+        return Excel::download(
+            new PartnerWithdrawExport($sanitizedDate, $toDateFormatted, $partner_transection_id, $account_no, $gateway, $status, $domain),
+            "withdrawals_{$sanitizedDate}.xlsx"
+        );
     }
+
 
     public function request()
     {
@@ -2615,9 +2637,12 @@ class PayoutRecordController extends Controller
                             'user_id'     => auth()->id(),
                             'module'      => 'EWalletAccount',
                             'module_id'   => $account->id,
-                            'description' => auth()->user()->name . ' updated time slots. ' . implode(' | ', $logParts),
+                            'description' => auth()->user()->name .
+                                             ' updated time slots for EWalletAccount ID: ' . $account->id .
+                                             '. ' . implode(' | ', $logParts),
                         ]);
                     }
+
 
                     // Delete existing time slots and groups before re-adding
                     EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->delete();
@@ -4076,7 +4101,7 @@ class PayoutRecordController extends Controller
     public function payoutGateway()
     {
 
-        $gateways = Gateway::where('status', 1)
+        $gateways = Gateway::where('status', 1)->where('withdrawal_on' ,1)
             ->select('name', 'image')
             ->get();
 
@@ -4194,7 +4219,7 @@ class PayoutRecordController extends Controller
                 $member_id = $request->member_id;
             }
 
-            $method = Gateway::where('status', 1)
+            $method = Gateway::where('status', 1)->where('withdrawal_on' ,1)
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
@@ -5583,18 +5608,74 @@ class PayoutRecordController extends Controller
             ->get();
 
 
+
+
+            $partners = Api::where('type', 'Admin')->pluck('name', 'id');
+
+            $today = Carbon::today()->toDateString();
+
+            $apis = Api::all();
+
+            // Query for performance data
+            $performanceData = Payment::selectRaw('
+                api_id,
+                COUNT(*) as total_received,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as total_processed,
+                SUM(CASE WHEN completed_source != ? AND status = ? AND completed_source IS NOT NULL THEN 1 ELSE 0 END) as auto_process_count,
+                SUM(CASE WHEN completed_source = ? AND status = ? AND completed_source IS NOT NULL THEN 1 ELSE 0 END) as manual_process_count',
+                ['Complete', 'AdminPanel', 'Complete', 'AdminPanel', 'Complete']
+            )
+            ->whereDate('created_at', $today)
+            ->groupBy('api_id')
+            ->get()
+            ->keyBy('api_id');
+
+            // Prepare the data for view
+            $merchantData = [];
+            foreach ($apis as $api) {
+                $data = $performanceData->get($api->id, (object)[
+                    'total_received' => 0,
+                    'total_processed' => 0,
+                    'auto_process_count' => 0,
+                    'manual_process_count' => 0
+                ]);
+
+                $successRate = $data->total_received > 0
+                    ? round(($data->total_processed / $data->total_received) * 100)
+                    : 0;
+
+                $merchantData[] = [
+                    'name' => $api->name,
+                    'success_rate' => $successRate,
+                    'total_received' => $data->total_received,
+                    'total_processed' => $data->total_processed,
+                    'auto_process' => $data->auto_process_count,
+                    'manual_process' => $data->manual_process_count
+                ];
+            }
+
+            // Categorize merchants by success rate
+            $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
+            $mediumPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 61 && $m['success_rate'] <= 80);
+            $lowPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] <= 60);
+
         if ($request->ajax()) {
             return response()->json([
                 'ewallets' => $EWalletAccount,
                 'notifications' => $notifications,
                 'pending_list' => $pending_list,
                 'user_id' => auth()->id(),
+                'highPerformance' => $highPerformance,
+            'mediumPerformance' => $mediumPerformance,
+            'lowPerformance' => $lowPerformance
             ]);
         }
 
         $pageTitle = "Workboard";
-        $apis = Api::get();
-        return view('admin.payout.workboard', compact('pageTitle', 'apis'));
+        // $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'apis','highPerformance',
+        'mediumPerformance',
+        'lowPerformance'));
     }
 
     // NotificationController.php
@@ -6497,8 +6578,8 @@ public function markAsRead(Notification $notification)
         $records = ApiTransaction::with('api')->orderBy('id', 'DESC')->paginate(20);
         $pageTitle = "Partners Adjustments";
         $partners = Api::where('type', 'Admin')->paginate(10);
-
-        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+        $domains = Api::where('type', 'Admin')->get();
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners','domains'));
     }
 
     public function export_for_blance(Request $request)
@@ -6547,25 +6628,37 @@ public function markAsRead(Notification $notification)
                     ->orWhere('website', 'like', '%' . $searchTerm . '%');
             });
         }
+        $domains = Api::where('type', 'Admin')->get();
         $records = $records->orderBy('id', 'DESC')->paginate(20);
 
         $pageTitle = "Search Partner Adjustments";
-        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners','domains'));
     }
 
-      public function export_for_blance2($from_date=null, $to_date=null, $partner=null, $search_by_name=null, $adjustment=null)
+    public function export_for_blance2(Request $request)
     {
-        $from_date = str_replace('/', '', $from_date);
-        $to_date = str_replace('/', '', $to_date);
-        // dd($from_date);
-
+        $from_date = $request->query('from_date');
+        $to_date = $request->query('to_date');
+        $partner = $request->query('partner');
+        $search_by_name = $request->query('search_by_name');
+        $adjustment = $request->query('adjustment');
         try {
-            $sanitizedDate = Carbon::createFromFormat('Y-m-d', $from_date)->format('Y-m-d');
+            // Use Carbon::parse() to handle various common date formats
+            $carbonFrom = $from_date ? Carbon::parse($from_date) : null;
+            $carbonTo = $to_date ? Carbon::parse($to_date) : null;
+
+            $sanitizedDate = $carbonFrom ? $carbonFrom->format('Y-m-d') : 'no_date';
+            $toDateFormatted = $carbonTo ? $carbonTo->format('Y-m-d') : null;
         } catch (\Exception $e) {
             return response()->json(['error' => 'Invalid date format.'], 400);
         }
-        return Excel::download(new PartnerBalanceExport($from_date, $to_date, $partner, $search_by_name, $adjustment), "partner_balance_by_date_{$sanitizedDate}.csv");
+
+        return Excel::download(
+            new PartnerBalanceExport($sanitizedDate, $toDateFormatted, $partner, $search_by_name, $adjustment),
+            "partner_balance_by_date_{$sanitizedDate}.csv"
+        );
     }
+
 
 
     public function apilogs(Request $request)
@@ -6779,9 +6872,38 @@ public function markAsRead(Notification $notification)
     {
         try {
             $account = EWalletAccount::findOrFail($id);
+            $oldStatus = $account->status;
             $newStatus = $account->status == 1 ? 0 : 1;
             $account->status = $newStatus;
             $account->save();
+
+
+             // Telegram Setup
+            $support_chat_id = "-4786890063";
+            $botToken_support = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+            $url_support = "https://api.telegram.org/bot{$botToken_support}/sendMessage";
+
+            // Format status
+            $statusValue = $account->status == 1 ? 'Active' : 'Inactive';
+
+            // Telegram Message (escaped properly)
+            $message_support = "*Account Log*\n\n";
+            $message_support .= "*Account Number:* `{$account->account_no}`\n";
+            $message_support .= "*Current Status Changed To:* `{$statusValue}`\n";
+
+            // Send Telegram message
+            $response = Http::post($url_support, [
+                'chat_id' => $support_chat_id,
+                'text' => $message_support,
+                'parse_mode' => 'Markdown',
+            ]);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to send Telegram message.'
+                ], 500);
+            }
 
             if ($newStatus == 1) {
                 $setting = Setting::where('name', 'last_account_active')->first();
