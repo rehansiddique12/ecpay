@@ -1786,8 +1786,25 @@ public function logs(Request $request)
         ];
     }
 
+
+    $total_deposit_qty = array_sum(array_column($data, 'deposit_record_count'));
+    $total_deposit_amount = array_sum(array_column($data, 'deposit_amount'));
+    $total_deposit_charges = array_sum(array_column($data, 'deposit_charges'));
+    $total_deposit_e_wallet_charges = array_sum(array_column($data, 'deposit_e_wallet_charges'));
+    $total_deposit_commission = array_sum(array_column($data, 'deposit_commission'));
+    $total_withdrawal_qty = array_sum(array_column($data, 'withdrawal_record_count'));
+    $total_withdrawal_amount = array_sum(array_column($data, 'withdrawal_amount'));
+    $total_withdrawal_charges = array_sum(array_column($data, 'withdrawal_charges'));
+    $total_commission_amount = array_sum(array_column($data, 'commission_amount'));
+    $total_top_up_amount = array_sum(array_column($data, 'top_up_amount'));
+    $total_top_up_charges = array_sum(array_column($data, 'top_up_charges'));
+    $total_adjustment_amount = array_sum(array_column($data, 'adjustment_amount'));
+    $total_adjustment_charges = array_sum(array_column($data, 'adjustment_charges'));
+    $total_settlement_amount = array_sum(array_column($data, 'settlement_amount'));
+    $total_revenue = array_sum(array_column($data, 'revenue'));
+
     $pageTitle = __('reports.partner_account_summary');
-    return view('admin.reports.master_report', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date'));
+    return view('admin.reports.master_report', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date', 'total_deposit_qty', 'total_deposit_amount', 'total_deposit_charges', 'total_deposit_e_wallet_charges', 'total_deposit_commission', 'total_withdrawal_qty', 'total_withdrawal_amount', 'total_withdrawal_charges', 'total_commission_amount', 'total_top_up_amount', 'total_top_up_charges', 'total_adjustment_amount', 'total_adjustment_charges', 'total_settlement_amount', 'total_revenue'));
 }
 
     public function fix_partner_summary_closing_balance(Request $request)

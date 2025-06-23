@@ -96,6 +96,7 @@
                                             <td>{{ number_format($item['settlement_charges'], 2) }}</td>
                                             <td>{{ number_format($item['revenue'], 2) }}</td>
                                             <td>{{ number_format($item['total'], 2) }}</td>
+
                                             {{-- <td>0.00</td> --}}
 
                                         </tr>
@@ -107,6 +108,35 @@
                                         </tr>
                                     @endforelse
                                 @endif
+                                <tr style="background-color: #7367f0;">
+                                    <td id="new_total" style=" color:white;">Total</td>
+                                    <td style=" color:white;">{{ $total_deposit_qty ?? '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_deposit_amount) ? number_format($total_deposit_amount, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_deposit_charges) ? number_format($total_deposit_charges, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_deposit_e_wallet_charges) ? number_format($total_deposit_e_wallet_charges, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_deposit_commission) ? number_format($total_deposit_commission, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ $total_withdrawal_qty ?? '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_withdrawal_amount) ? number_format($total_withdrawal_amount, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_withdrawal_charges) ? number_format($total_withdrawal_charges, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ number_format($item['withdrawal_e_wallet_charges'], 2) }}</td>
+                                    <td style=" color:white;">{{ number_format($item['withdrawal_commission'], 2) }}</td>
+                                    <td style=" color:white;">{{ isset($total_commission_amount) ? number_format($total_commission_amount, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_top_up_amount) ? number_format($total_top_up_amount, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_top_up_charges) ? number_format($total_top_up_charges, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_adjustment_amount) ? number_format($total_adjustment_amount, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ isset($total_adjustment_charges) ? number_format($total_adjustment_charges, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ number_format($item['transfer_charges'], 2) }}</td>
+                                    <td style=" color:white;">{{ isset($total_settlement_amount) ? number_format($total_settlement_amount, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ number_format($item['settlement_charges'], 2) }}</td>
+                                    <td style=" color:white;">{{ isset($total_revenue) ? number_format($total_revenue, 2) : '' }}</td>
+                                    <td style=" color:white;">{{ number_format($item['total'], 2) }}</td>
+
+
+
+                                    {{-- <td>0.00</td> --}}
+
+                                </tr>
+
                             </tbody>
                         </table>
                     </div>
