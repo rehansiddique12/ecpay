@@ -89,11 +89,12 @@
                     </div>
 
 
-                    <div class="bg-red-400 mt-4 ">
-                        <p class="text-White font-semibold text-lg">GATEWAY PERFORMACE MONITORING</p>
-                        <div class=" h-full w-full" style="background-color: #504c79">
+                    <div class="bg-red-400 mt-4">
+                        <p class="text-White font-semibold text-lg">GATEWAY PERFORMANCE MONITORING</p>
+                        <div class="h-full w-full" style="background-color: #504c79">
+                            <!-- High Performance (81-100%) -->
                             <p class="text-white fs-5 ms-4 px-2 pt-3">81% ~ 100%</p>
-                            <div style=" background-color: #7570a0;">
+                            <div style="background-color: #7570a0;">
                                 <div class="d-flex gap-5 px-4 pt-4">
                                     <p class="text-White font-semibold text-md">MERCHANT</p>
                                     <p class="text-White font-semibold text-md">SUCCESS RATE</p>
@@ -104,26 +105,22 @@
                                 </div>
                                 <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
                                 <div class="h-16">
+                                    @foreach($highPerformance as $merchant)
                                     <div class="d-flex gap-10 px-4">
-                                        <p class="text-White ">MERCHANT A</p>
-                                        <p class="text-White">82%</p>
-                                        <p class="text-White" style="margin-left: 4.5rem;">5,834</p>
-                                        <p class="text-White" style="margin-left: 4rem;">5,245</p>
-                                        <p class="text-White" style="margin-left: 4rem;">5,200</p>
-                                        <p class="text-White" style="margin-left: 4rem;">45</p>
+                                        <p class="text-White">{{ $merchant['name'] }}</p>
+                                        <p class="text-White">{{ $merchant['success_rate'] }}%</p>
+                                        <p class="text-White" style="margin-left: 4.5rem;">{{ number_format($merchant['total_received']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['total_processed']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['auto_process']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['manual_process']) }}</p>
                                     </div>
-                                    <div class="d-flex gap-10 px-4  ">
-                                        <p class="text-White ">MERCHANT B</p>
-                                        <p class="text-White" style="margin-left:">87%</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,482</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,158</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,000</p>
-                                        <p class="text-White" style="margin-left: 4rem;">158</p>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
+
+                            <!-- Medium Performance (61-80%) -->
                             <p class="text-white fs-5 ms-4 px-2 mt-3">61% ~ 80%</p>
-                            <div style=" background-color: #7570a0;">
+                            <div style="background-color: #7570a0;">
                                 <div class="d-flex gap-5 px-4 pt-4">
                                     <p class="text-White font-semibold text-md">MERCHANT</p>
                                     <p class="text-White font-semibold text-md">SUCCESS RATE</p>
@@ -134,26 +131,22 @@
                                 </div>
                                 <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
                                 <div class="h-16">
+                                    @foreach($mediumPerformance as $merchant)
                                     <div class="d-flex gap-10 px-4">
-                                        <p class="text-White ">MERCHANT C</p>
-                                        <p class="text-White">75%</p>
-                                        <p class="text-White" style="margin-left: 4.5rem;">5,834</p>
-                                        <p class="text-White" style="margin-left: 4rem;">5,245</p>
-                                        <p class="text-White" style="margin-left: 4rem;">5,200</p>
-                                        <p class="text-White" style="margin-left: 4rem;">45</p>
+                                        <p class="text-White">{{ $merchant['name'] }}</p>
+                                        <p class="text-White">{{ $merchant['success_rate'] }}%</p>
+                                        <p class="text-White" style="margin-left: 4.5rem;">{{ number_format($merchant['total_received']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['total_processed']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['auto_process']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['manual_process']) }}</p>
                                     </div>
-                                    <div class="d-flex gap-10 px-4  ">
-                                        <p class="text-White ">MERCHANT D</p>
-                                        <p class="text-White" style="margin-left:">62%</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,482</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,158</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,000</p>
-                                        <p class="text-White" style="margin-left: 4rem;">158</p>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
-                            <p class="text-white fs-5 ms-4 px-2 mt-3">1% ~60%</p>
-                            <div style=" background-color: #7570a0;">
+
+                            <!-- Low Performance (1-60%) -->
+                            <p class="text-white fs-5 ms-4 px-2 mt-3">1% ~ 60%</p>
+                            <div style="background-color: #7570a0;">
                                 <div class="d-flex gap-5 px-4 pt-4">
                                     <p class="text-White font-semibold text-md">MERCHANT</p>
                                     <p class="text-White font-semibold text-md">SUCCESS RATE</p>
@@ -164,22 +157,16 @@
                                 </div>
                                 <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
                                 <div class="h-16">
+                                    @foreach($lowPerformance as $merchant)
                                     <div class="d-flex gap-10 px-4">
-                                        <p class="text-White ">MERCHANT E</p>
-                                        <p class="text-White">55%</p>
-                                        <p class="text-White" style="margin-left: 4.5rem;">5,834</p>
-                                        <p class="text-White" style="margin-left: 4rem;">5,245</p>
-                                        <p class="text-White" style="margin-left: 4rem;">5,200</p>
-                                        <p class="text-White" style="margin-left: 4rem;">45</p>
+                                        <p class="text-White">{{ $merchant['name'] }}</p>
+                                        <p class="text-White">{{ $merchant['success_rate'] }}%</p>
+                                        <p class="text-White" style="margin-left: 4.5rem;">{{ number_format($merchant['total_received']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['total_processed']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['auto_process']) }}</p>
+                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['manual_process']) }}</p>
                                     </div>
-                                    <div class="d-flex gap-10 px-4  ">
-                                        <p class="text-White ">MERCHANT F</p>
-                                        <p class="text-White" style="margin-left:">48%</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,482</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,158</p>
-                                        <p class="text-White" style="margin-left: 4rem;">6,000</p>
-                                        <p class="text-White" style="margin-left: 4rem;">158</p>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
                         </div>

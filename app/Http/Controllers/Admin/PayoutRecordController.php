@@ -5608,18 +5608,74 @@ class PayoutRecordController extends Controller
             ->get();
 
 
+
+
+            $partners = Api::where('type', 'Admin')->pluck('name', 'id');
+
+            $today = Carbon::today()->toDateString();
+
+            $apis = Api::all();
+
+            // Query for performance data
+            $performanceData = Payment::selectRaw('
+                api_id,
+                COUNT(*) as total_received,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as total_processed,
+                SUM(CASE WHEN completed_source != ? AND status = ? AND completed_source IS NOT NULL THEN 1 ELSE 0 END) as auto_process_count,
+                SUM(CASE WHEN completed_source = ? AND status = ? AND completed_source IS NOT NULL THEN 1 ELSE 0 END) as manual_process_count',
+                ['Complete', 'AdminPanel', 'Complete', 'AdminPanel', 'Complete']
+            )
+            ->whereDate('created_at', $today)
+            ->groupBy('api_id')
+            ->get()
+            ->keyBy('api_id');
+
+            // Prepare the data for view
+            $merchantData = [];
+            foreach ($apis as $api) {
+                $data = $performanceData->get($api->id, (object)[
+                    'total_received' => 0,
+                    'total_processed' => 0,
+                    'auto_process_count' => 0,
+                    'manual_process_count' => 0
+                ]);
+
+                $successRate = $data->total_received > 0
+                    ? round(($data->total_processed / $data->total_received) * 100)
+                    : 0;
+
+                $merchantData[] = [
+                    'name' => $api->name,
+                    'success_rate' => $successRate,
+                    'total_received' => $data->total_received,
+                    'total_processed' => $data->total_processed,
+                    'auto_process' => $data->auto_process_count,
+                    'manual_process' => $data->manual_process_count
+                ];
+            }
+
+            // Categorize merchants by success rate
+            $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
+            $mediumPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 61 && $m['success_rate'] <= 80);
+            $lowPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] <= 60);
+
         if ($request->ajax()) {
             return response()->json([
                 'ewallets' => $EWalletAccount,
                 'notifications' => $notifications,
                 'pending_list' => $pending_list,
                 'user_id' => auth()->id(),
+                'highPerformance' => $highPerformance,
+            'mediumPerformance' => $mediumPerformance,
+            'lowPerformance' => $lowPerformance
             ]);
         }
 
         $pageTitle = "Workboard";
-        $apis = Api::get();
-        return view('admin.payout.workboard', compact('pageTitle', 'apis'));
+        // $apis = Api::get();
+        return view('admin.payout.workboard', compact('pageTitle', 'apis','highPerformance',
+        'mediumPerformance',
+        'lowPerformance'));
     }
 
     // NotificationController.php
