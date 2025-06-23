@@ -6813,9 +6813,38 @@ public function markAsRead(Notification $notification)
     {
         try {
             $account = EWalletAccount::findOrFail($id);
+            $oldStatus = $account->status;
             $newStatus = $account->status == 1 ? 0 : 1;
             $account->status = $newStatus;
             $account->save();
+
+
+             // Telegram Setup
+            $support_chat_id = "-4786890063";
+            $botToken_support = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+            $url_support = "https://api.telegram.org/bot{$botToken_support}/sendMessage";
+
+            // Format status
+            $statusValue = $account->status == 1 ? 'Active' : 'Inactive';
+
+            // Telegram Message (escaped properly)
+            $message_support = "*Account Log*\n\n";
+            $message_support .= "*Account Number:* `{$account->account_no}`\n";
+            $message_support .= "*Current Status Changed To:* `{$statusValue}`\n";
+
+            // Send Telegram message
+            $response = Http::post($url_support, [
+                'chat_id' => $support_chat_id,
+                'text' => $message_support,
+                'parse_mode' => 'Markdown',
+            ]);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to send Telegram message.'
+                ], 500);
+            }
 
             if ($newStatus == 1) {
                 $setting = Setting::where('name', 'last_account_active')->first();
