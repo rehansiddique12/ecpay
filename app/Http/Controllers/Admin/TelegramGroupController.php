@@ -699,11 +699,12 @@ class TelegramGroupController extends Controller
                                                                                     
                                                                                 if($amount==$payment->amount){
                                                                                     $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
-                                                                                    $message_to_show = "*Transection of Differant Amount Completed*";
+                                                                                    
+                                                                                    $message_to_show = "*Transection Completed*";
                                                                                 }
                                                                                 else
-                                                                                {
-                                                                                        $message_to_show = "*Transection Completed*";
+                                                                                {   
+                                                                                        $message_to_show = "*Transection of Differant Amount Completed*";
                                                                                         $partner_transection_id = "createdByAdmin_" . time();
                                                                                         
                                                                                         $order = new Payment();
@@ -765,234 +766,229 @@ class TelegramGroupController extends Controller
                                                                                         }
                                                                                     
                                                                                     
-                                                                                        if($order){
-                                                                                            $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
-                                                                                            $commit = 0;
-                                                                                            if (strpos($payment->sender, 'XXXX') !== false && ($payment->mac_address=="111.111.11.111" || $payment->mac_address=="222.222.22.222")) {
-                                                                                                if(!empty($order->sender)){
-                                                                                                    $payment->sender = $order->sender;
-                                                                                                }
-                                                                                            }elseif (strpos($payment->sender, '***') !== false && ($payment->mac_address=="111.111.11.111" || $payment->mac_address=="222.222.22.222")) {
-                                                                                                if(!empty($order->sender)){
-                                                                                                    $payment->sender = $order->sender;
-                                                                                                }
-                                                                                            }
-                                                                                            
-                                                                                            
-                                                                                            
-                                                                                            if ($source != env('APP_WEBSITE')) {
-                                                                                                $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
-                                                                                                $net_amount = $payment->amount - $charge; // Move this outside the if block
-                                                                                                
-                                                                                                if ($api_balance_row) {
-                                                                                                    $api_balance_row->balance += $net_amount;
-                                                                                                    $api_balance_row->save();
-
-                                                                                                    $Log = new Log();
-                                                                                                    $Log->date_time = $payment->updated_at;
-                                                                                                    $Log->final_amount = $net_amount;
-                                                                                                    $Log->balance = $api_balance_row->balance;
-                                                                                                    $Log->transection_type = 1;
-                                                                                                    $Log->transection_id = $order->id;
-                                                                                                    $Log->partner_id = $api_balance_row->id;
-                                                                                                    $Log->source = 'TelegramVerify';
-                                                                                                    $Log->save();
-                                                                                                } else {
-                                                                                                    LaravelLog::error('API balance row not found for api_id: ' . $api_id . '. Transaction ID: ' . $payment->id);
-                                                                                                    // Continue processing but log the error
-                                                                                                }
-                                                                                            } else {
-                                                                                                $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
-                                                                                            }
-                                                                        
-                                                                                            $order->status = 'Complete';
-                                                                                            $order->trans_complete_date = Carbon::now();
-                                                                                            $order->completed_source = 'Telegram';
-                                                                                            $order->charge = $charge;
-
-                                                                                            if(empty($order->sender) || $order->sender==0){
-                                                                                                $order->sender = $payment->sender;
-                                                                                            }
-                                                                                            
-                                                                                            $order->txn_id = $payment->txn_id;
-                                                                                            $order->date_time = $payment->date_time;
-                                                                                            $order->transaction_type = $payment->transaction_type;
-                                                                                            $order->ip_address = $payment->ip_address;
-                                                                                            $order->e_wallet_type = $payment->e_wallet_type;
-                                                                                            $order->mac_address = $payment->mac_address;
-                                                                                            $order->fee = $payment->fee;
-                                                                                            $order->commission = $payment->commission;
-                                                                                            $order->e_wallet_charges = $payment->e_wallet_charges;
-                                                                                            $order->payment_received_at = $payment->created_at;
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                }
 
 
+                                                                                if($order){
+                                                                                    $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                                                    $commit = 0;
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    if ($source != env('APP_WEBSITE')) {
+                                                                                        $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
+                                                                                        $net_amount = $payment->amount - $charge;
+                                                                                        
+                                                                                        if ($api_balance_row) {
+                                                                                            $api_balance_row->balance += $net_amount;
+                                                                                            $api_balance_row->save();
 
-                                                                                            $order->save();
+                                                                                            $Log = new Log();
+                                                                                            $Log->date_time = $payment->updated_at;
+                                                                                            $Log->final_amount = $net_amount;
+                                                                                            $Log->balance = $api_balance_row->balance;
+                                                                                            $Log->transection_type = 1;
+                                                                                            $Log->transection_id = $order->id;
+                                                                                            $Log->partner_id = $api_balance_row->id;
+                                                                                            $Log->source = 'TelegramVerify';
+                                                                                            $Log->save();
+                                                                                        } else {
+                                                                                            LaravelLog::error('API balance row not found for api_id: ' . $api_id . '. Transaction ID: ' . $payment->id);
+                                                                                            // Continue processing but log the error
+                                                                                        }
+                                                                                    } else {
+                                                                                        $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
+                                                                                    }
+                                                                
+                                                                                    $order->status = 'Complete';
+                                                                                    $order->trans_complete_date = Carbon::now();
+                                                                                    $order->completed_source = 'Telegram';
+                                                                                    $order->charge = $charge;
 
-                                                                                            $payment->status = 1;
-                                                                                            $payment->save();
-                                                                                            $payment=null;
-                                                                                            // $payment->delete();
-                                                                                            
-                                                                        
+                                                                                    if(empty($order->sender) || $order->sender==0){
+                                                                                        $order->sender = $payment->sender;
+                                                                                    }
+                                                                                    
+                                                                                    $order->txn_id = $payment->txn_id;
+                                                                                    $order->date_time = $payment->date_time;
+                                                                                    $order->transaction_type = $payment->transaction_type;
+                                                                                    $order->ip_address = $payment->ip_address;
+                                                                                    $order->e_wallet_type = $payment->e_wallet_type;
+                                                                                    $order->mac_address = $payment->mac_address;
+                                                                                    $order->fee = $payment->fee;
+                                                                                    $order->commission = $payment->commission;
+                                                                                    $order->e_wallet_charges = $payment->e_wallet_charges;
+                                                                                    $order->payment_received_at = $payment->created_at;
+
+
+
+                                                                                    $order->save();
+
+                                                                                    $payment->status = 1;
+                                                                                    $payment->save();
+                                                                                    $payment=null;
+                                                                                    // $payment->delete();
+                                                                                    
+                                                                
+                                                                                    DB::commit();
+                                                                                    $commit = 1;
+                                                                
+                                                                                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
+                                                                                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                                                                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
+                                                                                        $amount_to_update = round($amount_to_update, 2);
+                                                                                        // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                                                                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                                                                        $DailyPartnerSummary_record->save();
+
+                                                                                        $summary_log = new DailyPartnerSummaryLog();
+                                                                                        if ($partner_api_key) {
+                                                                                            $summary_log->partner_id = $partner_api_key->id;
+                                                                                            $summary_log->partner_balance = $partner_api_key->balance;
+                                                                                        } else {
+                                                                                            LaravelLog::error('Partner API key not found for api_id: ' . $api_id);
+                                                                                            $summary_log->partner_id = $api_id;
+                                                                                            $summary_log->partner_balance = 0;
+                                                                                        }
+                                                                                        $summary_log->payment_id = $order->id;
+                                                                                        $summary_log->total_amount = $net_amount;
+                                                                                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                                                                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                                                                        $summary_log->source = 'Telegram';
+                                                                                        $summary_log->save();
+                                                                                    }
+                                                                
+                                                                
+                                                                                    
+                                                                                    
+                                                                
+                                                                                    $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
+                                                                                    foreach ($PartnerCommissions as $PartnerCommission) {
+                                                                                        $PartnerCommission->status = 1;
+                                                                                        $PartnerCommission->save();
+                                                                
+                                                                                        DB::beginTransaction();
+                                                                                        $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                                                                                        if($parent_api_key){
+                                                                                            $parent_api_key->balance += $PartnerCommission->profit;
+                                                                                            $parent_api_key->save();
+                                                                    
+                                                                                            $Log = new Log();
+                                                                                            $Log->date_time = $PartnerCommission->created_at;
+                                                                                            $Log->final_amount = $PartnerCommission->profit;
+                                                                                            $Log->balance = $parent_api_key->balance;
+                                                                                            $Log->transection_type = 5;
+                                                                                            $Log->transection_id = $PartnerCommission->id;
+                                                                                            $Log->partner_id = $PartnerCommission->from_id;
+                                                                                            $Log->source = 'Telegram';
+                                                                                            $Log->save();
                                                                                             DB::commit();
-                                                                                            $commit = 1;
-                                                                        
-                                                                                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
+                                                                    
+                                                                                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                                                                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                                                                                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
+                                                                                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
                                                                                                 $amount_to_update = round($amount_to_update, 2);
                                                                                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                                 $DailyPartnerSummary_record->save();
-
+                                                                    
                                                                                                 $summary_log = new DailyPartnerSummaryLog();
-                                                                                                if ($partner_api_key) {
-                                                                                                    $summary_log->partner_id = $partner_api_key->id;
-                                                                                                    $summary_log->partner_balance = $partner_api_key->balance;
-                                                                                                } else {
-                                                                                                    LaravelLog::error('Partner API key not found for api_id: ' . $api_id);
-                                                                                                    $summary_log->partner_id = $api_id;
-                                                                                                    $summary_log->partner_balance = 0;
-                                                                                                }
-                                                                                                $summary_log->payment_id = $order->id;
-                                                                                                $summary_log->total_amount = $net_amount;
+                                                                                                $summary_log->partner_id = $parent_api_key->id;
+                                                                                                $summary_log->partner_balance = $parent_api_key->balance;
+                                                                                                $summary_log->payment_id = $PartnerCommission->id;
+                                                                                                $summary_log->total_amount = $PartnerCommission->profit;
                                                                                                 $summary_log->summary_id = $DailyPartnerSummary_record->id;
                                                                                                 $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
                                                                                                 $summary_log->source = 'Telegram';
                                                                                                 $summary_log->save();
                                                                                             }
-                                                                        
-                                                                        
-                                                                                            
-                                                                                            
-                                                                        
-                                                                                            $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
-                                                                                            foreach ($PartnerCommissions as $PartnerCommission) {
-                                                                                                $PartnerCommission->status = 1;
-                                                                                                $PartnerCommission->save();
-                                                                        
-                                                                                                DB::beginTransaction();
-                                                                                                $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                                                                                                if($parent_api_key){
-                                                                                                    $parent_api_key->balance += $PartnerCommission->profit;
-                                                                                                    $parent_api_key->save();
-                                                                            
-                                                                                                    $Log = new Log();
-                                                                                                    $Log->date_time = $PartnerCommission->created_at;
-                                                                                                    $Log->final_amount = $PartnerCommission->profit;
-                                                                                                    $Log->balance = $parent_api_key->balance;
-                                                                                                    $Log->transection_type = 5;
-                                                                                                    $Log->transection_id = $PartnerCommission->id;
-                                                                                                    $Log->partner_id = $PartnerCommission->from_id;
-                                                                                                    $Log->source = 'Telegram';
-                                                                                                    $Log->save();
-                                                                                                    DB::commit();
-                                                                            
-                                                                                                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                                                                                                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                                                                                                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                                                                                        $amount_to_update = round($amount_to_update, 2);
-                                                                                                        // $amount_to_update = floor($amount_to_update * 100) / 100;
-                                                                                                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                                                                                                        $DailyPartnerSummary_record->save();
-                                                                            
-                                                                                                        $summary_log = new DailyPartnerSummaryLog();
-                                                                                                        $summary_log->partner_id = $parent_api_key->id;
-                                                                                                        $summary_log->partner_balance = $parent_api_key->balance;
-                                                                                                        $summary_log->payment_id = $PartnerCommission->id;
-                                                                                                        $summary_log->total_amount = $PartnerCommission->profit;
-                                                                                                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                                                                                                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                                                                                        $summary_log->source = 'Telegram';
-                                                                                                        $summary_log->save();
-                                                                                                    }
-                                                                                                }
-                                                                                                
-                                                                                            }
                                                                                         }
                                                                                         
-                                                                                        if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
-                                                                    
-                                                                                            $string_to_hash = json_encode(array(
-                                                                                                "amount" => strval($this->convertStringToNumber($order->amount)),
-                                                                                                "api_key" => $partner_api_key->api_key,
-                                                                                                "e_wallet_name" => $order->e_wallet_name,
-                                                                                                "id" => strval($order->id),
+                                                                                    }
+                                                                                }
+                                                                                
+                                                                                if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
+                                                            
+                                                                                    $string_to_hash = json_encode(array(
+                                                                                        "amount" => strval($this->convertStringToNumber($order->amount)),
+                                                                                        "api_key" => $partner_api_key->api_key,
+                                                                                        "e_wallet_name" => $order->e_wallet_name,
+                                                                                        "id" => strval($order->id),
+                                                                                        'transaction_type' => 'Deposit',
+                                                                                        "user_account_no" => strval($order->sender),
+                                                            
+                                                                                    ));
+                                                                                    $secretKey = $partner_api_key->secret_key;
+                                                                                    $hash = hash("sha256", $string_to_hash);
+                                                                                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+                                                                                    $timestamp = time();
+                                                                                    $combined = $hmac . $timestamp;
+                                                                                    $sign = base64_encode($combined);
+                                                            
+                                                            
+                                                                                    $array_data = [
+                                                                                                'id' => $order->id,
+                                                                                                'partner_transection_id' => $order->partner_transection_id,
                                                                                                 'transaction_type' => 'Deposit',
-                                                                                                "user_account_no" => strval($order->sender),
-                                                                    
-                                                                                            ));
-                                                                                            $secretKey = $partner_api_key->secret_key;
-                                                                                            $hash = hash("sha256", $string_to_hash);
-                                                                                            $hmac = hash_hmac('sha256', $hash, $secretKey);
-                                                                                            $timestamp = time();
-                                                                                            $combined = $hmac . $timestamp;
-                                                                                            $sign = base64_encode($combined);
-                                                                    
-                                                                    
-                                                                                            $array_data = [
-                                                                                                        'id' => $order->id,
-                                                                                                        'partner_transection_id' => $order->partner_transection_id,
-                                                                                                        'transaction_type' => 'Deposit',
-                                                                                                        'e_wallet_name' => $order->e_wallet_name,
-                                                                                                        'amount' => $this->convertStringToNumber($order->amount),
-                                                                                                        'user_account_no' => $order->sender,
-                                                                                                        'txn_id' => $order->txn_id,
-                                                                                                        'e_wallet_phone_number' => $order->e_wallet_phone_number,
-                                                                                                        'e_wallet_type' => $order->e_wallet_type,
-                                                                                                        'charges' => $this->convertStringToNumber($order->charge),
-                                                                                                        'status' => $order->status,
-                                                                                                        'completion_date' => Carbon::parse($order->date_time)->toDateString(),
-                                                                                                        'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
-                                                                                                        'created_at' => $order->created_at,
-                                                                                                        'updated_at' => $order->updated_at,
-                                                                                                        'sign' => $sign,
+                                                                                                'e_wallet_name' => $order->e_wallet_name,
+                                                                                                'amount' => $this->convertStringToNumber($order->amount),
+                                                                                                'user_account_no' => $order->sender,
+                                                                                                'txn_id' => $order->txn_id,
+                                                                                                'e_wallet_phone_number' => $order->e_wallet_phone_number,
+                                                                                                'e_wallet_type' => $order->e_wallet_type,
+                                                                                                'charges' => $this->convertStringToNumber($order->charge),
+                                                                                                'status' => $order->status,
+                                                                                                'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                                                                                'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
+                                                                                                'created_at' => $order->created_at,
+                                                                                                'updated_at' => $order->updated_at,
+                                                                                                'sign' => $sign,
+                                                                                    ];
+                                                            
+                                                                                    if(!empty($order->member_id)){
+                                                                                        $array_data['member_id'] = $order->member_id;
+                                                                                    }
+                                                            
+                                                            
+                                                                                    $requestData = [
+                                                                                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                                                                                        'request_url' => $partner_api_key->api_endpoint_deposit,
+                                                                                        'request_payload' => json_encode($array_data),
+                                                                                        'request_headers' => json_encode([
+                                                                                            'Content-Type' => 'application/json',
+                                                                                            'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                                                                                        ]),
+                                                                                        'created_at' => now(),
+                                                                                        'updated_at' => now(),
+                                                                                    ];
+                                                            
+                                                                                    $logId = DB::table('api_logs')->insertGetId($requestData);
+                                                                                    try {
+                                                                                        $csrfToken = Str::random(40);
+                                                                                        $response = Http::withHeaders([
+                                                                                            'Content-Type' => 'application/json',
+                                                                                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                                                                                        ])
+                                                                                            ->post($partner_api_key->api_endpoint_deposit, $array_data);
+                                                            
+                                                                                        if ($response) {
+                                                                                            $responseData = [
+                                                                                                'response_code' => $response->status(),
+                                                                                                'response_payload' => $response->body(),
+                                                                                                'response_headers' => json_encode($response->headers()),
                                                                                             ];
-                                                                    
-                                                                                            if(!empty($order->member_id)){
-                                                                                                $array_data['member_id'] = $order->member_id;
-                                                                                            }
-                                                                    
-                                                                    
-                                                                                            $requestData = [
-                                                                                                'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
-                                                                                                'request_url' => $partner_api_key->api_endpoint_deposit,
-                                                                                                'request_payload' => json_encode($array_data),
-                                                                                                'request_headers' => json_encode([
-                                                                                                    'Content-Type' => 'application/json',
-                                                                                                    'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
-                                                                                                ]),
-                                                                                                'created_at' => now(),
-                                                                                                'updated_at' => now(),
-                                                                                            ];
-                                                                    
-                                                                                            $logId = DB::table('api_logs')->insertGetId($requestData);
-                                                                                            try {
-                                                                                                $csrfToken = Str::random(40);
-                                                                                                $response = Http::withHeaders([
-                                                                                                    'Content-Type' => 'application/json',
-                                                                                                    'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
-                                                                                                ])
-                                                                                                    ->post($partner_api_key->api_endpoint_deposit, $array_data);
-                                                                    
-                                                                                                if ($response) {
-                                                                                                    $responseData = [
-                                                                                                        'response_code' => $response->status(),
-                                                                                                        'response_payload' => $response->body(),
-                                                                                                        'response_headers' => json_encode($response->headers()),
-                                                                                                    ];
-                                                                    
-                                                                                                    DB::table('api_logs')->where('id', $logId)->update($responseData);
-                                                                                                }
-                                                                                            } catch (\Exception $e) {
-                                                                                                //
-                                                                                            }
+                                                            
+                                                                                            DB::table('api_logs')->where('id', $logId)->update($responseData);
                                                                                         }
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
+                                                                                    } catch (\Exception $e) {
+                                                                                        //
+                                                                                    }
                                                                                 }
                                                                                 
                                                                                 $support_chat_id = "-4786890063";
