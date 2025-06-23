@@ -191,7 +191,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/accounts-management/on-off', [CategoryController::class, 'onOffAccount'])->name('account_management.on_off_account');
         Route::post('/wallet/update-account-type', [CategoryController::class, 'updateAccountType'])->name('wallet.updateAccountType');
-
+        Route::post('/wallet/update-gateway-deposit', [CategoryController::class, 'updateGatewayDeposit'])->name('wallet.updateGatewayDeposit');
+        Route::post('/wallet/update-gateway-withdrawal', [CategoryController::class, 'updateGatewayWithdrawal'])->name('wallet.updateGatewayWithdrawal');
         Route::get('/accounts-management/add-category', [CategoryController::class, 'addCategory'])->name('account_management.add_category');
 
 
@@ -476,6 +477,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/account-management/account-group', [AccountManagementController::class, 'accountGroup'])->name('account_management.account_group');
         Route::post('/ewallet-account/toggle-status', [CategoryController::class, 'toggleStatus'])->name('ewallet-account.toggleStatus');
+        Route::post('/ewallet-account/send-gateway-notice', [CategoryController::class, 'sendGatewayNotice'])->name('gateway.send_notice');
 
 
         Route::get('/merchant_accounts', [MerchantAccountController::class, 'apis'])->name('merchant_accounts');

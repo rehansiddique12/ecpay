@@ -150,6 +150,9 @@ return [
     'on' => '开',
     'off' => '关',
     'account_type_updated' => '账户类型更新成功',
+    'gateway_deposit_updated' => '网关存款状态更新成功。',
+    'gateway_withdrawal_updated' => '网关取款状态更新成功。',
+
 
     // Account Group Management
     'add_account_group' => '添加账户组',

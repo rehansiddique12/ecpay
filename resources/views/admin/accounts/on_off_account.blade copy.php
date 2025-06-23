@@ -106,9 +106,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($records as $gateway)
+                            @forelse($records as $key => $item)
                                 <td>
-                                    {{ $gateway->name }}
+                                    {{ $item['e_wallet_name'] }}
 
                                 </td>
                                 <!-- For Account Status -->
@@ -117,12 +117,12 @@
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="form-check form-switch m-0">
                                             <input type="checkbox" class="form-check-input toggle-status"
-                                                id="toggle_{{ $gateway->id }}" data-id="{{ $gateway->id }}"
+                                                id="toggle_{{ $item['id'] }}" data-id="{{ $item['id'] }}"
                                                 data-type="status"
-                                                {{ in_array($gateway->status, ['1', 1, true]) ? 'checked' : '' }}>
+                                                {{ in_array($item->status, ['1', 1, true]) ? 'checked' : '' }}>
                                         </div>
-                                        <label for="toggle_{{ $gateway->id }}" class="ms-2 mb-0 fw-bold">
-                                            {{ in_array($gateway->status, ['1', 1, true]) ? __('accounts.on') : __('accounts.off') }}
+                                        <label for="toggle_{{ $item['id'] }}" class="ms-2 mb-0 fw-bold">
+                                            {{ in_array($item->status, ['1', 1, true]) ? __('accounts.on') : __('accounts.off') }}
                                         </label>
                                     </div>
                                 </td>
@@ -132,12 +132,12 @@
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="form-check form-switch m-0">
                                             <input type="checkbox" class="form-check-input deposit_action_type_toggle"
-                                                data-id="{{ $gateway->id }}" data-type="deposit_on"
-                                                id="deposit-toggle_{{ $gateway->id }}"
-                                                {{ in_array($gateway->deposit_on, ['1', 1, true]) ? 'checked' : '' }}>
+                                                data-id="{{ $item->id }}" data-type="deposit"
+                                                id="deposit-toggle_{{ $item->id }}"
+                                                {{ in_array($item->account_type, ['Deposit', 'Both']) ? 'checked' : '' }}>
                                         </div>
-                                        <label for="deposit-toggle_{{ $gateway->id }}" class="ms-2 mb-0 fw-bold">
-                                            {{ in_array($gateway->deposit_on, ['1', 1, true]) ? __('accounts.on') : __('accounts.off') }}
+                                        <label for="deposit-toggle_{{ $item->id }}" class="ms-2 mb-0 fw-bold">
+                                            {{ in_array($item->account_type, ['Deposit', 'Both']) ? __('accounts.on') : __('accounts.off') }}
                                         </label>
                                     </div>
                                 </td>
@@ -147,23 +147,23 @@
                                     <div class="d-flex align-items-center justify-content-center">
                                         <div class="form-check form-switch m-0">
                                             <input type="checkbox" class="form-check-input withdraw_action_type_toggle"
-                                                data-id="{{ $gateway->id }}" data-type="withdrawal_on"
-                                                id="withdrawal-toggle_{{ $gateway->id }}"
-                                                {{ in_array($gateway->withdrawal_on, ['1', 1, true]) ? 'checked' : '' }}>
+                                                data-id="{{ $item->id }}" data-type="withdrawal"
+                                                id="withdrawal-toggle_{{ $item->id }}"
+                                                {{ in_array($item->account_type, ['Withdrawal', 'Both']) ? 'checked' : '' }}>
                                         </div>
-                                        <label for="withdrawal-toggle_{{ $gateway->id }}" class="ms-2 mb-0 fw-bold">
-                                            {{ in_array($gateway->withdrawal_on, ['1', 1, true]) ? __('accounts.on') : __('accounts.off') }}
+                                        <label for="withdrawal-toggle_{{ $item->id }}" class="ms-2 mb-0 fw-bold">
+                                            {{ in_array($item->account_type, ['Withdrawal', 'Both']) ? __('accounts.on') : __('accounts.off') }}
                                         </label>
                                     </div>
                                 </td>
 
 
                                 <td class="text-center">
-                                    <input type="checkbox" name="checkbox_{{ $gateway->id }}"
-                                        value="{{ $gateway->id }}">
+                                    <input type="checkbox" name="checkbox_{{ $item->id }}"
+                                        value="{{ $item->id }}">
                                 </td>
                                 <td>
-                                    <button data-id="{{ $gateway->id}}" type="button" class="btn btn-primary btn-sm send_notice_buttons">
+                                    <button type="button" class="btn btn-primary btn-sm">
                                         <i class="fa fa-paper-plane me-1"></i> {{ __('accounts.send_notice') }}
                                     </button>
                                 </td>
@@ -192,46 +192,32 @@
         <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
         <script>
             $(document).ready(function() {
-                $(".deposit_action_type_toggle").on("change", function() {
+                $(".deposit_action_type_toggle, .withdraw_action_type_toggle").on("change", function() {
                     let id = $(this).data("id");
-                    let status = $(this).is(':checked') ? 1 : 0;
-
+                    let depositChecked = $("#deposit-toggle_" + id).is(":checked");
+                    let withdrawalChecked = $("#withdrawal-toggle_" + id).is(":checked");
+                    let account_type = "";
+                    if (depositChecked && withdrawalChecked) {
+                        account_type = "Both";
+                    } else if (depositChecked) {
+                        account_type = "Deposit";
+                    } else if (withdrawalChecked) {
+                        account_type = "Withdrawal";
+                    } else {
+                        account_type = "";
+                    }
                     $.ajax({
-                        url: "{{ route('admin.wallet.updateGatewayDeposit') }}",
+                        url: "{{ route('admin.wallet.updateAccountType') }}",
                         method: "POST",
                         data: {
                             _token: "{{ csrf_token() }}",
                             id: id,
-                            status: status
+                            account_type: account_type
                         },
                         success: function(response) {
                             if (response.success) {
                                 // alert(response.message);
-                                alert("{{ __('accounts.gateway_deposit_updated') }}");
-                            }
-                        },
-                        error: function(xhr) {
-                            alert("{{ __('accounts.something_went_wrong') }}");
-                        },
-                    });
-                });
-
-                $(".withdraw_action_type_toggle").on("change", function() {
-                    let id = $(this).data("id");
-                    let status = $(this).is(':checked') ? 1 : 0;
-
-                    $.ajax({
-                        url: "{{ route('admin.wallet.updateGatewayWithdrawal') }}",
-                        method: "POST",
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            id: id,
-                            status: status
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // alert(response.message);
-                                alert("{{ __('accounts.gateway_withdrawal_updated') }}");
+                                alert("{{ __('accounts.account_type_updated') }}");
                             }
                         },
                         error: function(xhr) {
@@ -245,7 +231,7 @@
                     let status = $(this).is(':checked') ? 1 : 0;
 
                     $.ajax({
-                        url: "{{ route('admin.ewallet-account.toggleStatus') }}",
+                        url: '{{ route('admin.ewallet-account.toggleStatus') }}',
                         method: 'POST',
                         data: {
                             _token: '{{ csrf_token() }}',
@@ -261,34 +247,6 @@
                         },
                         error: function() {
                             alert("{{ __('accounts.something_went_wrong') }}");
-                        }
-                    });
-                });
-
-                 $('.send_notice_buttons').on('click', function () {
-                    let gatewayId = $(this).data('id');
-
-                    // Disable all buttons
-                    $('.send_notice_buttons').prop('disabled', true);
-
-                    $.ajax({
-                        url: '{{ route("admin.gateway.send_notice") }}', // update with your route name
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            id: gatewayId
-                        },
-                        success: function (response) {
-                            alert('Notice sent successfully!');
-                            // Handle success message or UI update here
-                        },
-                        error: function (xhr) {
-                            alert('Error sending notice.');
-                            // Optionally show more error info here
-                        },
-                        complete: function () {
-                            // Re-enable all buttons after request completes
-                            $('.send_notice_buttons').prop('disabled', false);
                         }
                     });
                 });

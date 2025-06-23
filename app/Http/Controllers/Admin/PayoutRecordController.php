@@ -4098,7 +4098,7 @@ class PayoutRecordController extends Controller
     public function payoutGateway()
     {
 
-        $gateways = Gateway::where('status', 1)
+        $gateways = Gateway::where('status', 1)->where('withdrawal_on' ,1)
             ->select('name', 'image')
             ->get();
 
@@ -4216,7 +4216,7 @@ class PayoutRecordController extends Controller
                 $member_id = $request->member_id;
             }
 
-            $method = Gateway::where('status', 1)
+            $method = Gateway::where('status', 1)->where('withdrawal_on' ,1)
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
