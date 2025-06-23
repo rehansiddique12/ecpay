@@ -2637,9 +2637,12 @@ class PayoutRecordController extends Controller
                             'user_id'     => auth()->id(),
                             'module'      => 'EWalletAccount',
                             'module_id'   => $account->id,
-                            'description' => auth()->user()->name . ' updated time slots. ' . implode(' | ', $logParts),
+                            'description' => auth()->user()->name .
+                                             ' updated time slots for EWalletAccount ID: ' . $account->id .
+                                             '. ' . implode(' | ', $logParts),
                         ]);
                     }
+
 
                     // Delete existing time slots and groups before re-adding
                     EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->delete();
@@ -4098,7 +4101,7 @@ class PayoutRecordController extends Controller
     public function payoutGateway()
     {
 
-        $gateways = Gateway::where('status', 1)
+        $gateways = Gateway::where('status', 1)->where('withdrawal_on' ,1)
             ->select('name', 'image')
             ->get();
 
@@ -4216,7 +4219,7 @@ class PayoutRecordController extends Controller
                 $member_id = $request->member_id;
             }
 
-            $method = Gateway::where('status', 1)
+            $method = Gateway::where('status', 1)->where('withdrawal_on' ,1)
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
@@ -6813,9 +6816,38 @@ public function markAsRead(Notification $notification)
     {
         try {
             $account = EWalletAccount::findOrFail($id);
+            $oldStatus = $account->status;
             $newStatus = $account->status == 1 ? 0 : 1;
             $account->status = $newStatus;
             $account->save();
+
+
+             // Telegram Setup
+            $support_chat_id = "-4786890063";
+            $botToken_support = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+            $url_support = "https://api.telegram.org/bot{$botToken_support}/sendMessage";
+
+            // Format status
+            $statusValue = $account->status == 1 ? 'Active' : 'Inactive';
+
+            // Telegram Message (escaped properly)
+            $message_support = "*Account Log*\n\n";
+            $message_support .= "*Account Number:* `{$account->account_no}`\n";
+            $message_support .= "*Current Status Changed To:* `{$statusValue}`\n";
+
+            // Send Telegram message
+            $response = Http::post($url_support, [
+                'chat_id' => $support_chat_id,
+                'text' => $message_support,
+                'parse_mode' => 'Markdown',
+            ]);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to send Telegram message.'
+                ], 500);
+            }
 
             if ($newStatus == 1) {
                 $setting = Setting::where('name', 'last_account_active')->first();

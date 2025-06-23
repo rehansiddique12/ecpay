@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -281,10 +282,10 @@ class CategoryController extends Controller
 
     public function toggleStatus(Request $request)
     {
-        $account = EWalletAccount::find($request->id);
+        $account = Gateway::find($request->id);
 
         if (!$account) {
-            return response()->json(['success' => false, 'message' => 'Account not found.']);
+            return response()->json(['success' => false, 'message' => 'Gateway not found.']);
         }
 
         $account->status = $request->status;
@@ -295,7 +296,7 @@ class CategoryController extends Controller
             'user_id'     => auth()->id(),
             'module'      => 'EWalletAccount Account Management',
             'module_id'   => $account->id,
-            'description' => auth()->user()->name . ' ' . ($account->status ? 'activated' : 'deactivated') . ' eWallet account ( ' . $account->e_wallet_name . ')',
+            'description' => auth()->user()->name . ' ' . ($account->status ? 'activated' : 'deactivated') . ' eWallet account ( ' . $account->name . ')',
         ]);
 
         return response()->json(['success' => true, 'message' => 'Status updated.']);
@@ -305,13 +306,17 @@ class CategoryController extends Controller
     public function onOffAccount()
     {
         $pageTitle = __('accounts.on_off_account');
-        $records = EWalletAccount::with(['apiHits' => function ($query) {
-            $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
-        }, 'location', 'accountGroups.group'])->paginate(1000);
+        // $records = EWalletAccount::with(['apiHits' => function ($query) {
+        //     $query->whereBetween('created_at', [now()->subSeconds(70), now()]);
+        // }, 'location', 'accountGroups.group'])->paginate(1000);
 
-        foreach ($records as $record) {
-            $record->live = $record->apiHits ? 1 : 0;
-        }
+        // foreach ($records as $record) {
+        //     $record->live = $record->apiHits ? 1 : 0;
+        // }
+
+        $records =  Gateway::paginate(50);
+
+
         return view('admin.accounts.on_off_account', compact('pageTitle', 'records'));
     }
 
@@ -341,5 +346,124 @@ class CategoryController extends Controller
             'message' => 'Account type updated successfully!',
         ]);
     }
+    public function updateGatewayDeposit(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:gateways,id',
+        ]);
 
+        $wallet = Gateway::findOrFail($request->id);
+        $oldType = $wallet->deposit_on;
+
+        $wallet->deposit_on = $request->status;
+        $wallet->save();
+
+        // Log the change
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'Gateway Deposit Status Changed',
+            'module_id'   => $wallet->id,
+            'description' => auth()->user()->name . " changed gateway deposit from '{$oldType}' to '{$wallet->deposit_on}' for gateway ( {$wallet->name})",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Gateway Deposit status updated successfully!',
+        ]);
+    }
+    public function updateGatewayWithdrawal(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:gateways,id',
+        ]);
+
+        $wallet = Gateway::findOrFail($request->id);
+        $oldType = $wallet->withdrawal_on;
+
+        $wallet->withdrawal_on = $request->status;
+        $wallet->save();
+
+        // Log the change
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'module'      => 'Gateway Withdrawal Status Changed',
+            'module_id'   => $wallet->id,
+            'description' => auth()->user()->name . " changed gateway withdrawal from '{$oldType}' to '{$wallet->withdrawal_on}' for gateway ( {$wallet->name})",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Gateway Withdrawal status updated successfully!',
+        ]);
+    }
+
+    public function sendGatewayNotice(Request $request)
+    {
+        // Validate the input
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:gateways,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $gatewayId = $request->input('id');
+            $gateway = Gateway::find($gatewayId);
+
+            if (!$gateway) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gateway not found.'
+                ], 404);
+            }
+
+            // Telegram Setup
+            $support_chat_id = "-4786890063";
+            $botToken_support = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+            $url_support = "https://api.telegram.org/bot{$botToken_support}/sendMessage";
+
+            // Format status
+            $status = $gateway->status == 1 ? 'Active' : 'Inactive';
+            $depositStatus = $gateway->deposit_on == 1 ? 'Active' : 'Inactive';
+            $withdrawalStatus = $gateway->withdrawal_on == 1 ? 'Active' : 'Inactive';
+
+            // Telegram Message (escaped properly)
+            $message_support = "*Gateway Log*\n\n";
+            $message_support .= "*Gateway Name:* `{$gateway->name}`\n";
+            $message_support .= "*Status:* `{$status}`\n";
+            $message_support .= "*Deposit Status:* `{$depositStatus}`\n";
+            $message_support .= "*Withdrawal Status:* `{$withdrawalStatus}`\n";
+
+            // Send Telegram message
+            $response = Http::post($url_support, [
+                'chat_id' => $support_chat_id,
+                'text' => $message_support,
+                'parse_mode' => 'Markdown',
+            ]);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to send Telegram message.'
+                ], 500);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notice sent successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
