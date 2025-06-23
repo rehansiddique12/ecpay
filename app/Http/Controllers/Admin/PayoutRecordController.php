@@ -2616,9 +2616,12 @@ class PayoutRecordController extends Controller
                             'user_id'     => auth()->id(),
                             'module'      => 'EWalletAccount',
                             'module_id'   => $account->id,
-                            'description' => auth()->user()->name . ' updated time slots. ' . implode(' | ', $logParts),
+                            'description' => auth()->user()->name .
+                                             ' updated time slots for EWalletAccount ID: ' . $account->id .
+                                             '. ' . implode(' | ', $logParts),
                         ]);
                     }
+
 
                     // Delete existing time slots and groups before re-adding
                     EWalletAccountTimeSlot::where('e_wallet_account_id', $account->id)->delete();

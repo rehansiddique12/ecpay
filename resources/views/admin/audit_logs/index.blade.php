@@ -21,8 +21,14 @@
                 </div>
 
                 <div class="col-md-3">
-                    <input type="text" name="module" value="{{ request('module') }}"
-                        placeholder="{{ __('transaction.module') }}" class="form-control" />
+                    <select name="module" class="form-select">
+                        <option value="">{{ __('transaction.module') }}</option>
+                        <option value="Workboard" {{ request('module') == 'Workboard' ? 'selected' : '' }}>Workboard</option>
+                        <option value="Deposit Log" {{ request('module') == 'Deposit Log' ? 'selected' : '' }}>Deposit Log</option>
+                        <option value="Withdrawal Log" {{ request('module') == 'Withdrawal Log' ? 'selected' : '' }}>Withdrawal Log</option>
+                        <option value="Account Management" {{ request('module') == 'Account Management' ? 'selected' : '' }}>Account Management</option>
+                    </select>
+
                 </div>
 
                 <div class="col-md-3">
