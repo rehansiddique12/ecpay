@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Api;
 use App\Models\Log;
 use App\Models\Payout;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\Commission;
 use App\Models\EWalletLog;
@@ -111,10 +112,10 @@ class DevFunctionsController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -123,7 +124,7 @@ class DevFunctionsController extends Controller
                         })
                         ->values()
                         ->first();
-                    
+
 
                     if (!$account) {
                         DB::rollBack();
@@ -704,6 +705,58 @@ class DevFunctionsController extends Controller
         } else {
             return (int)$string;
         }
+    }
+
+    public function create_transaction_log($id)
+    {
+        DB::beginTransaction();
+        try {
+            $data = Payment::where('id', $id)->lockForUpdate()->firstOrFail();
+
+        
+
+                if($payment){
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    if ($check_payment_txn) {
+                        DB::rollBack();
+                        throw new \Exception("By This Txn no, Payment Already Completed.");
+                    }
+                }
+             
+                $Log = new Log();
+                $Log->date_time = $payment->updated_at;
+                $Log->final_amount = $net_amount;
+                $Log->balance = $partner_api_key->balance;
+                $Log->transection_type = 1;
+                $Log->transection_id = $data->id;
+                $Log->partner_id = $partner_api_key->id;
+                $Log->source = 'AdminPanel';
+                $Log->save();
+               
+
+           
+                //$data->status = 1;
+                $data->feedback = @$req['feedback'];
+                //$data->payment_id = $payment->id;
+                //$data->created_at = $data->created_at;
+                //$data->trans_completed_date = Carbon::now();
+                $data->save();
+
+                DB::commit();
+            
+
+            
+                session()->flash('success', 'Approve Successfully');
+           
+          
+          
+            exit;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', $e->getMessage());
+            exit;
+        }
+
     }
 
 }
