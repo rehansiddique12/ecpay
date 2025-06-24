@@ -528,10 +528,6 @@ $arr = [
         'access' => [
             'view' => [
                 'admin.accounts',
-                'admin.payout-report.search',
-                'admin.payout.report.daily',
-                'admin.payout.report.daily.search',
-                'admin.payout.report.detail',
             ],
             'add' => [
                 'admin.accounts.add',
