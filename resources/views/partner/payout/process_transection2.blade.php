@@ -1,5 +1,5 @@
 <x-iframe-layout>
-<style>
+ <style>
 body {
     font-family: "Rajdhani", sans-serif;
     color: black;
@@ -605,9 +605,41 @@ $('#complete-button').on('click', function(event) {
 
 
 
-            var clipboard = new ClipboardJS('#copyButton', {
-                target: function() {
-                    return document.getElementById('accountNumber');
+    @push('js')
+        <script>
+            // Language dictionary
+            const dict = {
+                en: {
+                    'amount-label': `{{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk`,
+                    'amount-desc': "Don't cash out more or less",
+                    'amount-warning': `If you change the amount of money (INR {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
+                    'wallet-label': 'Wallet No *',
+                    'wallet-note': `This {{ $ewallet_to_show ?? 'wallet' }} number only accpet cashout `,
+                    'provider-label': 'Wallet provider',
+                    'provider-name': 'BKASH Deposit',
+                    'trx-label': 'Enter the TrxID number of the cashout',
+                    'trx-required': '(required)',
+                    'submit-btn': 'Confirm and Submit',
+                    'precaution-title': 'Precautions:',
+                    'precaution-red': 'The transaction ID must be filled in correctly, otherwise the score will fail !',
+                    'precaution-gray': 'Please make sure you cash out to <b>the BKASH deposit wallet number</b>. If you cash out from any other wallet of this number, there is no possibility of getting the money."',
+                    'trxid-placeholder': 'TrxID must be correct!'
+                },
+                bn: {
+                    'amount-label': 'বিডিটি ৫০০.০০',
+                    'amount-desc': 'কম বা বেশি ক্যাশ আউট করবেন না',
+                    'amount-warning': 'আপনি যদি টাকার পরিমাণ পরিবর্তন করেন (INR ৫০০.০০), তাহলে আপনি ক্রেডিট পাবেন না।',
+                    'wallet-label': 'ওয়ালেট নম্বর *',
+                    'wallet-note': 'শুধুমাত্র এই বিকাশ নম্বরে ক্যাশআউট গ্রহণযোগ্য',
+                    'provider-label': 'ওয়ালেট প্রদানকারী',
+                    'provider-name': 'বিকাশ ডিপোজিট',
+                    'trx-label': 'ক্যাশআউটের TrxID নম্বর লিখুন',
+                    'trx-required': '(প্রয়োজনীয়)',
+                    'submit-btn': 'নিশ্চিত এবং জমা দিন',
+                    'precaution-title': 'সতর্কতা:',
+                    'precaution-red': 'লেনদেন আইডি অবশ্যই সঠিকভাবে পূরণ করতে হবে, না হলে স্কোর ফেল হবে!',
+                    'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>বিকাশ ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
+                    'trxid-placeholder': 'TrxID অবশ্যই সঠিক করতে হবে!'
                 }
             });
 
@@ -822,5 +854,3 @@ $('#complete-button').on('click', function(event) {
 @push('script')
 
 @endpush
-
-</x-partner-layout>
