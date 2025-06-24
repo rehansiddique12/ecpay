@@ -6,6 +6,7 @@
 
 <div class="row g-3 m-4">
     @foreach($gateways as $key => $gateway)
+    {{-- @dd($gateway) --}}
     <div class="col-lg-2 col-6 col-sm-4 col-md-3">
         <div class="user-panel">
             <div class="deposit-box addFund" data-bs-toggle="modal" data-bs-target="#makeDeposit" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-currency="{{$gateway->currency}}" data-gateway="{{$gateway->code}}" data-qr_image="{{$gateway->qr_image!=''?getFile(config('location.gateway.path').$gateway->qr_image):''}}" data-min_amount="{{getAmount($gateway->min_amount, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->max_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percentage_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}">
@@ -26,9 +27,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
+
                 <h4>@lang('Make Deposit')</h4>
                 <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div id="general-error"></div>
             <div class="modal-body">
                 <form>
                     <div class="payment-form">
@@ -45,7 +48,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <pre class="text-danger errors"></pre>
+                            <pre class="text-danger amount-error"></pre>
                         </div>
 
                         <div class="form-group mb-30">
@@ -57,7 +60,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <pre class="text-danger errors"></pre>
+                            <pre class="text-danger account-no-error"></pre>
                         </div>
 
                     </div>
@@ -73,19 +76,6 @@
     </div>
 </div>
 
-
-<!--<li class="list-group-item bg-transparent">@lang('Charge'):-->
-<!--                        <strong>${data.charge}</strong>-->
-<!--                </li>-->
-<!--                <li class="list-group-item bg-transparent">-->
-<!--                    @lang('Payable'): <strong> ${data.payable}</strong>-->
-<!--                </li>-->
-<!--                <li class="list-group-item bg-transparent">-->
-<!--                    @lang('Conversion Rate'): <strong>${data.conversion_rate}</strong>-->
-<!--                </li>-->
-<!--                <li class="list-group-item bg-transparent">-->
-<!--                    <strong>${data.in}</strong>-->
-<!--                </li>-->
 
 
 @endpush
@@ -122,13 +112,17 @@
 
 
     $(".checkCalc").on('click', function() {
+        const $button = $(this);
+        $button.prop('disabled', true);
+        $('#general-error').html('');
         $('.payment-form').addClass('d-none');
-
         $('#loading').show();
         $('.modal-backdrop.fade').addClass('show');
+
         amount = $('.amount').val();
         account_no = $('.account_no').val();
         var username = <?= json_encode($username); ?>;
+
         $.ajax({
             url: "{{route('partner.addFund.request.open')}}",
             type: 'POST',
@@ -146,7 +140,7 @@
                 $('.checkCalc').closest('.modal-footer').addClass('d-none');
 
                 var htmlData = `
-                    
+
                      <ul class="list-group text-center text-white">
                         <li class="list-group-item bg-transparent">
                             <img class="w-100"src="${data.gateway_image}"
@@ -162,27 +156,26 @@
                             <strong id="accountNumber">${data.sender}</strong>
                             <button id="copyButton" class="btn btn-primary btn-sm ml-2">Copy</button>
                         </li>
-                         <li class="list-group-item bg-transparent">
+                        <li class="list-group-item bg-transparent">
                             @lang('Amount'):
                             <strong>${data.amount} </strong>
                         </li>
-                        
 
                         ${(data.isCrypto == true) ? `
                         <li class="list-group-item bg-transparent">
                             ${data.conversion_with}
                         </li>
                         ` : ``}
-                        
+
                         ${qr_image ? `
                         <li class="list-group-item bg-transparent">
-                            
+
                             <a href="${data.payment_url}" class="btn btn-success line-h22   btn-block addFund ">@lang('Next')</a>
                         </li>` : `<li class="list-group-item bg-transparent">
                         <a href="${data.payment_url}" class="btn btn-success line-h22   btn-block addFund ">@lang('Pay Now')</a>
                         </li>`}
-    
-                        
+
+
                         </ul>
                         `;
 
@@ -190,14 +183,45 @@
             },
             complete: function() {
                 $('#loading').hide();
+                $button.prop('disabled', false);
             },
             error(err) {
-                var errors = err.responseJSON;
-                for (var obj in errors) {
-                    $('.errors').text(`${errors[obj]}`)
+
+                const errors = err.responseJSON;
+                // Clear the general error list
+                $('#general-error').html('');
+
+                // Build a list of errors
+                let errorHtml = '<ul class="text-danger">';
+
+                // Check if 'errors' exist in the response
+                if (errors.errors) {
+                    for (const key in errors.errors) {
+                        errors.errors[key].forEach(message => {
+                            errorHtml += `<li>${message}</li>`;
+                        });
+                    }
                 }
 
+                // Check for general 'error' key in the response
+                if (errors.error) {
+                    errorHtml += `<li>${errors.error}</li>`;
+                }
+
+                // Check for directly returned fields like 'amount' in the response
+                if (errors.amount) {
+                    errors.amount.forEach(message => {
+                        errorHtml += `<li>${message}</li>`;
+                    });
+                }
+
+                errorHtml += '</ul>';
+
+                // Display the errors
+                $('#general-error').html(errorHtml);
+
                 $('.payment-form').removeClass('d-none');
+                $button.prop('disabled', false);
             }
         });
     });

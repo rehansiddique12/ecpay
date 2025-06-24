@@ -7,9 +7,9 @@
     @foreach($gateways as $key => $gateway)
     <div class="col-lg-2 col-6 col-sm-4 col-md-3">
         <div class="user-panel">
-            <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($min_withdrawal, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->maximum_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
+            <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($min_withdrawal, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->max_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
                 <div class="img-box">
-                    <img class="img-fluid gateway" src="{{ getFile(config('location.withdraw.path').$gateway->image)}}" alt="{{$gateway->name}}">
+                    <img class="img-fluid gateway" src="{{ getFile(config('location.gateway.path').$gateway->image)}}" alt="{{$gateway->name}}">
                 </div>
                 <p>{{trans($gateway->name)}}</p>
             </div>
@@ -29,7 +29,7 @@
                 </button>
             </div>
 
-            <form action="{{route('partner.payout.moneyRequest.transection')}}" method="post">
+            <form action="{{route('partner.payout.moneyRequest.transection')}}" method="post" id="moneyRequestForm">
                 @csrf
                 <div class="modal-body ">
                     <div class="payment-form">
@@ -55,7 +55,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top-0">
-                    <button type="submit" class="btn btn-success">@lang('Next')</button>
+                    <button type="submit" class="btn btn-success" id="submitButton" onclick="disableSubmitButton()">@lang('Next')</button>
                 </div>
             </form>
         </div>
@@ -99,5 +99,11 @@
         $('.amount').val(``);
         $("#makeDeposit").modal("hide");
     });
+    function disableSubmitButton() {
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = true; // Disable the button
+        submitButton.textContent = 'Processing...'; // Optional: Update button text
+        document.getElementById('moneyRequestForm').submit(); // Submit the form
+    }
 </script>
 @endpush

@@ -1,5 +1,32 @@
-@extends('partner.layouts.iframe')
-@section('content')
+<x-iframe-layout>
+<style>
+    /* * {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+} */
+
+body {
+    font-family: "Rajdhani", sans-serif;
+    color: black;
+    background: var(--bgLight);
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.text-left {
+    text-align: left !important;
+
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: "Rajdhani", sans-serif;
+    font-weight: 700;
+    color: black;
+    margin-bottom: 15px;
+}
+</style>
     <style>
         .payment-container {
             background-color: white;
@@ -155,10 +182,24 @@
         .input-container button {
             flex-shrink: 0;
         }
+
+
+        a.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
     </style>
 
 
     @php
+    // dd($data['account_type']);
+    $imgName = [
+        'Personal' => asset('assets/partners/Personal.gif'),
+        'Agent' => asset('assets/partners/Agent.gif'),
+        'Merchant' => asset('assets/partners/Merchant.gif')
+];
     $ewallet = strtolower($ewallet);
         if ($ewallet == 'bkash') {
             $time_class = 'bkash-time';
@@ -182,10 +223,28 @@
     @if (!empty($message))
         <h3>{{ $message }}</h3>
     @endif
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+            </li>
+        </ul>
+    </div>
+@endif
+{{-- ======= --}}
+@if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"
+            aria-label="Close"></button>
+    </div>
+@endif
     @if (!empty($data))
         <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
             <div class="payment-container">
-                
+
                 <span id="timer" class="{{ $time_class }}">00:00</span>
                 <div class="p-2">
                     <img src="{{ $logo }}" alt="Logo" class="header-logo">
@@ -198,7 +257,7 @@
                     <div class="col-4">
                         <img width="60px" src="{{ asset('assets/images/shopping-bag.png') }}"
                             alt="Logo">
-                            
+
                     </div>
                     <div class="col-8 p-0 m-0">
                         <p class="text-left text-bold" style="line-height: 1.2"><b><span style="font-size: 20px">Your payment amount is:</span><br> ৳
@@ -217,7 +276,7 @@
                             @else
                             Please cash out to: <br>
                             অনুগ্রহ করে ক্যাশ আউট করুন:
-                            @endif                            
+                            @endif
                         </span>
                     </div>
                     <div class="col-md-8 mt-4">
@@ -240,6 +299,20 @@
 
                 </div>
 
+                  @if($ewallet == "bkash")
+                    <div class="row pl-3 pr-3 d-flex justify-content-center">
+                        <img src="{{ $imgName[$data['account_type']] }}" class="img-fluid img-custom" alt="Responsive Image">
+                    </div>
+                @endif
+
+                <style>
+                    .img-custom {
+                        max-width: 50%;
+                        height: 20%;
+                    }
+                </style>
+
+
                 <div class="row text-center mt-2 p-2" style="display: <?php echo $txn_verification==1?'block':'none'?>">
                     <h5 class="text-center" style="color: red">Please Enter Transaction ID Number
                     </h5>
@@ -254,8 +327,13 @@
                     <img height="5" width="100%" src="{{ $banner }}" alt="Logo">
                 </div>
 
-                <p class="text-bold text-left mt-4 p-2 ">
-                    Do not close this screen until you have completed the transaction in your Bank and enter the
+                <div class=" col-md-5 text-center mx-auto">
+                    <a href="{{ route('iframe.payment', ['id' => $data['id'],'txn'=>'','time'=>time()]) }}" class="{{ $button_style }}" id="complete-button">SUBMIT |
+                        সম্পূর্ণ</a>
+                </div>
+
+                <p class="text-bold text-left mt-2 p-2 ">
+                    Do not close this screen until you have completed the transaction in your e-wallet and enter the
                     transaction
                     number above. To complete this process, please click on "Complete" button below. Incomplete transaction
                     may
@@ -268,23 +346,18 @@
                     জমার
                     অনুরোধে বিলম্ব করতে পারে।
                 </p>
-                <div class=" col-md-5 text-center mx-auto">
-                    <a href="{{ route('iframe.payment', ['id' => $data['id'],'txn'=>'','time'=>time()]) }}" class="{{ $button_style }}" id="complete-button">COMPLETE |
-                        সম্পূর্ণ</a>
-                </div>
-                <br>
                 </div>
                 <div id="outtime" style="display: none;">
                     <div class="text-center">
                     <img class="img-fluid" src="{{ asset('assets/images/error_transparent.gif') }}" />
-                    <h5>Sorry. We are not able to 
-process your payment. 
-Please contact customer 
+                    <h5>Sorry. We are not able to
+process your payment.
+Please contact customer
 service for assistance.
                 </h5>
                 <h5>দুঃখিত। আমরা আপনার পেমেন্ট প্রক্রিয়া করতে সক্ষম নই। সহায়তার জন্য গ্রাহক পরিষেবার সাথে যোগাযোগ করুন।
                 </h5>
-                    
+
                 </div>
                 <div class="p-0 m-0">
                     <img height="5" width="100%" src="{{ $banner }}" alt="Logo">
@@ -293,12 +366,26 @@ service for assistance.
             </div>
         </div>
     @endif
-    
-@endsection
 
-@push('script')
+    @push('js')
+<script src="{{asset('assets/global/js/jquery.min.js') }}"></script>
     <script>
         $(document).ready(function() {
+
+        let clickCount = 0; // Initialize click counter
+
+$('#complete-button').on('click', function(event) {
+    clickCount++; // Increment click count
+
+    if (clickCount === 2) {
+        event.preventDefault(); // Prevent the default action of the link
+        $(this).addClass('disabled'); // Add a class for styling
+        $(this).css('pointer-events', 'none'); // Disable further clicks
+    }
+});
+
+
+
             var clipboard = new ClipboardJS('#copyButton', {
                 target: function() {
                     return document.getElementById('accountNumber');
@@ -317,14 +404,14 @@ service for assistance.
             });
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+    <script src="{{asset('assets/iframe/clipboard.min.js') }}"></script>
     <script>
     $(document).ready(function() {
         function toggleButton() {
             var txnVerification = $('#txn_verification').val().trim();
             var isRequired = $('#txn_verification').attr('required') !== undefined;
 
-            
+
 
             if (isRequired && txnVerification === '') {
                 $('#complete-button').css({
@@ -381,5 +468,18 @@ service for assistance.
                 $('#expired').show();
             }
         });
+
+
+
+
+
+
     </script>
+
+
+
+
+
 @endpush
+
+</x-partner-layout>
