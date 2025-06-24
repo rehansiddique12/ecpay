@@ -800,82 +800,99 @@
         <h3>{{ $message }}</h3>
     @endif
     @if (!empty($data))
-        <div class="container">
-            <div class="header">
-                <div class="header-row">
-                    <div class="header-title" id="amount-label">{{ number_format($data['amount'], 2, '.', ',') }} Tk</div>
-                    <div class="pay-service">
-                        <span class="pay-badge">PAY</span>
-                        <span class="service-label">SERVICE</span>
-                        <div class="lang-switch">
-                            <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
-                            <button class="lang-btn" id="lang-bn" onclick="setLang('bn')">Bang</button>
-                          </div>
-                    </div>
+    <div class="container">
+        <div class="header">
+            <div class="header-row">
+                <div class="header-title" id="amount-label">
+                    {{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk
                 </div>
-                <div class="header-desc" id="amount-desc">Don't cash out more or less</div>
-            </div>
-            <div class="warning" id="amount-warning">
-                If you change the amount of money (INR 500.00), you will not be able to get credit.
-            </div>
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label" id="wallet-label">Wallet No *</label>
-                    <div class="form-note" id="wallet-note">This {{ $ewallet_to_show }} number accpet only cashout</div>
-                    <div class="wallet-box">
-                        <span id="wallet-type"
-                            style="font-weight: bold; color: {{ $bgcolor }}">{{ $data['account_type'] }}</span><br>
-                        <span id="wallet-number">{{ $data['phone_number'] }}</span>
-                        <button class="copy-btn" onclick="copyWallet()" title="Copy">COPY</button>
-                    </div>
-
-                </div>
-                <div class="form-group" style="text-align:center;">
-                    <div class="form-label" id="provider-label">Wallet provider</div>
-                    <div style="display:flex;align-items:center;justify-content:center;gap:18px;">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROC50Fgc9-vfHOJFM4eWgCuhxxpX7rND_lmA&s"
-                            alt="bKash" style="height:150px;width:auto;display:block;">
+                <div class="pay-service">
+                    <span class="pay-badge">PAY</span>
+                    <span class="service-label">SERVICE</span>
+                    <div class="lang-switch">
+                        <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
+                        <button class="lang-btn" id="lang-bn" onclick="setLang('bn')">Bang</button>
                     </div>
                 </div>
             </div>
-            <form action="{{ route('iframe.payment2') }}" method="POST" id="cashout-form" autocomplete="off"
-                onsubmit="return handleSubmit(event)">
-                @csrf
+            <div class="header-desc" id="amount-desc">Don't cash out more or less</div>
+        </div>
 
-                <div class="trx-section">
-                    <label class="trx-label" for="trxid" id="trx-label">
-                        Enter the TrxID number of the cashout
-                        <span class="trx-required" id="trx-required">(required)</span>
-                    </label>
-                    <input class="trx-input" id="trxid" name="txn" type="text"
-                        placeholder="Transaction ID (EC.{{ $ewallet == 'bkash' ? 'CC67DX6R2B' : '73PVF685' }})" required
-                        data-min="{{ $ewallet == 'bkash' ? 10 : ($ewallet == 'nagad' ? 8 : 1) }}"
-                        data-ewallet="{{ $ewallet }}" onblur="checkMinLength()">
+        <div class="warning" id="amount-warning">
+            If you change the amount of money (INR 500.00), you will not be able to get credit.
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label class="form-label" id="wallet-label">Wallet No *</label>
+                <div class="form-note" id="wallet-note">
+                    This {{ $ewallet_to_show ?? 'wallet' }} number accepts only cashout
                 </div>
+                <div class="wallet-box">
+                    <span id="wallet-type" style="font-weight: bold; color: {{ $bgcolor ?? '#000' }}">
+                        {{ $data['account_type'] ?? 'Account' }}
+                    </span><br>
+                    <span id="wallet-number">{{ $data['phone_number'] ?? 'N/A' }}</span>
+                    <button class="copy-btn" onclick="copyWallet()" title="Copy">COPY</button>
+                </div>
+            </div>
 
-                <small id="txn_error" style="color: red; display: none;"></small>
-
-                {{-- Hidden inputs --}}
-                <input type="hidden" name="username" value="{{ $data['username'] }}">
-                <input type="hidden" name="ewallet" value="{{ $data['ewallet'] }}">
-                <input type="hidden" name="amount" value="{{ $data['amount'] }}">
-                <input type="hidden" id="fund_id" name="fund_id" value="{{ $data['gate_id'] }}">
-                <input type="hidden" name="time" value="{{ time() }}">
-
-                <button class="submit-btn" type="submit" id="submit-btn">
-                    Confirm and Submit | জমা দিন
-                </button>
-            </form>
-
-            <div class="precautions">
-                <strong id="precaution-title">Precautions:</strong><br>
-                <span style="color:#e53935;" id="precaution-red">The transaction ID must be filled in correctly,
-                    otherwise the score will fail !</span>
-                <span class="gray" id="precaution-gray">Please make sure you cash out to <b>the BKASH deposit wallet
-                        number</b>. If you cash out from any other wallet of this number, there is no possibility of
-                    getting the money."</span>
+            <div class="form-group" style="text-align:center;">
+                <div class="form-label" id="provider-label">Wallet provider</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:18px;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROC50Fgc9-vfHOJFM4eWgCuhxxpX7rND_lmA&s"
+                        alt="bKash" style="height:150px;width:auto;display:block;">
+                </div>
             </div>
         </div>
+
+        <form action="{{ route('iframe.payment2') }}" method="POST" id="cashout-form" autocomplete="off" onsubmit="return handleSubmit(event)">
+            @csrf
+
+            <div class="trx-section">
+                <label class="trx-label" for="trxid" id="trx-label">
+                    Enter the TrxID number of the cashout
+                    <span class="trx-required" id="trx-required">(required)</span>
+                </label>
+                <input
+                    class="trx-input"
+                    id="trxid"
+                    name="txn"
+                    type="text"
+                    placeholder="Transaction ID (EC.{{ $ewallet == 'bkash' ? 'CC67DX6R2B' : '73PVF685' }})"
+                    required
+                    data-min="{{ $ewallet == 'bkash' ? 10 : ($ewallet == 'nagad' ? 8 : 1) }}"
+                    data-ewallet="{{ $ewallet }}"
+                    onblur="checkMinLength()"
+                >
+            </div>
+
+            <small id="txn_error" style="color: red; display: none;"></small>
+
+            {{-- Hidden inputs --}}
+            <input type="hidden" name="username" value="{{ $data['username'] ?? '' }}">
+            <input type="hidden" name="ewallet" value="{{ $data['ewallet'] ?? '' }}">
+            <input type="hidden" name="amount" value="{{ $data['amount'] ?? 0 }}">
+            <input type="hidden" id="fund_id" name="fund_id" value="{{ $data['gate_id'] ?? '' }}">
+            <input type="hidden" name="time" value="{{ time() }}">
+
+            <button class="submit-btn" type="submit" id="submit-btn">
+                Confirm and Submit | জমা দিন
+            </button>
+        </form>
+
+        <div class="precautions">
+            <strong id="precaution-title">Precautions:</strong><br>
+            <span style="color:#e53935;" id="precaution-red">
+                The transaction ID must be filled in correctly, otherwise the score will fail!
+            </span>
+            <span class="gray" id="precaution-gray">
+                Please make sure you cash out to <b>the BKASH deposit wallet number</b>.
+                If you cash out from any other wallet of this number, there is no possibility of getting the money.
+            </span>
+        </div>
+    </div>
+
     @endif
 
     @if (!empty($data['redirect_url']))
@@ -885,79 +902,99 @@
 
 
 
-    @push('script')
-    <script>
-        // Language dictionary
-        const dict = {
-          en: {
-            'amount-label': 'BDT 500.00',
-            'amount-desc': "Don't cash out more or less",
-            'amount-warning': 'If you change the amount of money (INR 500.00), you will not be able to get credit.',
-            'wallet-label': 'Wallet No *',
-            'wallet-note': 'Only cashout is accepted at this BKASH number',
-            'provider-label': 'Wallet provider',
-            'provider-name': 'BKASH Deposit',
-            'trx-label': 'Enter the TrxID number of the cashout',
-            'trx-required': '(required)',
-            'submit-btn': 'Confirm and Submit',
-            'precaution-title': 'Precautions:',
-            'precaution-red': 'The transaction ID must be filled in correctly, otherwise the score will fail !',
-            'precaution-gray': 'Please make sure you cash out to <b>the BKASH deposit wallet number</b>. If you cash out from any other wallet of this number, there is no possibility of getting the money."',
-            'trxid-placeholder': 'TrxID must be correct!'
-          },
-          bn: {
-            'amount-label': 'বিডিটি ৫০০.০০',
-            'amount-desc': 'কম বা বেশি ক্যাশ আউট করবেন না',
-            'amount-warning': 'আপনি যদি টাকার পরিমাণ পরিবর্তন করেন (INR ৫০০.০০), তাহলে আপনি ক্রেডিট পাবেন না।',
-            'wallet-label': 'ওয়ালেট নম্বর *',
-            'wallet-note': 'শুধুমাত্র এই বিকাশ নম্বরে ক্যাশআউট গ্রহণযোগ্য',
-            'provider-label': 'ওয়ালেট প্রদানকারী',
-            'provider-name': 'বিকাশ ডিপোজিট',
-            'trx-label': 'ক্যাশআউটের TrxID নম্বর লিখুন',
-            'trx-required': '(প্রয়োজনীয়)',
-            'submit-btn': 'নিশ্চিত এবং জমা দিন',
-            'precaution-title': 'সতর্কতা:',
-            'precaution-red': 'লেনদেন আইডি অবশ্যই সঠিকভাবে পূরণ করতে হবে, না হলে স্কোর ফেল হবে!',
-            'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>বিকাশ ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
-            'trxid-placeholder': 'TrxID অবশ্যই সঠিক করতে হবে!'
-          }
-        };
-        let currentLang = 'en';
-        function setLang(lang) {
-          currentLang = lang;
-          document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-          document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
-          for (const key in dict[lang]) {
-            const el = document.getElementById(key);
-            if (el) {
-              if (key === 'precaution-gray') {
-                el.innerHTML = dict[lang][key];
-              } else {
-                el.textContent = dict[lang][key];
-              }
-            }
-          }
-          document.getElementById('trxid').placeholder = dict[lang]['trxid-placeholder'];
-        }
-        function copyWallet() {
-          const wallet = document.getElementById('wallet-number').textContent;
-          navigator.clipboard.writeText(wallet);
-          alert(currentLang === 'bn' ? 'ওয়ালেট নম্বর কপি হয়েছে!' : 'Wallet number copied!');
-        }
-        function handleSubmit(e) {
-          e.preventDefault();
-          const trxid = document.getElementById('trxid').value.trim();
-          if (!trxid) {
-            alert(currentLang === 'bn' ? 'TrxID অবশ্যই পূরণ করতে হবে!' : 'TrxID is required!');
-            return false;
-          }
-          alert((currentLang === 'bn' ? 'ক্যাশআউট অনুরোধ জমা হয়েছে: ' : 'Cashout request submitted: ') + trxid);
-          document.getElementById('cashout-form').reset();
-          return false;
-        }
-        // Set default language
-        setLang('en');
-      </script>
-    @endpush
+    @push('js')
+        <script>
+            // Language dictionary
+            const dict = {
+                en: {
+                    'amount-label': 'BDT 500.00',
+                    'amount-desc': "Don't cash out more or less",
+                    'amount-warning': 'If you change the amount of money (INR 500.00), you will not be able to get credit.',
+                    'wallet-label': 'Wallet No *',
+                    'wallet-note': 'Only cashout is accepted at this BKASH number',
+                    'provider-label': 'Wallet provider',
+                    'provider-name': 'BKASH Deposit',
+                    'trx-label': 'Enter the TrxID number of the cashout',
+                    'trx-required': '(required)',
+                    'submit-btn': 'Confirm and Submit',
+                    'precaution-title': 'Precautions:',
+                    'precaution-red': 'The transaction ID must be filled in correctly, otherwise the score will fail !',
+                    'precaution-gray': 'Please make sure you cash out to <b>the BKASH deposit wallet number</b>. If you cash out from any other wallet of this number, there is no possibility of getting the money."',
+                    'trxid-placeholder': 'TrxID must be correct!'
+                },
+                bn: {
+                    'amount-label': 'বিডিটি ৫০০.০০',
+                    'amount-desc': 'কম বা বেশি ক্যাশ আউট করবেন না',
+                    'amount-warning': 'আপনি যদি টাকার পরিমাণ পরিবর্তন করেন (INR ৫০০.০০), তাহলে আপনি ক্রেডিট পাবেন না।',
+                    'wallet-label': 'ওয়ালেট নম্বর *',
+                    'wallet-note': 'শুধুমাত্র এই বিকাশ নম্বরে ক্যাশআউট গ্রহণযোগ্য',
+                    'provider-label': 'ওয়ালেট প্রদানকারী',
+                    'provider-name': 'বিকাশ ডিপোজিট',
+                    'trx-label': 'ক্যাশআউটের TrxID নম্বর লিখুন',
+                    'trx-required': '(প্রয়োজনীয়)',
+                    'submit-btn': 'নিশ্চিত এবং জমা দিন',
+                    'precaution-title': 'সতর্কতা:',
+                    'precaution-red': 'লেনদেন আইডি অবশ্যই সঠিকভাবে পূরণ করতে হবে, না হলে স্কোর ফেল হবে!',
+                    'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>বিকাশ ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
+                    'trxid-placeholder': 'TrxID অবশ্যই সঠিক করতে হবে!'
+                }
+            };
+            let currentLang = 'en';
 
-    </x-partner-layout>
+            function setLang(lang) {
+                currentLang = lang;
+                document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+                document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
+                for (const key in dict[lang]) {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        if (key === 'precaution-gray') {
+                            el.innerHTML = dict[lang][key];
+                        } else {
+                            el.textContent = dict[lang][key];
+                        }
+                    }
+                }
+                document.getElementById('trxid').placeholder = dict[lang]['trxid-placeholder'];
+            }
+
+            function copyWallet() {
+                const wallet = document.getElementById('wallet-number').textContent;
+                navigator.clipboard.writeText(wallet);
+                alert(currentLang === 'bn' ? 'ওয়ালেট নম্বর কপি হয়েছে!' : 'Wallet number copied!');
+            }
+
+            function handleSubmit(e) {
+                e.preventDefault();
+                const trxid = document.getElementById('trxid').value.trim();
+                if (!trxid) {
+                    alert(currentLang === 'bn' ? 'TrxID অবশ্যই পূরণ করতে হবে!' : 'TrxID is required!');
+                    return false;
+                }
+                alert((currentLang === 'bn' ? 'ক্যাশআউট অনুরোধ জমা হয়েছে: ' : 'Cashout request submitted: ') +
+                trxid);
+                document.getElementById('cashout-form').reset();
+                return false;
+            }
+            // Set default language
+            setLang('en');
+
+
+            function handleSubmit(event) {
+                const trxid = document.getElementById('trxid').value;
+
+                if (!trxid || trxid.length < 5) { // example validation
+                    document.getElementById('txn_error').innerText = "Please enter a valid TrxID.";
+                    document.getElementById('txn_error').style.display = "block";
+                    event.preventDefault(); // prevent form from submitting
+                    return false;
+                }
+
+                // Let the form submit naturally via POST
+                return true;
+            }
+        </script>
+        @endpush
+
+
+</x-partner-layout>
