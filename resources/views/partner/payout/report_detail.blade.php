@@ -3,155 +3,107 @@
     @lang($page_title)
 @endsection
 @section('content')
-
-<h1 class="text-center">
-    <span class="badge badge-primary">Available to withdraw: <b>{{ $withdrawal_able_amount }} SGD</b></span>
-</h1>
-
-    <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-        <form action="{{ route('partner.payout-log.search') }}" method="get">
-            <div class="row justify-content-between align-items-center">
-                <!--<div class="col-md-3">-->
-                <!--    <div class="form-group">-->
-                <!--        <input type="text" name="name" value="{{@request()->name}}" class="form-control"-->
-                <!--               placeholder="@lang('Email/ Username/ Trx')">-->
-                <!--    </div>-->
-                <!--</div>-->
-                
-                <input type="text" name="name" hidden value="{{@request()->name}}" class="form-control"
-                               placeholder="@lang('Email/ Username/ Trx')">
-                               
-                               
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <input type="date" class="form-control" value="{{@request()->date_time}}" name="date_time" id="datepicker"/>
+    
+    <br>
+    <br>
+    <br>
+    <br>
+    
+    <div class="row">
+    <div class="col-2"></div>
+    <div class="col-4">
+                <div class="card shadow border-right">
+                    <div class="card-body">
+                        <div class="d-flex d-lg-flex d-md-block align-items-center">
+                            <div>
+                                <div class="d-inline-flex align-items-center">
+                                    <h2 class="text-dark mb-1 font-weight-medium">{{$fund_count}}</h2>
+                                </div>
+                                <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Transactions')
+                                </h6>
+                            </div>
+                            <div class="ml-auto mt-md-3 mt-lg-0">
+                                <span class="opacity-7 text-muted"><i class="fas fa-wallet"></i></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <input type="text" name="partner_transection_id" value="{{@request()->partner_transection_id}}" class="form-control" placeholder="@lang('Transection No.')">
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <select name="status" class="form-control">
-                            
-                            <option value="1"
-                                    @if(@request()->status == '1') selected @endif>@lang('Pending Payment')</option>
-                                    <option value="4" @if(@request()->status == '4') selected @endif>@lang('All Payment')</option>
-                            <option value="2"
-                                    @if(@request()->status == '2') selected @endif>@lang('Complete Payment')</option>
-                            <option value="3"
-                                    @if(@request()->status == '3') selected @endif>@lang('Cancel Payment')</option>
-                        </select>
-                    </div>
-                </div>
-
-                
-
-
-        
-                
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="fas fa-search"></i> @lang('Search')</button>
-                    </div>
-                </div>
-
             </div>
-        </form>
+            <div class="col-4">
+                <div class="card shadow border-right">
+                    <div class="card-body">
+                        <div class="d-flex d-lg-flex d-md-block align-items-center">
+                            <div>
+                                <div class="d-inline-flex align-items-center">
+                                    <h2 class="text-dark mb-1 font-weight-medium">{{$fund_sum}}</h2>
+                                </div>
+                                <h6 class="text-muted font-weight-normal mb-0 w-100 text-truncate">@lang('Total Withdrawal Amount')
+                                </h6>
+                            </div>
+                            <div class="ml-auto mt-md-3 mt-lg-0">
+                                <span class="opacity-7 text-muted"><i class="fa fa-hand-holding-usd"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</div>
 
-    </div>
 
 
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
-
+            <b>Date:</b>{{$heading['date']}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <b>Status:</b>{{$heading['status']}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <b>Bank Name:</b>{{$heading['gateway']}}
+            <br><br>
             <div class="table-responsive">
                 <table class="categories-show-table table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                     <tr>
                         <th scope="col">@lang('Date')</th>
                         <th scope="col">@lang('Trx Number')</th>
-                        <th scope="col">@lang('Partner Trx Number')</th>
+                        <th scope="col">@lang('User Account')</th>
                         <th scope="col">@lang('Method')</th>
                         <th scope="col">@lang('Amount')</th>
                         <th scope="col">@lang('Merchant Charge')</th>
                         <th scope="col">@lang('Net Amount')</th>
                         <th scope="col">@lang('Status')</th>
-                        <th scope="col">@lang('Transfer Status')</th>
+                        <!--<th scope="col">@lang('Transfer Status')</th>-->
                         <th scope="col">@lang('Sent From')</th>
-                        <th scope="col">@lang('More')</th>
-                        
+                        <th scope="col">@lang('Account Type')</th>
                     </tr>
                     </thead>
                     <tbody>
                     @forelse($records as $key => $item)
                         <tr>
                             <td data-label="@lang('Date')"> {{ dateTime($item->created_at,'d M,Y H:i') }}</td>
-                            <td data-label="@lang('Trx Number')" class="font-weight-bold text-uppercase">
-                                {{ $item->trx_id }}<br>
-                                <span class="text text-success">{{ optional($item->payout)->txn_id }}</span>
-
-                            </td>
-                            <td>{{ optional($item->payout)->partner_transection_id }}</td>
+                            <td>{{ optional($item->payout)->txn_id }}</td>
                             
+                            <td data-label="@lang('Method')">{{ optional($item->payout)->user_account_no }}</td>
                             <td>{{ optional($item->method)->name }}</td>
                             <td data-label="@lang('Amount')"
                                 class="font-weight-bold">{{ getAmount($item->amount ) }} {{ $basic->currency_symbol }}</td>
                             <td data-label="@lang('Charge')"
-                                class="text-success">{{ optional($item->payout)->charge }} {{ $basic->currency_symbol }}</td>
+                                class="text-success">{{ optional($item->payout)->charge }} {{$basic->currency_symbol}}</td>
                                 
                             <td data-label="@lang('Net Amount')"
-                                class="font-weight-bold">{{ getAmount($item->net_amount) }} {{ $basic->currency_symbol }}</td>
+                                class="font-weight-bold">{{ getAmount($item->net_amount) }} {{$basic->currency_symbol}}</td>
 
                             <td data-label="@lang('Status')" class="text-lg-center text-right">
                                 @if($item->status == 2)
-                                    <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Request Approved')</span>
+                                    <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Completed')</span>
                                 @elseif($item->status == 1)
-                                    <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Request Pending')</span>
+                                    <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Pending')</span>
                                 @elseif($item->status == 3)
-                                    <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Request Rejected')</span>
-                                @endif
-                                <br>
-                                @if($item->payout)
-                                @if($item->payout->status == "Complete")
-                                    <span class="badge badge-light"><i class="fa fa-circle text-success font-12"></i> @lang('Transfered')</span>
-                                @elseif($item->payout->status == "Pending")
-                                    <span class="badge badge-light"><i class="fa fa-circle text-warning font-12"></i> @lang('Transfer Pending')</span>
-                                @elseif($item->payout->status == "Reject")
-                                    <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Transfer Rejected')</span>
-                                @endif
+                                    <span class="badge badge-light"><i class="fa fa-circle text-danger font-12"></i> @lang('Rejected')</span>
                                 @endif
                             </td>
-                            <td data-label="@lang('Method')">{{ optional($item->payout)->status }}</td>
-                            <td data-label="@lang('Method')">
-                                {{ optional($item->payout)->e_wallet_phone_number }}
-                                <br>
-                                {{ optional($item->payout)->e_wallet_type }}
-                            </td>
+                            <!--<td data-label="@lang('Method')">{{ optional($item->payout)->status }}</td>-->
+                            <td data-label="@lang('Method')">{{ optional($item->payout)->e_wallet_phone_number }}</td>
+                            <td data-label="@lang('Method')">{{ optional($item->payout)->e_wallet_type }}</td>
                             
-                                <td data-label="@lang('More')">
-                                    @php
-                                        $details = ($item->information != null) ? json_encode($item->information) : null;
-                                    @endphp
-                                    <button type="button" class="btn btn-primary btn-icon edit_button"
-                                            data-toggle="modal" data-target="#myModal"
-                                            data-route="{{route('partner.payout-action',$item->id)}}"
-                                            data-feedback="{{$item->feedback}}"
-                                            data-info="{{$details}}"
-                                            data-id="{{$item->id}}"
-                                            data-status="{{$item->status}}">
-                                        @if(Request::routeIs('partner.payout-request'))
-                                            <i class="fa fa-pencil-alt"></i>
-                                        @else
-                                            <i class="fa fa-eye"></i>
-                                        @endif
-                                    </button>
-                                </td>
+
 
                         </tr>
                     @empty

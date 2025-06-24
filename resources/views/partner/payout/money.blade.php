@@ -1,13 +1,13 @@
-@extends('partner.layouts.open')
+@extends('partner.layouts.app')
 @section('title', trans($title))
 
 @section('content')
 
 <div class="row g-3 m-3">
     @foreach($gateways as $key => $gateway)
-    <div class="col-lg-2 col-6 col-sm-4 col-md-3">
+    <div class="col-lg-1 col-6 col-sm-4 col-md-3">
         <div class="user-panel">
-            <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($min_withdrawal, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->maximum_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
+            <div class="deposit-box addFund" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-min_amount="{{getAmount($gateway->minimum_amount, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->maximum_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percent_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}" data-backdrop='static' data-keyboard='false' data-bs-toggle="modal" data-bs-target="#makeDeposit">
                 <div class="img-box">
                     <img class="img-fluid gateway" src="{{ getFile(config('location.withdraw.path').$gateway->image)}}" alt="{{$gateway->name}}">
                 </div>
@@ -29,19 +29,18 @@
                 </button>
             </div>
 
-            <form action="{{route('partner.payout.moneyRequest.transection')}}" method="post">
+            <form action="{{route('partner.payout.moneyRequest')}}" method="post">
                 @csrf
                 <div class="modal-body ">
                     <div class="payment-form">
                         <p class="text-danger depositLimit"></p>
-
+                        <p class="text-danger depositCharge"></p>
 
                         <input type="hidden" class="gateway" name="gateway" value="">
                         <div class="form-group">
                             <label>@lang('Amount')</label>
                             <div class="input-box">
                                 <div class="input-group input-group-lg">
-                                    <input type="text" hidden value="{{$username}}" class="amount form-control" name="username">
                                     <input type="text" class="amount form-control" name="amount">
                                     <div class="input-group-append">
                                         <span class="input-group-text show-currency"></span>

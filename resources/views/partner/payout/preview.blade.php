@@ -1,4 +1,4 @@
-@extends('partner.layouts.open')
+@extends('partner.layouts.app')
 @section('title', trans($title))
 
 @section('content')

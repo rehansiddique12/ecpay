@@ -1,26 +1,32 @@
-<x-partner-layout :title="$pageTitle">
+@extends('partner.layouts.app')
+@section('title')
+@lang($page_title)
+@endsection
+@section('content')
+
+
 
 <div class="row">
-
     <div class="col-md-12">
         <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
             <div class="card-body">
-                <h3 style="color: #7367f0">{{ __('partner_basic.Commissions_Summary_en')}}</h3>
+
+
 
                 <div class="table-responsive">
                     <table class="categories-show-table table table-hover table-striped table-bordered">
                         <thead class="thead-dark">
                             <tr>
 
-                                <th scope="col">@lang('partner_basic.Partner/Agent_en')</th>
-                                <th scope="col">@lang('partner_basic.Deposit_Amount_en')</th>
-                                <th scope="col">@lang('partner_basic.Deposit_Charges_en')</th>
-                                <th scope="col">@lang('partner_basic.Deposit_Net_Amount_en')</th>
-                                <th scope="col">@lang('partner_basic.Deposit_Profit_en')</th>
-                                <th scope="col">@lang('partner_basic.Withdrawal_Amount_en')</th>
-                                <th scope="col">@lang('partner_basic.Withdrawal_Charges_en')</th>
-                                <th scope="col">@lang('partner_basic.Withdrawal_Net_Amount_en')</th>
-                                <th scope="col">@lang('partner_basic.Withdrawal_Profit_en')</th>
+                                <th scope="col">@lang('Partner/Agent')</th>
+                                <th scope="col">@lang('Deposit Amount')</th>
+                                <th scope="col">@lang('Deposit Charges')</th>
+                                <th scope="col">@lang('Deposit Net Amount')</th>
+                                <th scope="col">@lang('Deposit Profit')</th>
+                                <th scope="col">@lang('Withdrawal Amount')</th>
+                                <th scope="col">@lang('Withdrawal Charges')</th>
+                                <th scope="col">@lang('Withdrawal Net Amount')</th>
+                                <th scope="col">@lang('Withdrawal Profit')</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -41,7 +47,7 @@
                             @empty
                             <tr>
                                 <td colspan="100%">
-                                    <p class="text-dark">@lang('partner_basic.no_data_found')</p>
+                                    <p class="text-dark">@lang('No Data Found')</p>
                                 </td>
                             </tr>
 
@@ -55,6 +61,10 @@
 
 </div>
 
+
+
+
+@endsection
 @push('js')
 <script>
     "use strict";
@@ -80,4 +90,3 @@
 </script>
 
 @endpush
-</x-partner-layout>

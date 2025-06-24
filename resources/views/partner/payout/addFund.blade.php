@@ -1,12 +1,11 @@
-@extends('partner.layouts.open')
+@extends('partner.layouts.app')
 @section('title')
 @lang('Add Fund')
 @endsection
 @section('content')
-
 <div class="row g-3 m-4">
     @foreach($gateways as $key => $gateway)
-    <div class="col-lg-2 col-6 col-sm-4 col-md-3">
+    <div class="col-lg-1 col-6 col-sm-4 col-md-3">
         <div class="user-panel">
             <div class="deposit-box addFund" data-bs-toggle="modal" data-bs-target="#makeDeposit" data-id="{{$gateway->id}}" data-name="{{$gateway->name}}" data-currency="{{$gateway->currency}}" data-gateway="{{$gateway->code}}" data-qr_image="{{$gateway->qr_image!=''?getFile(config('location.gateway.path').$gateway->qr_image):''}}" data-min_amount="{{getAmount($gateway->min_amount, $basic->fraction_number)}}" data-max_amount="{{getAmount($gateway->max_amount,$basic->fraction_number)}}" data-percent_charge="{{getAmount($gateway->percentage_charge,$basic->fraction_number)}}" data-fix_charge="{{getAmount($gateway->fixed_charge, $basic->fraction_number)}}">
                 <div class="img-box">
@@ -18,7 +17,6 @@
     </div>
     @endforeach
 </div>
-
 @push('loadModal')
 <!-- Deposit Modal -->
 
@@ -34,6 +32,7 @@
                     <div class="payment-form">
                         @if(0 == $totalPayment)
                         <p class="text-danger depositLimit"></p>
+                        <p class="text-danger depositCharge"></p>
                         @endif
                         <input type="hidden" class="gateway" name="gateway" value="">
                         <div class="form-group mb-30">
@@ -128,16 +127,13 @@
         $('.modal-backdrop.fade').addClass('show');
         amount = $('.amount').val();
         account_no = $('.account_no').val();
-        var username = <?= json_encode($username); ?>;
         $.ajax({
-            url: "{{route('partner.addFund.request.open')}}",
+            url: "{{route('partner.addFund.request')}}",
             type: 'POST',
             data: {
-                _token: "{{ csrf_token() }}",
                 amount,
                 gateway,
-                account_no,
-                username
+                account_no
             },
             success(data) {
                 console.log(data);
