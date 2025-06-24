@@ -907,11 +907,11 @@
             // Language dictionary
             const dict = {
                 en: {
-                    'amount-label': 'BDT 500.00',
+                    'amount-label': `{{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk`,
                     'amount-desc': "Don't cash out more or less",
-                    'amount-warning': 'If you change the amount of money (INR 500.00), you will not be able to get credit.',
+                    'amount-warning': `If you change the amount of money (INR {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
                     'wallet-label': 'Wallet No *',
-                    'wallet-note': 'Only cashout is accepted at this BKASH number',
+                    'wallet-note': `This {{ $ewallet_to_show ?? 'wallet' }} number only accpet cashout `,
                     'provider-label': 'Wallet provider',
                     'provider-name': 'BKASH Deposit',
                     'trx-label': 'Enter the TrxID number of the cashout',
