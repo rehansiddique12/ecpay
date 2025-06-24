@@ -624,7 +624,7 @@ Route::middleware(['function_track_middleware'])->group(function () {
     Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
 
     //temp
-    Route::get('iframe4/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection4'])->name('iframe.open');
+    Route::get('iframe4/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection4'])->name('iframe.open4');
     Route::post('process/payment4', [PartnerPayoutRecordController::class,'processNextPayment4'])->name('iframe.payment4');
 
     Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection3'])->name('iframe.direct');
