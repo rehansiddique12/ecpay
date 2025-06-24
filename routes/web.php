@@ -122,7 +122,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     });
 
     //Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
+    Route::get('/create_transaction_log/{id}', [DevFunctionsController::class, 'create_transaction_log']);
 
+    
     Route::group(['middleware' => ['auth:admin']], function () {
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
