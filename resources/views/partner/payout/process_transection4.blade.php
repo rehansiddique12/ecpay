@@ -367,6 +367,191 @@
     </style>
 
 
+  {{-- <style>
+        .circle {
+            width: 30px;
+            height: 30px;
+            background-color: <?= $bgcolor ?>;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            margin: 0 auto 10px;
+        }
+
+        .custombtn {
+            color: #fff;
+            background-color: <?= $bgcolor ?>;
+            border-color: <?= $bgcolor ?>;
+        }
+
+        .custombtn-outline {
+            color: <?= $bgcolor ?>;
+            border-color: <?= $bgcolor ?>;
+        }
+
+        .custombtn-outline:hover {
+            color: #fff;
+            background-color: <?= $bgcolor ?>;
+            border-color: <?= $bgcolor ?>;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .content {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #555;
+            position: relative;
+            padding-left: 25px;
+            width: 95%;
+        }
+
+        .expanded {
+            display: block;
+            white-space: normal;
+            -webkit-line-clamp: unset;
+        }
+    </style>
+    <style>
+        .textanimation {
+            animation: zoomInOut 1.5s infinite;
+            height: 50px;
+        }
+
+        @keyframes zoomInOut {
+            0% {
+                font-size: 12.5px;
+                padding: 0px;
+            }
+
+            15% {
+                font-size: 10px;
+                padding: 12.5px;
+            }
+
+            30% {
+                font-size: 12.5px;
+                padding: 0px;
+            }
+
+            45% {
+                font-size: 10px;
+                padding: 12.5px;
+            }
+
+            60% {
+                font-size: 12.5px;
+                padding: 0px;
+            }
+
+            100% {
+                font-size: 12.5px;
+                padding: 0px;
+            }
+        }
+    </style>
+    <style>
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .toggle-icon {
+            margin-right: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible-content {
+            margin-top: 10px;
+        }
+
+        .hidden-content {
+            display: none;
+        }
+    </style>
+    <style>
+        .header {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .success-text {
+            color: green;
+        }
+
+        .cashout-text {
+            color: red;
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .icon img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .hidden-text {
+            background: #ddd;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            letter-spacing: 3px;
+        }
+
+        .time-section {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .transaction-id {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fcecec;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid #f5a3a3;
+        }
+
+        .transaction-id label {
+            font-size: 14px;
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .transaction-id span {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .copy-icon {
+            cursor: pointer;
+        }
+    </style> --}}
+
     {{-- <style>
         body {
             font-family: "Rajdhani", sans-serif;
@@ -576,232 +761,35 @@
             font-size: 14px;
             font-weight: bold;
         }
-    </style> --}}
+</style> --}}
 
 
 
-    @php
-        $ewallet = strtolower($ewallet);
+@php
+$ewallet = strtolower($ewallet_to_show ?? 'wallet');
 
-        if ($ewallet == 'bkash') {
-            $bangla_ewallet = 'বিকাশ';
-            $time_class = 'bkash-time';
-            $background_image = 'bkash-responsive-row';
-            $button_style = 'bkash-complete-btn';
-            $color = '#e2136e';
-            $bgcolor = '#e2136e';
-            $bgcolorrbga = 'rgb(226, 19, 110,0.2)';
-        }
-        if ($ewallet == 'nagad') {
-            $bangla_ewallet = 'নগদ';
-            $time_class = 'nagad-time';
-            $background_image = 'nagad-responsive-row';
-            $button_style = 'nagad-complete-btn';
-            $color = '#FF9600';
-            $bgcolor = '#FF9600';
-            $bgcolorrbga = 'rgb(255, 150, 0,0.2)';
-        }
-        if ($ewallet == 'rocket') {
-            $bangla_ewallet = 'রকেট';
-            $time_class = 'rocket-time';
-            $background_image = 'rocket-responsive-row';
-            $button_style = 'rocket-complete-btn';
-            $color = '#8F2A85';
-            $bgcolor = '#8F2A85';
-            $bgcolorrbga = 'rgb(143, 42, 133,0.2)';
-        }
-        $amount = $data['amount'];
-    @endphp
-    {{-- <style>
-        .circle {
-            width: 30px;
-            height: 30px;
-            background-color: <?= $bgcolor ?>;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 14px;
-            margin: 0 auto 10px;
-        }
+// Default values
+$imageSrc = '';
+$bgcolor = '#ffffff';
 
-        .custombtn {
-            color: #fff;
-            background-color: <?= $bgcolor ?>;
-            border-color: <?= $bgcolor ?>;
-        }
+if ($ewallet == 'bkash') {
+    $imageSrc = asset('assets/uploads/logo/bkash.png');
+    $bgcolor = '#e2136e';
+} elseif ($ewallet == 'nagad') {
+    $imageSrc = asset('assets/uploads/logo/nagt.png');
+    $bgcolor = '#FF9600';
+} elseif ($ewallet == 'rocket') {
+    $imageSrc = asset('assets/uploads/logo/rocket.png');
+    $bgcolor = '#8F2A85';
+}
+@endphp
 
-        .custombtn-outline {
-            color: <?= $bgcolor ?>;
-            border-color: <?= $bgcolor ?>;
-        }
-
-        .custombtn-outline:hover {
-            color: #fff;
-            background-color: <?= $bgcolor ?>;
-            border-color: <?= $bgcolor ?>;
-        }
-
-        .arrow {
-            position: absolute;
-            top: 0;
-            right: 0;
-            cursor: pointer;
-            font-size: 20px;
-            transition: transform 0.3s;
-        }
-
-        .content {
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-size: 16px;
-            color: #555;
-            position: relative;
-            padding-left: 25px;
-            width: 95%;
-        }
-
-        .expanded {
-            display: block;
-            white-space: normal;
-            -webkit-line-clamp: unset;
-        }
-    </style>
-    <style>
-        .textanimation {
-            animation: zoomInOut 1.5s infinite;
-            height: 50px;
-        }
-
-        @keyframes zoomInOut {
-            0% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-
-            15% {
-                font-size: 10px;
-                padding: 12.5px;
-            }
-
-            30% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-
-            45% {
-                font-size: 10px;
-                padding: 12.5px;
-            }
-
-            60% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-
-            100% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-        }
-    </style>
-    <style>
-        .collapsible-header {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .toggle-icon {
-            margin-right: 10px;
-            transition: transform 0.3s ease;
-        }
-
-        .collapsible-content {
-            margin-top: 10px;
-        }
-
-        .hidden-content {
-            display: none;
-        }
-    </style>
-    <style>
-        .header {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .success-text {
-            color: green;
-        }
-
-        .cashout-text {
-            color: red;
-        }
-
-        .icon {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-        }
-
-        .icon img {
-            width: 24px;
-            height: 24px;
-        }
-
-        .hidden-text {
-            background: #ddd;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            letter-spacing: 3px;
-        }
-
-        .time-section {
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .transaction-id {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fcecec;
-            padding: 8px;
-            border-radius: 5px;
-            margin-top: 10px;
-            border: 1px solid #f5a3a3;
-        }
-
-        .transaction-id label {
-            font-size: 14px;
-            color: #d9534f;
-            font-weight: bold;
-        }
-
-        .transaction-id span {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .copy-icon {
-            cursor: pointer;
-        }
-    </style> --}}
     @if (!empty($message))
         <h3>{{ $message }}</h3>
     @endif
     @if (!empty($data))
     <div class="container">
-        <div class="header">
+        <div class="header" style="background-color: {{ $bgcolor }};">
             <div class="header-row">
                 <div class="header-title" id="amount-label">
                     {{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk
@@ -833,15 +821,18 @@
                         {{ $data['account_type'] ?? 'Account' }}
                     </span><br>
                     <span id="wallet-number">{{ $data['phone_number'] ?? 'N/A' }}</span>
-                    <button class="copy-btn" onclick="copyWallet()" title="Copy">COPY</button>
+                    <button class="copy-btn" onclick="copyWallet()" title="Copy" style="background-color: {{ $bgcolor }};">COPY</button>
                 </div>
             </div>
 
             <div class="form-group" style="text-align:center;">
                 <div class="form-label" id="provider-label">Wallet provider</div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:18px;">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROC50Fgc9-vfHOJFM4eWgCuhxxpX7rND_lmA&s"
-                        alt="bKash" style="height:150px;width:auto;display:block;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:18px;  padding: 20px; border-radius: 10px;">
+                    @if($imageSrc)
+                        <img src="{{ $imageSrc }}" alt="{{ ucfirst($ewallet) }} logo" style="height:150px;width:auto;display:block;">
+                    @else
+                        <span>No wallet selected</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -876,7 +867,7 @@
             <input type="hidden" id="fund_id" name="fund_id" value="{{ $data['gate_id'] ?? '' }}">
             <input type="hidden" name="time" value="{{ time() }}">
 
-            <button class="submit-btn" type="submit" id="submit-btn">
+            <button class="submit-btn" type="submit" id="submit-btn" style="background-color: {{ $bgcolor }};">
                 Confirm and Submit | জমা দিন
             </button>
         </form>
