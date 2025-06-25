@@ -730,6 +730,11 @@
                                     Adjustment
                                 </button>
                                 <button class="px-4 btn btn-sm btn-adjustment ${showAdjustment}" style="background-color: rgb(124, 3, 180); color: white;">Manual Process</button>
+                                <button class="px-4 btn btn-sm btn-retry"
+            data-id="${transaction.id}"
+            style="background-color: rgb(190, 3, 190); color: white;">
+        Retry
+    </button>
                             </div>
                         </div>
                     </div>
@@ -970,12 +975,29 @@
             $.each(notifications, function (index, notification) {
                 // Calculate the time difference in minutes
                 const createdAt = new Date(notification.updated_at);
-                const currentTime = new Date();
-                const timeDiffInMs = currentTime - createdAt;
-                const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
+const currentTime = new Date();
+const timeDiffInMs = currentTime - createdAt;
+const timeDiffInMin = Math.floor(timeDiffInMs / 60000); // Convert ms to minutes
 
-                // Determine the display text for time difference
-                let timeAgo = timeDiffInMin === 0 ? "Just now" : `${timeDiffInMin} min ago`;
+let timeAgo = '';
+
+if (timeDiffInMin < 1) {
+    timeAgo = "Just now";
+} else if (timeDiffInMin === 30) {
+    timeAgo = "Half hour ago";
+} else if (timeDiffInMin < 60) {
+    timeAgo = `${timeDiffInMin} min ago`;
+} else {
+    const hours = Math.floor(timeDiffInMin / 60);
+    const minutes = timeDiffInMin % 60;
+
+    if (minutes === 0) {
+        timeAgo = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+        timeAgo = `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} min ago`;
+    }
+}
+
 
                 // Access e-wallet data through relationship
                 const ewallet = notification.ewallet_account;
@@ -1034,10 +1056,29 @@
 
             $.each(pendingList, function (index, item) {
                 let createdAt = new Date(item.updated_at);
-                let now = new Date();
-                let diffMs = now - createdAt;
-                let diffMins = Math.floor(diffMs / 60000);
-                let timeAgo = diffMins > 0 ? `${diffMins} min ago` : 'Just now';
+let now = new Date();
+let diffMs = now - createdAt;
+let diffMins = Math.floor(diffMs / 60000);
+
+let timeAgo = '';
+
+if (diffMins < 1) {
+    timeAgo = 'Just now';
+} else if (diffMins === 30) {
+    timeAgo = 'Half hour ago';
+} else if (diffMins < 60) {
+    timeAgo = `${diffMins} min ago`;
+} else {
+    let hours = Math.floor(diffMins / 60);
+    let minutes = diffMins % 60;
+
+    if (minutes === 0) {
+        timeAgo = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+        timeAgo = `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} min ago`;
+    }
+}
+
 
                 let pendingHtml = `
                 <div class="w-full py-2 px-4 items-center text-white d-flex justify-content-between"
@@ -1082,7 +1123,7 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function (response) {
-                        $(document).trigger('fetchrecords', [txnId, 'payout']);
+                        $(document).trigger('fetchrecords', [id, 'payout']);
                         Swal.fire({
                     icon: 'success',
                     title: 'Hurry!',
@@ -1291,6 +1332,45 @@
         });
 
     </script>
+
+<script>
+    $(document).on('click', '.btn-retry', function () {
+        let id = $(this).data('id');
+        let button = $(this);
+
+        $.ajax({
+            url: '{{ route("admin.payout.retry") }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id
+            },
+            beforeSend: function () {
+                button.prop('disabled', true).text('Retrying...');
+            },
+            success: function (response) {
+                if (response.status) {
+                    Toast.fire({
+                            icon: "success",
+                            title: response.message,
+                        });
+                        setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    alert('Failed: ' + response.message);
+                }
+            },
+            error: function (xhr) {
+                alert('Error: ' + xhr.responseJSON?.message || 'Unknown error');
+            },
+            complete: function () {
+                button.prop('disabled', false).text('Retry');
+            }
+        });
+    });
+</script>
+
 
 
     @endpush

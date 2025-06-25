@@ -5678,6 +5678,24 @@ class PayoutRecordController extends Controller
         'lowPerformance'));
     }
 
+    public function retry(Request $request)
+{
+    $payout = Payout::where('id', $request->id)->first();
+
+    if (!$payout) {
+        return response()->json(['status' => false, 'message' => 'Payout not found or not of type Payout.'], 404);
+    }
+
+    $payout->status = 'Pending';
+    $payout->transfer_status = 2;
+    $payout->save();
+
+    return response()->json(['status' => true, 'message' => 'Payout status updated.']);
+}
+
+
+
+
     // NotificationController.php
 public function markAsRead(Notification $notification)
 {
@@ -5735,6 +5753,7 @@ public function markAsRead(Notification $notification)
             $q->where(function ($subQuery) use ($query) {
                 $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
                          ->orWhere('member_id', 'like', '%' . $query . '%')
+                         ->orWhere('id', 'like', '%' . $query . '%')
                          ->orWhere('txn_id', 'like', '%' . $query . '%');
             });
         })

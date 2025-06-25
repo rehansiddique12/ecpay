@@ -221,6 +221,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/partner_account_summary', [ReportsController::class, 'partner_account_summary'])->name('reports.partner_account_summary');
         Route::get('reports/merchant_charges_summary', [ReportsController::class, 'merchant_charges_summary'])->name('reports.merchant_charges_summary');
         Route::get('reports/daily_transection_summary', [ReportsController::class, 'daily_transection_summary'])->name('reports.daily_transection_summary');
+        Route::post('/payout/retry', [PayoutRecordController::class, 'retry'])->name('payout.retry');
         Route::get('payment_gateway_performance_report', [PaymentMethodController::class, 'payment_gateway_report'])->name('payment.payment_gateway_report');
         Route::get('payment_gateway_performance_report_detail/{id?}/{from_date?}/{to_date?}', [PaymentMethodController::class, 'payment_gateway_report_detail'])->name('payment.payment_gateway_report_detail');
         Route::get('reports/merchant_charges_summary/search', [ReportsController::class, 'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
