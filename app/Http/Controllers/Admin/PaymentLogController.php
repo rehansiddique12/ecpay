@@ -1257,6 +1257,114 @@ class PaymentLogController extends Controller
                     throw new \Exception("This Payment Already Rejected.");
                 }
 
+
+                if ($data->status == "Complete") {
+
+
+
+                    $partner_api_key = Api::where('id', $data->api_id)->lockForUpdate()->firstOrFail();
+                    $partner_api_key->balance -= ($data->amount - $data->charge);
+                    $partner_api_key->save();
+
+                    $Log = new Log();
+                    $Log->date_time = $data->updated_at;
+                    $Log->final_amount = - ($data->amount - $data->charge);
+                    $Log->balance = $partner_api_key->balance;
+                    $Log->transection_type = 9;
+                    $Log->transection_id = $data->id;
+                    $Log->partner_id = $data->api_id;
+                    $Log->source = 'AdminPanel';
+                    $Log->save();
+
+                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
+                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                        $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($data->amount - $data->charge);
+                        $amount_to_update = round($amount_to_update, 2);
+                        // $amount_to_update = floor($amount_to_update * 100) / 100;
+                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                        $DailyPartnerSummary_record->save();
+
+                        $summary_log = new DailyPartnerSummaryLog();
+                        $summary_log->partner_id = $partner_api_key->id;
+                        $summary_log->partner_balance = $partner_api_key->balance;
+                        $summary_log->payment_id = $data->id;
+                        $summary_log->total_amount = -($data->amount - $data->charge);
+                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                        $summary_log->source = 'AdminPanel';
+                        $summary_log->save();
+                    }
+
+                    $PartnerCommissions = PartnerCommission::where('transaction_id', $data->id)->where('type', 1)->where('status', 1)->get();
+                    foreach ($PartnerCommissions as $PartnerCommission) {
+                        $PartnerCommission->status = 0;
+                        $PartnerCommission->save();
+                        $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->firstOrFail();
+                        if ($parent_api_key) {
+                            $parent_api_key->balance -= $PartnerCommission->profit;
+                            $parent_api_key->save();
+
+                            $Log = new Log();
+                            $Log->date_time = $PartnerCommission->created_at;
+                            $Log->final_amount = -$PartnerCommission->profit;
+                            $Log->balance = $parent_api_key->balance;
+                            $Log->transection_type = 10;
+                            $Log->transection_id = $PartnerCommission->id;
+                            $Log->partner_id = $PartnerCommission->from_id;
+                            $Log->source = 'AdminPanel';
+                            $Log->save();
+
+                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
+                                $amount_to_update = round($amount_to_update, 2);
+                                // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                $DailyPartnerSummary_record->save();
+
+                                $summary_log = new DailyPartnerSummaryLog();
+                                $summary_log->partner_id = $parent_api_key->id;
+                                $summary_log->partner_balance = $parent_api_key->balance;
+                                $summary_log->payment_id = $PartnerCommission->id;
+                                $summary_log->total_amount = -$PartnerCommission->profit;
+                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                $summary_log->source = 'AdminPanel';
+                                $summary_log->save();
+                            }
+                        }
+                    }
+
+
+                    $account = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
+                        ->where('account_no', $data->e_wallet_phone_number)
+                        ->lockForUpdate()->firstOrFail();
+                    if ($account) {
+                        //E-Wallet Account Log Save
+                        $previous_account_balance = number_format($account->balance, 2, '.', '');
+
+                        $account->balance -= $data->amount;
+                        $account->daily_received -= $data->amount;
+                        $account->monthly_received -= $data->amount;
+                        $account->received -= $data->amount;
+                        $account->save();
+
+                        $e_wallet_log_save = new EWalletLog();
+                        $e_wallet_log_save->previous_balance = $previous_account_balance;
+                        $e_wallet_log_save->amount = -$data->amount;
+                        $e_wallet_log_save->charge = isset($data->fee) ? $data->fee : 0.00;
+                        $e_wallet_log_save->commission = isset($data->commission) ? $data->commission : 0.00;
+
+                        $e_wallet_log_save->final_amount = -($data->amount + $data->fee - $data->commission);
+                        $e_wallet_log_save->balance = ($previous_account_balance + $e_wallet_log_save->final_amount);
+                        $e_wallet_log_save->transaction_type = 3;
+                        $e_wallet_log_save->transaction_id = $data->id;
+                        $e_wallet_log_save->account_id = $account->id;
+                        $e_wallet_log_save->source = "action";
+                        $e_wallet_log_save->save();
+                    }
+                }
+
                 $data->status = "Reject";
                 $data->feedback = $request->feedback;
 

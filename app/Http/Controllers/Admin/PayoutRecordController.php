@@ -1065,7 +1065,6 @@ class PayoutRecordController extends Controller
 
                     $account = EWalletAccount::where('e_wallet_name', $data->e_wallet_name)
                         ->where('account_no', $data->e_wallet_phone_number)
-                        ->where('status', 1)
                         ->lockForUpdate()->firstOrFail();
                     if ($account) {
                         //E-Wallet Account Log Save

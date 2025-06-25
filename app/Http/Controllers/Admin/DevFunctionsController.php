@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Api;
 use App\Models\Log;
 use App\Models\Payout;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\Commission;
 use App\Models\EWalletLog;
@@ -111,10 +112,10 @@ class DevFunctionsController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -123,7 +124,7 @@ class DevFunctionsController extends Controller
                         })
                         ->values()
                         ->first();
-                    
+
 
                     if (!$account) {
                         DB::rollBack();
@@ -704,6 +705,39 @@ class DevFunctionsController extends Controller
         } else {
             return (int)$string;
         }
+    }
+
+    public function create_transaction_log()
+    {
+        DB::beginTransaction();
+        try {
+
+            $trans_ids=['762204' ,'760347' , '760249' , '759176'];
+            $data = Payment::whereIn('id', $trans_ids)->lockForUpdate()->get();
+            foreach($data as $record)
+            {
+                $Log = new Log();
+                $Log->date_time = $record->updated_at;
+                $Log->final_amount = $record->amount - $record->charge;
+                $Log->balance = 0;
+                $Log->transection_type = 1;
+                $Log->transection_id = $record->id;
+                $Log->partner_id = $record->api_id;
+                $Log->source = 'Telegram';
+                $Log->created_at = $record->updated_at;
+                $Log->updated_at = $record->updated_at;
+                $Log->save();
+            }
+
+            DB::commit();
+            echo'done';
+            exit;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', $e->getMessage());
+            exit;
+        }
+
     }
 
 }
