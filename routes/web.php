@@ -122,9 +122,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     });
 
     //Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
-    Route::get('/create_transaction_log/{id}', [DevFunctionsController::class, 'create_transaction_log']);
+    Route::get('/create_transaction_log', [DevFunctionsController::class, 'create_transaction_log']);
 
-    
+
     Route::group(['middleware' => ['auth:admin']], function () {
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
@@ -632,7 +632,7 @@ Route::middleware(['function_track_middleware'])->group(function () {
     Route::post('process/payment2', [PartnerPayoutRecordController::class,'processNextPayment2'])->name('iframe.payment2');
     Route::post('process/payment3', [PartnerPayoutRecordController::class,'processNextPayment3'])->name('iframe.payment3');
     Route::post('partner/verify/txn', [PartnerPayoutRecordController::class,'verifytxn'])->name('partner.verify.txn');
-    
+
 
 });
 

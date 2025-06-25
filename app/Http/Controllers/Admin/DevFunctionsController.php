@@ -707,49 +707,30 @@ class DevFunctionsController extends Controller
         }
     }
 
-    public function create_transaction_log($id)
+    public function create_transaction_log()
     {
         DB::beginTransaction();
         try {
-            $data = Payment::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        
-
-                if($payment){
-                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
-                    if ($check_payment_txn) {
-                        DB::rollBack();
-                        throw new \Exception("By This Txn no, Payment Already Completed.");
-                    }
-                }
-             
+            $trans_ids=['762204' ,'760347' , '760249' , '759176'];
+            $data = Payment::whereIn('id', $trans_ids)->lockForUpdate()->get();
+            foreach($data as $record)
+            {
                 $Log = new Log();
-                $Log->date_time = $payment->updated_at;
-                $Log->final_amount = $net_amount;
-                $Log->balance = $partner_api_key->balance;
+                $Log->date_time = $record->updated_at;
+                $Log->final_amount = $record->amount - $record->charge;
+                $Log->balance = 0;
                 $Log->transection_type = 1;
-                $Log->transection_id = $data->id;
-                $Log->partner_id = $partner_api_key->id;
-                $Log->source = 'AdminPanel';
+                $Log->transection_id = $record->id;
+                $Log->partner_id = $record->api_id;
+                $Log->source = 'Telegram';
+                $Log->created_at = $record->updated_at;
+                $Log->updated_at = $record->updated_at;
                 $Log->save();
-               
+            }
 
-           
-                //$data->status = 1;
-                $data->feedback = @$req['feedback'];
-                //$data->payment_id = $payment->id;
-                //$data->created_at = $data->created_at;
-                //$data->trans_completed_date = Carbon::now();
-                $data->save();
-
-                DB::commit();
-            
-
-            
-                session()->flash('success', 'Approve Successfully');
-           
-          
-          
+            DB::commit();
+            echo'done';
             exit;
         } catch (\Exception $e) {
             DB::rollBack();
