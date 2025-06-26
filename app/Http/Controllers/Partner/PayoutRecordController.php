@@ -1952,24 +1952,28 @@ class PayoutRecordController extends Controller
 
         $logo = "";
         $ewallet_to_show = "";
+        $ewallet_to_show_bangla = "";
 
         if ($ewalletee == 'bkash') {
-            $logo = asset('assets/images/ifram2_bkash_logo.png');
+            $logo = asset('assets/images/bkash4.png');
             $ewallet_to_show = "bKash";
+            $ewallet_to_show_bangla = "বিকাশ";
         }
         if ($ewalletee == 'nagad') {
-            $logo = asset('assets/images/ifrmrame_Nagad_Logo.png');
+            $logo = asset('assets/images/nagad4.png');
             $ewallet_to_show = "Nagad";
+            $ewallet_to_show_bangla = "নগদ";
         }
         if ($ewalletee == 'rocket') {
-            $logo = asset('assets/images/iframe_rocket_logo.png');
+            $logo = asset('assets/images/rocket4.png');
             $ewallet_to_show = "Rocket";
+            $ewallet_to_show_bangla = "রকেট";
         }
 
         $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
         if (!$gate) {
             $message = "Gateway is inactive.";
-            return view('partner.payout.process_transection4', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
         $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
@@ -2053,7 +2057,7 @@ class PayoutRecordController extends Controller
             }
         } else {
             $message = "Wrong Username OR Username Not Exist";
-            return view('partner.payout.process_transection4', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
@@ -2061,22 +2065,22 @@ class PayoutRecordController extends Controller
 
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
-            return view('partner.payout.process_transection4', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
         if ($gate->max_amount < $amount) {
             $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
-            return view('partner.payout.process_transection4', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
         $data['gate_id'] = $gate->id;
-        $data['phone_number'] = "Loading...";
+        $data['phone_number'] = "Loading......";
 
 
         // setting for theme style
-        return view('partner.payout.process_transection4', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+        return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
     }
 
     public function processNextPayment2(Request $request)
@@ -2545,6 +2549,13 @@ class PayoutRecordController extends Controller
         $fund_id = $request->fund_id;
 
 
+        $Txn = Txn::where('txn_no', $request->txn)->orderBy('id', 'DESC')->first();
+        if ($Txn) {
+            $message = "This TXN no already used for another transection!";
+            return back()->with('error', $message);
+        }
+
+
 
         $api_key = API::where('username', $username)->where('status', 1)->where('type', 'Admin')->first();
         if ($api_key) {
@@ -2692,8 +2703,7 @@ class PayoutRecordController extends Controller
                     $currentMonth = now()->format('Y-m');
                     $now = Carbon::now();
                     $twoHoursAgo = $now->subHours(2);
-
-                    $Txn = Txn::where('txn_no', $request->txn)->where('api_id', $api_id)->where('partner_transection_id', $order->partner_transection_id)->orderBy('id', 'DESC')->first();
+                    
                     if (!$Txn) {
                         $Txn = new Txn();
                         $Txn->txn_no = $request->txn;
@@ -2721,6 +2731,7 @@ class PayoutRecordController extends Controller
                         $check_payment_txn = Payment::where('txn_id', $payment_record->txn_id)->first();
                         if ($check_payment_txn) {
                             DB::rollBack();
+                            $processing = 2;
                             $message = "By This Txn no, Payment Already Completed.";
                             return view('partner.payout.paymentProcessingIframe4', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime', 'url', 'txn_id'));
                         }
@@ -2959,6 +2970,10 @@ class PayoutRecordController extends Controller
                                 //
                             }
                         }
+
+                        $processing = 2;
+                        $message = "Your transaction has been successfully completed";
+                        return view('partner.payout.paymentProcessingIframe4', compact('order', 'processing', 'id', 'logo', 'banner', 'ewallet', 'message', 'remainingTime', 'url', 'txn_id'));
                     }
 
                     $processing = 1;
