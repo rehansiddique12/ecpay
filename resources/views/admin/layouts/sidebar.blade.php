@@ -72,6 +72,7 @@ $isTransactionActive = in_array(Route::currentRouteName(), [
 'admin.payout.report.daily',
 'admin.payout.report.daily.search',
 'admin.audit_logs.index',
+'admin.tracking.index',
 ]);
 // $isAccountsActive =
 // Request::routeIs('admin.accounts.add') ||
@@ -962,6 +963,16 @@ $languages = [
                             </a>
                         </li>
                         @endif
+                        {{-- @if (adminAccessRoute(config('role.audit_logs.access.view'))) --}}
+                        <li
+                            class="menu-item {{ in_array(Route::currentRouteName(), ['admin.tracking.index']) ? 'active' : '' }}">
+                            <a href="{{ route('admin.tracking.index') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-file-dollar"></i>
+                                <div data-i18n="Audit Log">{{ __('sidebar.cs Tracker') }}</div>
+                            </a>
+                        </li>
+                        {{-- @endif --}}
+
                         @if (adminAccessRoute(config('role.deposit_last_hour_report.access.view')))
                         <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payment.log2']) ? 'active' : '' }}">

@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Models\ApiHit;
 use App\Models\ApiLog;
 use App\Models\Payout;
+use App\Models\CsTracker;
 use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
@@ -5596,10 +5597,34 @@ class PayoutRecordController extends Controller
         }
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
             ->where('status', 'Pending')
-            ->where('check_by', 0)
+            // ->where('check_by', 0)
             ->orderBy('id', 'desc')
             ->take(5)
             ->get();
+
+            foreach ($pending_list as $payout) {
+                // Check if this payout is already being tracked
+                $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                                          ->whereNull('to')
+                                          ->first();
+
+                if ($existingTracker) {
+                    // Update only the user_id if different user accesses it
+                    if ($existingTracker->user_id != auth()->id()) {
+                        $existingTracker->update([
+                            'user_id' => auth()->id()
+                        ]);
+                    }
+                } else {
+                    // Create new record if doesn't exist
+                    CsTracker::create([
+                        'user_id' => auth()->id() ?? null,
+                        'action' => 'Pending Payout ID: ' . $payout->id,
+                        'from' => now(),
+                        'to' => null
+                    ]);
+                }
+            }
 
             $notifications = Notification::with('ewalletAccount')
             ->where('user_id',0)
@@ -5695,17 +5720,26 @@ class PayoutRecordController extends Controller
 
 
 
-    // NotificationController.php
+
 public function markAsRead(Notification $notification)
 {
     $notification->update([
         'user_id' => auth()->id()
     ]);
+
     AuditLog::create([
         'user_id' => auth()->id(),
         'module' => 'Notification Workboard',
-        'description' => 'Notification marked as read by user'. auth()->user()->name,
+        'description' => 'Notification marked as read by '. auth()->user()->name,
         'module_id' => $notification->ewallet_account_id,
+    ]);
+
+    // Add tracking record
+    CsTracker::create([
+        'user_id' => auth()->id(),
+        'action' => auth()->user()->name . ' closed the notification',
+        'from' => $notification->created_at,
+        'to' => now(),
     ]);
 
     return response()->json(['success' => true]);
