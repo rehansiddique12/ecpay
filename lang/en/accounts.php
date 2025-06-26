@@ -18,7 +18,7 @@ return [
     'update' => 'Update',
     'close' => 'Close',
     'edit_record' => 'Edit Record',
-    
+
 
     // E-Wallet Test
     'all_accounts' => 'All Accounts',
@@ -75,7 +75,7 @@ return [
     'w' => 'W',
 
 
-    // New 
+    // New
     'add_balance' => 'Add Balance',
     'edit_balance' => 'Edit Balance',
     'charges%' => 'Charges %',
@@ -199,6 +199,8 @@ return [
     'failed_to_update_status' => 'Failed to update status',
     'something_went_wrong' => 'Something went wrong!',
     'account_type_updated' => 'Account type updated successfully',
+    'gateway_deposit_updated' => 'Gateway Deposit status updated successfully.',
+    'gateway_withdrawal_updated' => 'Gateway Withdrawal status updated successfully.',
 
 
     // Account Group
@@ -227,7 +229,7 @@ return [
     'action' => 'Action',
     'processing' => 'Processing...',
     'save' => 'Save',
-    
+
     'add_new_gateway' => 'Add New Gateway',
     'name' => 'Name',
     'currency' => 'Currency',

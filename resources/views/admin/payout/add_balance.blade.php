@@ -49,18 +49,6 @@
                             </div>
                         </div>
 
-
-
-                        <!--<div class="col-md-12">-->
-                        <!--    <div class="form-group">-->
-                        <!--        <label class="pr-3">Adjustment</label>-->
-
-                        <!--    </div>-->
-                        <!--</div>-->
-
-
-
-
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="pr-3 mt-4">{{ __('partner.type') }}</label>

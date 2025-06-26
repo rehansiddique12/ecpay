@@ -288,6 +288,19 @@ $arr = [
         ],
     ],
 
+     'audit_logs' => [
+        'label' => 'Audit Logs',
+        'access' => [
+            'view' => [
+                'admin.audit_logs.index'
+            ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
    'deposit_last_hour_report' => [
         'label' => 'Deposit Last Hour Reports',
         'access' => [
@@ -515,10 +528,6 @@ $arr = [
         'access' => [
             'view' => [
                 'admin.accounts',
-                'admin.payout-report.search',
-                'admin.payout.report.daily',
-                'admin.payout.report.daily.search',
-                'admin.payout.report.detail',
             ],
             'add' => [
                 'admin.accounts.add',

@@ -27,19 +27,27 @@
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="d-flex d-lg-flex d-md-block align-items-center">
             <h4 class="mb-10 text-primary font-weight-medium ">@lang('partner_basic.Adjustments_en')</h4>
-            <div class="ml-20 d-flex gap-5 mb-10" style="margin-left: 30px;">
-                <button type="button"
-                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-today">@lang('partner_basic.Today_en')</button>
+            <form id="dateFilterForm" action="{{ route('partner.partner.balance.search') }}" method="GET">
+                @csrf
 
-                <button type="button"
-                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
-                    id="btn-yesterday">@lang('partner_basic.Yesterday_en')</button>
+                <input type="hidden" id="from_date" name="from_date" value="{{ request('from_date') }}">
+                <input type="hidden" id="to_date" name="to_date" value="{{ request('to_date') }}">
 
-                <button type="button"
-                    class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
-                    id="btn-last7">@lang('partner_basic.Last_7_days_en')</button>
-            </div>
+                <div class="ml-20 d-flex gap-3 mb-4" style="margin-left: 30px;">
+                    <button type="button"
+                        class="btn btn-yellow btn-date-filter {{ request('from_date') == $today && request('to_date') == $today ? 'active' : '' }}"
+                        id="btn-today">@lang('partner_basic.Today_en')</button>
+
+                    <button type="button"
+                        class="btn btn-yellow btn-date-filter {{ request('from_date') == $yesterday && request('to_date') == $yesterday ? 'active' : '' }}"
+                        id="btn-yesterday">@lang('partner_basic.Yesterday_en')</button>
+
+                    <button type="button"
+                        class="btn btn-yellow btn-date-filter {{ request('from_date') == $last7 && request('to_date') == $today ? 'active' : '' }}"
+                        id="btn-last7">@lang('partner_basic.Last_7_days_en')</button>
+                </div>
+            </form>
+
         </div>
         <form action="{{ route('partner.partner.balance.search') }}" method="get">
 
@@ -78,27 +86,26 @@
                     </div>
                 </div>
 
-
-                <div class="col-md-4">
+            <div class="d-flex justify-contant-center gap-5 mt-5">
+                <div class="col-md-3">
                     <label>@lang('partner_basic.Search_by_Name_en') </label>
-                    <input type="text" class="form-control" name="search_by_name" id="searchInput" placeholder="Type name...">
+                    <input type="text" class="form-control" name="search_by_name" id="searchInput"
+                        placeholder="Type name...">
                 </div>
 
 
-                <div class="col-md-1">
-                    <div class="form-group">
-                        <br>
-                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
+
+                    <div class="form-group mt-5">
+                        <button type="submit" class="btn waves-effect waves-light btn-primary"><i class="icon-base ti tabler-search me-1"></i> @lang('partner_basic.search')</button>
+                    </div>
+
+                    <div class="mt-5">
+                        <a href="{{ route('admin.blance_export', ['from_date' => @request()->from_date, 'to_date' => @request()->to_date, 'partner' => @request()->partner, 'search_by_name' => @request()->search_by_name, 'adjustment' => @request()->adjustment]) }}"
+                            class="btn waves-effect waves-light btn-success" id="exportButton">
+                            <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
+                        </a>
                     </div>
                 </div>
-                {{--
-                <div class="form-group mt-2">
-                    <a href="{{ route('partner.PaymentLogController.export_by_blance', ['from_date' => $from_date]) }}"
-                        class="btn waves-effect waves-light btn-success" id="exportButton">
-                        <i class="icon-base ti tabler-download me-1"></i> @lang('Export')
-                    </a>
-                </div> --}}
 
             </div>
         </form>
@@ -108,20 +115,18 @@
         <div class="col-md-12">
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
                 <div class="card-body">
-                    <h3 style="color: #7367f0">{{ __('partner_basic.Adjustments_en')}}</h3>
+                    <h3 style="color: #7367f0">{{ __('partner_basic.Adjustments_en') }}</h3>
                     <div class="table-responsive">
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
 
-                                    <th scope="col">@lang('partner_basic.Name_en')</th>
-                                    <th scope="col">@lang('partner_basic.User_Name_en')</th>
-                                    <th scope="col">@lang('partner_basic.Website_en')</th>
+
+                                    <th scope="col">@lang('partner_basic.Created_At_en')</th>
                                     <th scope="col">@lang('partner_basic.Amount_en')</th>
                                     <th scope="col">@lang('partner_basic.Charges_en')</th>
                                     <th scope="col">@lang('partner_basic.Adjustment_Type_en')</th>
                                     <th scope="col">@lang('partner_basic.Remarks_en')</th>
-                                    <th scope="col">@lang('partner_basic.Created_At_en')</th>
 
 
                                 </tr>
@@ -130,9 +135,8 @@
                                 @forelse($records as $key => $item)
                                     @if (isset($item->api))
                                         <tr>
-                                            <td>{{ $item->api->name }}</td>
-                                            <td>{{ $item->api->username }}</td>
-                                            <td>{{ $item->api->website }}</td>
+                                            
+                                            <td>{{ convertToUserTimezone($item->created_at) }}</td>
                                             <td>{{ $item->amount }}</td>
                                             <td>{{ $item->charges }}</td>
 
@@ -156,7 +160,6 @@
                                                 @endif
                                             </td>
                                             <td>{{ $item->reason }}</td>
-                                            <td>{{ convertToUserTimezone($item->created_at) }}</td>
                                         </tr>
                                     @endif
                                 @empty
@@ -201,6 +204,7 @@
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const dd = String(today.getDate()).padStart(2, '0');
                 const todayStr = `${yyyy}-${mm}-${dd}`;
+                const form = document.getElementById('dateFilterForm');
 
                 function setDateInputs(from, to) {
                     document.getElementById('from_date').value = from;
@@ -215,8 +219,6 @@
                 document.getElementById('btn-today').addEventListener('click', function() {
                     setDateInputs(todayStr, todayStr);
                     setActiveButton('btn-today');
-                    const form = document.querySelector(
-                        'form[action="{{ route('admin.payment.report.search') }}"]');
                     form.submit();
                 });
 
@@ -229,8 +231,6 @@
                     const yesterdayStr = `${yyy}-${mmm}-${ddd}`;
                     setDateInputs(yesterdayStr, yesterdayStr);
                     setActiveButton('btn-yesterday');
-                    const form = document.querySelector(
-                        'form[action="{{ route('admin.payment.report.search') }}"]');
                     form.submit();
                 });
 
@@ -243,13 +243,10 @@
                     const fromStr = `${yyy}-${mmm}-${ddd}`;
                     setDateInputs(fromStr, todayStr);
                     setActiveButton('btn-last7');
-                    const form = document.querySelector(
-                        'form[action="{{ route('admin.payment.report.search') }}"]');
                     form.submit();
                 });
             });
         </script>
-
     @endpush
 
 </x-partner-layout>

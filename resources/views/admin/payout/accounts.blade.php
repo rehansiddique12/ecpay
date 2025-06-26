@@ -337,31 +337,37 @@
             }, 10000); // 10 seconds
         });
 
-        $(document).on('change', '.toggle-status', function() {
-            let accountId = $(this).data('id');
-            let isChecked = $(this).is(':checked');
+        $(document).on('change', '.toggle-status', function () {
+    let accountId = $(this).data('id');
+    let isChecked = $(this).is(':checked');
 
-            $.ajax({
-                url: '/admin/accounts/' + accountId + '/status',
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        let status = response.status === 1 ? '{{ __('accounts.active') }}' :
-                            '{{ __('accounts.inactive') }}';
-                        toastr.success('{{ __('accounts.status_updated_to') }} ' + status);
-                    } else {
-                        toastr.error('{{ __('accounts.something_went_wrong') }}');
-                    }
-                },
-                error: function() {
-                    toastr.error('{{ __('accounts.status_update_failed') }}');
-                }
-            });
-        });
+    $.ajax({
+        url: 'accounts/' + accountId + '/status',
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}'
+        },
+        success: function (response) {
+            if (response.success) {
+                let status = response.status === 1
+                    ? '{{ __("accounts.active") }}'
+                    : '{{ __("accounts.inactive") }}';
 
+                // Optional: replace this with `toastr.success(...)` if using toastr
+                alert('Status updated to: ' + status);
+            } else {
+                alert('Something went wrong: ' + response.message);
+            }
+        },
+        error: function (xhr) {
+            let errorMsg = xhr.responseJSON?.message || 'Unknown error occurred.';
+            alert('Error: ' + errorMsg);
+
+            // Optional: if using toastr
+            // toastr.error('Error: ' + errorMsg);
+        }
+    });
+});
 
         $(document).ready(function() {
             $('form[action="{{ route('admin.account.balance.add') }}"]').on('submit', function(e) {
@@ -467,30 +473,30 @@
                 });
             });
 
-            $(document).on('change', '.toggle-status', function() {
-                let accountId = $(this).data('id');
-                let status = $(this).is(':checked') ? 1 : 0;
+            // $(document).on('change', '.toggle-status', function() {
+            //     let accountId = $(this).data('id');
+            //     let status = $(this).is(':checked') ? 1 : 0;
 
-                $.ajax({
-                    url: '{{ route('admin.ewallet-account.toggleStatus') }}',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        id: accountId,
-                        status: status
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            alert('{{ __('accounts.status_updated_successfully') }}');
-                        } else {
-                            alert('{{ __('accounts.failed_to_update_status') }}');
-                        }
-                    },
-                    error: function() {
-                        alert('{{ __('accounts.something_went_wrong') }}');
-                    }
-                });
-            });
+            //     $.ajax({
+            //         url: '{{ route('admin.ewallet-account.toggleStatus') }}',
+            //         method: 'POST',
+            //         data: {
+            //             _token: '{{ csrf_token() }}',
+            //             id: accountId,
+            //             status: status
+            //         },
+            //         success: function(response) {
+            //             if (response.success) {
+            //                 alert('{{ __('accounts.status_updated_successfully') }}');
+            //             } else {
+            //                 alert('{{ __('accounts.failed_to_update_status') }}');
+            //             }
+            //         },
+            //         error: function() {
+            //             alert('{{ __('accounts.something_went_wrong') }}');
+            //         }
+            //     });
+            // });
         });
     </script>
 @endpush

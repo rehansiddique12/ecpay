@@ -1,14 +1,14 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
-        <style>
-            #currency-wrapper {
-                white-space: nowrap;
-            }
-        </style>
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+    <style>
+        #currency-wrapper {
+            white-space: nowrap;
+        }
+    </style>
     @endpush
     @php
-        $currentRoute = Route::currentRouteName();
+    $currentRoute = Route::currentRouteName();
     @endphp
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
         <div class="row justify-content-between">
@@ -80,14 +80,14 @@
                             <select class="form-select" name="category_id" id="category-select">
                                 <option value="">{{ __('accounts.select_category') }}</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}"
-                                        {{ isset($e_wallet_account) && $e_wallet_account->category_id == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name ?? '' }}
-                                    </option>
+                                <option value="{{ $category->id }}" {{ isset($e_wallet_account) && $e_wallet_account->
+                                    category_id == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name ?? '' }}
+                                </option>
                                 @endforeach
                             </select>
                             @error('category_id')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -104,7 +104,7 @@
                             </div>
 
                             @error('account_id')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -119,7 +119,7 @@
                                 value="{{ old('daily_limit', $e_wallet_account->daily_limit ?? '') }}" required>
 
                             @error('daily_limit')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                         <div class="form-group col-md-6 col-6">
@@ -129,7 +129,7 @@
                                 required>
 
                             @error('daily_limit_withdrawal')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -141,7 +141,7 @@
                                 value="{{ old('monthly_limit', $e_wallet_account->monthly_limit ?? '') }}" required>
 
                             @error('monthly_limit')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -152,7 +152,7 @@
                                 required>
 
                             @error('monthly_limit_withdrawal')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -163,7 +163,7 @@
                                 value="{{ old('daily_limit_transaction', $e_wallet_account->daily_limit_transaction ?? '') }}"
                                 required>
                             @error('daily_limit_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -173,7 +173,7 @@
                                 value="{{ old('daily_limit_withdrawal_transaction', $e_wallet_account->daily_limit_withdrawal_transaction ?? '') }}"
                                 required>
                             @error('daily_limit_withdrawal_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -185,7 +185,7 @@
                                 value="{{ old('monthly_limit_transaction', $e_wallet_account->monthly_limit_transaction ?? '') }}"
                                 required>
                             @error('monthly_limit_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -195,7 +195,7 @@
                                 value="{{ old('monthly_limit_withdrawal_transaction', $e_wallet_account->monthly_limit_withdrawal_transaction ?? '') }}"
                                 required>
                             @error('monthly_limit_withdrawal_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -207,7 +207,7 @@
                                 value="{{ old('max_transaction_per_minute', $e_wallet_account->max_transaction_per_minute ?? '') }}"
                                 required>
                             @error('max_transaction_per_minute')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -217,7 +217,7 @@
                                 value="{{ old('max_amount_per_minute', $e_wallet_account->max_amount_per_minute ?? '') }}"
                                 required>
                             @error('max_amount_per_minute')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -230,244 +230,227 @@
                                 <h6 class="mb-0">{{ __('accounts.time_configuration') }}</h6>
                                 <div>
                                     <input type="checkbox" id="check_all_slots" class="form-check-input">
-                                    <label for="check_all_slots"
-                                        class="form-check-label text-white">{{ __('accounts.check_all') }}</label>
+                                    <label for="check_all_slots" class="form-check-label text-white">{{
+                                        __('accounts.check_all') }}</label>
                                 </div>
                             </div>
 
                             @php
-                                $start = strtotime('00:00');
-                                $end = strtotime('24:00');
-                                $i = 0;
-                                $slots = [];
+                            $start = strtotime('00:00');
+                            $end = strtotime('24:00');
+                            $i = 0;
+                            $slots = [];
 
-                                for ($time = $start; $time < $end; $time += 1800) {
-                                    $from = date('H:i', $time);
-                                    $to = date('H:i', $time + 1800);
-                                    $slots[] = "$from - $to";
-                                }
-                            $chunks = array_chunk($slots, ceil(count($slots) / 6)); // 6 columns @endphp <div class="row">
+                            for ($time = $start; $time < $end; $time +=1800) { $from=date('H:i', $time); $to=date('H:i',
+                                $time + 1800); $slots[]="$from - $to" ; } $chunks=array_chunk($slots, ceil(count($slots)
+                                / 6)); // 6 columns @endphp <div class="row">
                                 @foreach ($chunks as $column)
-                                    <div class="col-md-2 col-sm-4 col-6">
-                                        @foreach ($column as $slot)
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="time_slots[]"
-                                                    value="{{ $slot }}" id="slot_{{ $i }}"
-                                                    {{ in_array($slot, $savedSlots ?? []) ? 'checked' : '' }}>
-                                                <label class="form-check-label text-white"
-                                                    for="slot_{{ $i }}">
-                                                    {{ $slot }}
-                                                </label>
-                                            </div>
-                                            @php $i++; @endphp
-                                        @endforeach
+                                <div class="col-md-2 col-sm-4 col-6">
+                                    @foreach ($column as $slot)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="time_slots[]"
+                                            value="{{ $slot }}" id="slot_{{ $i }}" {{ in_array($slot, $savedSlots ?? [])
+                                            ? 'checked' : '' }}>
+                                        <label class="form-check-label text-white" for="slot_{{ $i }}">
+                                            {{ $slot }}
+                                        </label>
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr style="border-top: 1px solid white;">
-                    <div class="row">
-                        <h6>{{ __('accounts.threshold_alert') }}</h6>
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.daily_deposit_limit') }}</label>
-                            <input type="number" class="form-control" min="1" max="100"
-                                name="deposit_daily_limit_percentage"
-                                value="{{ old('deposit_daily_limit_percentage', $e_wallet_account->deposit_daily_limit_percentage ?? '') }}"
-                                required>
-
-                            @error('deposit_daily_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.daily_withdrawal_limit') }}</label>
-                            <input type="number" class="form-control" min="1" max="100"
-                                name="withdrawal_daily_limit_percentage"
-                                value="{{ old('withdrawal_daily_limit_percentage', $e_wallet_account->withdrawal_daily_limit_percentage ?? '') }}"
-                                required>
-
-                            @error('withdrawal_daily_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.monthly_deposit_limit') }}</label>
-                            <input type="number" class="form-control" name="deposit_monthly_limit_percentage"
-                                min="1" max="100"
-                                value="{{ old('deposit_monthly_limit_percentage', $e_wallet_account->deposit_monthly_limit_percentage ?? '') }}"
-                                required>
-
-                            @error('deposit_monthly_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.monthly_withdrawal_limit') }}</label>
-                            <input type="number" class="form-control" min="1" max="100"
-                                name="withdrawal_monthly_limit_percentage"
-                                value="{{ old('withdrawal_monthly_limit_percentage', $e_wallet_account->withdrawal_monthly_limit_percentage ?? '') }}"
-                                required>
-
-                            @error('withdrawal_monthly_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.low_balance_alert') }}</label>
-                            <input type="number" class="form-control" name="low_balance_amount" min="1"
-                                value="{{ old('low_balance_amount', $e_wallet_account->low_balance_amount ?? '') }}"
-                                required>
-
-                            @error('low_balance_amount')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-
-
-                    <hr>
-                    <div class="col-12 mb-3">
-                        <h6>{{ __('accounts.add_account') }}</h6>
-                    </div>
-                    <div id="inputGroupContainer">
-                        <div class="row input-group-row">
-                            <div class="form-group col-md-2 col-12">
-                                <label>{{ __('accounts.account_name') }}</label>
-                                <input type="text" name="e_wallet_name[]"
-                                    value="{{ old('e_wallet_name', $e_wallet_account->e_wallet_name ?? '') }}"
-                                    required class="form-control" required>
-                            </div>
-                            <input type="hidden" name="first_account_id" value="{{ $e_wallet_account->id ?? '' }}">
-
-                            <div class="form-group col-md-2 col-12">
-                                <label>{{ __('accounts.device_name') }}</label>
-                                <input type="text" name="device_name[]"
-                                    value="{{ old('device_name', $e_wallet_account->device_name ?? '') }}" required
-                                    class="form-control" required>
-                            </div>
-
-                            <div class="form-group col-md-2 col-12">
-                                <label>{{ __('accounts.account_number') }}</label>
-                                <input type="text" name="account_number[]" class="form-control"
-                                    value="{{ old('account_number', $e_wallet_account->account_no ?? '') }}" required>
-                            </div>
-
-                            <div class="form-group col-md-2 col-12">
-                                <label>{{ __('accounts.account_group') }}</label>
-                                <select class="form-select select3" name="account_group[0][]" multiple
-                                    data-placeholder={{ __('accounts.select_groups') }} data-allow-clear="true">
-                                    @foreach ($groups as $group)
-                                        <option value="{{ $group->id }}"
-                                            {{ in_array($group->id, $selectedGroupIds) ? 'selected' : '' }}>
-                                            {{ $group->name }}
-                                        </option>
+                                    @php $i++; @endphp
                                     @endforeach
-                                </select>
-                            </div>
-
-
-                            <div class="form-group col-md-1 col-12">
-                                <label>{{ __('accounts.type') }}</label>
-                                <select name="account_type[]" class="form-select" required>
-                                    <option value="">{{ __('accounts.select') }}</option>
-                                    <option value="Agent" {{ $e_wallet_account->type == 'Agent' ? 'selected' : '' }}>
-                                        {{ __('accounts.agent') }}</option>
-                                    <option value="Merchant"
-                                        {{ $e_wallet_account->type == 'Merchant' ? 'selected' : '' }}>
-                                        {{ __('accounts.merchant') }}
-                                    </option>
-                                    <option value="Personal"
-                                        {{ $e_wallet_account->type == 'Personal' ? 'selected' : '' }}>
-                                        {{ __('accounts.personal') }}
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div class="form-group col-md-1 col-12">
-                                <label>{{ __('accounts.in_out') }}</label>
-                                <select name="in_out[]" class="form-select" required>
-                                    <option value="">{{ __('accounts.select') }}</option>
-                                    <option value="Deposit"
-                                        {{ $e_wallet_account->account_type == 'Deposit' ? 'selected' : '' }}>
-                                        {{ __('accounts.deposit') }}
-                                    </option>
-                                    <option value="Withdrawal"
-                                        {{ $e_wallet_account->account_type == 'Withdrawal' ? 'selected' : '' }}>
-                                        {{ __('accounts.withdrawal') }}</option>
-                                    <option value="Both"
-                                        {{ $e_wallet_account->account_type == 'Both' ? 'selected' : '' }}>
-                                        {{ __('accounts.both') }}
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div class="form-group col-md-2 col-12">
-                                <label>{{ __('accounts.location') }}</label>
-                                <select name="location[]" class="form-select select2"
-                                    data-placeholder="Select Location" data-allow-clear="true">
-                                    <option></option>
-                                    <option value="">{{ __('accounts.select_location') }}</option>
-                                    @foreach ($users_locations as $location)
-                                        <option
-                                            {{ $location->id == $e_wallet_account->location_id ? 'selected' : '' }}
-                                            value="{{ $location->id }}">{{ $location->location }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-group col-md-2 col-12">
-                                <label>{{ __('accounts.qr') }}</label>
-                                {{-- Show old image preview if exists --}}
-                                @if (!empty($e_wallet_account->image))
-                                    <div class="mb-2">
-                                        <img src="{{ asset('assets/uploads/withdraw/' . $e_wallet_account->image) }}"
-                                            alt={{ __('accounts.qr_code') }} class="img-thumbnail"
-                                            style="max-width: 100px;">
-                                    </div>
-                                @endif
-                                <input type="file" name="image[]" class="form-control qr-file"
-                                    accept="image/png, image/jpeg">
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- More Button -->
-                    <div class="mt-3">
-                        <button type="button" id="addMoreBtn"
-                            class="btn btn-primary">{{ __('accounts.more') }}</button>
-                    </div>
-
-                    <div class="row mt-3 justify-content-between">
-                        <div class="col-lg-3 col-md-6">
-                            <div class="form-group">
-                                <label>{{ __('accounts.status') }}</label>
-                                <div class="form-check form-switch d-flex align-items-center">
-                                    <span id="disableText" class="me-12 text-primary">{{ __('accounts.no') }}</span>
-                                    <input class="form-check-input" type="checkbox" id="statusSwitch" name="status"
-                                        value="1"
-                                        {{ isset($e_wallet_account) && $e_wallet_account->status == 1 ? 'checked' : '' }}>
-                                    <span id="enableText"
-                                        class="ms-2 text-secondary">{{ __('accounts.yes') }}</span>
                                 </div>
-                            </div>
-                            <button type="submit"
-                                class="btn  btn-primary btn-block mt-3">{{ __('accounts.save_changes') }}</button>
-
+                                @endforeach
                         </div>
                     </div>
-
-
-                </form>
             </div>
 
+            <hr style="border-top: 1px solid white;">
+            <div class="row">
+                <h6>{{ __('accounts.threshold_alert') }}</h6>
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.daily_deposit_limit') }}</label>
+                    <input type="number" class="form-control" min="1" max="100" name="deposit_daily_limit_percentage"
+                        value="{{ old('deposit_daily_limit_percentage', $e_wallet_account->deposit_daily_limit_percentage ?? '') }}"
+                        required>
+
+                    @error('deposit_daily_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.daily_withdrawal_limit') }}</label>
+                    <input type="number" class="form-control" min="1" max="100" name="withdrawal_daily_limit_percentage"
+                        value="{{ old('withdrawal_daily_limit_percentage', $e_wallet_account->withdrawal_daily_limit_percentage ?? '') }}"
+                        required>
+
+                    @error('withdrawal_daily_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.monthly_deposit_limit') }}</label>
+                    <input type="number" class="form-control" name="deposit_monthly_limit_percentage" min="1" max="100"
+                        value="{{ old('deposit_monthly_limit_percentage', $e_wallet_account->deposit_monthly_limit_percentage ?? '') }}"
+                        required>
+
+                    @error('deposit_monthly_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.monthly_withdrawal_limit') }}</label>
+                    <input type="number" class="form-control" min="1" max="100"
+                        name="withdrawal_monthly_limit_percentage"
+                        value="{{ old('withdrawal_monthly_limit_percentage', $e_wallet_account->withdrawal_monthly_limit_percentage ?? '') }}"
+                        required>
+
+                    @error('withdrawal_monthly_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.low_balance_alert') }}</label>
+                    <input type="number" class="form-control" name="low_balance_amount" min="1"
+                        value="{{ old('low_balance_amount', $e_wallet_account->low_balance_amount ?? '') }}" required>
+
+                    @error('low_balance_amount')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+
+
+            <hr>
+            <div class="col-12 mb-3">
+                <h6>{{ __('accounts.add_account') }}</h6>
+            </div>
+            <div id="inputGroupContainer">
+                <div class="row input-group-row">
+                    <div class="form-group col-md-2 col-12">
+                        <label>{{ __('accounts.account_name') }}</label>
+                        <input type="text" name="e_wallet_name[]"
+                            value="{{ old('e_wallet_name', $e_wallet_account->e_wallet_name ?? '') }}" required
+                            class="form-control" required>
+                    </div>
+                    <input type="hidden" name="first_account_id" value="{{ $e_wallet_account->id ?? '' }}">
+
+                    <div class="form-group col-md-2 col-12">
+                        <label>{{ __('accounts.device_name') }}</label>
+                        <input type="text" name="device_name[]"
+                            value="{{ old('device_name', $e_wallet_account->device_name ?? '') }}" required
+                            class="form-control" required>
+                    </div>
+
+                    <div class="form-group col-md-2 col-12">
+                        <label>{{ __('accounts.account_number') }}</label>
+                        <input type="text" name="account_number[]" class="form-control"
+                            value="{{ old('account_number', $e_wallet_account->account_no ?? '') }}" required>
+                    </div>
+
+                    <div class="form-group col-md-2 col-12">
+                        <label>{{ __('accounts.account_group') }}</label>
+                        <select class="form-select select3" name="account_group[0][]" multiple data-placeholder={{
+                            __('accounts.select_groups') }} data-allow-clear="true">
+                            @foreach ($groups as $group)
+                            <option value="{{ $group->id }}" {{ in_array($group->id, $selectedGroupIds) ? 'selected' :
+                                '' }}>
+                                {{ $group->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+
+                    <div class="form-group col-md-1 col-12">
+                        <label>{{ __('accounts.type') }}</label>
+                        <select name="account_type[]" class="form-select" required>
+                            <option value="">{{ __('accounts.select') }}</option>
+                            <option value="Agent" {{ $e_wallet_account->type == 'Agent' ? 'selected' : '' }}>
+                                {{ __('accounts.agent') }}</option>
+                            <option value="Merchant" {{ $e_wallet_account->type == 'Merchant' ? 'selected' : '' }}>
+                                {{ __('accounts.merchant') }}
+                            </option>
+                            <option value="Personal" {{ $e_wallet_account->type == 'Personal' ? 'selected' : '' }}>
+                                {{ __('accounts.personal') }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-1 col-12">
+                        <label>{{ __('accounts.in_out') }}</label>
+                        <select name="in_out[]" class="form-select" required>
+                            <option value="">{{ __('accounts.select') }}</option>
+                            <option value="Deposit" {{ $e_wallet_account->account_type == 'Deposit' ? 'selected' : ''
+                                }}>
+                                {{ __('accounts.deposit') }}
+                            </option>
+                            <option value="Withdrawal" {{ $e_wallet_account->account_type == 'Withdrawal' ? 'selected' :
+                                '' }}>
+                                {{ __('accounts.withdrawal') }}</option>
+                            <option value="Both" {{ $e_wallet_account->account_type == 'Both' ? 'selected' : '' }}>
+                                {{ __('accounts.both') }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-2 col-12">
+                        <label>{{ __('accounts.location') }}</label>
+                        <select name="location[]" class="form-select select2" data-placeholder="Select Location"
+                            data-allow-clear="true">
+                            <option></option>
+                            <option value="">{{ __('accounts.select_location') }}</option>
+                            @foreach ($users_locations as $location)
+                            <option {{ $location->id == $e_wallet_account->location_id ? 'selected' : '' }}
+                                value="{{ $location->id }}">{{ $location->location }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-2 col-12">
+                        <label>{{ __('accounts.qr') }}</label>
+                        {{-- Show old image preview if exists --}}
+                        @if (!empty($e_wallet_account->image))
+                        <div class="mb-2">
+                            <img src="{{ asset('assets/uploads/withdraw/' . $e_wallet_account->image) }}" alt={{
+                                __('accounts.qr_code') }} class="img-thumbnail" style="max-width: 100px;">
+                        </div>
+                        @endif
+                        <input type="file" name="image[]" class="form-control qr-file" accept="image/png, image/jpeg">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- More Button -->
+            <div class="mt-3">
+                <button type="button" id="addMoreBtn" class="btn btn-primary">{{ __('accounts.more') }}</button>
+            </div>
+
+            <div class="row mt-3 justify-content-between">
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-group">
+                        <label>{{ __('accounts.status') }}</label>
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <span id="disableText" class="me-12 text-primary">{{ __('accounts.no') }}</span>
+                            <input class="form-check-input" type="checkbox" id="statusSwitch" name="status" value="1" {{
+                                isset($e_wallet_account) && $e_wallet_account->status == 1 ? 'checked' : '' }}>
+                            <span id="enableText" class="ms-2 text-secondary">{{ __('accounts.yes') }}</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn  btn-primary btn-block mt-3">{{ __('accounts.save_changes')
+                        }}</button>
+
+                </div>
+            </div>
+
+
+            </form>
         </div>
+
+    </div>
     </div>
 
     <!-- Hidden template for cloning -->
@@ -490,10 +473,10 @@
 
             <div class="form-group col-md-2 col-12">
                 <label>{{ __('accounts.account_group') }}</label>
-                <select class="form-select select2" name="account_group[__INDEX__][]" multiple
-                    data-placeholder={{ __('accounts.select_groups') }} data-allow-clear="true">
+                <select class="form-select select2" name="account_group[__INDEX__][]" multiple data-placeholder={{
+                    __('accounts.select_groups') }} data-allow-clear="true">
                     @foreach ($groups as $group)
-                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                    <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -520,12 +503,12 @@
 
             <div class="form-group col-md-2 col-12">
                 <label>{{ __('accounts.location') }}</label>
-                <select name="location[]" class="form-select select2"
-                    data-placeholder={{ __('accounts.select_location') }} data-allow-clear="true">
+                <select name="location[]" class="form-select select2" data-placeholder={{ __('accounts.select_location')
+                    }} data-allow-clear="true">
                     <option></option>
                     <option value="">{{ __('accounts.select_location') }}</option>
                     @foreach ($users_locations as $location)
-                        <option value="{{ $location->id }}">{{ $location->location }}</option>
+                    <option value="{{ $location->id }}">{{ $location->location }}</option>
                     @endforeach
                 </select>
             </div>
@@ -542,9 +525,9 @@
     </div>
 
     @push('js')
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-        <script>
-            $(document).ready(function() {
+    <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script>
+        $(document).ready(function() {
 
 
                 let $select = $('.select3').select2({
@@ -768,6 +751,6 @@
                 const checkboxes = document.querySelectorAll('input[name="time_slots[]"]');
                 checkboxes.forEach(cb => cb.checked = isChecked);
             });
-        </script>
+    </script>
     @endpush
 </x-admin-layout>

@@ -25,7 +25,7 @@ class PaymentController extends Controller
     public function paymentGateway()
     {
 
-        $gateways = Gateway::where('status', 1)
+        $gateways = Gateway::where('status', 1)->where('deposit_on' ,1)
             ->select('name', 'image')
             ->get();
 
@@ -169,8 +169,8 @@ class PaymentController extends Controller
 
         $current_time = Carbon::now('Asia/Dhaka');
 
-        $gate = Gateway::where('code', $request->e_wallet_name)->where('status', 1)->first();
-        
+        $gate = Gateway::where('code', $request->e_wallet_name)->where('status', 1)->where('deposit_on' ,1)->first();
+
         $Setting = Setting::where('name', 'last_account_active')->first();
 
         $now = Carbon::now();
@@ -235,10 +235,10 @@ class PaymentController extends Controller
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
                                 $to = Carbon::parse($slot->to_time);
-                            
+
                                 return $current_time->between($from, $to);
                             });
-                            
+
 
                             return $validTransactionLimits && $validTimeSlot;
                         })
@@ -273,7 +273,7 @@ class PaymentController extends Controller
             }
         }
 
-        $gate = Gateway::where('code', $request->e_wallet_name)->where('status', 1)->first();
+        $gate = Gateway::where('code', $request->e_wallet_name)->where('status', 1)->where('deposit_on' ,1)->first();
         if(!$gate){
             return response()->json(['error' => 'Gateway Error. Contact to Administator!'], 422);
         }
@@ -314,7 +314,7 @@ class PaymentController extends Controller
         $parentIds = ParentCommission::where('user_id', $api_key->id)
                 ->pluck('parent_id')
                 ->unique()
-                ->values();           
+                ->values();
             foreach($parentIds as  $parentId){
 
                 $parent_charge = 0;
@@ -348,7 +348,7 @@ class PaymentController extends Controller
                 }
 
 
-                    
+
 
             }
 

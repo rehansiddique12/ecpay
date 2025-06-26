@@ -16,7 +16,22 @@ class AuditController extends Controller
                     $q->where('user_id', $request->user_id);
                 })
                 ->when($request->module, function ($q) use ($request) {
-                    $q->where('module', 'like', '%' . $request->module . '%');
+                    $module = $request->module;
+
+                    $q->where(function ($subQ) use ($module) {
+                        if ($module === 'Workboard') {
+                            $subQ->where('module', 'like', '%Workboard%');
+                        } elseif ($module === 'Deposit Log') {
+                            $subQ->where('module', 'like', '%payment%')->where('module', 'not like', '%Workboard%');
+                        } elseif ($module === 'Withdrawal Log') {
+                            $subQ->where('module', 'like', '%payout%')->where('module', 'not like', '%Workboard%');
+                        } elseif ($module === 'Account Management') {
+                            $subQ->where(function ($q2) {
+                                $q2->where('module', 'like', '%EWalletAccount%')
+                                    ->orWhere('module', 'like', '%gateway%');
+                            })->where('module', 'not like', '%Workboard%');
+                        }
+                    });
                 })
                 ->when($request->date, function ($q) use ($request) {
                     $q->whereDate('created_at', $request->date);
