@@ -968,7 +968,7 @@ $languages = [
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.tracking.index']) ? 'active' : '' }}">
                             <a href="{{ route('admin.tracking.index') }}" class="menu-link">
                                 <i class="menu-icon icon-base ti tabler-file-dollar"></i>
-                                <div data-i18n="Audit Log">{{ __('sidebar.cs Tracker') }}</div>
+                                <div data-i18n="Audit Log">{{ __('sidebar.cs_tracker') }}</div>
                             </a>
                         </li>
                         {{-- @endif --}}
