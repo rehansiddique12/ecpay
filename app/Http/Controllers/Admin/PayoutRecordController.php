@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Models\ApiHit;
 use App\Models\ApiLog;
 use App\Models\Payout;
+use App\Models\CsTracker;
 use App\Models\SmsLog;
 use App\Models\Gateway;
 use App\Models\Payment;
@@ -5601,6 +5602,30 @@ class PayoutRecordController extends Controller
             ->take(5)
             ->get();
 
+            foreach ($pending_list as $payout) {
+                // Check if this payout is already being tracked
+                $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                                          ->whereNull('to')
+                                          ->first();
+
+                if ($existingTracker) {
+                    // Update only the user_id if different user accesses it
+                    if ($existingTracker->user_id != auth()->id()) {
+                        $existingTracker->update([
+                            'user_id' => auth()->id()
+                        ]);
+                    }
+                } else {
+                    // Create new record if doesn't exist
+                    CsTracker::create([
+                        'user_id' => auth()->id() ?? null,
+                        'action' => 'Pending Payout ID: ' . $payout->id,
+                        'from' => now(),
+                        'to' => null
+                    ]);
+                }
+            }
+
             $notifications = Notification::with('ewalletAccount')
             ->where('user_id',0)
             ->orderBy('created_at', 'desc')
@@ -5677,17 +5702,44 @@ class PayoutRecordController extends Controller
         'lowPerformance'));
     }
 
-    // NotificationController.php
+    public function retry(Request $request)
+{
+    $payout = Payout::where('id', $request->id)->first();
+
+    if (!$payout) {
+        return response()->json(['status' => false, 'message' => 'Payout not found or not of type Payout.'], 404);
+    }
+
+    $payout->status = 'Pending';
+    $payout->transfer_status = 2;
+    $payout->save();
+
+    return response()->json(['status' => true, 'message' => 'Payout status updated.']);
+}
+
+
+
+
+
 public function markAsRead(Notification $notification)
 {
     $notification->update([
         'user_id' => auth()->id()
     ]);
+
     AuditLog::create([
         'user_id' => auth()->id(),
         'module' => 'Notification Workboard',
-        'description' => 'Notification marked as read by user'. auth()->user()->name,
+        'description' => 'Notification marked as read by '. auth()->user()->name,
         'module_id' => $notification->ewallet_account_id,
+    ]);
+
+    // Add tracking record
+    CsTracker::create([
+        'user_id' => auth()->id(),
+        'action' => auth()->user()->name . ' closed the notification',
+        'from' => $notification->created_at,
+        'to' => now(),
     ]);
 
     return response()->json(['success' => true]);
@@ -5734,6 +5786,7 @@ public function markAsRead(Notification $notification)
             $q->where(function ($subQuery) use ($query) {
                 $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
                          ->orWhere('member_id', 'like', '%' . $query . '%')
+                         ->orWhere('id', 'like', '%' . $query . '%')
                          ->orWhere('txn_id', 'like', '%' . $query . '%');
             });
         })

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\MerchantController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PaymentTypeController;
+use App\Http\Controllers\Admin\TrackingController;
 use App\Http\Controllers\Admin\DevFunctionsController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\ManualGatewayController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManage
 use Illuminate\Http\Request;
 use App\Models\Payout;
 use App\Models\AuditLog;
+use App\Models\CsTracker;
 
 /*```php
 // No code was selected, so I'll provide a general improvement suggestion.
@@ -146,36 +148,47 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/update/payout', [PayoutRecordController::class, 'updatePayout'])->name('update.payout');
         Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
         Route::get('/audit-logs', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit_logs.index');
+        Route::get('/CsTrakcer', [TrackingController::class, 'index'])->name('tracking.index');
+    Route::get('/CsTrakcer/filter', [TrackingController::class, 'filter'])->name('tracking.filter');
 
 
 
-        Route::post('/update-adjusted-by', function (Request $request) {
-            $txnId = $request->txnId;
-            $adjustedBy = $request->adjusted_by;
+    Route::post('/update-adjusted-by', function (Request $request) {
+        $txnId = $request->txnId;
+        $adjustedBy = $request->adjusted_by;
 
-            // Fetch the payout record first
-            $payout = Payout::where('partner_transection_id', $txnId)->first();
+        // Fetch the payout record first
+        $payout = Payout::where('partner_transection_id', $txnId)->first();
 
-            if ($payout) {
-                // Update the fields
-                $payout->update([
-                    'adjusted_by' => $adjustedBy,
-                    'check_by' => $adjustedBy
-                ]);
+        if ($payout) {
+            // Update the fields
+            $payout->update([
+                'adjusted_by' => $adjustedBy,
+                'check_by' => $adjustedBy
+            ]);
 
-                // Log into audit log
-                AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Workboard WITHDRAWAL PENDING LIST',
-                    'module_id' => $payout->id, // storing the Payout ID here
-                    'description' => "Pending Withdrawl Payout ID {$payout->id} checked by user."
-                ]);
+            // Log into audit log
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'Workboard WITHDRAWAL PENDING LIST',
+                'module_id' => $payout->id,
+                'description' => "Pending Withdrawl Payout ID {$payout->id} checked by user."
+            ]);
 
-                return response()->json(['success' => true]);
-            }
+            // Update CsTracker - set 'to' time without changing 'from'
+            CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                    ->whereNull('to')
+                    ->update([
+                        'to' => now(),
+                        'user_id' => auth()->id(),
+                        'action' => auth()->user()->name . ' checked the Pending List (Payout ID: ' . $payout->id . ')'
+                    ]);
 
-            return response()->json(['success' => false, 'message' => 'Payout not found.'], 404);
-        });
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Payout not found.'], 404);
+    });
 
 
 
@@ -223,6 +236,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/partner_account_summary', [ReportsController::class, 'partner_account_summary'])->name('reports.partner_account_summary');
         Route::get('reports/merchant_charges_summary', [ReportsController::class, 'merchant_charges_summary'])->name('reports.merchant_charges_summary');
         Route::get('reports/daily_transection_summary', [ReportsController::class, 'daily_transection_summary'])->name('reports.daily_transection_summary');
+        Route::post('/payout/retry', [PayoutRecordController::class, 'retry'])->name('payout.retry');
         Route::get('payment_gateway_performance_report', [PaymentMethodController::class, 'payment_gateway_report'])->name('payment.payment_gateway_report');
         Route::get('payment_gateway_performance_report_detail/{id?}/{from_date?}/{to_date?}', [PaymentMethodController::class, 'payment_gateway_report_detail'])->name('payment.payment_gateway_report_detail');
         Route::get('reports/merchant_charges_summary/search', [ReportsController::class, 'merchant_charges_summary_search'])->name('reports.merchant_charges_summary.search');
