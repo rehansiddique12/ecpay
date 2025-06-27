@@ -88,4 +88,5 @@ return [
     'yes_delete_it' => '是的，删除!',
     'cancel' => '取消',
     'error_deleting_role' => '删除角色时出错。',
+    'last_login' => '上次登录',
 ];

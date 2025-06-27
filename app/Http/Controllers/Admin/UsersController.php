@@ -112,7 +112,7 @@ class UsersController extends Controller
 
 
             $query = Admin::with(['location'])
-                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id']);
+                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id' ,'last_login']);
                 // Apply filters
                 if ($request->filled('location')) {
                     $query->where('location_id', $request->location);
@@ -146,6 +146,9 @@ class UsersController extends Controller
                         return isset($admin->location_id) && $admin->location
                             ? $admin->location->location
                             : 'N/A';
+                    })
+                    ->addColumn('last_login_human', function ($admin) {
+                        return $admin->last_login ? \Carbon\Carbon::parse($admin->last_login)->diffForHumans() : 'Never';
                     })
                     ->addColumn('action', function ($admin) {
                         $updateRoute = route('admin.updateStaff', ':id');

@@ -132,6 +132,7 @@ return [
     'deleted' => 'Deleted!',
     'error' => 'Error!',
     'error_deleting_role' => 'There was an error deleting the role.',
+    'last_login'=>'Last Login',
 
 
 ];
