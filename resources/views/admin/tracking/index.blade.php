@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="user_id">User</label>
+                        <label for="user_id">{{ __('transaction.user') }}</label>
                         <select name="user_id" id="user_id" class="form-select select2" data-allow-clear="true"
                         data-placeholder="{{ __('transaction.select_user') }}">
                         <option></option>
@@ -26,21 +26,21 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="action">Action</label>
+                        <label for="action">{{ __('transaction.action') }}</label>
                         <input type="text" name="action" id="action" class="form-control"
-                               value="{{ request('action') }}" placeholder="Search action...">
+                               value="{{ request('action') }}" placeholder="{{ __('transaction.search_action') }}">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="date_from">From Date</label>
+                        <label for="date_from">{{ __('transaction.from_date') }}</label>
                         <input type="date" name="date_from" id="date_from" class="form-control"
                                value="{{ request('date_from') }}">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="date_to">To Date</label>
+                        <label for="date_to">{{ __('transaction.to_date') }}</label>
                         <input type="date" name="date_to" id="date_to" class="form-control"
                                value="{{ request('date_to') }}">
                     </div>
@@ -48,7 +48,7 @@
             </div>
             <div class="row">
                 <div class="col-md-12 text-right my-3">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="submit" class="btn btn-primary">{{ __('transaction.filter') }}</button>
 
                 </div>
             </div>
@@ -57,12 +57,12 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Duration</th>
-                    <th>Recorded At</th>
+                    <th>{{ __('transaction.user') }}</th>
+                    <th>{{ __('transaction.action') }}</th>
+                    <th>{{ __('transaction.from') }}</th>
+                    <th>{{ __('transaction.to') }}</th>
+                    <th>{{ __('transaction.duration') }}</th>
+                    <th>{{ __('transaction.recorded_at') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,7 +72,7 @@
                     <td>{{ $tracker->user->name ?? 'N/A' }}</td>
                     <td>{{ $tracker->action }}</td>
                     <td>{{ $tracker->from->format('Y-m-d H:i:s') }}</td>
-                    <td>{{ $tracker->to ? $tracker->to->format('Y-m-d H:i:s') : 'In Progress' }}</td>
+                    <td>{{ $tracker->to ? $tracker->to->format('Y-m-d H:i:s') : __('transaction.in_progress') }}</td>
                     <td>{{ $tracker->from->diffForHumans($tracker->to, true) }}</td>
                     <td>{{ $tracker->created_at->format('Y-m-d H:i:s') }}</td>
                 </tr>

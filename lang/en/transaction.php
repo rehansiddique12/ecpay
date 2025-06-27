@@ -305,5 +305,19 @@ return [
     'processing' => 'Processing...',
     
 
+    // CS Tracking
+    'search_action' => 'Search action...',
+    'audit_logs' => 'Audit Logs',
+    'user' => 'User',
+    'filter_by_user' => 'Filter by User',
+    'select_user' => 'Select User',
+    'action' => 'Action',
+    'filter' => 'Filter',
+    'from' => 'From',
+    'to' => 'To',
+    'duration' => 'Duration',
+    'recorded_at' => 'Recorded At',
+    'processing' => 'Processing...',
+    'in_progress' => 'In Progress',
 
 ];

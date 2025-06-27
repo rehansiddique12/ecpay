@@ -4,29 +4,22 @@
         <form action="{{ route('admin.reports.daily_ewallet_summary') }}" method="get">
             <div class="row align-items-center">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-                <!-- <div class="col-md-3">
-                    <div class="form-group">
-                        <label>{{ __('reports.select_date') }}</label>
-                        <input type="date" class="form-control" value="{{ $date }}" name="date"
-                            id="datepicker" />
-                    </div>
-                </div> -->
                 <div class="col-md-2">
                     <div class="form-group">
-                        <label>From Date</label>
+                        <label>{{ __('reports.from_date') }}</label>
                         <input type="date" class="form-control" name="from_date" value="{{ $fromDate }}">
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
-                        <label>To Date</label>
+                        <label>{{ __('reports.to_date') }}</label>
                         <input type="date" class="form-control" name="to_date" value="{{ $toDate }}">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>E-Wallet Name</label>
-                        <select class="form-control select2" data-allow-clear="true" name="e_wallet_name" data-placeholder="Select E-Wallet Name">
+                        <label>{{ __('reports.e_wallet_name') }}</label>
+                        <select class="form-control select2" name="e_wallet_name" data-placeholder="Select E-Wallet Name">
                             <option></option>
                             <option value="">All</option>
                             @foreach ($distinctWalletNames as $name)
@@ -37,9 +30,9 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
-                        <label>Account No</label>
+                        <label>{{ __('reports.account_no') }}</label>
                         <input type="text" class="form-control" name="account_no" value="{{ request('account_no') }}">
                     </div>
                 </div>

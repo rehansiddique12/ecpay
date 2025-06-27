@@ -507,14 +507,11 @@
                     ],
                     language: {
                         search: "_INPUT_",
-                        // searchPlaceholder: "{!! __('userManagement.search_placeholder') !!}",
-                        // searchPlaceholder: {!! json_encode(__('userManagement.search_placeholder')) !!},
-                        searchPlaceholder: @json(__('userManagement.search_placeholder')),
+                        searchPlaceholder: {!! json_encode(__('userManagement.search_placeholder')) !!},
                         processing: "<div class='spinner-border text-primary' role='status'><span class='visually-hidden'>{{ __('userManagement.processing') }}</span></div> <!-- You can customize this text -->", // Custom processing message with spinner
                     },
                     info: false, // Hide "Showing X to Y of Z entries" text
                 });
-                // console.log("{{ __('userManagement.search_placeholder') }}");
                 const searchPlaceholder = @json(__('userManagement.search_placeholder'));
                 //console.log('searchPlaceholder:', searchPlaceholder);
 
