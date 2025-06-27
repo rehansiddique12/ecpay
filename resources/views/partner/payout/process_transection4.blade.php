@@ -203,7 +203,7 @@
         }
 
         .trx-input {
-            width: 100%;
+            width: 95%;
             font-size: 1.1rem;
             padding: 12px 10px;
             border: 2px solid #e53935;
@@ -411,7 +411,7 @@ if ($ewallet == 'bkash') {
         </div>
 
         <div class="warning" id="amount-warning">
-            If you change the amount of money (INR 500.00), you will not be able to get credit.
+            If you change the amount of money (TK 500.00), you will not be able to get credit.
         </div>
 
         <div class="form-section">
@@ -488,6 +488,10 @@ if ($ewallet == 'bkash') {
                 If you cash out from any other wallet of this number, there is no possibility of getting the money.
             </span>
         </div>
+
+        <br>
+        <br>
+        
     </div>
 
     
@@ -499,6 +503,9 @@ if ($ewallet == 'bkash') {
         </div>
         </center>
     </div>
+
+
+    
 
     @endif
 
@@ -552,7 +559,7 @@ function checkMinLength() {
                 en: {
                     'amount-label': `{{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk`,
                     'amount-desc': "Don't cash out more or less",
-                    'amount-warning': `If you change the amount of money (INR {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
+                    'amount-warning': `If you change the amount of money (TK {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
                     'wallet-label': 'Wallet No *',
                     'wallet-note': `Only cashout is accepted at this {{ $ewallet_to_show ?? 'wallet' }} number `,
                     'provider-label': 'Wallet provider',
