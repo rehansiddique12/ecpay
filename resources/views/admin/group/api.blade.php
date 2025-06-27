@@ -40,7 +40,7 @@
                                                 <button type="button"
                                                     class="btn btn-sm toggle-status-btn {{ $item->status ? 'btn-success' : 'btn-danger' }}">
                                                     <i class="fa fa-circle me-1"></i>
-                                                    {{ $item->status ? __('Active') : __('Inactive') }}
+                                                    {{ $item->status ? __('accounts.active') : __('accounts.inactive') }}
                                                 </button>
                                             </form>
                                         </td>

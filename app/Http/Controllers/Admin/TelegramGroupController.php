@@ -149,7 +149,6 @@ class TelegramGroupController extends Controller
     {
     $records = TelegramGroup::paginate('20');
     $partners = Api::where('type', 'Admin')->pluck('name', 'id');
-    // $pageTitle = $title = "Manage Telegram Groups";
     $pageTitle = $title = __('accounts.manage_telegram_groups');
 
     return view('admin.group.api', compact('records', 'pageTitle', 'title', 'partners'));

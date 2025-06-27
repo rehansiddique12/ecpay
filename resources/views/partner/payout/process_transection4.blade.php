@@ -1,4 +1,4 @@
-<x-iframe-layout>
+<x-iframe4-layout>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
 
@@ -54,8 +54,8 @@
         }
 
         .pay-badge {
-            background: #ff9800;
-            color: #000;
+            background: <?= $ewallet=="nagad"?"green":"#ff9800"  ?>;
+            color: <?= $ewallet=="nagad"?"white":"#000"  ?>;
             font-weight: 700;
             border-radius: 4px;
             padding: 2px 10px;
@@ -88,8 +88,8 @@
         }
 
         .lang-btn.active {
-            background: #ff9800;
-            color: #000;
+            background: <?= $ewallet=="nagad"?"green":"#ff9800"  ?>;
+            color: <?= $ewallet=="nagad"?"white":"#000"  ?>;
         }
 
         .warning {
@@ -203,7 +203,7 @@
         }
 
         .trx-input {
-            width: 100%;
+            width: 95%;
             font-size: 1.1rem;
             padding: 12px 10px;
             border: 2px solid #e53935;
@@ -294,7 +294,7 @@
             }
 
             .submit-btn {
-                width: 100%;
+                width: 95%;
                 font-size: 1.05rem;
                 padding: 12px 0;
             }
@@ -367,419 +367,23 @@
     </style>
 
 
-  {{-- <style>
-        .circle {
-            width: 30px;
-            height: 30px;
-            background-color: <?= $bgcolor ?>;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 14px;
-            margin: 0 auto 10px;
-        }
-
-        .custombtn {
-            color: #fff;
-            background-color: <?= $bgcolor ?>;
-            border-color: <?= $bgcolor ?>;
-        }
-
-        .custombtn-outline {
-            color: <?= $bgcolor ?>;
-            border-color: <?= $bgcolor ?>;
-        }
-
-        .custombtn-outline:hover {
-            color: #fff;
-            background-color: <?= $bgcolor ?>;
-            border-color: <?= $bgcolor ?>;
-        }
-
-        .arrow {
-            position: absolute;
-            top: 0;
-            right: 0;
-            cursor: pointer;
-            font-size: 20px;
-            transition: transform 0.3s;
-        }
-
-        .content {
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-size: 16px;
-            color: #555;
-            position: relative;
-            padding-left: 25px;
-            width: 95%;
-        }
-
-        .expanded {
-            display: block;
-            white-space: normal;
-            -webkit-line-clamp: unset;
-        }
-    </style>
-    <style>
-        .textanimation {
-            animation: zoomInOut 1.5s infinite;
-            height: 50px;
-        }
-
-        @keyframes zoomInOut {
-            0% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-
-            15% {
-                font-size: 10px;
-                padding: 12.5px;
-            }
-
-            30% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-
-            45% {
-                font-size: 10px;
-                padding: 12.5px;
-            }
-
-            60% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-
-            100% {
-                font-size: 12.5px;
-                padding: 0px;
-            }
-        }
-    </style>
-    <style>
-        .collapsible-header {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .toggle-icon {
-            margin-right: 10px;
-            transition: transform 0.3s ease;
-        }
-
-        .collapsible-content {
-            margin-top: 10px;
-        }
-
-        .hidden-content {
-            display: none;
-        }
-    </style>
-    <style>
-        .header {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .success-text {
-            color: green;
-        }
-
-        .cashout-text {
-            color: red;
-        }
-
-        .icon {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-        }
-
-        .icon img {
-            width: 24px;
-            height: 24px;
-        }
-
-        .hidden-text {
-            background: #ddd;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            letter-spacing: 3px;
-        }
-
-        .time-section {
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .transaction-id {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fcecec;
-            padding: 8px;
-            border-radius: 5px;
-            margin-top: 10px;
-            border: 1px solid #f5a3a3;
-        }
-
-        .transaction-id label {
-            font-size: 14px;
-            color: #d9534f;
-            font-weight: bold;
-        }
-
-        .transaction-id span {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .copy-icon {
-            cursor: pointer;
-        }
-    </style> --}}
-
-    {{-- <style>
-        body {
-            font-family: "Rajdhani", sans-serif;
-            color: black;
-            background: var(--bgLight);
-            font-weight: 500;
-            font-size: 15px;
-        }
-
-        .text-left {
-            text-align: left !important;
-
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5 {
-            font-family: "Rajdhani", sans-serif;
-            font-weight: 700;
-            color: black;
-            margin-bottom: 15px;
-        }
-    </style>
-    <style>
-        .payment-container {
-            background-color: white;
-            border-radius: 30px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            min-width: 400px;
-            max-width: 1000px;
-            margin: auto;
-            position: relative;
-            /* padding: 20px; */
-            /* Added padding */
-        }
-
-        .header-logo {
-            display: block;
-            margin: 0 auto;
-            max-width: 100%;
-            height: auto;
-        }
-
-        .amount {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .instruction {
-            margin-top: 20px;
-        }
-
-        .input-group {
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
-
-        .note {
-            font-size: 12px;
-            tet color: #777;
-        }
-
-        .bkash-complete-btn {
-            background-color: #C31C57;
-            color: white;
-            font-weight: bold;
-            padding: 5px 5px;
-            border: none;
-            border-radius: 4px;
-            display: block;
-            text-align: center;
-            outline: 2px solid white;
-        }
-
-        .nagad-complete-btn {
-            background-color: #FF9600;
-            color: white;
-            font-weight: bold;
-            padding: 5px 5px;
-            border: none;
-            border-radius: 4px;
-            display: block;
-            text-align: center;
-            outline: 2px solid white;
-        }
-
-        .rocket-complete-btn {
-            background-color: #8F2A85;
-            color: white;
-            font-weight: bold;
-            padding: 5px 5px;
-            border: none;
-            border-radius: 4px;
-            display: block;
-            text-align: center;
-            outline: 2px solid white;
-        }
-
-        .bkash-time {
-            /* position: absolute; */
-            /* top: 0px; */
-            /* right: 0px; */
-            background-color: #C31C57;
-            color: white;
-            padding: 5px 5px;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        .nagad-time {
-            /* position: absolute;
-            top: 0px;
-            right: 0px; */
-            background-color: #FF9600;
-            color: white;
-            padding: 5px 5px;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        .rocket-time {
-            /* position: absolute;
-            top: 0px;
-            right: 0px; */
-            background-color: #8F2A85;
-            color: white;
-            padding: 5px 5px;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        .bkash-responsive-row {
-            /* height: 100px; */
-            background-image: url('{{ asset('assets/images/bKash_Background.jpg') }}');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            margin: 0 -15px;
-            /* Adjusts the margin to fit within the card */
-        }
-
-        .nagad-responsive-row {
-            /* height: 100px; */
-            background-image: url('{{ asset('assets/images/Nsagad_backgroudn.jpg') }}');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            margin: 0 -15px;
-            /* Adjusts the margin to fit within the card */
-        }
-
-        .rocket-responsive-row {
-            /* height: 100px; */
-            background-image: url('{{ asset('assets/images/Rocket_Background.jpg') }}');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            margin: 0 -15px;
-            /* Adjusts the margin to fit within the card */
-        }
-
-        .bkash-responsive-row .col-md-4,
-        .bkash-responsive-row .col-md-8 {
-            padding: 0 15px;
-        }
-
-        .input-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .input-container input {
-            flex: 1;
-            /* margin-right: 10px; */
-        }
-
-        .input-container button {
-            flex-shrink: 0;
-        }
-
-
-        a.disabled {
-            pointer-events: none;
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-
-
-        .timer {
-            font-size: 14px;
-            margin-bottom: 5px;
-            color: black;
-            float: right;
-        }
-
-        .amount {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 10px 0;
-            color: white;
-        }
-
-        .ename {
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-        }
-</style> --}}
-
-
 
 @php
 $ewallet = strtolower($ewallet_to_show ?? 'wallet');
+$amount = $data['amount'];
 
 // Default values
-$imageSrc = '';
+
 $bgcolor = '#ffffff';
 
 if ($ewallet == 'bkash') {
-    $imageSrc = asset('assets/uploads/logo/bkash.png');
+   
     $bgcolor = '#e2136e';
 } elseif ($ewallet == 'nagad') {
-    $imageSrc = asset('assets/uploads/logo/nagt.png');
+    
     $bgcolor = '#FF9600';
 } elseif ($ewallet == 'rocket') {
-    $imageSrc = asset('assets/uploads/logo/rocket.png');
+   
     $bgcolor = '#8F2A85';
 }
 @endphp
@@ -788,7 +392,7 @@ if ($ewallet == 'bkash') {
         <h3>{{ $message }}</h3>
     @endif
     @if (!empty($data))
-    <div class="container">
+    <div class="container" id="intime">
         <div class="header" style="background-color: {{ $bgcolor }};">
             <div class="header-row">
                 <div class="header-title" id="amount-label">
@@ -807,7 +411,7 @@ if ($ewallet == 'bkash') {
         </div>
 
         <div class="warning" id="amount-warning">
-            If you change the amount of money (INR 500.00), you will not be able to get credit.
+            If you change the amount of money (TK 500.00), you will not be able to get credit.
         </div>
 
         <div class="form-section">
@@ -828,8 +432,8 @@ if ($ewallet == 'bkash') {
             <div class="form-group" style="text-align:center;">
                 <div class="form-label" id="provider-label">Wallet provider</div>
                 <div style="display:flex;align-items:center;justify-content:center;gap:18px;  padding: 20px; border-radius: 10px;">
-                    @if($imageSrc)
-                        <img src="{{ $imageSrc }}" alt="{{ ucfirst($ewallet) }} logo" style="height:150px;width:auto;display:block;">
+                    @if($logo)
+                        <img src="{{ $logo }}" alt="{{ ucfirst($ewallet) }} logo" style="width:230px;display:block;">
                     @else
                         <span>No wallet selected</span>
                     @endif
@@ -837,7 +441,7 @@ if ($ewallet == 'bkash') {
             </div>
         </div>
 
-        <form action="{{ route('iframe.payment2') }}" method="POST" id="cashout-form" autocomplete="off" onsubmit="return handleSubmit(event)">
+        <form action="{{ route('iframe.payment4') }}" method="POST" id="cashout-form" autocomplete="off" onsubmit="return handleSubmit(event)">
             @csrf
 
             <div class="trx-section">
@@ -845,20 +449,22 @@ if ($ewallet == 'bkash') {
                     Enter the TrxID number of the cashout
                     <span class="trx-required" id="trx-required">(required)</span>
                 </label>
+
+
                 <input
                     class="trx-input"
                     id="trxid"
+                    <?php echo $txn_verification == 1 ? 'required' : ''; ?>
                     name="txn"
                     type="text"
                     placeholder="Transaction ID (EC.{{ $ewallet == 'bkash' ? 'CC67DX6R2B' : '73PVF685' }})"
-                    required
                     data-min="{{ $ewallet == 'bkash' ? 10 : ($ewallet == 'nagad' ? 8 : 1) }}"
                     data-ewallet="{{ $ewallet }}"
                     onblur="checkMinLength()"
                 >
             </div>
 
-            <small id="txn_error" style="color: red; display: none;"></small>
+            <small id="txn_error" style="color: red; display: none;margin-left:25px"></small>
 
             {{-- Hidden inputs --}}
             <input type="hidden" name="username" value="{{ $data['username'] ?? '' }}">
@@ -878,11 +484,27 @@ if ($ewallet == 'bkash') {
                 The transaction ID must be filled in correctly, otherwise the score will fail!
             </span>
             <span class="gray" id="precaution-gray">
-                Please make sure you cash out to <b>the BKASH deposit wallet number</b>.
+                Please make sure you cash out to <b>the {{ $ewallet_to_show ?? 'wallet' }} deposit wallet number</b>.
                 If you cash out from any other wallet of this number, there is no possibility of getting the money.
             </span>
         </div>
+
+        <br>
+        <br>
+        
     </div>
+
+    <div class="container" id="accnotfound" style="display: none; height: 100vh; justify-content: center; align-items: center;">
+        <center>
+        <div class="text-center">
+            <svg style="width: 250px;margin:20px" viewBox="0 0 512 512"><path fill="<?=$bgcolor?>" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24l0 112c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-112c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>
+            <h5 id="failmessage">You Can not Proceed With this E-wallet account! Try Again Later.</h5>
+        </div>
+        </center>
+    </div>
+
+
+    
 
     @endif
 
@@ -894,39 +516,75 @@ if ($ewallet == 'bkash') {
 
 
     @push('js')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script>
+
+function checkMinLength() {
+        let txnInput = document.getElementById('trxid');
+        let errorMsg = document.getElementById('txn_error');
+        let minLength = txnInput.getAttribute('data-min');
+        let ewalletType = txnInput.getAttribute('data-ewallet');
+        let txnValue = txnInput.value.trim();
+
+        // Reset error message
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+
+        // Check minimum length
+        if (txnValue.length < minLength) {
+            errorMsg.innerText = 'Transaction ID must be at least ' + minLength + ' characters long.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        // Check first character based on ewallet type
+        if (ewalletType === 'bkash' && !/^[A-Za-z]/.test(txnValue)) {
+            errorMsg.innerText = '{{$ewallet_to_show}} Transaction ID must start with a letter (A-Z).';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (ewalletType === 'nagad' && !/^[0-9]/.test(txnValue)) {
+            errorMsg.innerText = '{{$ewallet_to_show}} Transaction ID must start with a digit (0-9).';
+            errorMsg.style.display = 'block';
+            return;
+        }
+    }
+
+
+
             // Language dictionary
             const dict = {
                 en: {
                     'amount-label': `{{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk`,
                     'amount-desc': "Don't cash out more or less",
-                    'amount-warning': `If you change the amount of money (INR {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
+                    'amount-warning': `If you change the amount of money (TK {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
                     'wallet-label': 'Wallet No *',
-                    'wallet-note': `This {{ $ewallet_to_show ?? 'wallet' }} number only accpet cashout `,
+                    'wallet-note': `Only cashout is accepted at this {{ $ewallet_to_show ?? 'wallet' }} number `,
                     'provider-label': 'Wallet provider',
-                    'provider-name': 'BKASH Deposit',
+                    'provider-name': '{{ $ewallet_to_show ?? 'wallet' }} Deposit',
                     'trx-label': 'Enter the TrxID number of the cashout',
                     'trx-required': '(required)',
                     'submit-btn': 'Confirm and Submit',
                     'precaution-title': 'Precautions:',
                     'precaution-red': 'The transaction ID must be filled in correctly, otherwise the score will fail !',
-                    'precaution-gray': 'Please make sure you cash out to <b>the BKASH deposit wallet number</b>. If you cash out from any other wallet of this number, there is no possibility of getting the money."',
+                    'precaution-gray': 'Please make sure you cash out to <b>the {{ $ewallet_to_show ?? 'wallet' }} deposit wallet number</b>. If you cash out from any other wallet of this number, there is no possibility of getting the money."',
                     'trxid-placeholder': 'TrxID must be correct!'
                 },
                 bn: {
-                    'amount-label': 'বিডিটি ৫০০.০০',
+                    'amount-label': '{{ number_format($data['amount'] ?? 0, 2, '.', ',') }} টাকা',
                     'amount-desc': 'কম বা বেশি ক্যাশ আউট করবেন না',
-                    'amount-warning': 'আপনি যদি টাকার পরিমাণ পরিবর্তন করেন (INR ৫০০.০০), তাহলে আপনি ক্রেডিট পাবেন না।',
+                    'amount-warning': 'আপনি যদি টাকার পরিমাণ পরিবর্তন করেন ({{ number_format($data['amount'] ?? 0, 2, '.', ',') }} টাকা), তাহলে আপনি ক্রেডিট পাবেন না।',
                     'wallet-label': 'ওয়ালেট নম্বর *',
-                    'wallet-note': 'শুধুমাত্র এই বিকাশ নম্বরে ক্যাশআউট গ্রহণযোগ্য',
+                    'wallet-note': 'শুধুমাত্র এই {{ $ewallet_to_show_bangla ?? 'wallet' }} নম্বরে ক্যাশআউট গ্রহণযোগ্য',
                     'provider-label': 'ওয়ালেট প্রদানকারী',
-                    'provider-name': 'বিকাশ ডিপোজিট',
+                    'provider-name': '{{ $ewallet_to_show_bangla ?? 'wallet' }} ডিপোজিট',
                     'trx-label': 'ক্যাশআউটের TrxID নম্বর লিখুন',
                     'trx-required': '(প্রয়োজনীয়)',
                     'submit-btn': 'নিশ্চিত এবং জমা দিন',
                     'precaution-title': 'সতর্কতা:',
                     'precaution-red': 'লেনদেন আইডি অবশ্যই সঠিকভাবে পূরণ করতে হবে, না হলে স্কোর ফেল হবে!',
-                    'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>বিকাশ ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
+                    'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>{{ $ewallet_to_show_bangla ?? 'wallet' }} ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
                     'trxid-placeholder': 'TrxID অবশ্যই সঠিক করতে হবে!'
                 }
             };
@@ -984,6 +642,117 @@ if ($ewallet == 'bkash') {
                 // Let the form submit naturally via POST
                 return true;
             }
+
+
+
+
+            $(document).ready(function() {      
+                
+                let clickCount = 0; // Initialize click counter
+
+                $('#submit-btn').on('click', function(event) {
+                    $(this).text('Processing...');
+                    $(this).css('opacity', '0.6');
+                    clickCount++; // Increment click count
+
+                    if (clickCount === 2) {
+                        event.preventDefault(); // Prevent the second form submission
+                        $(this).addClass('disabled');
+                        $(this).css('pointer-events', 'none');
+
+                    }
+                });
+                
+                
+                function toggleButton() {
+                var txnVerification = $('#trxid').val().trim();
+                var isRequired = $('#trxid').attr('required') !== undefined;
+
+                let txnInput = document.getElementById('trxid');
+                let minLength = txnInput.getAttribute('data-min');
+                let ewalletType = txnInput.getAttribute('data-ewallet');
+                let txnValue = txnInput.value.trim();
+
+                if (isRequired && txnVerification === '') {
+                    $('#submit-btn').prop('disabled', true).css({
+                        'cursor': 'not-allowed',
+                        'background-color': '{{ $bgcolor }}',
+                        'opacity': '0.6'
+                    });
+                } else {
+                    $('#submit-btn').prop('disabled', false).css({
+                        'cursor': '',
+                        'opacity': '1'
+                    });
+                }
+
+                if ((minLength && txnInput.value.length < minLength) || (ewalletType === 'bkash' && !/^[A-Za-z]/.test(txnValue)) || (ewalletType === 'nagad' && !/^[0-9]/.test(txnValue))) {
+                    $('#submit-btn').prop('disabled', true).css({
+                        'cursor': 'not-allowed',
+                        'background-color': '{{ $bgcolor }}',
+                        'opacity': '0.6'
+                    });
+                } else {
+                    $('#submit-btn').prop('disabled', false).css({
+                        'cursor': '',
+                        'opacity': '1'
+                    });
+                }
+
+
+            }
+
+            // Initial check
+            toggleButton();
+
+            // Check on every input change
+            $('#trxid').on('input', function() {
+                toggleButton();
+            });
+
+
+
+            $.ajax({
+                url: "{{ route('iframe.getaccount') }}", // Define the route for POST request
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: "{{ csrf_token() }}", // CSRF token for security
+                    ewallet: "{{ $ewallet }}",
+                    amount: "{{ $amount }}",
+                    username: "{{ $data['username'] }}",
+                    acc: "{{ $data['acc'] }}",
+                    transection_id: "{{ $data['transection_id'] }}",
+                    member_id: "{{ $data['member_id'] }}",
+                    gate_id: "{{ $data['gate_id'] }}"
+                },
+                success: function(response) {
+                    console.log(response);
+                    if (response.status === 'success') {
+                        $('#wallet-number').text(response.phone_number);
+                        $('#fund_id').val(response.fund_id);
+
+                        // $('#acctype1').text(response.account_type);
+                        // $('#acctype2').text(response.account_type);
+
+                    }
+
+                    if (response.status === 'fail') {
+                        $('#intime').hide();
+                        // $('#outtime').hide();
+                        $('#accnotfound').css('display', 'flex');
+                        $('#failmessage').text(response.message);
+
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    console.error('Status:', status);
+                    console.error('Response Text:', xhr.responseText);
+                }
+            });
+
+        });
         </script>
         @endpush
 
