@@ -294,7 +294,7 @@
             }
 
             .submit-btn {
-                width: 100%;
+                width: 95%;
                 font-size: 1.05rem;
                 padding: 12px 0;
             }
@@ -494,8 +494,7 @@ if ($ewallet == 'bkash') {
         
     </div>
 
-    
-    <div class="container" id="accnotfound" style="display: none;">
+    <div class="container" id="accnotfound" style="display: none; height: 100vh; justify-content: center; align-items: center;">
         <center>
         <div class="text-center">
             <svg style="width: 250px;margin:20px" viewBox="0 0 512 512"><path fill="<?=$bgcolor?>" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24l0 112c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-112c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>
@@ -741,7 +740,7 @@ function checkMinLength() {
                     if (response.status === 'fail') {
                         $('#intime').hide();
                         // $('#outtime').hide();
-                        $('#accnotfound').show();
+                        $('#accnotfound').css('display', 'flex');
                         $('#failmessage').text(response.message);
 
                     }
