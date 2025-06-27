@@ -1745,7 +1745,8 @@ class PayoutRecordController extends Controller
             ? $query->get()
             : $query->paginate(20);
 
-        $pageTitle = "Agent List";
+
+        $pageTitle = __('merchant.agent_list');
 
         return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
     }

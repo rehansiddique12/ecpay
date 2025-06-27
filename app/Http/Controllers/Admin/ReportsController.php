@@ -145,8 +145,11 @@ class ReportsController extends Controller
             ];
         }
 
+        $e_wallet_name = $request->e_wallet_name;
+        $account_no = $request->account_no;
+
         $pageTitle = __('reports.daily_ewallet_summary');
-        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'fromDate', 'toDate', 'data', 'EWalletAccounts', 'distinctWalletNames'));
+        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'fromDate', 'toDate', 'data', 'EWalletAccounts', 'distinctWalletNames','e_wallet_name','account_no'));
     }
 
 
