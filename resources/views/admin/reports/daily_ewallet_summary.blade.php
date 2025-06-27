@@ -4,11 +4,43 @@
         <form action="{{ route('admin.reports.daily_ewallet_summary') }}" method="get">
             <div class="row align-items-center">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-                <div class="col-md-3">
+                <!-- <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.select_date') }}</label>
                         <input type="date" class="form-control" value="{{ $date }}" name="date"
                             id="datepicker" />
+                    </div>
+                </div> -->
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" class="form-control" name="from_date" value="{{ $fromDate }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" class="form-control" name="to_date" value="{{ $toDate }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>E-Wallet Name</label>
+                        <select class="form-control select2" data-allow-clear="true" name="e_wallet_name" data-placeholder="Select E-Wallet Name">
+                            <option></option>
+                            <option value="">All</option>
+                            @foreach ($distinctWalletNames as $name)
+                                <option value="{{ $name }}" {{ ($e_wallet_name?? '') == $name ? 'selected' : '' }}>
+                                    {{ $name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Account No</label>
+                        <input type="text" class="form-control" name="account_no" value="{{ request('account_no') }}">
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -80,6 +112,29 @@
         </div>
 
     </div>
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+    @endpush
     @push('js')
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+<script>
+        let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
+                    allowClear: true,
+                    selectOnClose: true,
+                });
+
+                // Prevent dropdown from opening on clear
+                $select.on('select2:unselecting', function(e) {
+                    $(this).data('unselecting', true);
+                });
+
+                $select.on('select2:opening', function(e) {
+                    if ($(this).data('unselecting')) {
+                        $(this).removeData('unselecting');
+                        e.preventDefault();
+                    }
+                });
+                </script>
     @endpush
 </x-admin-layout>

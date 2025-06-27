@@ -76,4 +76,6 @@ return [
     'summary_by_year' => '按年份汇总',
 
     'audit_log' => '审计日志',
+    'cs_tracker' => '客服追踪器',
+
 ];
