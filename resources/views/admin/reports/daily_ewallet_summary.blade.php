@@ -73,7 +73,6 @@
                         </table>
                     </div>
                     <div class="card-footer">
-                        {{ $EWalletAccounts->appends($_GET)->links('partials.pagination') }}
                     </div>
                 </div>
             </div>

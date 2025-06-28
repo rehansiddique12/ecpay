@@ -47,7 +47,7 @@ class ReportsController extends Controller
         }
 
         // Get all wallet accounts with pagination
-        $EWalletAccounts = EWalletAccount::paginate(20);
+        $EWalletAccounts = EWalletAccount::get();
         $accountIds = $EWalletAccounts->pluck('id');
         $eWalletNames = $EWalletAccounts->pluck('e_wallet_name');
         $accountNumbers = $EWalletAccounts->pluck('account_no');
