@@ -154,4 +154,6 @@ return [
     'delete_error_title' => '错误！',
     'delete_error_message' => '删除角色时出错。',
 
+    'agent_list' => '代理人列表',
+
 ];

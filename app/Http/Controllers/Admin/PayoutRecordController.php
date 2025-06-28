@@ -1745,7 +1745,8 @@ class PayoutRecordController extends Controller
             ? $query->get()
             : $query->paginate(20);
 
-        $pageTitle = "Agent List";
+
+        $pageTitle = __('merchant.agent_list');
 
         return view('admin.payout.agent', compact('records', 'pageTitle', 'showAll'));
     }
@@ -5568,7 +5569,12 @@ class PayoutRecordController extends Controller
 
     public function workboard(Request $request)
     {
-        $EWalletAccount = EWalletAccount::where('status', 1)->get();
+        $gatewayNames = Gateway::where('status', 1)->pluck('name');
+
+// Get EWalletAccount records with status = 1 and matching e_wallet_name
+$EWalletAccount = EWalletAccount::where('status', 1)
+    ->whereIn('e_wallet_name', $gatewayNames)
+    ->get();
         $accountIds = EWalletAccount::
             where('status', 1)
             ->whereIn('account_type', ['Withdrawal', 'Both'])

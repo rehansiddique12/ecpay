@@ -175,5 +175,6 @@ return [
     'delete_success_title' => 'Deleted!',
     'delete_error_title' => 'Error!',
     'delete_error_message' => 'There was an error deleting the role.',
+    'agent_list' => 'Agent List',
 
 ];

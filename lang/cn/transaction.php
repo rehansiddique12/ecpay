@@ -281,4 +281,19 @@ return [
     'description' => '描述',
     'created_at' => '创建时间',
     'processing' => '处理中...',
+
+    // CS Tracking
+    'search_action' => '搜索操作...',
+    'audit_logs' => '审计日志',
+    'user' => '用户',
+    'filter_by_user' => '按用户筛选',
+    'select_user' => '选择用户',
+    'action' => '操作',
+    'filter' => '筛选',
+    'from' => '从',
+    'to' => '到',
+    'duration' => '持续时间',
+    'recorded_at' => '记录时间',
+    'processing' => '处理中...',
+    'in_progress' => '进行中',
 ];

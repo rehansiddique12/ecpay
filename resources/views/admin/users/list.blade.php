@@ -124,6 +124,7 @@
                             <th style="width: 150px;">{{ __('userManagement.location') }}</th>
                             <th style="width: 150px;">{{ __('userManagement.roles') }}</th>
                             <th style="width: 100px;">{{ __('userManagement.status') }}</th>
+                            <th style="width: 100px;">{{ __('userManagement.last_login') }}</th>
                             @if (adminAccessRoute(config('role.manage_staff.access.edit')))
                                 <th style="width: 100px;">{{ __('userManagement.action') }}</th>
                             @endif
@@ -477,6 +478,11 @@
                             name: 'status',
                             orderable: false
                         },
+                        {
+                            data: 'last_login_human',
+                            name: 'last_login_human',
+                            orderable: false,
+                        },
                         @if (adminAccessRoute(config('role.manage_staff.access.edit')))
                             {
                                 data: 'action',
@@ -501,16 +507,13 @@
                     ],
                     language: {
                         search: "_INPUT_",
-                        // searchPlaceholder: "{!! __('userManagement.search_placeholder') !!}",
-                        // searchPlaceholder: {!! json_encode(__('userManagement.search_placeholder')) !!},
-                        searchPlaceholder: @json(__('userManagement.search_placeholder')),
+                        searchPlaceholder: {!! json_encode(__('userManagement.search_placeholder')) !!},
                         processing: "<div class='spinner-border text-primary' role='status'><span class='visually-hidden'>{{ __('userManagement.processing') }}</span></div> <!-- You can customize this text -->", // Custom processing message with spinner
                     },
                     info: false, // Hide "Showing X to Y of Z entries" text
                 });
-                // console.log("{{ __('userManagement.search_placeholder') }}");
                 const searchPlaceholder = @json(__('userManagement.search_placeholder'));
-                console.log('searchPlaceholder:', searchPlaceholder);
+                //console.log('searchPlaceholder:', searchPlaceholder);
 
                 //submit add Admin function
                 $('#storeStaffForm').submit(function(e) {
