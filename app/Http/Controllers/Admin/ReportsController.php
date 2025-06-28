@@ -248,7 +248,6 @@ class ReportsController extends Controller
     }
 
 
-
     public function daily_transection_summary(Request $request)
     {
         $timezone = config('app.timezone');
