@@ -4,47 +4,11 @@
         <form action="{{ route('admin.reports.daily_ewallet_summary') }}" method="get">
             <div class="row align-items-center">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-                <p class="text-muted">
-                    Showing results from <strong>{{ $fromDate }}</strong> to <strong>{{ $toDate }}</strong>
-                    
-                </p>
-                <p class="text-end fw-bold">Total Records: {{ $EWalletAccounts->count() }}</p>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>{{ __('reports.from_date') }}</label>
-                        <!-- <input type="text" id="from_date" name="from_date" class="form-control flatpickr-with-icon"
-                            value="{{ old('from_date', \Carbon\Carbon::parse($fromDate)->format('Y-m-d H:i:S')) }}"> -->
-                        <input type="text" id="from_date" name="from_date" class="form-control flatpickr-with-icon"
-                            value="{{ request('from_date') }}">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>{{ __('reports.to_date') }}</label>
-                        <!-- <input type="text" id="to_date" name="to_date" class="form-control flatpickr-with-icon"
-                            value="{{ old('to_date', \Carbon\Carbon::parse($toDate)->format('Y-m-d H:i:S')) }}"> -->
-                        <input type="text" id="to_date" name="to_date" class="form-control flatpickr-with-icon"
-                            value="{{ request('to_date') }}">
-                    </div>
-                </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label>{{ __('reports.e_wallet_name') }}</label>
-                        <select class="form-control select2" name="e_wallet_name" data-placeholder="Select E-Wallet Name">
-                            <option></option>
-                            <option value="">All</option>
-                            @foreach ($distinctWalletNames as $name)
-                                <option value="{{ $name }}" {{ ($e_wallet_name?? '') == $name ? 'selected' : '' }}>
-                                    {{ $name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>{{ __('reports.account_no') }}</label>
-                        <input type="text" class="form-control" name="account_no" value="{{ request('account_no') }}">
+                        <label>{{ __('reports.select_date') }}</label>
+                        <input type="date" class="form-control" value="{{ $date }}" name="date"
+                            id="datepicker" />
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -116,54 +80,6 @@
         </div>
 
     </div>
-    @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <style>
-        .flatpickr-with-icon {
-            background: url("https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/calendar3.svg") no-repeat right 12px center;
-            /* background: url("https://img.icons8.com/ios-filled/ffffff/calendar--v1.png") no-repeat right 12px center; */
-            background-size: 15px 15px;
-            padding-right: 38px; 
-            cursor: pointer;
-            filter: brightness(0) invert(1); 
-            color: white;
-        }
-    </style>
-    @endpush
     @push('js')
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-        flatpickr("#from_date", {
-            enableTime: true,
-            dateFormat: "Y-m-d H:i:S",
-            time_24hr: true,
-            allowInput: true,
-            allowEmpty: true,
-        });
-        flatpickr("#to_date", {
-            enableTime: true,
-            dateFormat: "Y-m-d H:i:S",
-            time_24hr: true
-        });
-        let $select = $('.select2').select2({
-                    // placeholder: "Select Partner",
-                    allowClear: true,
-                    selectOnClose: true,
-                });
-
-                // Prevent dropdown from opening on clear
-                $select.on('select2:unselecting', function(e) {
-                    $(this).data('unselecting', true);
-                });
-
-                $select.on('select2:opening', function(e) {
-                    if ($(this).data('unselecting')) {
-                        $(this).removeData('unselecting');
-                        e.preventDefault();
-                    }
-                });
-                </script>
     @endpush
 </x-admin-layout>

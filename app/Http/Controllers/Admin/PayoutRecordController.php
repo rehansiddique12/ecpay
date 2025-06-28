@@ -5569,7 +5569,12 @@ class PayoutRecordController extends Controller
 
     public function workboard(Request $request)
     {
-        $EWalletAccount = EWalletAccount::where('status', 1)->get();
+        $gatewayNames = Gateway::where('status', 1)->pluck('name');
+
+// Get EWalletAccount records with status = 1 and matching e_wallet_name
+$EWalletAccount = EWalletAccount::where('status', 1)
+    ->whereIn('e_wallet_name', $gatewayNames)
+    ->get();
         $accountIds = EWalletAccount::
             where('status', 1)
             ->whereIn('account_type', ['Withdrawal', 'Both'])

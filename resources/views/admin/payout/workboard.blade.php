@@ -95,80 +95,132 @@
                             <!-- High Performance (81-100%) -->
                             <p class="text-white fs-5 ms-4 px-2 pt-3">81% ~ 100%</p>
                             <div style="background-color: #7570a0;">
-                                <div class="d-flex gap-5 px-4 pt-4">
-                                    <p class="text-White font-semibold text-md">MERCHANT</p>
-                                    <p class="text-White font-semibold text-md">SUCCESS RATE</p>
-                                    <p class="text-White font-semibold text-md">TOTAL RECEIVED</p>
-                                    <p class="text-White font-semibold text-md">TOTAL PROCESSED</p>
-                                    <p class="text-White font-semibold text-md">AUTO PROCESS</p>
-                                    <p class="text-White font-semibold text-md">MANUAL PROCESS</p>
-                                </div>
-                                <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
-                                <div class="h-16">
-                                    @foreach($highPerformance as $merchant)
-                                    <div class="d-flex gap-10 px-4">
-                                        <p class="text-White">{{ $merchant['name'] }}</p>
-                                        <p class="text-White">{{ $merchant['success_rate'] }}%</p>
-                                        <p class="text-White" style="margin-left: 4.5rem;">{{ number_format($merchant['total_received']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['total_processed']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['auto_process']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['manual_process']) }}</p>
-                                    </div>
-                                    @endforeach
+                                <div class="table-responsive px-4 pt-4">
+                                    <table class="table table-bordered text-white mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>MERCHANT</th>
+                                                <th>SUCCESS RATE</th>
+                                                <th>TOTAL RECEIVED</th>
+                                                <th>TOTAL PROCESSED</th>
+                                                <th>AUTO PROCESS</th>
+                                                <th>MANUAL PROCESS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($highPerformance as $merchant)
+                                                <tr class="text-White">
+                                                    <td style="color: #fff">{{ $merchant['name'] }}</td>
+                                                    <td style="color:
+                                                    @if($merchant['success_rate'] > 80)
+                                                        green
+                                                    @elseif($merchant['success_rate'] >= 61)
+                                                        yellow
+                                                    @else
+                                                        red
+                                                    @endif
+                                                ;">
+                                                    {{ $merchant['success_rate'] }}%
+                                                </td>
+
+                                                    <td style="color: #fff">{{ number_format($merchant['total_received']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['total_processed']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['auto_process']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['manual_process']) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
+
 
                             <!-- Medium Performance (61-80%) -->
                             <p class="text-white fs-5 ms-4 px-2 mt-3">61% ~ 80%</p>
                             <div style="background-color: #7570a0;">
-                                <div class="d-flex gap-5 px-4 pt-4">
-                                    <p class="text-White font-semibold text-md">MERCHANT</p>
-                                    <p class="text-White font-semibold text-md">SUCCESS RATE</p>
-                                    <p class="text-White font-semibold text-md">TOTAL RECEIVED</p>
-                                    <p class="text-White font-semibold text-md">TOTAL PROCESSED</p>
-                                    <p class="text-White font-semibold text-md">AUTO PROCESS</p>
-                                    <p class="text-White font-semibold text-md">MANUAL PROCESS</p>
-                                </div>
-                                <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
-                                <div class="h-16">
-                                    @foreach($mediumPerformance as $merchant)
-                                    <div class="d-flex gap-10 px-4">
-                                        <p class="text-White">{{ $merchant['name'] }}</p>
-                                        <p class="text-White">{{ $merchant['success_rate'] }}%</p>
-                                        <p class="text-White" style="margin-left: 4.5rem;">{{ number_format($merchant['total_received']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['total_processed']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['auto_process']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['manual_process']) }}</p>
-                                    </div>
-                                    @endforeach
+                                <div class="table-responsive px-4 pt-4">
+                                    <table class="table table-bordered text-white mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>MERCHANT</th>
+                                                <th>SUCCESS RATE</th>
+                                                <th>TOTAL RECEIVED</th>
+                                                <th>TOTAL PROCESSED</th>
+                                                <th>AUTO PROCESS</th>
+                                                <th>MANUAL PROCESS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($mediumPerformance as $merchant)
+                                                <tr class="text-White">
+                                                    <td style="color: #fff">{{ $merchant['name'] }}</td>
+                                                    <td style="color:
+    @if($merchant['success_rate'] > 80)
+        green
+    @elseif($merchant['success_rate'] >= 61)
+        yellow
+    @else
+        red
+    @endif
+;">
+    {{ $merchant['success_rate'] }}%
+</td>
+
+                                                    <td style="color: #fff">{{ number_format($merchant['total_received']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['total_processed']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['auto_process']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['manual_process']) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
+
 
                             <!-- Low Performance (1-60%) -->
                             <p class="text-white fs-5 ms-4 px-2 mt-3">1% ~ 60%</p>
                             <div style="background-color: #7570a0;">
-                                <div class="d-flex gap-5 px-4 pt-4">
-                                    <p class="text-White font-semibold text-md">MERCHANT</p>
-                                    <p class="text-White font-semibold text-md">SUCCESS RATE</p>
-                                    <p class="text-White font-semibold text-md">TOTAL RECEIVED</p>
-                                    <p class="text-White font-semibold text-md">TOTAL PROCESSED</p>
-                                    <p class="text-White font-semibold text-md">AUTO PROCESS</p>
-                                    <p class="text-White font-semibold text-md">MANUAL PROCESS</p>
-                                </div>
-                                <fieldset class="w-100 border-top border-2 mb-4 border-white"></fieldset>
-                                <div class="h-16">
-                                    @foreach($lowPerformance as $merchant)
-                                    <div class="d-flex gap-10 px-4">
-                                        <p class="text-White">{{ $merchant['name'] }}</p>
-                                        <p class="text-White">{{ $merchant['success_rate'] }}%</p>
-                                        <p class="text-White" style="margin-left: 4.5rem;">{{ number_format($merchant['total_received']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['total_processed']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['auto_process']) }}</p>
-                                        <p class="text-White" style="margin-left: 4rem;">{{ number_format($merchant['manual_process']) }}</p>
-                                    </div>
-                                    @endforeach
+                                <div class="table-responsive px-4 pt-4">
+                                    <table class="table table-bordered text-white mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>MERCHANT</th>
+                                                <th>SUCCESS RATE</th>
+                                                <th>TOTAL RECEIVED</th>
+                                                <th>TOTAL PROCESSED</th>
+                                                <th>AUTO PROCESS</th>
+                                                <th>MANUAL PROCESS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody >
+                                            @foreach($lowPerformance as $merchant)
+                                                <tr>
+                                                    <td style="color: #fff">{{ $merchant['name'] }}</td>
+                                                    <td style="color:
+                                                    @if($merchant['success_rate'] > 80)
+                                                        green
+                                                    @elseif($merchant['success_rate'] >= 61)
+                                                        yellow
+                                                    @else
+                                                        red
+                                                    @endif
+                                                ;">
+                                                    {{ $merchant['success_rate'] }}%
+                                                </td>
+
+                                                    <td style="color: #fff">{{ number_format($merchant['total_received']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['total_processed']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['auto_process']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['manual_process']) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+
+                                    </table>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -195,14 +247,15 @@
                     <div class="d-flex">
                         <div class="d-flex align-items-center p-2" style="background-color: #504c79;width:70%">
                             <p class="mb-0 me-2">SEARCH:</p>
-                            <select name="search" id="api-search" class="form-control" style="width: 70%;">
+                            <select name="search" id="api-search" class="form-control" style="width: 50%;">
                                 <option value="">Select</option>
                                 @foreach($apis as $api)
                                 <option value="{{ $api->id }}">{{ $api->username }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <p id="api-balance" class="mt-5 fs-tiny" style="margin-left: 10px;">1,548,200.15 TK</p>
+                        <p id="api-balance" class="mt-5 fs-5 w-full" style="margin-left: 10px; font-weight: semibold;">1,548,200.15 TK</p>
+
                     </div>
 
                 </div>
