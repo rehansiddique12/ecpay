@@ -7,7 +7,12 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.select_date') }}</label>
-                        <input type="date" class="form-control" value="{{ $date }}" name="date"
+                        <input type="datetime-local" class="form-control" value="{{ $from_date }}" name="from_date"
+                            id="datepicker" />
+                    </div>
+                    <div class="form-group">
+                        <label>{{ __('reports.select_date') }}</label>
+                        <input type="datetime-local" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
                 </div>
@@ -34,6 +39,8 @@
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
+                                    {{-- need to add in trans --}}
+                                    <th scope="col">{{ __('reports.date') }}</th>
 
                                     <th scope="col">{{ __('reports.e_wallet_name') }}</th>
                                     <th scope="col">{{ __('reports.account_no') }}</th>
@@ -48,8 +55,10 @@
                             </thead>
                             <tbody>
                                 @if (isset($data))
-                                    @forelse($data as $key => $item)
+                                    @forelse($data as $key => $date)
+                                    @foreach($date as $key2 => $item)
                                         <tr>
+                                            <td>{{ $key }}</td>
                                             <td>{{ $item['e_wallet_name'] }}</td>
                                             <td>{{ $item['account_no'] }}</td>
                                             <td>{{ $item['opening_balance'] }}</td>
@@ -61,6 +70,7 @@
 
 
                                         </tr>
+                                        @endforeach
                                     @empty
                                         <tr>
                                             <td colspan="100%">
