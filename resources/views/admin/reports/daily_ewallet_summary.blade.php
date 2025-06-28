@@ -39,9 +39,7 @@
                         <table class="categories-show-table table table-hover table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
-                                    {{-- need to add in trans --}}
                                     <th scope="col">{{ __('reports.date') }}</th>
-
                                     <th scope="col">{{ __('reports.e_wallet_name') }}</th>
                                     <th scope="col">{{ __('reports.account_no') }}</th>
                                     <th scope="col">{{ __('reports.opening_balance') }}</th>
@@ -50,26 +48,36 @@
                                     <th scope="col">{{ __('reports.transfer_in') }}</th>
                                     <th scope="col">{{ __('reports.transfer_out') }}</th>
                                     <th scope="col">{{ __('reports.closing_balance') }}</th>
-
                                 </tr>
                             </thead>
                             <tbody>
+                                @php
+                                    $grandDeposit = 0;
+                                    $grandWithdrawal = 0;
+                                    $grandTransferIn = 0;
+                                    $grandTransferOut = 0;
+                                @endphp
+                        
                                 @if (isset($data))
                                     @forelse($data as $key => $date)
-                                    @foreach($date as $key2 => $item)
-                                        <tr>
-                                            <td>{{ $key }}</td>
-                                            <td>{{ $item['e_wallet_name'] }}</td>
-                                            <td>{{ $item['account_no'] }}</td>
-                                            <td>{{ $item['opening_balance'] }}</td>
-                                            <td>{{ getAmount($item['total_deposit'], 2) }}</td>
-                                            <td>{{ getAmount($item['total_withdrawal'], 2) }}</td>
-                                            <td>{{ $item['transfer_in'] }}</td>
-                                            <td>{{ $item['transfer_out'] }}</td>
-                                            <td>{{ $item['closing_balance'] }}</td>
-
-
-                                        </tr>
+                                        @foreach($date as $key2 => $item)
+                                            @php
+                                                $grandDeposit += $item['total_deposit'];
+                                                $grandWithdrawal += $item['total_withdrawal'];
+                                                $grandTransferIn += $item['transfer_in'];
+                                                $grandTransferOut += $item['transfer_out'];
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $item['date'] ?? $key2 }}</td>
+                                                <td>{{ $item['e_wallet_name'] }}</td>
+                                                <td>{{ $item['account_no'] }}</td>
+                                                <td>{{ getAmount($item['opening_balance'], 2) }}</td>
+                                                <td>{{ getAmount($item['total_deposit'], 2) }}</td>
+                                                <td>{{ getAmount($item['total_withdrawal'], 2) }}</td>
+                                                <td>{{ getAmount($item['transfer_in'], 2) }}</td>
+                                                <td>{{ getAmount($item['transfer_out'], 2) }}</td>
+                                                <td>{{ getAmount($item['closing_balance'], 2) }}</td>
+                                            </tr>
                                         @endforeach
                                     @empty
                                         <tr>
@@ -79,8 +87,19 @@
                                         </tr>
                                     @endforelse
                                 @endif
+                        
+                                {{-- Total Row --}}
+                                <tr class="bg-light font-weight-bold">
+                                    <td colspan="4" class="text-right">{{ __('reports.total') }}</td>
+                                    <td>{{ getAmount($grandDeposit, 2) }}</td>
+                                    <td>{{ getAmount($grandWithdrawal, 2) }}</td>
+                                    <td>{{ getAmount($grandTransferIn, 2) }}</td>
+                                    <td>{{ getAmount($grandTransferOut, 2) }}</td>
+                                    <td>{{ getAmount($grandDeposit-$grandWithdrawal+$grandTransferIn-$grandTransferOut, 2) }}</td>
+                                </tr>
                             </tbody>
                         </table>
+                        
                     </div>
                     <div class="card-footer">
                     </div>
