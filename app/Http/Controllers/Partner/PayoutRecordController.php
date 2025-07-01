@@ -187,8 +187,8 @@ class PayoutRecordController extends Controller
                 COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
                 COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS today_count,
                 COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS month_count,
-                COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
-                SUM(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                COUNT(CASE WHEN created_at >= ? THEN 1 END) AS one_min_count,
+                SUM(CASE WHEN created_at >= ? THEN amount ELSE 0 END) AS one_min_sum
             ', [
                 $Setting->value,
                 $startOfToday,
@@ -752,8 +752,8 @@ class PayoutRecordController extends Controller
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
                         COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS today_count,
                         COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS month_count,
-                        COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
-                        SUM(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                        COUNT(CASE WHEN created_at >= ? THEN 1 END) AS one_min_count,
+                        SUM(CASE WHEN created_at >= ? THEN amount ELSE 0 END) AS one_min_sum
                     ', [
                 $Setting->value,
                 $startOfToday,
@@ -3055,8 +3055,8 @@ class PayoutRecordController extends Controller
                COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
                COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS today_count,
                COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS month_count,
-               COUNT(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
-               SUM(CASE WHEN trans_complete_date >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+               COUNT(CASE WHEN created_at >= ? THEN 1 END) AS one_min_count,
+                SUM(CASE WHEN created_at >= ? THEN amount ELSE 0 END) AS one_min_sum
            ', [
             $Setting->value,
             $startOfToday,
@@ -3940,8 +3940,8 @@ class PayoutRecordController extends Controller
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
                         COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS today_count,
                         COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS month_count,
-                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
-                        SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                        COUNT(CASE WHEN created_at >= ? THEN 1 END) AS one_min_count,
+                        SUM(CASE WHEN created_at >= ? THEN amount ELSE 0 END) AS one_min_sum
                     ', [
                     $Setting->value,
                     $startOfToday,

@@ -801,8 +801,8 @@ class PayoutRecordController extends Controller
                             COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
                             COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS today_count,
                             COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS month_count,
-                            COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
-                            SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                            COUNT(CASE WHEN created_at >= ? THEN 1 END) AS one_min_count,
+                            SUM(CASE WHEN created_at >= ? THEN amount ELSE 0 END) AS one_min_sum
                         ', [
                         $Setting->value,
                         $startOfToday,
@@ -4255,8 +4255,8 @@ class PayoutRecordController extends Controller
                         COUNT(CASE WHEN created_at >= ? THEN 1 END) AS counts_for_round_robin,
                         COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS today_count,
                         COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS month_count,
-                        COUNT(CASE WHEN completions_at >= ? AND status = "Complete" THEN 1 END) AS one_min_count,
-                        SUM(CASE WHEN completions_at >= ? AND status = "Complete" THEN amount ELSE 0 END) AS one_min_sum
+                        COUNT(CASE WHEN created_at >= ? THEN 1 END) AS one_min_count,
+                        SUM(CASE WHEN created_at >= ? THEN amount ELSE 0 END) AS one_min_sum
                     ', [
                     $Setting->value,
                     $startOfToday,
@@ -6995,6 +6995,62 @@ public function markAsRead(Notification $notification)
                 'success' => false,
                 'message' => 'Failed to update status. ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+
+
+    public function updateAccountBalance(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $validator = Validator::make($request->all(), [
+                'api_key' => 'required|string',
+                'e_wallet_name' => 'required|string',
+                'e_wallet_phone_number' => 'required|string',
+                'balance' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+
+            $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+            if ($api_key && $api_key->website == env('APP_WEBSITE')) {
+                $source = $api_key->website;
+            } else {
+                DB::rollBack();
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
+
+            $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+                    ->where('account_no', $request->e_wallet_phone_number)
+                    ->orderBy('status', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+            
+            if (!$account) {
+                DB::rollBack();
+                return response()->json(['message' => 'Account not exist.']);
+            }
+
+            $request->balance = str_replace(',', '', $request->balance);
+            
+
+            
+            $account->live_balance = $request->balance;
+            $account->save();
+            DB::commit();
+            
+
+           
+            return response()->json(['message' => 'Account Balance updated successfully'], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json(['errors' => $e->validator->errors()], 400);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'An error occurred while processing your request'], 500);
         }
     }
 
