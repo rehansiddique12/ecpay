@@ -57,6 +57,9 @@ Route::middleware('api_logs_middleware')->group(function () {
     Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
     Route::post('/checkBalance', [PaymentController::class, 'checkBalance']);
 
+
+    Route::post('/updateAccountBalance', [PayoutRecordController::class, 'updateAccountBalance']);
+
     
 
     Route::match(['get','post'],'/bkashcallback', [PartnerPayoutRecordController::class, 'bkashcallback']);  

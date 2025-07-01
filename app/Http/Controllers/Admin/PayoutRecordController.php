@@ -6999,4 +6999,60 @@ public function markAsRead(Notification $notification)
     }
 
 
+
+    public function updateAccountBalance(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $validator = Validator::make($request->all(), [
+                'api_key' => 'required|string',
+                'e_wallet_name' => 'required|string',
+                'e_wallet_phone_number' => 'required|string',
+                'balance' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+
+            $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+            if ($api_key && $api_key->website == env('APP_WEBSITE')) {
+                $source = $api_key->website;
+            } else {
+                DB::rollBack();
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
+
+            $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
+                    ->where('account_no', $request->e_wallet_phone_number)
+                    ->orderBy('status', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+            
+            if (!$account) {
+                DB::rollBack();
+                return response()->json(['message' => 'Account not exist.']);
+            }
+
+            $request->balance = str_replace(',', '', $request->balance);
+            
+
+            
+            $account->live_balance = $request->balance;
+            $account->save();
+            DB::commit();
+            
+
+           
+            return response()->json(['message' => 'Account Balance updated successfully'], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json(['errors' => $e->validator->errors()], 400);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'An error occurred while processing your request'], 500);
+        }
+    }
+
+
 }
