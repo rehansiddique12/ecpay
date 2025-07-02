@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $data['methods'] = Gateway::orderBy('sort_by', 'asc')->get();
         $data['categories'] = Category::all();
@@ -34,6 +34,7 @@ class CategoryController extends Controller
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
 
+        $input_status = $request->filled('status') ? $request->status : null;
         $today = Carbon::today();
 
         // Payments Subquery
@@ -42,7 +43,7 @@ class CategoryController extends Controller
         e_wallet_phone_number,
         COUNT(*) as today_transaction_count,
         SUM(amount) as today_total_deposit
-    ')
+        ')
             ->whereDate('created_at', $today)
             ->where('status', 'Complete')
             ->groupBy('e_wallet_phone_number');
@@ -71,6 +72,9 @@ class CategoryController extends Controller
                 'location',
                 'accountGroups.group'
             ])
+           ->when($input_status !== null, function ($query) use ($input_status) {
+                return $query->where('e_wallet_accounts.status', $input_status);
+            })
             ->select(
                 'e_wallet_accounts.*',
                 DB::raw('COALESCE(p.today_transaction_count, 0) as today_transaction_count'),
