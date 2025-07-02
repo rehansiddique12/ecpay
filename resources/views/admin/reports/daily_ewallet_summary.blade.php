@@ -23,7 +23,7 @@
                         <label>{{ __('reports.e_wallet_name') }}</label>
                         <select class="form-control select2" name="e_wallet_name" data-placeholder="Select E-Wallet Name">
                             <option></option>
-                            <option value="">All</option>
+                            <option value="">{{ __('reports.all') }}</option>
                             @foreach ($distinctWalletNames as $name)
                                 <option value="{{ $name }}" {{ ($e_wallet_name?? '') == $name ? 'selected' : '' }}>
                                     {{ $name }}

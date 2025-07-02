@@ -624,6 +624,41 @@ class ReportsController extends Controller
         return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'data', 'EWalletAccounts'));
     }
 
+    public function smsLogs(Request $request)
+    {
+        $pageTitle = 'SMS Logs';
+
+        // for the dropdown filter
+        $distinctWalletNames = DB::table('sms_logs')->distinct()->pluck('e_wallet_name');
+
+        // query with filters
+        $logs = DB::table('sms_logs')
+            ->when($request->from_date, function ($q) use ($request) {
+                $q->where('created_at', '>=', $request->from_date);
+            })
+            ->when($request->to_date, function ($q) use ($request) {
+                $q->where('created_at', '<=', $request->to_date);
+            })
+            ->when($request->e_wallet_no, function ($q) use ($request) {
+                $q->where('e_wallet_no', $request->e_wallet_no);
+            })
+            ->when($request->type, function ($q) use ($request) {
+                $q->where('type', $request->type);
+            })
+            ->when($request->search_any, function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('customer_acc_no', 'like', '%' . $request->search_any . '%')
+                        ->orWhere('txn', 'like', '%' . $request->search_any . '%')
+                        ->orWhere('e_wallet_no', 'like', '%' . $request->search_any . '%');
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.reports.sms_logs', compact('pageTitle', 'logs', 'distinctWalletNames'));
+    }
+
 
     public function daily_transection_summary(Request $request)
     {

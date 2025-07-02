@@ -1200,6 +1200,14 @@ $languages = [
                             </a>
                         </li>
                         @endif
+                        @if (adminAccessRoute(config('role.sms_logs.access.view')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.sms.logs' ? 'active' : '' }}">
+                                <a href="{{ route('admin.sms.logs') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-message"></i>
+                                    <div data-i18n="SMS Logs">{{ __('sidebar.sms_logs') }}</div>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </li>
                 @if (adminAccessRoute(config('role.merchant_reports.access.view')))
