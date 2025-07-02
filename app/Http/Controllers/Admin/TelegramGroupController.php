@@ -220,50 +220,50 @@ class TelegramGroupController extends Controller
             $TG_message = $array['edited_message'];
         }
 
-        if(isset($TG_message)){
-            $sender_chat = $TG_message['chat'];
-            $api = TelegramGroup::where('group_username',$sender_chat)->first();
-            if(!$api){
-                $title = "";
-                if(isset($sender_chat['title'])){
-                    $title = $sender_chat['title'];
-                }elseif(isset($sender_chat['first_name']) && isset($sender_chat['last_name'])){
-                    $title = $sender_chat['first_name'] . " " . $sender_chat['last_name'];
+            if(isset($TG_message)){
+                $sender_chat = $TG_message['chat'];
+                $api = TelegramGroup::where('group_username',$sender_chat)->first();
+                if(!$api){
+                    $title = "";
+                    if(isset($sender_chat['title'])){
+                        $title = $sender_chat['title'];
+                    }elseif(isset($sender_chat['first_name']) && isset($sender_chat['last_name'])){
+                        $title = $sender_chat['first_name'] . " " . $sender_chat['last_name'];
+                    }
+                    $api = new TelegramGroup;
+                    $api->group_name = $title;
+                    $api->group_username = $sender_chat['id'];
+                    $api->status = 0;
+                    $api->save();
                 }
-                $api = new TelegramGroup;
-                $api->group_name = $title;
-                $api->group_username = $sender_chat['id'];
-                $api->status = 0;
-                $api->save();
-            }
 
-            $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
-            $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
+                $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
+                $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
 
-            // Add timeout and retry logic for Telegram API calls
-            $maxRetries = 3;
-            $timeout = 10; // seconds
-            $retryDelay = 1; // seconds
+                // Add timeout and retry logic for Telegram API calls
+                $maxRetries = 3;
+                $timeout = 10; // seconds
+                $retryDelay = 1; // seconds
 
-            $sendMessage = function($params) use ($url, $maxRetries, $timeout, $retryDelay) {
-                $attempt = 0;
-                while ($attempt < $maxRetries) {
-                    try {
-                        $response = Http::timeout($timeout)->post($url, $params);
-                        if ($response->successful()) {
-                            return $response;
+                $sendMessage = function($params) use ($url, $maxRetries, $timeout, $retryDelay) {
+                    $attempt = 0;
+                    while ($attempt < $maxRetries) {
+                        try {
+                            $response = Http::timeout($timeout)->post($url, $params);
+                            if ($response->successful()) {
+                                return $response;
+                            }
+                            LaravelLog::warning("Telegram API call failed (attempt " . ($attempt + 1) . "): " . $response->body());
+                        } catch (\Exception $e) {
+                            LaravelLog::error("Telegram API exception (attempt " . ($attempt + 1) . "): " . $e->getMessage());
                         }
-                        LaravelLog::warning("Telegram API call failed (attempt " . ($attempt + 1) . "): " . $response->body());
-                    } catch (\Exception $e) {
-                        LaravelLog::error("Telegram API exception (attempt " . ($attempt + 1) . "): " . $e->getMessage());
+                        $attempt++;
+                        if ($attempt < $maxRetries) {
+                            sleep($retryDelay);
+                        }
                     }
-                    $attempt++;
-                    if ($attempt < $maxRetries) {
-                        sleep($retryDelay);
-                    }
-                }
-                throw new \Exception("Failed to send message after $maxRetries attempts");
-            };
+                    throw new \Exception("Failed to send message after $maxRetries attempts");
+                };
 
             // Use the new sendMessage function for all Telegram API calls
             if(empty($api->api_id) || $api->api_id==0 || $api->status==0){
@@ -279,45 +279,54 @@ class TelegramGroupController extends Controller
                     LaravelLog::error("Failed to send pending message: " . $e->getMessage());
                 }
             } else {
-                if(isset($TG_message['text'])){
-                    $sender_message = $TG_message['text'];
-                }elseif(isset($TG_message['caption'])){
-                    $sender_message = $TG_message['caption'];
-                }
+                    if(isset($TG_message['text'])){
+                        $sender_message = $TG_message['text'];
+                    }elseif(isset($TG_message['caption'])){
+                        $sender_message = $TG_message['caption'];
+                    }
 
-                $api_key = Api::where('id', $api->api_id)->first();
-                $lowercaseText = strtolower($sender_message);
-                if($lowercaseText=="checkbalance" || $lowercaseText=="/checkbalance"){
-                    if (!$api_key) {
-                        $message = $this->messages[$api->lang]['request_pending'];
-                    } else {
-                        $message = sprintf($this->messages[$api->lang]['checkbalance'], $api_key->name, $api_key->balance);
-                    }
-                    try {
-                        $sendMessage([
-                            'chat_id' => $sender_chat['id'],
-                            'text' => $message,
-                            'reply_to_message_id' => $TG_message['message_id'],
-                            'parse_mode' => 'Markdown',
-                        ]);
-                    } catch (\Exception $e) {
-                        LaravelLog::error("Failed to send balance message: " . $e->getMessage());
-                    }
-                }elseif(strpos($lowercaseText, "/lang") === 0){
-                    $parts = explode(" ", $sender_message);
-                    if(count($parts) >= 2) {
-                        $language = trim($parts[1]);
-                        if($language=="en" || $language=="ch"){
-                            $api->lang = $language;
-                            $api->save();
-                            
-                            $message = $this->messages[$language]['lang_selected'];
-                            $response = Http::post($url, [
+                    $api_key = Api::where('id', $api->api_id)->first();
+                    $lowercaseText = strtolower($sender_message);
+                    if($lowercaseText=="checkbalance" || $lowercaseText=="/checkbalance"){
+                        if (!$api_key) {
+                            $message = $this->messages[$api->lang]['request_pending'];
+                        } else {
+                            $message = sprintf($this->messages[$api->lang]['checkbalance'], $api_key->name, $api_key->balance);
+                        }
+                        try {
+                            $sendMessage([
                                 'chat_id' => $sender_chat['id'],
                                 'text' => $message,
                                 'reply_to_message_id' => $TG_message['message_id'],
                                 'parse_mode' => 'Markdown',
                             ]);
+                        } catch (\Exception $e) {
+                            LaravelLog::error("Failed to send balance message: " . $e->getMessage());
+                        }
+                    }elseif(strpos($lowercaseText, "/lang") === 0){
+                        $parts = explode(" ", $sender_message);
+                        if(count($parts) >= 2) {
+                            $language = trim($parts[1]);
+                            if($language=="en" || $language=="ch"){
+                                $api->lang = $language;
+                                $api->save();
+                                
+                                $message = $this->messages[$language]['lang_selected'];
+                                $response = Http::post($url, [
+                                    'chat_id' => $sender_chat['id'],
+                                    'text' => $message,
+                                    'reply_to_message_id' => $TG_message['message_id'],
+                                    'parse_mode' => 'Markdown',
+                                ]);
+                            }else{
+                                $message = $this->messages[$api->lang]['lang_invalid'];
+                                $response = Http::post($url, [
+                                    'chat_id' => $sender_chat['id'],
+                                    'text' => $message,
+                                    'reply_to_message_id' => $TG_message['message_id'],
+                                    'parse_mode' => 'Markdown',
+                                ]);
+                            }
                         }else{
                             $message = $this->messages[$api->lang]['lang_invalid'];
                             $response = Http::post($url, [
@@ -327,166 +336,785 @@ class TelegramGroupController extends Controller
                                 'parse_mode' => 'Markdown',
                             ]);
                         }
-                    }else{
-                        $message = $this->messages[$api->lang]['lang_invalid'];
-                        $response = Http::post($url, [
-                            'chat_id' => $sender_chat['id'],
-                            'text' => $message,
-                            'reply_to_message_id' => $TG_message['message_id'],
-                            'parse_mode' => 'Markdown',
-                        ]);
-                    }
-                }
-                elseif(strpos($lowercaseText, "/checkorder") === 0){
+                    }elseif(strpos($lowercaseText, "/checkorder") === 0){
                     
-                    $parts = explode(" ", $sender_message);
-                    $extractedText = '';
+                        $parts = explode(" ", $sender_message);
+                        $extractedText = '';
                     
-                    if(count($parts) >= 2) {
-                        $orderNumber = trim($parts[1]);
-                    
-                    
-                        $deposit = Payment::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
-                        if($deposit){
-                            if($deposit->status=="Complete"){
-                                $message = $this->messages[$api->lang]['transaction_completed_again'];
-                                $response = Http::post($url, [
-                                    'chat_id' => $sender_chat['id'],
-                                    'text' => $message,
-                                    'reply_to_message_id' => $TG_message['message_id'],
-                                    'parse_mode' => 'Markdown',
-                                ]);
-                            }elseif($deposit->status=="Reject"){
-                                $message = $this->messages[$api->lang]['transaction_rejected'];
-                                $response = Http::post($url, [
-                                    'chat_id' => $sender_chat['id'],
-                                    'text' => $message,
-                                    'reply_to_message_id' => $TG_message['message_id'],
-                                    'parse_mode' => 'Markdown',
-                                ]);
-                            }else{
-                                // $message = "The transaction is in pending state. Please hold on while we transfer your request to our customer service.";
+                        if(count($parts) >= 2) {
+                            $orderNumber = trim($parts[1]);
+                        
+                        
+                            $deposit = Payment::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
+                            if($deposit){
+                                if($deposit->status=="Complete"){
+                                    $message = $this->messages[$api->lang]['transaction_completed_again'];
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                }elseif($deposit->status=="Reject"){
+                                    $message = $this->messages[$api->lang]['transaction_rejected'];
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                }else{
+                                    // $message = "The transaction is in pending state. Please hold on while we transfer your request to our customer service.";
+                                    
+                                    if (isset($TG_message['photo'])) {
+                                        $image_processed = 0;
+                                        try {
+                                            $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
+                                            $photo = end($TG_message['photo']);
+                                            $file_id = $photo['file_id'];
+                                            LaravelLog::info("Got file_id: $file_id");
                                 
-                                if (isset($TG_message['photo'])) {
-                                    $image_processed = 0;
-                                    try {
-                                        $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
-                                        $photo = end($TG_message['photo']);
-                                        $file_id = $photo['file_id'];
-                                        LaravelLog::info("Got file_id: $file_id");
-                            
-                                        // Get file info from Telegram
-                                        $getFileUrl = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$file_id}";
-                                        LaravelLog::info("Requesting file info from: $getFileUrl");
-                                        $fileData = Http::get($getFileUrl)->json();
-                                        LaravelLog::info("File info response: " . json_encode($fileData));
-                            
-                                        if (isset($fileData['ok']) && $fileData['ok'] === true) {
-                                            $file_path = $fileData['result']['file_path'];
-                                            $fileUrl = "https://api.telegram.org/file/bot{$botToken}/{$file_path}";
-                                            LaravelLog::info("Downloading image from: $fileUrl");
-                            
-                                            // Use cURL to fetch the image data because allow_url_fopen is disabled
-                                            
-                                            $ch = curl_init();
-                                            curl_setopt($ch, CURLOPT_URL, $fileUrl);
-                                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                                            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                                            $imageContent = curl_exec($ch);
-                                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                                            curl_close($ch);
-                            
-                                            if ($imageContent && $httpCode === 200) {
+                                            // Get file info from Telegram
+                                            $getFileUrl = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$file_id}";
+                                            LaravelLog::info("Requesting file info from: $getFileUrl");
+                                            $fileData = Http::get($getFileUrl)->json();
+                                            LaravelLog::info("File info response: " . json_encode($fileData));
+                                
+                                            if (isset($fileData['ok']) && $fileData['ok'] === true) {
+                                                $file_path = $fileData['result']['file_path'];
+                                                $fileUrl = "https://api.telegram.org/file/bot{$botToken}/{$file_path}";
+                                                LaravelLog::info("Downloading image from: $fileUrl");
+                                
+                                                // Use cURL to fetch the image data because allow_url_fopen is disabled
                                                 
-                                                $tempPath = 'ocr_' . time() . '.jpg';
-                                                $tempImagePath = storage_path('app/public/ocr_images/' . $tempPath);
-                                                file_put_contents($tempImagePath, $imageContent);
-                                                $imageUrl = url('storage/app/public/ocr_images/' . $tempPath);
-                                                LaravelLog::info("Image saved temporarily at: $tempImagePath");
-                                                LaravelLog::info("Image saved temporarily at: $imageUrl");
-                                                
-                                                $ocrtext = "";
-
-                                                $response = Http::withHeaders([
-                                                    'Content-Type' => 'application/json',
-                                                ])->post('http://89.46.62.251/ocr/api/applyocr', [
-                                                    'imageurl' => $imageUrl,
-                                                ]);
-                                                
-                                                
-                                                
-                                                LaravelLog::info("OCR API Raw Response: " . $response);
-                                                
-                                                
-                                                if ($response->successful()) {
-                                                    $ocr_response = $response->json();
+                                                $ch = curl_init();
+                                                curl_setopt($ch, CURLOPT_URL, $fileUrl);
+                                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                                $imageContent = curl_exec($ch);
+                                                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                                                curl_close($ch);
+                                
+                                                if ($imageContent && $httpCode === 200) {
                                                     
-                                                    if(isset($ocr_response['ocr_text'])){
-                                                    $ocrtext = $ocr_response['ocr_text'];  
-                                                    }
-
-                                                } else {
+                                                    $tempPath = 'ocr_' . time() . '.jpg';
+                                                    $tempImagePath = storage_path('app/public/ocr_images/' . $tempPath);
+                                                    file_put_contents($tempImagePath, $imageContent);
+                                                    $imageUrl = url('storage/app/public/ocr_images/' . $tempPath);
+                                                    LaravelLog::info("Image saved temporarily at: $tempImagePath");
+                                                    LaravelLog::info("Image saved temporarily at: $imageUrl");
                                                     
-                                                    $message = 'Unexpected error occurred.';
-                                                    $response = Http::post($url, [
-                                                        'chat_id' => $sender_chat['id'],
-                                                        'text' => $message,
-                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                        'parse_mode' => 'Markdown',
+                                                    $ocrtext = "";
+
+                                                    $response = Http::withHeaders([
+                                                        'Content-Type' => 'application/json',
+                                                    ])->post('http://89.46.62.251/ocr/api/applyocr', [
+                                                        'imageurl' => $imageUrl,
                                                     ]);
-                                                }
-                                                
-                                                LaravelLog::info("OCR API Raw Response: " . $ocrtext);
-                                                
-                                                
-                                                
-                                                
-                                            
-                            
-                                                try {
                                                     
-                                                    $extractedText = $ocrtext;
                                                     
-                                                    if (isset($extractedText)) {
+                                                    
+                                                    LaravelLog::info("OCR API Raw Response: " . $response);
+                                                    
+                                                    
+                                                    if ($response->successful()) {
+                                                        $ocr_response = $response->json();
                                                         
-                                                        LaravelLog::info("Successfully extracted text from image: " . $extractedText);
+                                                        if(isset($ocr_response['ocr_text'])){
+                                                        $ocrtext = $ocr_response['ocr_text'];  
+                                                        }
+
+                                                    } else {
                                                         
+                                                        $message = 'Unexpected error occurred.';
+                                                        $response = Http::post($url, [
+                                                            'chat_id' => $sender_chat['id'],
+                                                            'text' => $message,
+                                                            'reply_to_message_id' => $TG_message['message_id'],
+                                                            'parse_mode' => 'Markdown',
+                                                        ]);
+                                                    }
+                                                    
+                                                    LaravelLog::info("OCR API Raw Response: " . $ocrtext);
+                                                    
+                                                    
+                                                    
+                                                    
+                                                
+                                
+                                                    try {
+                                                        
+                                                        $extractedText = $ocrtext;
                                                         
                                                         if (isset($extractedText)) {
                                                             
-                                                                
-                                                                
-                                                                // Initialize the gateway_name variable with a default value
-                                                                $gateway_name = $deposit->gateway->name ?? '';
-                                                                if (!empty($deposit->gateway) && !empty($deposit->gateway->name)) {
-                                                                    $gateway_name = $deposit->gateway->name;
-                                                                }
+                                                            LaravelLog::info("Successfully extracted text from image: " . $extractedText);
                                                             
                                                             
-                                                                $extracted_text_values = $this->extractTransactionDetails($extractedText);
+                                                            if (isset($extractedText)) {
+                                                                
+                                                                    
+                                                                    
+                                                                    // Initialize the gateway_name variable with a default value
+                                                                    $gateway_name = $deposit->gateway->name ?? '';
+                                                                    if (!empty($deposit->gateway) && !empty($deposit->gateway->name)) {
+                                                                        $gateway_name = $deposit->gateway->name;
+                                                                    }
+                                                                
+                                                                
+                                                                    $extracted_text_values = $this->extractTransactionDetails($extractedText);
 
-                                                                // For Rocket, use a simpler and more direct approach to get Transaction ID
-                                                                // Remove any previous Transaction ID extraction that might be causing issues
-                                                                $txnId = $extracted_text_values['txn'];
-                                                                $amount = $extracted_text_values['amount'];
-                                                                $phone_number = $extracted_text_values['ewallet'];
-                                                                
-                                                                
-                                                                
-                                                                
-                                                                // Format the message with extracted information
-                                                                $message = "?? *Extracted Information:*\n\n";
-                                                                $message .= "\n*E-Wallet:* " . $extracted_text_values['ewallet'] . "\n";
-                                                                $message .= "\n*TXN:* " . $extracted_text_values['txn'] . "\n";
-                                                                $message .= "\n*Amount:* " . $extracted_text_values['amount'] . "\n";    
-                                                                
-                                                                // Add the fixed extracted text at the bottom
-                                                                $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
-                                                                
-                                                                LaravelLog::info("Final message being sent 3: " . $message);
+                                                                    // For Rocket, use a simpler and more direct approach to get Transaction ID
+                                                                    // Remove any previous Transaction ID extraction that might be causing issues
+                                                                    $txnId = $extracted_text_values['txn'];
+                                                                    $amount = $extracted_text_values['amount'];
+                                                                    $phone_number = $extracted_text_values['ewallet'];
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                                    // Format the message with extracted information
+                                                                    $message = "?? *Extracted Information:*\n\n";
+                                                                    $message .= "\n*E-Wallet:* " . $extracted_text_values['ewallet'] . "\n";
+                                                                    $message .= "\n*TXN:* " . $extracted_text_values['txn'] . "\n";
+                                                                    $message .= "\n*Amount:* " . $extracted_text_values['amount'] . "\n";    
+                                                                    
+                                                                    // Add the fixed extracted text at the bottom
+                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
+                                                                    
+                                                                    LaravelLog::info("Final message being sent 3: " . $message);
 
-                                                                if(empty($extracted_text_values['ewallet']) && empty($extracted_text_values['txn']) && empty($extracted_text_values['amount'])){
-                                                                    $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'], 
+                                                                    if(empty($extracted_text_values['ewallet']) && empty($extracted_text_values['txn']) && empty($extracted_text_values['amount'])){
+                                                                        $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'], 
+                                                                            $deposit->partner_transection_id,
+                                                                            $deposit->id
+                                                                        );
+                                                                        $response = Http::post($url, [
+                                                                            'chat_id' => $sender_chat['id'],
+                                                                            'text' => $message,
+                                                                            'reply_to_message_id' => $TG_message['message_id'],
+                                                                            'parse_mode' => 'Markdown',
+                                                                        ]);
+                                                                    }else{
+                                                                    
+                                                                        LaravelLog::info("if if: ".$txnId);
+                                                                
+                                                                        DB::beginTransaction();
+                                                                        $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
+                                                                        if($payment){
+                                                                            LaravelLog::info("if if: ");
+                                                                            if($payment){
+
+                                                                                $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                                                                                if ($check_payment_txn) {
+                                                                                    DB::rollBack();
+
+                                                                                    $message = "By This Txn no, Payment Already Completed.";
+
+                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => $message,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+
+                                                                                    $image_processed=1;
+                                                                                    return response()->json(['status' => 'success'], 200);
+                                                                                }
+
+                                                                                if(isset($phone_number)) {
+                                                                                    $another_phone_number = $payment->e_wallet_phone_number;
+                                                                                    $cleaned = str_replace(['-', ' '], '', $phone_number);
+                                                                                    $matched = "no";
+                                                                                    if (ctype_digit($cleaned)) {
+
+                                                                                        $data = [
+                                                                                            'type' => 'all_digits',
+                                                                                            'value' => $cleaned
+                                                                                        ];
+
+                                                                                        if ($cleaned === $another_phone_number) {
+                                                                                            $matched = "yes";
+                                                                                            $e_wallet_phone_number = $cleaned;
+                                                                                        } else {
+                                                                                            $matched = "no";
+                                                                                        }
+                                                                                    }elseif (preg_match('/\*{2,}|x{2,}|X{2,}/', $cleaned)) {
+                                                                                        preg_match('/^(\d+)/', $cleaned, $startMatch);
+                                                                                        preg_match('/(\d+)$/', $cleaned, $endMatch);
+
+                                                                                        $startDigits = $startMatch[1] ?? '';
+                                                                                        $endDigits   = $endMatch[1] ?? '';
+
+                                                                                        $data =  [
+                                                                                            'type' => 'masked',
+                                                                                            'start_digits' => $startDigits,
+                                                                                            'start_count'  => strlen($startDigits),
+                                                                                            'end_digits'   => $endDigits,
+                                                                                            'end_count'    => strlen($endDigits),
+                                                                                            'original'     => $phone_number
+                                                                                        ];
+
+                                                                                        if (
+                                                                                            str_starts_with($another_phone_number, $startDigits) &&
+                                                                                            str_ends_with($another_phone_number, $endDigits)
+                                                                                        ) {
+                                                                                            $matched = "yes";
+                                                                                            $e_wallet_phone_number = $another_phone_number;
+                                                                                            
+                                                                                        } else {
+                                                                                            $matched = "no";
+                                                                                        }
+                                                                                    }
+
+                                                                                    if($matched=="no"){
+                                                                                        $message = "⚠️ *E-Wallet Mismatch* ⚠️\n\n";
+                                                                                        $message .= "Our E-Wallet: `" . $another_phone_number . "`\n";
+                                                                                        $message .= "User E-wallet: `" . $phone_number . "`\n\n";
+                                                                                        $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                        $message .= " *Transaction ID:* `".$txnId."`\n";
+                                                                                        $message .= " *Amount:* `".(isset($deposit->amount) ? $deposit->amount : "Not found")."`\n";
+                                                                                        $message .= " *Status:* `Pending`\n";
+                                                                                        $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                                        $message .= "User E-Wellet no. Does not Match with our E-Wallet no.";
+
+
+                                                                                        $support_chat_id = "-4786890063";
+                                                                                        $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                        $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+
+                                                                                        $response = Http::post($url_support, [
+                                                                                            'chat_id' => $support_chat_id,
+                                                                                            'text' => $message,
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                        ]);
+
+
+                                                                                        $message = sprintf($this->messages[$api->lang]['account_not_belong'], 
+                                                                                            $deposit->partner_transection_id,
+                                                                                            $deposit->id
+                                                                                        );
+                                                                                        $response = Http::post($url, [
+                                                                                            'chat_id' => $sender_chat['id'],
+                                                                                            'text' => $message,
+                                                                                            'reply_to_message_id' => $TG_message['message_id'],
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                        ]);
+
+                                                                                        $image_processed=1;
+                                                                                        return response()->json(['status' => 'success'], 200);
+                                                                                    }
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                }
+
+
+                                                                                // Add amount validation
+                                                                                if(isset($amount) && $amount > 0) {
+                                                                                    $expectedAmount = $deposit->amount;
+                                                                                    $extractedAmount = (float)$amount;
+                                                                                    
+                                                                                    // Check if amounts don't match
+                                                                                    if(abs($extractedAmount - $expectedAmount) > 0.01) {
+                                                                                        // Save the new TRX ID to the deposit/order
+                                                                                        $deposit->txn_id = $txnId; // Save the new TRX ID
+                                                                                        $deposit->save();
+
+                                                                                        $message = "⚠️ *Amount Mismatch* ⚠️\n\n";
+                                                                                        $message .= "Expected Amount: `" . $expectedAmount . "`\n";
+                                                                                        $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
+                                                                                        $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                        $message .= " *Transaction ID:* `".$txnId."`\n";
+                                                                                        $message .= " *Status:* `Pending`\n";
+                                                                                        $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                                        $message .= "New TRX number submitted and callback sent with correct amount.";
+
+                                                                                        $support_chat_id = "-4786890063";
+                                                                                        $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                        $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+
+                                                                                        $response = Http::post($url_support, [
+                                                                                            'chat_id' => $support_chat_id,
+                                                                                            'text' => $message,
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                        ]);
+
+                                                                                        $image_processed=1;
+                                                                                    }
+                                                                                }
+
+
+                                                                                
+                                                                            
+                                                                                $partner_api_key = $api_key;
+                                                                                $source = $partner_api_key->website;
+                                                                                $api_id = $partner_api_key->id;
+                                                                            
+                                                                            
+                                                                                $sum = Payment::whereYear('created_at', now()->year)
+                                                                                    ->whereMonth('created_at', now()->month)
+                                                                                    ->where('api_id', $api_id)
+                                                                                    ->where('status', 'Complete')
+                                                                                    ->sum('amount');
+
+                                                                                $account = EWalletAccount::where('e_wallet_name', $deposit->gateway->code)
+                                                                                    ->where('account_no', $e_wallet_phone_number)
+                                                                                    ->first();
+                                                                                if (!$account) {
+                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => 'E-Wallet Account Issue, Contact With Administrator',
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+
+                                                                                    $image_processed=1;
+                                                                                    return response()->json(['status' => 'success'], 200);
+                                                                                }
+
+
+                                                                                $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                                                                                if ($commissions) {
+                                                                                    $charge = $commissions->deposit_percentage * $deposit->amount / 100;
+                                                                                } else {
+                                                                                    $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                                                                                    if ($commissions) {
+                                                                                        $charge = $commissions->deposit_percentage * $deposit->amount / 100;
+                                                                                    }
+                                                                                }
+                                                        
+                                                                                $charge = str_replace(',', '', $charge);
+                                                                                $charge = (float)$charge;
+                                                                                $charge = round($charge, 2);
+                                                                                
+                                                                                $amount = str_replace(',', '', $amount);
+                                                                                $amount = (float)$amount;
+                                                                                $amount = round($amount, 2);
+                                                                            
+                                                                                if($amount>0){
+                                                                                    $final_amo = getAmount($amount - $charge);
+                                                                                        
+                                                                                    if($amount==$payment->amount){
+                                                                                        $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                                                        
+                                                                                        $message_to_show = "*Transection Completed*";
+                                                                                    }
+                                                                                    else
+                                                                                    {   
+                                                                                            $message_to_show = "*Transection of Differant Amount Completed*";
+                                                                                            $partner_transection_id = "createdByAdmin_" . time();
+                                                                                            
+                                                                                            $order = new Payment();
+                                                                                            $order->user_id = 0;
+                                                                                            $order->gateway_id = $deposit->gateway_id;
+                                                                                            $order->amount = $payment->amount;
+                                                                                            $order->partner_transection_id = $partner_transection_id;
+                                                                                            $order->member_id = $deposit->member_id;
+                                                                                            $order->charge = $charge;
+                                                                                            $order->sender = $deposit->account_no;
+                                                                                            $order->transaction = strRandom();
+                                                                                            $order->try = 0;
+                                                                                            $order->status = "Pending";
+                                                                                            $order->api_id = $api_id;
+                                                                                            $order->e_wallet_phone_number = $deposit->e_wallet_phone_number;
+                                                                                            $order->request_source = "Telegram";
+                                                                                            $order->save();     
+
+
+                                                                                            $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
+                                                                                                ->pluck('parent_id')
+                                                                                                ->unique()
+                                                                                                ->values();
+                                                                                            foreach($parentIds as  $parentId){
+
+                                                                                                $parent_charge = 0;
+
+                                                                                                $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                                                                                                if ($parent_commission) {
+                                                                                                    $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
+                                                                                                } else {
+                                                                                                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                                                                                                    if ($parent_commission) {
+                                                                                                        $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
+                                                                                                    }
+                                                                                                }
+
+                                                                                                if($parent_charge>0){
+                                                                                                    $PartnerCommission = new PartnerCommission();
+                                                                                                    $PartnerCommission->api_id = $partner_api_key->id;
+                                                                                                    $PartnerCommission->from_id = $parentId;
+                                                                                                    $PartnerCommission->type = 1;
+                                                                                                    $PartnerCommission->amount = $deposit->amount;
+                                                                                                    $PartnerCommission->charges = $charge;
+                                                                                                    $PartnerCommission->total_amount = $deposit->amount - $charge;
+                                                                                                    $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
+                                                                                                    $profit_p = $parent_commission->deposit_percentage;
+                                                                                                    $profit = $profit_p * $deposit->amount / 100;
+                                                                                                    $PartnerCommission->profit = $profit;
+                                                                                                    $PartnerCommission->profit_p = $profit_p;
+                                                                                                    $PartnerCommission->transaction_id = $deposit->id;
+                                                                                                    $PartnerCommission->status = 0;
+                                                                                                    $PartnerCommission->save();
+                                                                                                }
+
+
+
+
+                                                                                            }
+                                                                                        
+                                                                                        
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                    }
+
+
+                                                                                    if($order){
+                                                                                        $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                                                        $commit = 0;
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        if ($source != env('APP_WEBSITE')) {
+                                                                                            $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
+                                                                                            $net_amount = $payment->amount - $charge;
+                                                                                            
+                                                                                            if ($api_balance_row) {
+                                                                                                $api_balance_row->balance += $net_amount;
+                                                                                                $api_balance_row->save();
+
+                                                                                                $Log = new Log();
+                                                                                                $Log->date_time = $payment->updated_at;
+                                                                                                $Log->final_amount = $net_amount;
+                                                                                                $Log->balance = $api_balance_row->balance;
+                                                                                                $Log->transection_type = 1;
+                                                                                                $Log->transection_id = $order->id;
+                                                                                                $Log->partner_id = $api_balance_row->id;
+                                                                                                $Log->source = 'TelegramVerify';
+                                                                                                $Log->save();
+                                                                                            } else {
+                                                                                                LaravelLog::error('API balance row not found for api_id: ' . $api_id . '. Transaction ID: ' . $payment->id);
+                                                                                                // Continue processing but log the error
+                                                                                            }
+                                                                                        } else {
+                                                                                            $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
+                                                                                        }
+                                                                    
+                                                                                        $order->status = 'Complete';
+                                                                                        $order->trans_complete_date = Carbon::now();
+                                                                                        $order->completed_source = 'Telegram';
+                                                                                        $order->charge = $charge;
+
+                                                                                        if(empty($order->sender) || $order->sender==0){
+                                                                                            $order->sender = $payment->sender;
+                                                                                        }
+                                                                                        
+                                                                                        $order->txn_id = $payment->txn_id;
+                                                                                        $order->date_time = $payment->date_time;
+                                                                                        $order->transaction_type = $payment->transaction_type;
+                                                                                        $order->ip_address = $payment->ip_address;
+                                                                                        $order->e_wallet_type = $payment->e_wallet_type;
+                                                                                        $order->mac_address = $payment->mac_address;
+                                                                                        $order->fee = $payment->fee;
+                                                                                        $order->commission = $payment->commission;
+                                                                                        $order->e_wallet_charges = $payment->e_wallet_charges;
+                                                                                        $order->payment_received_at = $payment->created_at;
+
+
+
+                                                                                        $order->save();
+
+                                                                                        $payment->status = 1;
+                                                                                        $payment->save();
+                                                                                        $payment=null;
+                                                                                        // $payment->delete();
+                                                                                        
+                                                                    
+                                                                                        DB::commit();
+                                                                                        $commit = 1;
+                                                                    
+                                                                                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
+                                                                                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                                                                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
+                                                                                            $amount_to_update = round($amount_to_update, 2);
+                                                                                            // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                                                                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                                                                            $DailyPartnerSummary_record->save();
+
+                                                                                            $summary_log = new DailyPartnerSummaryLog();
+                                                                                            if ($partner_api_key) {
+                                                                                                $summary_log->partner_id = $partner_api_key->id;
+                                                                                                $summary_log->partner_balance = $partner_api_key->balance;
+                                                                                            } else {
+                                                                                                LaravelLog::error('Partner API key not found for api_id: ' . $api_id);
+                                                                                                $summary_log->partner_id = $api_id;
+                                                                                                $summary_log->partner_balance = 0;
+                                                                                            }
+                                                                                            $summary_log->payment_id = $order->id;
+                                                                                            $summary_log->total_amount = $net_amount;
+                                                                                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                                                                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                                                                            $summary_log->source = 'Telegram';
+                                                                                            $summary_log->save();
+                                                                                        }
+                                                                    
+                                                                    
+                                                                                        
+                                                                                        
+                                                                    
+                                                                                        $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
+                                                                                        foreach ($PartnerCommissions as $PartnerCommission) {
+                                                                                            $PartnerCommission->status = 1;
+                                                                                            $PartnerCommission->save();
+                                                                    
+                                                                                            DB::beginTransaction();
+                                                                                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                                                                                            if($parent_api_key){
+                                                                                                $parent_api_key->balance += $PartnerCommission->profit;
+                                                                                                $parent_api_key->save();
+                                                                        
+                                                                                                $Log = new Log();
+                                                                                                $Log->date_time = $PartnerCommission->created_at;
+                                                                                                $Log->final_amount = $PartnerCommission->profit;
+                                                                                                $Log->balance = $parent_api_key->balance;
+                                                                                                $Log->transection_type = 5;
+                                                                                                $Log->transection_id = $PartnerCommission->id;
+                                                                                                $Log->partner_id = $PartnerCommission->from_id;
+                                                                                                $Log->source = 'Telegram';
+                                                                                                $Log->save();
+                                                                                                DB::commit();
+                                                                        
+                                                                                                $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                                                                                                foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                                                                                    $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                                                                                                    $amount_to_update = round($amount_to_update, 2);
+                                                                                                    // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                                                                                    $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                                                                                    $DailyPartnerSummary_record->save();
+                                                                        
+                                                                                                    $summary_log = new DailyPartnerSummaryLog();
+                                                                                                    $summary_log->partner_id = $parent_api_key->id;
+                                                                                                    $summary_log->partner_balance = $parent_api_key->balance;
+                                                                                                    $summary_log->payment_id = $PartnerCommission->id;
+                                                                                                    $summary_log->total_amount = $PartnerCommission->profit;
+                                                                                                    $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                                                                                    $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                                                                                    $summary_log->source = 'Telegram';
+                                                                                                    $summary_log->save();
+                                                                                                }
+                                                                                            }
+                                                                                            
+                                                                                        }
+                                                                                    }
+                                                                                    
+                                                                                    if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
+                                                                
+                                                                                        $string_to_hash = json_encode(array(
+                                                                                            "amount" => strval($this->convertStringToNumber($order->amount)),
+                                                                                            "api_key" => $partner_api_key->api_key,
+                                                                                            "e_wallet_name" => $order->e_wallet_name,
+                                                                                            "id" => strval($order->id),
+                                                                                            'transaction_type' => 'Deposit',
+                                                                                            "user_account_no" => strval($order->sender),
+                                                                
+                                                                                        ));
+                                                                                        $secretKey = $partner_api_key->secret_key;
+                                                                                        $hash = hash("sha256", $string_to_hash);
+                                                                                        $hmac = hash_hmac('sha256', $hash, $secretKey);
+                                                                                        $timestamp = time();
+                                                                                        $combined = $hmac . $timestamp;
+                                                                                        $sign = base64_encode($combined);
+                                                                
+                                                                
+                                                                                        $array_data = [
+                                                                                                    'id' => $order->id,
+                                                                                                    'partner_transection_id' => $order->partner_transection_id,
+                                                                                                    'transaction_type' => 'Deposit',
+                                                                                                    'e_wallet_name' => $order->e_wallet_name,
+                                                                                                    'amount' => $this->convertStringToNumber($order->amount),
+                                                                                                    'user_account_no' => $order->sender,
+                                                                                                    'txn_id' => $order->txn_id,
+                                                                                                    'e_wallet_phone_number' => $order->e_wallet_phone_number,
+                                                                                                    'e_wallet_type' => $order->e_wallet_type,
+                                                                                                    'charges' => $this->convertStringToNumber($order->charge),
+                                                                                                    'status' => $order->status,
+                                                                                                    'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                                                                                    'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
+                                                                                                    'created_at' => $order->created_at,
+                                                                                                    'updated_at' => $order->updated_at,
+                                                                                                    'sign' => $sign,
+                                                                                        ];
+                                                                
+                                                                                        if(!empty($order->member_id)){
+                                                                                            $array_data['member_id'] = $order->member_id;
+                                                                                        }
+                                                                
+                                                                
+                                                                                        $requestData = [
+                                                                                            'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                                                                                            'request_url' => $partner_api_key->api_endpoint_deposit,
+                                                                                            'request_payload' => json_encode($array_data),
+                                                                                            'request_headers' => json_encode([
+                                                                                                'Content-Type' => 'application/json',
+                                                                                                'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                                                                                            ]),
+                                                                                            'created_at' => now(),
+                                                                                            'updated_at' => now(),
+                                                                                        ];
+                                                                
+                                                                                        $logId = DB::table('api_logs')->insertGetId($requestData);
+                                                                                        try {
+                                                                                            $csrfToken = Str::random(40);
+                                                                                            $response = Http::withHeaders([
+                                                                                                'Content-Type' => 'application/json',
+                                                                                                'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                                                                                            ])
+                                                                                                ->post($partner_api_key->api_endpoint_deposit, $array_data);
+                                                                
+                                                                                            if ($response) {
+                                                                                                $responseData = [
+                                                                                                    'response_code' => $response->status(),
+                                                                                                    'response_payload' => $response->body(),
+                                                                                                    'response_headers' => json_encode($response->headers()),
+                                                                                                ];
+                                                                
+                                                                                                DB::table('api_logs')->where('id', $logId)->update($responseData);
+                                                                                            }
+                                                                                        } catch (\Exception $e) {
+                                                                                            //
+                                                                                        }
+                                                                                    }
+                                                                                    
+                                                                                    $support_chat_id = "-4786890063";
+                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                                                    $message_support = "";
+                                                                                    $message_support .= "?? ".$message_to_show." ??\n\n";
+                                                                                    $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                    $message_support .= "*Order Id:* `".$deposit->id."`\n";
+                                                                                    $message_support .= "*Transaction ID:* `".$txnId."`\n";
+                                                                                    $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                                    $message_support .= "*Remark:* Transaction processed and callback sent.\n";
+                                                                                    $message_support .= "*Status:* `Complete`\n";
+                                                                                    
+                                                                                    $response = Http::post($url_support, [
+                                                                                        'chat_id' => $support_chat_id,
+                                                                                        'text' => $message_support,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                    ]);
+                                                                                    
+                                                                                    
+                                                                                        $message = "";
+                                                                                        $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
+                                                                                        $message .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                        $message .= "*Order Id:* `".$deposit->id."`\n";
+                                                                                        $message .= "*Transaction ID:* `".$txnId."`\n";
+                                                                                        $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                                        $message .= "*Status:* `Complete`\n";
+                                                                                    
+                                                                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                            'chat_id' => $TG_message['chat']['id'],
+                                                                                            'text' => $message,
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                            'reply_to_message_id' => $TG_message['message_id']
+                                                                                        ]);
+                                                                                        
+                                                                                        $image_processed=1;
+                                                                                }else{
+                                                                                    $support_chat_id = "-4786890063";
+                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                                                    $message_support = "";
+                                                                                    $message_support .= "?? *Transaction Not Found* ??\n\n";
+                                                                                    $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                    $message_support .= "*Order Id:* `".$deposit->id."`\n";
+                                                                                    $message_support .= "*Transaction ID:* `".$txnId."`\n";
+                                                                                    $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                                    $message_support .= "*Remark:* Transaction processed and callback sent.\n";
+                                                                                    $message_support .= "*Status:* `Not Found`\n";
+                                                                                    
+                                                                                    $response = Http::post($url_support, [
+                                                                                        'chat_id' => $support_chat_id,
+                                                                                        'text' => $message_support,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                    ]);
+                                                                                    
+                                                                                    $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+                                                                                        $deposit->partner_transection_id,
+                                                                                        $deposit->id,
+                                                                                        $txnId,
+                                                                                        (isset($amount) ? $amount : "Not found")
+                                                                                    );
+                                                                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => $message,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+                                                                                    
+                                                                                    $image_processed=1;
+                                                                                }
+                                                                                
+                                                                                
+                                                                                    
+                                                                            }
+                                                                            
+                                                                        }else{
+                                                                            LaravelLog::info("else else: ");
+                                                                            $support_chat_id = "-4786890063";
+                                                                            $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                            $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                                            $message_support = "";
+                                                                            $message_support .= "?? *Transaction Not Found* ??\n\n";
+                                                                            $message_support .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                            $message_support .= " *Transaction ID:* `".$txnId."`\n";
+                                                                            $message_support .= " *Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                            $message_support .= " *Remark:* Transaction ID not found in system.\n";
+                                                                            $message_support .= " *Status:* `Pending`\n";
+                                                                            $message_support .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                            
+                                                                            $response = Http::post($url_support, [
+                                                                                'chat_id' => $support_chat_id,
+                                                                                'text' => $message_support,
+                                                                                'parse_mode' => 'Markdown',
+                                                                            ]);
+                                                                            
+                                                                            $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+                                                                                $deposit->partner_transection_id,
+                                                                                $deposit->id,
+                                                                                $txnId,
+                                                                                (isset($amount) ? $amount : "Not found")
+                                                                            );
+                                                                            Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                'chat_id' => $TG_message['chat']['id'],
+                                                                                'text' => $message,
+                                                                                'parse_mode' => 'Markdown',
+                                                                                'reply_to_message_id' => $TG_message['message_id']
+                                                                            ]);
+                                                                            
+                                                                            $image_processed=1;
+                                                                        }
+                                                                        
+                                                                        if($commit==0){
+                                                                            DB::commit();
+                                                                        }
+                                                                        
+                                                                        
+                                                                        
+                                                                        
+                                                                
+                                                                    }
+                                                                    
+                                                                    
+                                                                    LaravelLog::info("re else else: ".$txnId);
+                                                                    
+                                                                } else {
+                                                                    LaravelLog::info('No text found in the image');
+                                                                    $message = sprintf($this->messages[$api->lang]['image_error'], 
                                                                         $deposit->partner_transection_id,
                                                                         $deposit->id
                                                                     );
@@ -496,625 +1124,12 @@ class TelegramGroupController extends Controller
                                                                         'reply_to_message_id' => $TG_message['message_id'],
                                                                         'parse_mode' => 'Markdown',
                                                                     ]);
-                                                                }else{
-                                                                
-                                                                    LaravelLog::info("if if: ".$txnId);
-                                                            
-                                                                    DB::beginTransaction();
-                                                                    $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
-                                                                    if($payment){
-                                                                        LaravelLog::info("if if: ");
-                                                                        if($payment){
-
-                                                                            $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
-                                                                            if ($check_payment_txn) {
-                                                                                DB::rollBack();
-
-                                                                                $message = "By This Txn no, Payment Already Completed.";
-
-                                                                                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                                    'chat_id' => $TG_message['chat']['id'],
-                                                                                    'text' => $message,
-                                                                                    'parse_mode' => 'Markdown',
-                                                                                    'reply_to_message_id' => $TG_message['message_id']
-                                                                                ]);
-
-                                                                                $image_processed=1;
-                                                                                return response()->json(['status' => 'success'], 200);
-                                                                            }
-
-                                                                            if(isset($phone_number)) {
-                                                                                $another_phone_number = $payment->e_wallet_phone_number;
-                                                                                $cleaned = str_replace(['-', ' '], '', $phone_number);
-                                                                                $matched = "no";
-                                                                                if (ctype_digit($cleaned)) {
-
-                                                                                    $data = [
-                                                                                        'type' => 'all_digits',
-                                                                                        'value' => $cleaned
-                                                                                    ];
-
-                                                                                    if ($cleaned === $another_phone_number) {
-                                                                                        $matched = "yes";
-                                                                                        $e_wallet_phone_number = $cleaned;
-                                                                                    } else {
-                                                                                        $matched = "no";
-                                                                                    }
-                                                                                }elseif (preg_match('/\*{2,}|x{2,}|X{2,}/', $cleaned)) {
-                                                                                    preg_match('/^(\d+)/', $cleaned, $startMatch);
-                                                                                    preg_match('/(\d+)$/', $cleaned, $endMatch);
-
-                                                                                    $startDigits = $startMatch[1] ?? '';
-                                                                                    $endDigits   = $endMatch[1] ?? '';
-
-                                                                                    $data =  [
-                                                                                        'type' => 'masked',
-                                                                                        'start_digits' => $startDigits,
-                                                                                        'start_count'  => strlen($startDigits),
-                                                                                        'end_digits'   => $endDigits,
-                                                                                        'end_count'    => strlen($endDigits),
-                                                                                        'original'     => $phone_number
-                                                                                    ];
-
-                                                                                    if (
-                                                                                        str_starts_with($another_phone_number, $startDigits) &&
-                                                                                        str_ends_with($another_phone_number, $endDigits)
-                                                                                    ) {
-                                                                                        $matched = "yes";
-                                                                                        $e_wallet_phone_number = $another_phone_number;
-                                                                                        
-                                                                                    } else {
-                                                                                        $matched = "no";
-                                                                                    }
-                                                                                }
-
-                                                                                if($matched=="no"){
-                                                                                    $message = "⚠️ *E-Wallet Mismatch* ⚠️\n\n";
-                                                                                    $message .= "Our E-Wallet: `" . $another_phone_number . "`\n";
-                                                                                    $message .= "User E-wallet: `" . $phone_number . "`\n\n";
-                                                                                    $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                                                    $message .= " *Transaction ID:* `".$txnId."`\n";
-                                                                                    $message .= " *Amount:* `".(isset($deposit->amount) ? $deposit->amount : "Not found")."`\n";
-                                                                                    $message .= " *Status:* `Pending`\n";
-                                                                                    $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
-                                                                                    $message .= "User E-Wellet no. Does not Match with our E-Wallet no.";
-
-
-                                                                                    $support_chat_id = "-4786890063";
-                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
-                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
-
-                                                                                    $response = Http::post($url_support, [
-                                                                                        'chat_id' => $support_chat_id,
-                                                                                        'text' => $message,
-                                                                                        'parse_mode' => 'Markdown',
-                                                                                    ]);
-
-
-                                                                                    $message = sprintf($this->messages[$api->lang]['account_not_belong'], 
-                                                                                        $deposit->partner_transection_id,
-                                                                                        $deposit->id
-                                                                                    );
-                                                                                    $response = Http::post($url, [
-                                                                                        'chat_id' => $sender_chat['id'],
-                                                                                        'text' => $message,
-                                                                                        'reply_to_message_id' => $TG_message['message_id'],
-                                                                                        'parse_mode' => 'Markdown',
-                                                                                    ]);
-
-                                                                                    $image_processed=1;
-                                                                                    return response()->json(['status' => 'success'], 200);
-                                                                                }
-                                                                                
-                                                                                
-                                                                                
-                                                                            }
-
-
-                                                                            // Add amount validation
-                                                                            if(isset($amount) && $amount > 0) {
-                                                                                $expectedAmount = $deposit->amount;
-                                                                                $extractedAmount = (float)$amount;
-                                                                                
-                                                                                // Check if amounts don't match
-                                                                                if(abs($extractedAmount - $expectedAmount) > 0.01) {
-                                                                                    // Save the new TRX ID to the deposit/order
-                                                                                    $deposit->txn_id = $txnId; // Save the new TRX ID
-                                                                                    $deposit->save();
-
-                                                                                    $message = "⚠️ *Amount Mismatch* ⚠️\n\n";
-                                                                                    $message .= "Expected Amount: `" . $expectedAmount . "`\n";
-                                                                                    $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
-                                                                                    $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                                                    $message .= " *Transaction ID:* `".$txnId."`\n";
-                                                                                    $message .= " *Status:* `Pending`\n";
-                                                                                    $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
-                                                                                    $message .= "New TRX number submitted and callback sent with correct amount.";
-
-                                                                                    $support_chat_id = "-4786890063";
-                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
-                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
-
-                                                                                    $response = Http::post($url_support, [
-                                                                                        'chat_id' => $support_chat_id,
-                                                                                        'text' => $message,
-                                                                                        'parse_mode' => 'Markdown',
-                                                                                    ]);
-
-                                                                                    $image_processed=1;
-                                                                                }
-                                                                            }
-
-
-                                                                            
-                                                                        
-                                                                            $partner_api_key = $api_key;
-                                                                            $source = $partner_api_key->website;
-                                                                            $api_id = $partner_api_key->id;
-                                                                        
-                                                                        
-                                                                            $sum = Payment::whereYear('created_at', now()->year)
-                                                                                ->whereMonth('created_at', now()->month)
-                                                                                ->where('api_id', $api_id)
-                                                                                ->where('status', 'Complete')
-                                                                                ->sum('amount');
-
-                                                                            $account = EWalletAccount::where('e_wallet_name', $deposit->gateway->code)
-                                                                                ->where('account_no', $e_wallet_phone_number)
-                                                                                ->first();
-                                                                            if (!$account) {
-                                                                                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                                    'chat_id' => $TG_message['chat']['id'],
-                                                                                    'text' => 'E-Wallet Account Issue, Contact With Administrator',
-                                                                                    'parse_mode' => 'Markdown',
-                                                                                    'reply_to_message_id' => $TG_message['message_id']
-                                                                                ]);
-
-                                                                                $image_processed=1;
-                                                                                return response()->json(['status' => 'success'], 200);
-                                                                            }
-
-
-                                                                            $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
-                                                                            if ($commissions) {
-                                                                                $charge = $commissions->deposit_percentage * $deposit->amount / 100;
-                                                                            } else {
-                                                                                $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
-                                                                                if ($commissions) {
-                                                                                    $charge = $commissions->deposit_percentage * $deposit->amount / 100;
-                                                                                }
-                                                                            }
-                                                    
-                                                                            $charge = str_replace(',', '', $charge);
-                                                                            $charge = (float)$charge;
-                                                                            $charge = round($charge, 2);
-                                                                            
-                                                                            $amount = str_replace(',', '', $amount);
-                                                                            $amount = (float)$amount;
-                                                                            $amount = round($amount, 2);
-                                                                        
-                                                                            if($amount>0){
-                                                                                $final_amo = getAmount($amount - $charge);
-                                                                                    
-                                                                                if($amount==$payment->amount){
-                                                                                    $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
-                                                                                    
-                                                                                    $message_to_show = "*Transection Completed*";
-                                                                                }
-                                                                                else
-                                                                                {   
-                                                                                        $message_to_show = "*Transection of Differant Amount Completed*";
-                                                                                        $partner_transection_id = "createdByAdmin_" . time();
-                                                                                        
-                                                                                        $order = new Payment();
-                                                                                        $order->user_id = 0;
-                                                                                        $order->gateway_id = $deposit->gateway_id;
-                                                                                        $order->amount = $payment->amount;
-                                                                                        $order->partner_transection_id = $partner_transection_id;
-                                                                                        $order->member_id = $deposit->member_id;
-                                                                                        $order->charge = $charge;
-                                                                                        $order->sender = $deposit->account_no;
-                                                                                        $order->transaction = strRandom();
-                                                                                        $order->try = 0;
-                                                                                        $order->status = "Pending";
-                                                                                        $order->api_id = $api_id;
-                                                                                        $order->e_wallet_phone_number = $deposit->e_wallet_phone_number;
-                                                                                        $order->request_source = "Telegram";
-                                                                                        $order->save();     
-
-
-                                                                                        $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
-                                                                                            ->pluck('parent_id')
-                                                                                            ->unique()
-                                                                                            ->values();
-                                                                                        foreach($parentIds as  $parentId){
-
-                                                                                            $parent_charge = 0;
-
-                                                                                            $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
-                                                                                            if ($parent_commission) {
-                                                                                                $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
-                                                                                            } else {
-                                                                                                $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
-                                                                                                if ($parent_commission) {
-                                                                                                    $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
-                                                                                                }
-                                                                                            }
-
-                                                                                            if($parent_charge>0){
-                                                                                                $PartnerCommission = new PartnerCommission();
-                                                                                                $PartnerCommission->api_id = $partner_api_key->id;
-                                                                                                $PartnerCommission->from_id = $parentId;
-                                                                                                $PartnerCommission->type = 1;
-                                                                                                $PartnerCommission->amount = $deposit->amount;
-                                                                                                $PartnerCommission->charges = $charge;
-                                                                                                $PartnerCommission->total_amount = $deposit->amount - $charge;
-                                                                                                $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
-                                                                                                $profit_p = $parent_commission->deposit_percentage;
-                                                                                                $profit = $profit_p * $deposit->amount / 100;
-                                                                                                $PartnerCommission->profit = $profit;
-                                                                                                $PartnerCommission->profit_p = $profit_p;
-                                                                                                $PartnerCommission->transaction_id = $deposit->id;
-                                                                                                $PartnerCommission->status = 0;
-                                                                                                $PartnerCommission->save();
-                                                                                            }
-
-
-
-
-                                                                                        }
-                                                                                    
-                                                                                    
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                        
-                                                                                }
-
-
-                                                                                if($order){
-                                                                                    $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
-                                                                                    $commit = 0;
-                                                                                    
-                                                                                    
-                                                                                    
-                                                                                    
-                                                                                    if ($source != env('APP_WEBSITE')) {
-                                                                                        $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
-                                                                                        $net_amount = $payment->amount - $charge;
-                                                                                        
-                                                                                        if ($api_balance_row) {
-                                                                                            $api_balance_row->balance += $net_amount;
-                                                                                            $api_balance_row->save();
-
-                                                                                            $Log = new Log();
-                                                                                            $Log->date_time = $payment->updated_at;
-                                                                                            $Log->final_amount = $net_amount;
-                                                                                            $Log->balance = $api_balance_row->balance;
-                                                                                            $Log->transection_type = 1;
-                                                                                            $Log->transection_id = $order->id;
-                                                                                            $Log->partner_id = $api_balance_row->id;
-                                                                                            $Log->source = 'TelegramVerify';
-                                                                                            $Log->save();
-                                                                                        } else {
-                                                                                            LaravelLog::error('API balance row not found for api_id: ' . $api_id . '. Transaction ID: ' . $payment->id);
-                                                                                            // Continue processing but log the error
-                                                                                        }
-                                                                                    } else {
-                                                                                        $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
-                                                                                    }
-                                                                
-                                                                                    $order->status = 'Complete';
-                                                                                    $order->trans_complete_date = Carbon::now();
-                                                                                    $order->completed_source = 'Telegram';
-                                                                                    $order->charge = $charge;
-
-                                                                                    if(empty($order->sender) || $order->sender==0){
-                                                                                        $order->sender = $payment->sender;
-                                                                                    }
-                                                                                    
-                                                                                    $order->txn_id = $payment->txn_id;
-                                                                                    $order->date_time = $payment->date_time;
-                                                                                    $order->transaction_type = $payment->transaction_type;
-                                                                                    $order->ip_address = $payment->ip_address;
-                                                                                    $order->e_wallet_type = $payment->e_wallet_type;
-                                                                                    $order->mac_address = $payment->mac_address;
-                                                                                    $order->fee = $payment->fee;
-                                                                                    $order->commission = $payment->commission;
-                                                                                    $order->e_wallet_charges = $payment->e_wallet_charges;
-                                                                                    $order->payment_received_at = $payment->created_at;
-
-
-
-                                                                                    $order->save();
-
-                                                                                    $payment->status = 1;
-                                                                                    $payment->save();
-                                                                                    $payment=null;
-                                                                                    // $payment->delete();
-                                                                                    
-                                                                
-                                                                                    DB::commit();
-                                                                                    $commit = 1;
-                                                                
-                                                                                    $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
-                                                                                    foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                                                                                        $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                                                                        $amount_to_update = round($amount_to_update, 2);
-                                                                                        // $amount_to_update = floor($amount_to_update * 100) / 100;
-                                                                                        $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                                                                                        $DailyPartnerSummary_record->save();
-
-                                                                                        $summary_log = new DailyPartnerSummaryLog();
-                                                                                        if ($partner_api_key) {
-                                                                                            $summary_log->partner_id = $partner_api_key->id;
-                                                                                            $summary_log->partner_balance = $partner_api_key->balance;
-                                                                                        } else {
-                                                                                            LaravelLog::error('Partner API key not found for api_id: ' . $api_id);
-                                                                                            $summary_log->partner_id = $api_id;
-                                                                                            $summary_log->partner_balance = 0;
-                                                                                        }
-                                                                                        $summary_log->payment_id = $order->id;
-                                                                                        $summary_log->total_amount = $net_amount;
-                                                                                        $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                                                                                        $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                                                                        $summary_log->source = 'Telegram';
-                                                                                        $summary_log->save();
-                                                                                    }
-                                                                
-                                                                
-                                                                                    
-                                                                                    
-                                                                
-                                                                                    $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
-                                                                                    foreach ($PartnerCommissions as $PartnerCommission) {
-                                                                                        $PartnerCommission->status = 1;
-                                                                                        $PartnerCommission->save();
-                                                                
-                                                                                        DB::beginTransaction();
-                                                                                        $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                                                                                        if($parent_api_key){
-                                                                                            $parent_api_key->balance += $PartnerCommission->profit;
-                                                                                            $parent_api_key->save();
                                                                     
-                                                                                            $Log = new Log();
-                                                                                            $Log->date_time = $PartnerCommission->created_at;
-                                                                                            $Log->final_amount = $PartnerCommission->profit;
-                                                                                            $Log->balance = $parent_api_key->balance;
-                                                                                            $Log->transection_type = 5;
-                                                                                            $Log->transection_id = $PartnerCommission->id;
-                                                                                            $Log->partner_id = $PartnerCommission->from_id;
-                                                                                            $Log->source = 'Telegram';
-                                                                                            $Log->save();
-                                                                                            DB::commit();
-                                                                    
-                                                                                            $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
-                                                                                            foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
-                                                                                                $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                                                                                $amount_to_update = round($amount_to_update, 2);
-                                                                                                // $amount_to_update = floor($amount_to_update * 100) / 100;
-                                                                                                $DailyPartnerSummary_record->closing_balance = $amount_to_update;
-                                                                                                $DailyPartnerSummary_record->save();
-                                                                    
-                                                                                                $summary_log = new DailyPartnerSummaryLog();
-                                                                                                $summary_log->partner_id = $parent_api_key->id;
-                                                                                                $summary_log->partner_balance = $parent_api_key->balance;
-                                                                                                $summary_log->payment_id = $PartnerCommission->id;
-                                                                                                $summary_log->total_amount = $PartnerCommission->profit;
-                                                                                                $summary_log->summary_id = $DailyPartnerSummary_record->id;
-                                                                                                $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
-                                                                                                $summary_log->source = 'Telegram';
-                                                                                                $summary_log->save();
-                                                                                            }
-                                                                                        }
-                                                                                        
-                                                                                    }
-                                                                                }
-                                                                                
-                                                                                if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
-                                                            
-                                                                                    $string_to_hash = json_encode(array(
-                                                                                        "amount" => strval($this->convertStringToNumber($order->amount)),
-                                                                                        "api_key" => $partner_api_key->api_key,
-                                                                                        "e_wallet_name" => $order->e_wallet_name,
-                                                                                        "id" => strval($order->id),
-                                                                                        'transaction_type' => 'Deposit',
-                                                                                        "user_account_no" => strval($order->sender),
-                                                            
-                                                                                    ));
-                                                                                    $secretKey = $partner_api_key->secret_key;
-                                                                                    $hash = hash("sha256", $string_to_hash);
-                                                                                    $hmac = hash_hmac('sha256', $hash, $secretKey);
-                                                                                    $timestamp = time();
-                                                                                    $combined = $hmac . $timestamp;
-                                                                                    $sign = base64_encode($combined);
-                                                            
-                                                            
-                                                                                    $array_data = [
-                                                                                                'id' => $order->id,
-                                                                                                'partner_transection_id' => $order->partner_transection_id,
-                                                                                                'transaction_type' => 'Deposit',
-                                                                                                'e_wallet_name' => $order->e_wallet_name,
-                                                                                                'amount' => $this->convertStringToNumber($order->amount),
-                                                                                                'user_account_no' => $order->sender,
-                                                                                                'txn_id' => $order->txn_id,
-                                                                                                'e_wallet_phone_number' => $order->e_wallet_phone_number,
-                                                                                                'e_wallet_type' => $order->e_wallet_type,
-                                                                                                'charges' => $this->convertStringToNumber($order->charge),
-                                                                                                'status' => $order->status,
-                                                                                                'completion_date' => Carbon::parse($order->date_time)->toDateString(),
-                                                                                                'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
-                                                                                                'created_at' => $order->created_at,
-                                                                                                'updated_at' => $order->updated_at,
-                                                                                                'sign' => $sign,
-                                                                                    ];
-                                                            
-                                                                                    if(!empty($order->member_id)){
-                                                                                        $array_data['member_id'] = $order->member_id;
-                                                                                    }
-                                                            
-                                                            
-                                                                                    $requestData = [
-                                                                                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
-                                                                                        'request_url' => $partner_api_key->api_endpoint_deposit,
-                                                                                        'request_payload' => json_encode($array_data),
-                                                                                        'request_headers' => json_encode([
-                                                                                            'Content-Type' => 'application/json',
-                                                                                            'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
-                                                                                        ]),
-                                                                                        'created_at' => now(),
-                                                                                        'updated_at' => now(),
-                                                                                    ];
-                                                            
-                                                                                    $logId = DB::table('api_logs')->insertGetId($requestData);
-                                                                                    try {
-                                                                                        $csrfToken = Str::random(40);
-                                                                                        $response = Http::withHeaders([
-                                                                                            'Content-Type' => 'application/json',
-                                                                                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
-                                                                                        ])
-                                                                                            ->post($partner_api_key->api_endpoint_deposit, $array_data);
-                                                            
-                                                                                        if ($response) {
-                                                                                            $responseData = [
-                                                                                                'response_code' => $response->status(),
-                                                                                                'response_payload' => $response->body(),
-                                                                                                'response_headers' => json_encode($response->headers()),
-                                                                                            ];
-                                                            
-                                                                                            DB::table('api_logs')->where('id', $logId)->update($responseData);
-                                                                                        }
-                                                                                    } catch (\Exception $e) {
-                                                                                        //
-                                                                                    }
-                                                                                }
-                                                                                
-                                                                                $support_chat_id = "-4786890063";
-                                                                                $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
-                                                                                $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
-                                                                                $message_support = "";
-                                                                                $message_support .= "?? ".$message_to_show." ??\n\n";
-                                                                                $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                                                $message_support .= "*Order Id:* `".$deposit->id."`\n";
-                                                                                $message_support .= "*Transaction ID:* `".$txnId."`\n";
-                                                                                $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
-                                                                                $message_support .= "*Remark:* Transaction processed and callback sent.\n";
-                                                                                $message_support .= "*Status:* `Complete`\n";
-                                                                                
-                                                                                $response = Http::post($url_support, [
-                                                                                    'chat_id' => $support_chat_id,
-                                                                                    'text' => $message_support,
-                                                                                    'parse_mode' => 'Markdown',
-                                                                                ]);
-                                                                                
-                                                                                
-                                                                                    $message = "";
-                                                                                    $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
-                                                                                    $message .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                                                    $message .= "*Order Id:* `".$deposit->id."`\n";
-                                                                                    $message .= "*Transaction ID:* `".$txnId."`\n";
-                                                                                    $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
-                                                                                    $message .= "*Status:* `Complete`\n";
-                                                                                
-                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                                        'chat_id' => $TG_message['chat']['id'],
-                                                                                        'text' => $message,
-                                                                                        'parse_mode' => 'Markdown',
-                                                                                        'reply_to_message_id' => $TG_message['message_id']
-                                                                                    ]);
-                                                                                    
-                                                                                    $image_processed=1;
-                                                                            }else{
-                                                                                $support_chat_id = "-4786890063";
-                                                                                $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
-                                                                                $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
-                                                                                $message_support = "";
-                                                                                $message_support .= "?? *Transaction Not Found* ??\n\n";
-                                                                                $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                                                $message_support .= "*Order Id:* `".$deposit->id."`\n";
-                                                                                $message_support .= "*Transaction ID:* `".$txnId."`\n";
-                                                                                $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
-                                                                                $message_support .= "*Remark:* Transaction processed and callback sent.\n";
-                                                                                $message_support .= "*Status:* `Not Found`\n";
-                                                                                
-                                                                                $response = Http::post($url_support, [
-                                                                                    'chat_id' => $support_chat_id,
-                                                                                    'text' => $message_support,
-                                                                                    'parse_mode' => 'Markdown',
-                                                                                ]);
-                                                                                
-                                                                                $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
-                                                                                    $deposit->partner_transection_id,
-                                                                                    $deposit->id,
-                                                                                    $txnId,
-                                                                                    (isset($amount) ? $amount : "Not found")
-                                                                                );
-                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                                    'chat_id' => $TG_message['chat']['id'],
-                                                                                    'text' => $message,
-                                                                                    'parse_mode' => 'Markdown',
-                                                                                    'reply_to_message_id' => $TG_message['message_id']
-                                                                                ]);
-                                                                                
-                                                                                $image_processed=1;
-                                                                            }
-                                                                            
-                                                                            
-                                                                                
-                                                                        }
-                                                                        
-                                                                    }else{
-                                                                        LaravelLog::info("else else: ");
-                                                                        $support_chat_id = "-4786890063";
-                                                                        $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
-                                                                        $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
-                                                                        $message_support = "";
-                                                                        $message_support .= "?? *Transaction Not Found* ??\n\n";
-                                                                        $message_support .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                                        $message_support .= " *Transaction ID:* `".$txnId."`\n";
-                                                                        $message_support .= " *Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
-                                                                        $message_support .= " *Remark:* Transaction ID not found in system.\n";
-                                                                        $message_support .= " *Status:* `Pending`\n";
-                                                                        $message_support .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
-                                                                        
-                                                                        $response = Http::post($url_support, [
-                                                                            'chat_id' => $support_chat_id,
-                                                                            'text' => $message_support,
-                                                                            'parse_mode' => 'Markdown',
-                                                                        ]);
-                                                                        
-                                                                        $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
-                                                                            $deposit->partner_transection_id,
-                                                                            $deposit->id,
-                                                                            $txnId,
-                                                                            (isset($amount) ? $amount : "Not found")
-                                                                        );
-                                                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                                            'chat_id' => $TG_message['chat']['id'],
-                                                                            'text' => $message,
-                                                                            'parse_mode' => 'Markdown',
-                                                                            'reply_to_message_id' => $TG_message['message_id']
-                                                                        ]);
-                                                                        
-                                                                        $image_processed=1;
-                                                                    }
-                                                                    
-                                                                    if($commit==0){
-                                                                        DB::commit();
-                                                                    }
-                                                                    
-                                                                    
-                                                                    
-                                                                    
-                                                            
+                                                                    $image_processed=1;
+                                                
                                                                 }
-                                                                
-                                                                
-                                                                LaravelLog::info("re else else: ".$txnId);
-                                                                
                                                             } else {
-                                                                LaravelLog::info('No text found in the image');
+                                                                LaravelLog::error("OCR.space API Error: " . $result);
                                                                 $message = sprintf($this->messages[$api->lang]['image_error'], 
                                                                     $deposit->partner_transection_id,
                                                                     $deposit->id
@@ -1127,56 +1142,53 @@ class TelegramGroupController extends Controller
                                                                 ]);
                                                                 
                                                                 $image_processed=1;
-                                            
                                                             }
-                                                        } else {
-                                                            LaravelLog::error("OCR.space API Error: " . $result);
-                                                            $message = sprintf($this->messages[$api->lang]['image_error'], 
-                                                                $deposit->partner_transection_id,
-                                                                $deposit->id
-                                                            );
-                                                            $response = Http::post($url, [
-                                                                'chat_id' => $sender_chat['id'],
-                                                                'text' => $message,
-                                                                'reply_to_message_id' => $TG_message['message_id'],
-                                                                'parse_mode' => 'Markdown',
-                                                            ]);
+                                                        } catch (\Exception $e) {
+                                                            LaravelLog::error("OCR Processing Error: " . $e->getMessage());
+                                                            // $message = "Image Processing Error! Try Again. Please Attach clear image and add caption /ckorder XXX123XXX  for further checking.";
+                                                            // $response = Http::post($url, [
+                                                            //     'chat_id' => $sender_chat['id'],
+                                                            //     'text' => $message,
+                                                            //     'reply_to_message_id' => $TG_message['message_id'],
+                                                            //     'parse_mode' => 'Markdown',
+                                                            // ]);
                                                             
-                                                            $image_processed=1;
+                                                            // $image_processed=1;
                                                         }
-                                                    } catch (\Exception $e) {
-                                                        LaravelLog::error("OCR Processing Error: " . $e->getMessage());
-                                                        // $message = "Image Processing Error! Try Again. Please Attach clear image and add caption /ckorder XXX123XXX  for further checking.";
-                                                        // $response = Http::post($url, [
-                                                        //     'chat_id' => $sender_chat['id'],
-                                                        //     'text' => $message,
-                                                        //     'reply_to_message_id' => $TG_message['message_id'],
-                                                        //     'parse_mode' => 'Markdown',
-                                                        // ]);
                                                         
-                                                        // $image_processed=1;
-                                                    }
-                                                    
-                                                    // Clean up temporary file
-                                                    if (file_exists($tempImagePath)) {
-                                                        unlink($tempImagePath);
-                                                        LaravelLog::info("Temporary image file cleaned up: $tempImagePath");
+                                                        // Clean up temporary file
+                                                        if (file_exists($tempImagePath)) {
+                                                            unlink($tempImagePath);
+                                                            LaravelLog::info("Temporary image file cleaned up: $tempImagePath");
+                                                        }
+                                                    } else {
+                                                        LaravelLog::error("Failed to download image content. HTTP Code: $httpCode");
                                                     }
                                                 } else {
-                                                    LaravelLog::error("Failed to download image content. HTTP Code: $httpCode");
+                                                    LaravelLog::error("Failed to get file info from Telegram. Response: " . json_encode($fileData));
                                                 }
-                                            } else {
-                                                LaravelLog::error("Failed to get file info from Telegram. Response: " . json_encode($fileData));
+                                            } catch (\Exception $e) {
+                                                LaravelLog::error("Processing exception: " . $e->getMessage());
                                             }
-                                        } catch (\Exception $e) {
-                                            LaravelLog::error("Processing exception: " . $e->getMessage());
-                                        }
-                                        
-                                        if($image_processed==0){
+                                            
+                                            if($image_processed==0){
+                                                $message = sprintf($this->messages[$api->lang]['service_error'], 
+                                                                        $deposit->partner_transection_id,
+                                                                        $deposit->id
+                                                                    );
+                                                $response = Http::post($url, [
+                                                    'chat_id' => $sender_chat['id'],
+                                                    'text' => $message,
+                                                    'reply_to_message_id' => $TG_message['message_id'],
+                                                    'parse_mode' => 'Markdown',
+                                                ]);
+                                            }
+                                            
+                                        }else{
                                             $message = sprintf($this->messages[$api->lang]['service_error'], 
-                                                                    $deposit->partner_transection_id,
-                                                                    $deposit->id
-                                                                );
+                                                                        $deposit->partner_transection_id,
+                                                                        $deposit->id
+                                                                    );
                                             $response = Http::post($url, [
                                                 'chat_id' => $sender_chat['id'],
                                                 'text' => $message,
@@ -1184,24 +1196,11 @@ class TelegramGroupController extends Controller
                                                 'parse_mode' => 'Markdown',
                                             ]);
                                         }
-                                        
-                                    }else{
-                                        $message = sprintf($this->messages[$api->lang]['service_error'], 
-                                                                    $deposit->partner_transection_id,
-                                                                    $deposit->id
-                                                                );
-                                        $response = Http::post($url, [
-                                            'chat_id' => $sender_chat['id'],
-                                            'text' => $message,
-                                            'reply_to_message_id' => $TG_message['message_id'],
-                                            'parse_mode' => 'Markdown',
-                                        ]);
                                     }
-                                }
 
-                                    
-                                    
-                                    
+                                        
+                                        
+                                        
 
                             }else{
                                 $withdrawal = Payout::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->latest()->first();
@@ -1881,8 +1880,7 @@ class TelegramGroupController extends Controller
                             }    
                     
                         
-                    }
-                    elseif(strpos($lowercaseText, "/newocr") === 0){
+                    }elseif(strpos($lowercaseText, "/newocr") === 0){
                         
                         
                         
@@ -1900,7 +1898,7 @@ class TelegramGroupController extends Controller
                         
                         
                         
-                        if (isset($TG_message['photo'])) {
+                            if (isset($TG_message['photo'])) {
                                         $image_processed = 0;
                                         
                                         try {
@@ -2100,11 +2098,7 @@ class TelegramGroupController extends Controller
                             }    
                     
                         
-                    }
-                    
-                    
-                    
-                    elseif(strpos($lowercaseText, "/callback") === 0){
+                    }elseif(strpos($lowercaseText, "/callback") === 0){
                         $deposit = Payment::where('partner_transection_id',$sender_message)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
                         if($deposit){
                             if($deposit->status==1){
@@ -2322,16 +2316,1009 @@ class TelegramGroupController extends Controller
                                 
                         }
                     }else{
-                        $message = sprintf($this->messages[$api->lang]['invalid_command'], 
-                            $sender_message,
-                            $api->api_id
-                        );
-                        $response = Http::post($url, [
-                            'chat_id' => $sender_chat['id'],
-                            'text' => $message,
-                            'reply_to_message_id' => $TG_message['message_id'],
-                            'parse_mode' => 'Markdown',
-                        ]);
+                            $orderNumber = $sender_message;
+                        
+                        
+                            $deposit = Payment::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->with('gateway')->latest()->first();
+                            if($deposit){
+                                if($deposit->status=="Complete"){
+                                    $message = $this->messages[$api->lang]['transaction_completed_again'];
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                }elseif($deposit->status=="Reject"){
+                                    $message = $this->messages[$api->lang]['transaction_rejected'];
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                }else{
+                                    // $message = "The transaction is in pending state. Please hold on while we transfer your request to our customer service.";
+                                    
+                                    if (isset($TG_message['photo'])) {
+                                        $image_processed = 0;
+                                        try {
+                                            $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
+                                            $photo = end($TG_message['photo']);
+                                            $file_id = $photo['file_id'];
+                                            LaravelLog::info("Got file_id: $file_id");
+                                
+                                            // Get file info from Telegram
+                                            $getFileUrl = "https://api.telegram.org/bot{$botToken}/getFile?file_id={$file_id}";
+                                            LaravelLog::info("Requesting file info from: $getFileUrl");
+                                            $fileData = Http::get($getFileUrl)->json();
+                                            LaravelLog::info("File info response: " . json_encode($fileData));
+                                
+                                            if (isset($fileData['ok']) && $fileData['ok'] === true) {
+                                                $file_path = $fileData['result']['file_path'];
+                                                $fileUrl = "https://api.telegram.org/file/bot{$botToken}/{$file_path}";
+                                                LaravelLog::info("Downloading image from: $fileUrl");
+                                
+                                                // Use cURL to fetch the image data because allow_url_fopen is disabled
+                                                
+                                                $ch = curl_init();
+                                                curl_setopt($ch, CURLOPT_URL, $fileUrl);
+                                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                                $imageContent = curl_exec($ch);
+                                                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                                                curl_close($ch);
+                                
+                                                if ($imageContent && $httpCode === 200) {
+                                                    
+                                                    $tempPath = 'ocr_' . time() . '.jpg';
+                                                    $tempImagePath = storage_path('app/public/ocr_images/' . $tempPath);
+                                                    file_put_contents($tempImagePath, $imageContent);
+                                                    $imageUrl = url('storage/app/public/ocr_images/' . $tempPath);
+                                                    LaravelLog::info("Image saved temporarily at: $tempImagePath");
+                                                    LaravelLog::info("Image saved temporarily at: $imageUrl");
+                                                    
+                                                    $ocrtext = "";
+
+                                                    $response = Http::withHeaders([
+                                                        'Content-Type' => 'application/json',
+                                                    ])->post('http://89.46.62.251/ocr/api/applyocr', [
+                                                        'imageurl' => $imageUrl,
+                                                    ]);
+                                                    
+                                                    
+                                                    
+                                                    LaravelLog::info("OCR API Raw Response: " . $response);
+                                                    
+                                                    
+                                                    if ($response->successful()) {
+                                                        $ocr_response = $response->json();
+                                                        
+                                                        if(isset($ocr_response['ocr_text'])){
+                                                        $ocrtext = $ocr_response['ocr_text'];  
+                                                        }
+
+                                                    } else {
+                                                        
+                                                        $message = 'Unexpected error occurred.';
+                                                        $response = Http::post($url, [
+                                                            'chat_id' => $sender_chat['id'],
+                                                            'text' => $message,
+                                                            'reply_to_message_id' => $TG_message['message_id'],
+                                                            'parse_mode' => 'Markdown',
+                                                        ]);
+                                                    }
+                                                    
+                                                    LaravelLog::info("OCR API Raw Response: " . $ocrtext);
+                                                    
+                                                    
+                                                    
+                                                    
+                                                
+                                
+                                                    try {
+                                                        
+                                                        $extractedText = $ocrtext;
+                                                        
+                                                        if (isset($extractedText)) {
+                                                            
+                                                            LaravelLog::info("Successfully extracted text from image: " . $extractedText);
+                                                            
+                                                            
+                                                            if (isset($extractedText)) {
+                                                                
+                                                                    
+                                                                    
+                                                                    // Initialize the gateway_name variable with a default value
+                                                                    $gateway_name = $deposit->gateway->name ?? '';
+                                                                    if (!empty($deposit->gateway) && !empty($deposit->gateway->name)) {
+                                                                        $gateway_name = $deposit->gateway->name;
+                                                                    }
+                                                                
+                                                                
+                                                                    $extracted_text_values = $this->extractTransactionDetails($extractedText);
+
+                                                                    // For Rocket, use a simpler and more direct approach to get Transaction ID
+                                                                    // Remove any previous Transaction ID extraction that might be causing issues
+                                                                    $txnId = $extracted_text_values['txn'];
+                                                                    $amount = $extracted_text_values['amount'];
+                                                                    $phone_number = $extracted_text_values['ewallet'];
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                                    // Format the message with extracted information
+                                                                    $message = "?? *Extracted Information:*\n\n";
+                                                                    $message .= "\n*E-Wallet:* " . $extracted_text_values['ewallet'] . "\n";
+                                                                    $message .= "\n*TXN:* " . $extracted_text_values['txn'] . "\n";
+                                                                    $message .= "\n*Amount:* " . $extracted_text_values['amount'] . "\n";    
+                                                                    
+                                                                    // Add the fixed extracted text at the bottom
+                                                                    $message .= "\n?? *Full Text:*\n```\n" . $extractedText . "```\n";
+                                                                    
+                                                                    LaravelLog::info("Final message being sent 3: " . $message);
+
+                                                                    if(empty($extracted_text_values['ewallet']) && empty($extracted_text_values['txn']) && empty($extracted_text_values['amount'])){
+                                                                        $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'], 
+                                                                            $deposit->partner_transection_id,
+                                                                            $deposit->id
+                                                                        );
+                                                                        $response = Http::post($url, [
+                                                                            'chat_id' => $sender_chat['id'],
+                                                                            'text' => $message,
+                                                                            'reply_to_message_id' => $TG_message['message_id'],
+                                                                            'parse_mode' => 'Markdown',
+                                                                        ]);
+                                                                    }else{
+                                                                    
+                                                                        LaravelLog::info("if if: ".$txnId);
+                                                                
+                                                                        DB::beginTransaction();
+                                                                        $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
+                                                                        if($payment){
+                                                                            LaravelLog::info("if if: ");
+                                                                            if($payment){
+
+                                                                                $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                                                                                if ($check_payment_txn) {
+                                                                                    DB::rollBack();
+
+                                                                                    $message = "By This Txn no, Payment Already Completed.";
+
+                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => $message,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+
+                                                                                    $image_processed=1;
+                                                                                    return response()->json(['status' => 'success'], 200);
+                                                                                }
+
+                                                                                if(isset($phone_number)) {
+                                                                                    $another_phone_number = $payment->e_wallet_phone_number;
+                                                                                    $cleaned = str_replace(['-', ' '], '', $phone_number);
+                                                                                    $matched = "no";
+                                                                                    if (ctype_digit($cleaned)) {
+
+                                                                                        $data = [
+                                                                                            'type' => 'all_digits',
+                                                                                            'value' => $cleaned
+                                                                                        ];
+
+                                                                                        if ($cleaned === $another_phone_number) {
+                                                                                            $matched = "yes";
+                                                                                            $e_wallet_phone_number = $cleaned;
+                                                                                        } else {
+                                                                                            $matched = "no";
+                                                                                        }
+                                                                                    }elseif (preg_match('/\*{2,}|x{2,}|X{2,}/', $cleaned)) {
+                                                                                        preg_match('/^(\d+)/', $cleaned, $startMatch);
+                                                                                        preg_match('/(\d+)$/', $cleaned, $endMatch);
+
+                                                                                        $startDigits = $startMatch[1] ?? '';
+                                                                                        $endDigits   = $endMatch[1] ?? '';
+
+                                                                                        $data =  [
+                                                                                            'type' => 'masked',
+                                                                                            'start_digits' => $startDigits,
+                                                                                            'start_count'  => strlen($startDigits),
+                                                                                            'end_digits'   => $endDigits,
+                                                                                            'end_count'    => strlen($endDigits),
+                                                                                            'original'     => $phone_number
+                                                                                        ];
+
+                                                                                        if (
+                                                                                            str_starts_with($another_phone_number, $startDigits) &&
+                                                                                            str_ends_with($another_phone_number, $endDigits)
+                                                                                        ) {
+                                                                                            $matched = "yes";
+                                                                                            $e_wallet_phone_number = $another_phone_number;
+                                                                                            
+                                                                                        } else {
+                                                                                            $matched = "no";
+                                                                                        }
+                                                                                    }
+
+                                                                                    if($matched=="no"){
+                                                                                        $message = "⚠️ *E-Wallet Mismatch* ⚠️\n\n";
+                                                                                        $message .= "Our E-Wallet: `" . $another_phone_number . "`\n";
+                                                                                        $message .= "User E-wallet: `" . $phone_number . "`\n\n";
+                                                                                        $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                        $message .= " *Transaction ID:* `".$txnId."`\n";
+                                                                                        $message .= " *Amount:* `".(isset($deposit->amount) ? $deposit->amount : "Not found")."`\n";
+                                                                                        $message .= " *Status:* `Pending`\n";
+                                                                                        $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                                        $message .= "User E-Wellet no. Does not Match with our E-Wallet no.";
+
+
+                                                                                        $support_chat_id = "-4786890063";
+                                                                                        $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                        $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+
+                                                                                        $response = Http::post($url_support, [
+                                                                                            'chat_id' => $support_chat_id,
+                                                                                            'text' => $message,
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                        ]);
+
+
+                                                                                        $message = sprintf($this->messages[$api->lang]['account_not_belong'], 
+                                                                                            $deposit->partner_transection_id,
+                                                                                            $deposit->id
+                                                                                        );
+                                                                                        $response = Http::post($url, [
+                                                                                            'chat_id' => $sender_chat['id'],
+                                                                                            'text' => $message,
+                                                                                            'reply_to_message_id' => $TG_message['message_id'],
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                        ]);
+
+                                                                                        $image_processed=1;
+                                                                                        return response()->json(['status' => 'success'], 200);
+                                                                                    }
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                }
+
+
+                                                                                // Add amount validation
+                                                                                if(isset($amount) && $amount > 0) {
+                                                                                    $expectedAmount = $deposit->amount;
+                                                                                    $extractedAmount = (float)$amount;
+                                                                                    
+                                                                                    // Check if amounts don't match
+                                                                                    if(abs($extractedAmount - $expectedAmount) > 0.01) {
+                                                                                        // Save the new TRX ID to the deposit/order
+                                                                                        $deposit->txn_id = $txnId; // Save the new TRX ID
+                                                                                        $deposit->save();
+
+                                                                                        $message = "⚠️ *Amount Mismatch* ⚠️\n\n";
+                                                                                        $message .= "Expected Amount: `" . $expectedAmount . "`\n";
+                                                                                        $message .= "Image Amount: `" . $extractedAmount . "`\n\n";
+                                                                                        $message .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                        $message .= " *Transaction ID:* `".$txnId."`\n";
+                                                                                        $message .= " *Status:* `Pending`\n";
+                                                                                        $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                                        $message .= "New TRX number submitted and callback sent with correct amount.";
+
+                                                                                        $support_chat_id = "-4786890063";
+                                                                                        $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                        $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+
+                                                                                        $response = Http::post($url_support, [
+                                                                                            'chat_id' => $support_chat_id,
+                                                                                            'text' => $message,
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                        ]);
+
+                                                                                        $image_processed=1;
+                                                                                    }
+                                                                                }
+
+
+                                                                                
+                                                                            
+                                                                                $partner_api_key = $api_key;
+                                                                                $source = $partner_api_key->website;
+                                                                                $api_id = $partner_api_key->id;
+                                                                            
+                                                                            
+                                                                                $sum = Payment::whereYear('created_at', now()->year)
+                                                                                    ->whereMonth('created_at', now()->month)
+                                                                                    ->where('api_id', $api_id)
+                                                                                    ->where('status', 'Complete')
+                                                                                    ->sum('amount');
+
+                                                                                $account = EWalletAccount::where('e_wallet_name', $deposit->gateway->code)
+                                                                                    ->where('account_no', $e_wallet_phone_number)
+                                                                                    ->first();
+                                                                                if (!$account) {
+                                                                                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => 'E-Wallet Account Issue, Contact With Administrator',
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+
+                                                                                    $image_processed=1;
+                                                                                    return response()->json(['status' => 'success'], 200);
+                                                                                }
+
+
+                                                                                $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                                                                                if ($commissions) {
+                                                                                    $charge = $commissions->deposit_percentage * $deposit->amount / 100;
+                                                                                } else {
+                                                                                    $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                                                                                    if ($commissions) {
+                                                                                        $charge = $commissions->deposit_percentage * $deposit->amount / 100;
+                                                                                    }
+                                                                                }
+                                                        
+                                                                                $charge = str_replace(',', '', $charge);
+                                                                                $charge = (float)$charge;
+                                                                                $charge = round($charge, 2);
+                                                                                
+                                                                                $amount = str_replace(',', '', $amount);
+                                                                                $amount = (float)$amount;
+                                                                                $amount = round($amount, 2);
+                                                                            
+                                                                                if($amount>0){
+                                                                                    $final_amo = getAmount($amount - $charge);
+                                                                                        
+                                                                                    if($amount==$payment->amount){
+                                                                                        $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                                                        
+                                                                                        $message_to_show = "*Transection Completed*";
+                                                                                    }
+                                                                                    else
+                                                                                    {   
+                                                                                            $message_to_show = "*Transection of Differant Amount Completed*";
+                                                                                            $partner_transection_id = "createdByAdmin_" . time();
+                                                                                            
+                                                                                            $order = new Payment();
+                                                                                            $order->user_id = 0;
+                                                                                            $order->gateway_id = $deposit->gateway_id;
+                                                                                            $order->amount = $payment->amount;
+                                                                                            $order->partner_transection_id = $partner_transection_id;
+                                                                                            $order->member_id = $deposit->member_id;
+                                                                                            $order->charge = $charge;
+                                                                                            $order->sender = $deposit->account_no;
+                                                                                            $order->transaction = strRandom();
+                                                                                            $order->try = 0;
+                                                                                            $order->status = "Pending";
+                                                                                            $order->api_id = $api_id;
+                                                                                            $order->e_wallet_phone_number = $deposit->e_wallet_phone_number;
+                                                                                            $order->request_source = "Telegram";
+                                                                                            $order->save();     
+
+
+                                                                                            $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
+                                                                                                ->pluck('parent_id')
+                                                                                                ->unique()
+                                                                                                ->values();
+                                                                                            foreach($parentIds as  $parentId){
+
+                                                                                                $parent_charge = 0;
+
+                                                                                                $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                                                                                                if ($parent_commission) {
+                                                                                                    $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
+                                                                                                } else {
+                                                                                                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                                                                                                    if ($parent_commission) {
+                                                                                                        $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
+                                                                                                    }
+                                                                                                }
+
+                                                                                                if($parent_charge>0){
+                                                                                                    $PartnerCommission = new PartnerCommission();
+                                                                                                    $PartnerCommission->api_id = $partner_api_key->id;
+                                                                                                    $PartnerCommission->from_id = $parentId;
+                                                                                                    $PartnerCommission->type = 1;
+                                                                                                    $PartnerCommission->amount = $deposit->amount;
+                                                                                                    $PartnerCommission->charges = $charge;
+                                                                                                    $PartnerCommission->total_amount = $deposit->amount - $charge;
+                                                                                                    $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
+                                                                                                    $profit_p = $parent_commission->deposit_percentage;
+                                                                                                    $profit = $profit_p * $deposit->amount / 100;
+                                                                                                    $PartnerCommission->profit = $profit;
+                                                                                                    $PartnerCommission->profit_p = $profit_p;
+                                                                                                    $PartnerCommission->transaction_id = $deposit->id;
+                                                                                                    $PartnerCommission->status = 0;
+                                                                                                    $PartnerCommission->save();
+                                                                                                }
+
+
+
+
+                                                                                            }
+                                                                                        
+                                                                                        
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                            
+                                                                                    }
+
+
+                                                                                    if($order){
+                                                                                        $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                                                        $commit = 0;
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        if ($source != env('APP_WEBSITE')) {
+                                                                                            $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
+                                                                                            $net_amount = $payment->amount - $charge;
+                                                                                            
+                                                                                            if ($api_balance_row) {
+                                                                                                $api_balance_row->balance += $net_amount;
+                                                                                                $api_balance_row->save();
+
+                                                                                                $Log = new Log();
+                                                                                                $Log->date_time = $payment->updated_at;
+                                                                                                $Log->final_amount = $net_amount;
+                                                                                                $Log->balance = $api_balance_row->balance;
+                                                                                                $Log->transection_type = 1;
+                                                                                                $Log->transection_id = $order->id;
+                                                                                                $Log->partner_id = $api_balance_row->id;
+                                                                                                $Log->source = 'TelegramVerify';
+                                                                                                $Log->save();
+                                                                                            } else {
+                                                                                                LaravelLog::error('API balance row not found for api_id: ' . $api_id . '. Transaction ID: ' . $payment->id);
+                                                                                                // Continue processing but log the error
+                                                                                            }
+                                                                                        } else {
+                                                                                            $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
+                                                                                        }
+                                                                    
+                                                                                        $order->status = 'Complete';
+                                                                                        $order->trans_complete_date = Carbon::now();
+                                                                                        $order->completed_source = 'Telegram';
+                                                                                        $order->charge = $charge;
+
+                                                                                        if(empty($order->sender) || $order->sender==0){
+                                                                                            $order->sender = $payment->sender;
+                                                                                        }
+                                                                                        
+                                                                                        $order->txn_id = $payment->txn_id;
+                                                                                        $order->date_time = $payment->date_time;
+                                                                                        $order->transaction_type = $payment->transaction_type;
+                                                                                        $order->ip_address = $payment->ip_address;
+                                                                                        $order->e_wallet_type = $payment->e_wallet_type;
+                                                                                        $order->mac_address = $payment->mac_address;
+                                                                                        $order->fee = $payment->fee;
+                                                                                        $order->commission = $payment->commission;
+                                                                                        $order->e_wallet_charges = $payment->e_wallet_charges;
+                                                                                        $order->payment_received_at = $payment->created_at;
+
+
+
+                                                                                        $order->save();
+
+                                                                                        $payment->status = 1;
+                                                                                        $payment->save();
+                                                                                        $payment=null;
+                                                                                        // $payment->delete();
+                                                                                        
+                                                                    
+                                                                                        DB::commit();
+                                                                                        $commit = 1;
+                                                                    
+                                                                                        $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
+                                                                                        foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                                                                            $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
+                                                                                            $amount_to_update = round($amount_to_update, 2);
+                                                                                            // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                                                                            $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                                                                            $DailyPartnerSummary_record->save();
+
+                                                                                            $summary_log = new DailyPartnerSummaryLog();
+                                                                                            if ($partner_api_key) {
+                                                                                                $summary_log->partner_id = $partner_api_key->id;
+                                                                                                $summary_log->partner_balance = $partner_api_key->balance;
+                                                                                            } else {
+                                                                                                LaravelLog::error('Partner API key not found for api_id: ' . $api_id);
+                                                                                                $summary_log->partner_id = $api_id;
+                                                                                                $summary_log->partner_balance = 0;
+                                                                                            }
+                                                                                            $summary_log->payment_id = $order->id;
+                                                                                            $summary_log->total_amount = $net_amount;
+                                                                                            $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                                                                            $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                                                                            $summary_log->source = 'Telegram';
+                                                                                            $summary_log->save();
+                                                                                        }
+                                                                    
+                                                                    
+                                                                                        
+                                                                                        
+                                                                    
+                                                                                        $PartnerCommissions = PartnerCommission::where('transaction_id', $order->id)->where('type', 1)->where('status', 0)->get();
+                                                                                        foreach ($PartnerCommissions as $PartnerCommission) {
+                                                                                            $PartnerCommission->status = 1;
+                                                                                            $PartnerCommission->save();
+                                                                    
+                                                                                            DB::beginTransaction();
+                                                                                            $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
+                                                                                            if($parent_api_key){
+                                                                                                $parent_api_key->balance += $PartnerCommission->profit;
+                                                                                                $parent_api_key->save();
+                                                                        
+                                                                                                $Log = new Log();
+                                                                                                $Log->date_time = $PartnerCommission->created_at;
+                                                                                                $Log->final_amount = $PartnerCommission->profit;
+                                                                                                $Log->balance = $parent_api_key->balance;
+                                                                                                $Log->transection_type = 5;
+                                                                                                $Log->transection_id = $PartnerCommission->id;
+                                                                                                $Log->partner_id = $PartnerCommission->from_id;
+                                                                                                $Log->source = 'Telegram';
+                                                                                                $Log->save();
+                                                                                                DB::commit();
+                                                                        
+                                                                                                $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
+                                                                                                foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
+                                                                                                    $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
+                                                                                                    $amount_to_update = round($amount_to_update, 2);
+                                                                                                    // $amount_to_update = floor($amount_to_update * 100) / 100;
+                                                                                                    $DailyPartnerSummary_record->closing_balance = $amount_to_update;
+                                                                                                    $DailyPartnerSummary_record->save();
+                                                                        
+                                                                                                    $summary_log = new DailyPartnerSummaryLog();
+                                                                                                    $summary_log->partner_id = $parent_api_key->id;
+                                                                                                    $summary_log->partner_balance = $parent_api_key->balance;
+                                                                                                    $summary_log->payment_id = $PartnerCommission->id;
+                                                                                                    $summary_log->total_amount = $PartnerCommission->profit;
+                                                                                                    $summary_log->summary_id = $DailyPartnerSummary_record->id;
+                                                                                                    $summary_log->closing_balance = $DailyPartnerSummary_record->closing_balance;
+                                                                                                    $summary_log->source = 'Telegram';
+                                                                                                    $summary_log->save();
+                                                                                                }
+                                                                                            }
+                                                                                            
+                                                                                        }
+                                                                                    }
+                                                                                    
+                                                                                    if ($partner_api_key && !empty($partner_api_key->api_endpoint_deposit) && $partner_api_key->website != env('APP_WEBSITE')) {
+                                                                
+                                                                                        $string_to_hash = json_encode(array(
+                                                                                            "amount" => strval($this->convertStringToNumber($order->amount)),
+                                                                                            "api_key" => $partner_api_key->api_key,
+                                                                                            "e_wallet_name" => $order->e_wallet_name,
+                                                                                            "id" => strval($order->id),
+                                                                                            'transaction_type' => 'Deposit',
+                                                                                            "user_account_no" => strval($order->sender),
+                                                                
+                                                                                        ));
+                                                                                        $secretKey = $partner_api_key->secret_key;
+                                                                                        $hash = hash("sha256", $string_to_hash);
+                                                                                        $hmac = hash_hmac('sha256', $hash, $secretKey);
+                                                                                        $timestamp = time();
+                                                                                        $combined = $hmac . $timestamp;
+                                                                                        $sign = base64_encode($combined);
+                                                                
+                                                                
+                                                                                        $array_data = [
+                                                                                                    'id' => $order->id,
+                                                                                                    'partner_transection_id' => $order->partner_transection_id,
+                                                                                                    'transaction_type' => 'Deposit',
+                                                                                                    'e_wallet_name' => $order->e_wallet_name,
+                                                                                                    'amount' => $this->convertStringToNumber($order->amount),
+                                                                                                    'user_account_no' => $order->sender,
+                                                                                                    'txn_id' => $order->txn_id,
+                                                                                                    'e_wallet_phone_number' => $order->e_wallet_phone_number,
+                                                                                                    'e_wallet_type' => $order->e_wallet_type,
+                                                                                                    'charges' => $this->convertStringToNumber($order->charge),
+                                                                                                    'status' => $order->status,
+                                                                                                    'completion_date' => Carbon::parse($order->date_time)->toDateString(),
+                                                                                                    'completion_time' => Carbon::parse($order->date_time)->toTimeString(),
+                                                                                                    'created_at' => $order->created_at,
+                                                                                                    'updated_at' => $order->updated_at,
+                                                                                                    'sign' => $sign,
+                                                                                        ];
+                                                                
+                                                                                        if(!empty($order->member_id)){
+                                                                                            $array_data['member_id'] = $order->member_id;
+                                                                                        }
+                                                                
+                                                                
+                                                                                        $requestData = [
+                                                                                            'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                                                                                            'request_url' => $partner_api_key->api_endpoint_deposit,
+                                                                                            'request_payload' => json_encode($array_data),
+                                                                                            'request_headers' => json_encode([
+                                                                                                'Content-Type' => 'application/json',
+                                                                                                'Cookie' => 'XSRF-TOKEN=' . Str::random(40),
+                                                                                            ]),
+                                                                                            'created_at' => now(),
+                                                                                            'updated_at' => now(),
+                                                                                        ];
+                                                                
+                                                                                        $logId = DB::table('api_logs')->insertGetId($requestData);
+                                                                                        try {
+                                                                                            $csrfToken = Str::random(40);
+                                                                                            $response = Http::withHeaders([
+                                                                                                'Content-Type' => 'application/json',
+                                                                                                'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                                                                                            ])
+                                                                                                ->post($partner_api_key->api_endpoint_deposit, $array_data);
+                                                                
+                                                                                            if ($response) {
+                                                                                                $responseData = [
+                                                                                                    'response_code' => $response->status(),
+                                                                                                    'response_payload' => $response->body(),
+                                                                                                    'response_headers' => json_encode($response->headers()),
+                                                                                                ];
+                                                                
+                                                                                                DB::table('api_logs')->where('id', $logId)->update($responseData);
+                                                                                            }
+                                                                                        } catch (\Exception $e) {
+                                                                                            //
+                                                                                        }
+                                                                                    }
+                                                                                    
+                                                                                    $support_chat_id = "-4786890063";
+                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                                                    $message_support = "";
+                                                                                    $message_support .= "?? ".$message_to_show." ??\n\n";
+                                                                                    $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                    $message_support .= "*Order Id:* `".$deposit->id."`\n";
+                                                                                    $message_support .= "*Transaction ID:* `".$txnId."`\n";
+                                                                                    $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                                    $message_support .= "*Remark:* Transaction processed and callback sent.\n";
+                                                                                    $message_support .= "*Status:* `Complete`\n";
+                                                                                    
+                                                                                    $response = Http::post($url_support, [
+                                                                                        'chat_id' => $support_chat_id,
+                                                                                        'text' => $message_support,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                    ]);
+                                                                                    
+                                                                                    
+                                                                                        $message = "";
+                                                                                        $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
+                                                                                        $message .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                        $message .= "*Order Id:* `".$deposit->id."`\n";
+                                                                                        $message .= "*Transaction ID:* `".$txnId."`\n";
+                                                                                        $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                                        $message .= "*Status:* `Complete`\n";
+                                                                                    
+                                                                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                            'chat_id' => $TG_message['chat']['id'],
+                                                                                            'text' => $message,
+                                                                                            'parse_mode' => 'Markdown',
+                                                                                            'reply_to_message_id' => $TG_message['message_id']
+                                                                                        ]);
+                                                                                        
+                                                                                        $image_processed=1;
+                                                                                }else{
+                                                                                    $support_chat_id = "-4786890063";
+                                                                                    $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                                    $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                                                    $message_support = "";
+                                                                                    $message_support .= "?? *Transaction Not Found* ??\n\n";
+                                                                                    $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                                    $message_support .= "*Order Id:* `".$deposit->id."`\n";
+                                                                                    $message_support .= "*Transaction ID:* `".$txnId."`\n";
+                                                                                    $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                                    $message_support .= "*Remark:* Transaction processed and callback sent.\n";
+                                                                                    $message_support .= "*Status:* `Not Found`\n";
+                                                                                    
+                                                                                    $response = Http::post($url_support, [
+                                                                                        'chat_id' => $support_chat_id,
+                                                                                        'text' => $message_support,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                    ]);
+                                                                                    
+                                                                                    $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+                                                                                        $deposit->partner_transection_id,
+                                                                                        $deposit->id,
+                                                                                        $txnId,
+                                                                                        (isset($amount) ? $amount : "Not found")
+                                                                                    );
+                                                                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                        'chat_id' => $TG_message['chat']['id'],
+                                                                                        'text' => $message,
+                                                                                        'parse_mode' => 'Markdown',
+                                                                                        'reply_to_message_id' => $TG_message['message_id']
+                                                                                    ]);
+                                                                                    
+                                                                                    $image_processed=1;
+                                                                                }
+                                                                                
+                                                                                
+                                                                                    
+                                                                            }
+                                                                            
+                                                                        }else{
+                                                                            LaravelLog::info("else else: ");
+                                                                            $support_chat_id = "-4786890063";
+                                                                            $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                                            $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                                            $message_support = "";
+                                                                            $message_support .= "?? *Transaction Not Found* ??\n\n";
+                                                                            $message_support .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                                            $message_support .= " *Transaction ID:* `".$txnId."`\n";
+                                                                            $message_support .= " *Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                                            $message_support .= " *Remark:* Transaction ID not found in system.\n";
+                                                                            $message_support .= " *Status:* `Pending`\n";
+                                                                            $message_support .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                                            
+                                                                            $response = Http::post($url_support, [
+                                                                                'chat_id' => $support_chat_id,
+                                                                                'text' => $message_support,
+                                                                                'parse_mode' => 'Markdown',
+                                                                            ]);
+                                                                            
+                                                                            $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+                                                                                $deposit->partner_transection_id,
+                                                                                $deposit->id,
+                                                                                $txnId,
+                                                                                (isset($amount) ? $amount : "Not found")
+                                                                            );
+                                                                            Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                                                'chat_id' => $TG_message['chat']['id'],
+                                                                                'text' => $message,
+                                                                                'parse_mode' => 'Markdown',
+                                                                                'reply_to_message_id' => $TG_message['message_id']
+                                                                            ]);
+                                                                            
+                                                                            $image_processed=1;
+                                                                        }
+                                                                        
+                                                                        if($commit==0){
+                                                                            DB::commit();
+                                                                        }
+                                                                        
+                                                                        
+                                                                        
+                                                                        
+                                                                
+                                                                    }
+                                                                    
+                                                                    
+                                                                    LaravelLog::info("re else else: ".$txnId);
+                                                                    
+                                                                } else {
+                                                                    LaravelLog::info('No text found in the image');
+                                                                    $message = sprintf($this->messages[$api->lang]['image_error'], 
+                                                                        $deposit->partner_transection_id,
+                                                                        $deposit->id
+                                                                    );
+                                                                    $response = Http::post($url, [
+                                                                        'chat_id' => $sender_chat['id'],
+                                                                        'text' => $message,
+                                                                        'reply_to_message_id' => $TG_message['message_id'],
+                                                                        'parse_mode' => 'Markdown',
+                                                                    ]);
+                                                                    
+                                                                    $image_processed=1;
+                                                
+                                                                }
+                                                            } else {
+                                                                LaravelLog::error("OCR.space API Error: " . $result);
+                                                                $message = sprintf($this->messages[$api->lang]['image_error'], 
+                                                                    $deposit->partner_transection_id,
+                                                                    $deposit->id
+                                                                );
+                                                                $response = Http::post($url, [
+                                                                    'chat_id' => $sender_chat['id'],
+                                                                    'text' => $message,
+                                                                    'reply_to_message_id' => $TG_message['message_id'],
+                                                                    'parse_mode' => 'Markdown',
+                                                                ]);
+                                                                
+                                                                $image_processed=1;
+                                                            }
+                                                        } catch (\Exception $e) {
+                                                            LaravelLog::error("OCR Processing Error: " . $e->getMessage());
+                                                            // $message = "Image Processing Error! Try Again. Please Attach clear image and add caption /ckorder XXX123XXX  for further checking.";
+                                                            // $response = Http::post($url, [
+                                                            //     'chat_id' => $sender_chat['id'],
+                                                            //     'text' => $message,
+                                                            //     'reply_to_message_id' => $TG_message['message_id'],
+                                                            //     'parse_mode' => 'Markdown',
+                                                            // ]);
+                                                            
+                                                            // $image_processed=1;
+                                                        }
+                                                        
+                                                        // Clean up temporary file
+                                                        if (file_exists($tempImagePath)) {
+                                                            unlink($tempImagePath);
+                                                            LaravelLog::info("Temporary image file cleaned up: $tempImagePath");
+                                                        }
+                                                    } else {
+                                                        LaravelLog::error("Failed to download image content. HTTP Code: $httpCode");
+                                                    }
+                                                } else {
+                                                    LaravelLog::error("Failed to get file info from Telegram. Response: " . json_encode($fileData));
+                                                }
+                                            } catch (\Exception $e) {
+                                                LaravelLog::error("Processing exception: " . $e->getMessage());
+                                            }
+                                            
+                                            if($image_processed==0){
+                                                $message = sprintf($this->messages[$api->lang]['service_error'], 
+                                                                        $deposit->partner_transection_id,
+                                                                        $deposit->id
+                                                                    );
+                                                $response = Http::post($url, [
+                                                    'chat_id' => $sender_chat['id'],
+                                                    'text' => $message,
+                                                    'reply_to_message_id' => $TG_message['message_id'],
+                                                    'parse_mode' => 'Markdown',
+                                                ]);
+                                            }
+                                            
+                                        }else{
+                                            $message = sprintf($this->messages[$api->lang]['service_error'], 
+                                                                        $deposit->partner_transection_id,
+                                                                        $deposit->id
+                                                                    );
+                                            $response = Http::post($url, [
+                                                'chat_id' => $sender_chat['id'],
+                                                'text' => $message,
+                                                'reply_to_message_id' => $TG_message['message_id'],
+                                                'parse_mode' => 'Markdown',
+                                            ]);
+                                        }
+                                    }
+
+                                        
+                                        
+                                        
+
+                            }else{
+                                $withdrawal = Payout::where('partner_transection_id',$orderNumber)->where('api_id',$api->api_id)->latest()->first();
+                                if($withdrawal){
+                                    if($withdrawal->status=="Complete"){
+                                        $message = $this->messages[$api->lang]['transaction_completed_callback'];
+                                    }elseif($withdrawal->status=="Reject"){
+                                        // Fetch remarks from the payout log
+                                        $reason = $withdrawal->feedback;
+                                        $message = sprintf($this->messages[$api->lang]['transaction_rejected_with_reason'], $reason);
+                                    }else{
+                                        $message = $this->messages[$api->lang]['transaction_pending_callback'];
+                                        
+                                        //
+                                        // Add code that send message to support
+                                        //
+                                        $support_chat_id = "-4786890063";
+                                        $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                        $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                        $message_support = "";
+
+                                        if ($withdrawal->status == "Pending") {
+                                            $message_support .= "💤 *Withdrawal Pending* 💤\n\n";
+                                            $message_support .= "*Merchant Order:* `" . $withdrawal->partner_transection_id . "`\n";
+                                            $message_support .= "*Order Id:* `" . $withdrawal->id . "`\n";
+                                            $message_support .= "*Amount:* `" . $withdrawal->amount . "`\n";
+                                            $message_support .= "*Phone:* `" . $withdrawal->user_account_no . "`\n";
+                                            $message_support .= "*Remark:* Withdrawal request is pending for processing.\n";
+                                            $message_support .= "*Status:* `Pending`\n";
+                                            $message_support .= "*Payment Platform:* `" . $withdrawal->e_wallet_name . "`\n";
+                                        }                                            
+                                        
+                                        
+                                        $response = Http::post($url_support, [
+                                            'chat_id' => $support_chat_id,
+                                            'text' => $message_support,
+                                            'parse_mode' => 'Markdown',
+                                        ]);
+                                    }
+
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+        
+                                    if($withdrawal->status=="Complete" || $withdrawal->status=="Reject"){
+                                        
+
+                                        if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
+
+                                            $string_to_hash = json_encode(array(
+                                                "amount" => strval($this->convertStringToNumber($withdrawal->amount)),
+                                                "api_key" => $api_key->api_key,
+                                                "e_wallet_name" => $withdrawal->e_wallet_name,
+                                                "id" => strval($withdrawal->id),
+                                                'transaction_type' => 'Withdrawal',
+                                                "user_account_no" => strval($withdrawal->user_account_no),
+                                            ));
+                                            $secretKey = $api_key->secret_key;
+                                            $hash = hash("sha256", $string_to_hash);
+                                            $hmac = hash_hmac('sha256', $hash, $secretKey);
+                                            $timestamp = time();
+                                            $combined = $hmac . $timestamp;
+                                            $sign = base64_encode($combined);
+
+                                            $array_data = [
+                                                        'id' => $withdrawal->id,
+                                                        'partner_transection_id' => $withdrawal->partner_transection_id,
+                                                        'transaction_type' => 'Withdrawal',
+                                                        'e_wallet_name' => $withdrawal->e_wallet_name,
+                                                        'amount' => $this->convertStringToNumber($withdrawal->amount),
+                                                        'user_account_no' => $withdrawal->user_account_no,
+                                                        'txn_id' => $withdrawal->txn_id,
+                                                        'e_wallet_phone_number' => $withdrawal->e_wallet_phone_number,
+                                                        'e_wallet_type' => $withdrawal->e_wallet_type,
+                                                        'charges' => $this->convertStringToNumber($withdrawal->charge),
+                                                        'status' => $withdrawal->status,
+                                                        'completion_date' => Carbon::parse($withdrawal->date_time)->toDateString(),
+                                                        'completion_time' => Carbon::parse($withdrawal->date_time)->toTimeString(),
+                                                        'created_at' => $withdrawal->created_at,
+                                                        'updated_at' => $withdrawal->updated_at,
+                                                        'sign' => $sign,
+                                                        'remarks' => $withdrawal->feedback,
+                                                        
+                                            ];
+
+                                            if(!empty($withdrawal->member_id)){
+                                                $array_data['member_id'] = $withdrawal->member_id;
+                                            }
+
+
+                                            $requestData = [
+                                                'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                                                'request_url' => $api_key->api_endpoint_withdrawal,
+                                                'request_payload' => json_encode($array_data),
+                                                'request_headers' => json_encode([
+                                                    'Content-Type' => 'application/json',
+                                                    'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
+                                                ]),
+                                                'created_at' => now(),
+                                                'updated_at' => now(),
+                                            ];
+
+                                            $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                                            $csrfToken = csrf_token();
+                                            $responseData = [];
+                                            try {
+
+                                                $response = Http::withHeaders([
+                                                    'Content-Type' => 'application/json',
+                                                    'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                                                ])
+                                                    ->post($api_key->api_endpoint_withdrawal, $array_data);
+
+                                                $responseData = [
+                                                    'response_code' => $response->status(),
+                                                    'response_payload' => $response->body(),
+                                                    'response_headers' => json_encode($response->headers()),
+                                                ];
+
+                                                DB::table('api_logs')->where('id', $logId)->update($responseData);
+                                                
+                                            } catch (\Exception $e) {
+                                                LaravelLog::info('Telegram Withdrawal Callback not sent');
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    $message = sprintf($this->messages[$api->lang]['transaction_not_found'], 
+                                        $sender_message,
+                                        $api->api_id
+                                    );
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                }
+                                    
+                            }
                     }
                     
                         
