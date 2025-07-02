@@ -1,26 +1,48 @@
 @push('styles')
-{{-- <script src="{{ asset('public/assets/css/select2.min.css')}}"></script> --}}
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
 @endpush
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-    <h5 style="color: #7367f0;" class="mb-0">{{ __('accounts.accounts_list') }}</h5>
-
+{{-- <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow"> --}}
     <form action="{{ route('admin.ewallet.accounts.details') }}" method="get" id="statusFilterForm">
-        <div class="row gx-2 align-items-center">
-            <div class="col-auto">
-                <div class="form-group mb-0">
-                    {{-- <label>Status</label> --}}
-                    <select class="form-select form-select-sm" name="status"
-                        onchange="document.getElementById('statusFilterForm').submit();">
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select class="form-select form-select-sm" name="status">
                         <option value="" {{ request()->status === null ? 'selected' : '' }}>All</option>
                         <option value="1" {{ request()->status === '1' ? 'selected' : '' }}>Active</option>
                         <option value="0" {{ request()->status === '0' ? 'selected' : '' }}>In-Active</option>
                     </select>
                 </div>
             </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>Gateway</label>
+                    <select class="form-select form-select-sm select2" name="gateway_input"
+                        data-placeholder="Select Gateway">
+                        {{-- <option></option> --}}
+                        <option value="">{{ __('reports.all') }}</option>
+                        @foreach ($gateways as $key => $value )
+                        <option value="{{ $value }}" {{ request()->gateway_input === $value ? 'selected' : '' }}>{{
+                            $value }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <br>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i
+                            class="icon-base ti tabler-search me-1"></i> {{ __('reports.search') }}</button>
+                </div>
+            </div>
+
         </div>
     </form>
+{{-- </div> --}}
 
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <h5 style="color: #7367f0;" class="mb-0">{{ __('accounts.accounts_list') }}</h5>
 </div>
 
 
@@ -254,9 +276,28 @@
 
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('public/assets/js/select2.min.js') }}"></script>
+<script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
 
 <script>
+
+        let $select = $('.select2').select2({
+            // placeholder: "Select Partner",
+            allowClear: true,
+            selectOnClose: false,
+        });
+
+        // Prevent dropdown from opening on clear
+        $select.on('select2:unselecting', function(e) {
+            $(this).data('unselecting', true);
+        });
+
+        $select.on('select2:opening', function(e) {
+            if ($(this).data('unselecting')) {
+                $(this).removeData('unselecting');
+                e.preventDefault();
+            }
+        });
+
     function setBalanceItem(itemId) {
             // Find the input field in the modal
             var balanceInput = document.getElementById("balanceInput");
@@ -356,165 +397,165 @@
         });
 
         $(document).on('change', '.toggle-status', function () {
-    let accountId = $(this).data('id');
-    let isChecked = $(this).is(':checked');
+        let accountId = $(this).data('id');
+        let isChecked = $(this).is(':checked');
 
-    $.ajax({
-        url: 'accounts/' + accountId + '/status',
-        type: 'POST',
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        success: function (response) {
-            if (response.success) {
-                let status = response.status === 1
-                    ? '{{ __("accounts.active") }}'
-                    : '{{ __("accounts.inactive") }}';
+        $.ajax({
+            url: 'accounts/' + accountId + '/status',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    let status = response.status === 1
+                        ? '{{ __("accounts.active") }}'
+                        : '{{ __("accounts.inactive") }}';
 
-                // Optional: replace this with `toastr.success(...)` if using toastr
-                alert('Status updated to: ' + status);
-            } else {
-                alert('Something went wrong: ' + response.message);
+                    // Optional: replace this with `toastr.success(...)` if using toastr
+                    alert('Status updated to: ' + status);
+                } else {
+                    alert('Something went wrong: ' + response.message);
+                }
+            },
+            error: function (xhr) {
+                let errorMsg = xhr.responseJSON?.message || 'Unknown error occurred.';
+                alert('Error: ' + errorMsg);
+
+                // Optional: if using toastr
+                // toastr.error('Error: ' + errorMsg);
             }
-        },
-        error: function (xhr) {
-            let errorMsg = xhr.responseJSON?.message || 'Unknown error occurred.';
-            alert('Error: ' + errorMsg);
-
-            // Optional: if using toastr
-            // toastr.error('Error: ' + errorMsg);
-        }
+        });
     });
-});
 
-        $(document).ready(function() {
-            $('form[action="{{ route('admin.account.balance.add') }}"]').on('submit', function(e) {
-                e.preventDefault();
+    $(document).ready(function() {
+        $('form[action="{{ route('admin.account.balance.add') }}"]').on('submit', function(e) {
+            e.preventDefault();
 
-                let form = $(this);
-                let formData = form.serialize();
-                let submitBtn = $('#submitBalanceBtn');
+            let form = $(this);
+            let formData = form.serialize();
+            let submitBtn = $('#submitBalanceBtn');
 
-                // Disable button and show loading text
-                submitBtn.prop('disabled', true).text('{{ __('accounts.processing') }}');
+            // Disable button and show loading text
+            submitBtn.prop('disabled', true).text('{{ __('accounts.processing') }}');
 
-                $.ajax({
-                    type: 'POST',
-                    url: form.attr('action'),
-                    data: formData,
-                    success: function(response) {
-                        $('#newModalb').modal('hide');
-                        $('#balanceResponse').html('');
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '{{ __('accounts.success_title') }}',
-                                text: response.message,
-                                timer: 2000,
-                                showConfirmButton: false
-                            }).then(() => {
-                                form[0].reset();
-                                window.location.reload();
-                            });
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action'),
+                data: formData,
+                success: function(response) {
+                    $('#newModalb').modal('hide');
+                    $('#balanceResponse').html('');
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{{ __('accounts.success_title') }}',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            form[0].reset();
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function(response) {
+                    var errors = response.responseJSON.errors;
+                    var firstErrorField = null;
+
+                    $.each(errors, function(key, value) {
+                        $('.' + key + '_error').text(value[0]);
+                        var $field = $('.' + key);
+                        if (!firstErrorField && $field.length) {
+                            firstErrorField = $field;
                         }
-                    },
-                    error: function(response) {
-                        var errors = response.responseJSON.errors;
-                        var firstErrorField = null;
+                    });
+                },
+                complete: function() {
+                    submitBtn.prop('disabled', false).text('{{ __('accounts.add') }}');
+                }
+            });
+        });
 
-                        $.each(errors, function(key, value) {
-                            $('.' + key + '_error').text(value[0]);
-                            var $field = $('.' + key);
-                            if (!firstErrorField && $field.length) {
-                                firstErrorField = $field;
+        $('form[action="{{ route('admin.account.balance.edit') }}"]').on('submit', function(e) {
+            e.preventDefault();
+
+            let form = $(this);
+            let formData = form.serialize();
+            let submitBtn = $('#updateBalanceBtn');
+
+            submitBtn.prop('disabled', true).text('{{ __('accounts.processing') }}');
+            form.find('.text-danger').remove();
+
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action'),
+                data: formData,
+                success: function(response) {
+                    $('#newModalc').modal('hide');
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{{ __('accounts.success_title') }}',
+                            text: response.message ||
+                                '{{ __('accounts.balance_updated') }}',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            form[0].reset();
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function(response) {
+                    if (response.status === 422) {
+                        let errors = response.responseJSON.errors;
+
+                        $.each(errors, function(key, messages) {
+                            let input = form.find('[name="' + key + '"]');
+                            if (input.length) {
+                                input.after('<small class="text-danger">' +
+                                    messages[0] + '</small>');
                             }
                         });
-                    },
-                    complete: function() {
-                        submitBtn.prop('disabled', false).text('{{ __('accounts.add') }}');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ __('accounts.error_title') }}',
+                            text: '{{ __('accounts.something_went_wrong') }}',
+                        });
                     }
-                });
+                },
+                complete: function() {
+                    submitBtn.prop('disabled', false).text('{{ __('accounts.update') }}');
+                }
             });
-
-            $('form[action="{{ route('admin.account.balance.edit') }}"]').on('submit', function(e) {
-                e.preventDefault();
-
-                let form = $(this);
-                let formData = form.serialize();
-                let submitBtn = $('#updateBalanceBtn');
-
-                submitBtn.prop('disabled', true).text('{{ __('accounts.processing') }}');
-                form.find('.text-danger').remove();
-
-                $.ajax({
-                    type: 'POST',
-                    url: form.attr('action'),
-                    data: formData,
-                    success: function(response) {
-                        $('#newModalc').modal('hide');
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '{{ __('accounts.success_title') }}',
-                                text: response.message ||
-                                    '{{ __('accounts.balance_updated') }}',
-                                timer: 2000,
-                                showConfirmButton: false
-                            }).then(() => {
-                                form[0].reset();
-                                window.location.reload();
-                            });
-                        }
-                    },
-                    error: function(response) {
-                        if (response.status === 422) {
-                            let errors = response.responseJSON.errors;
-
-                            $.each(errors, function(key, messages) {
-                                let input = form.find('[name="' + key + '"]');
-                                if (input.length) {
-                                    input.after('<small class="text-danger">' +
-                                        messages[0] + '</small>');
-                                }
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: '{{ __('accounts.error_title') }}',
-                                text: '{{ __('accounts.something_went_wrong') }}',
-                            });
-                        }
-                    },
-                    complete: function() {
-                        submitBtn.prop('disabled', false).text('{{ __('accounts.update') }}');
-                    }
-                });
-            });
-
-            // $(document).on('change', '.toggle-status', function() {
-            //     let accountId = $(this).data('id');
-            //     let status = $(this).is(':checked') ? 1 : 0;
-
-            //     $.ajax({
-            //         url: '{{ route('admin.ewallet-account.toggleStatus') }}',
-            //         method: 'POST',
-            //         data: {
-            //             _token: '{{ csrf_token() }}',
-            //             id: accountId,
-            //             status: status
-            //         },
-            //         success: function(response) {
-            //             if (response.success) {
-            //                 alert('{{ __('accounts.status_updated_successfully') }}');
-            //             } else {
-            //                 alert('{{ __('accounts.failed_to_update_status') }}');
-            //             }
-            //         },
-            //         error: function() {
-            //             alert('{{ __('accounts.something_went_wrong') }}');
-            //         }
-            //     });
-            // });
         });
+
+        // $(document).on('change', '.toggle-status', function() {
+        //     let accountId = $(this).data('id');
+        //     let status = $(this).is(':checked') ? 1 : 0;
+
+        //     $.ajax({
+        //         url: '{{ route('admin.ewallet-account.toggleStatus') }}',
+        //         method: 'POST',
+        //         data: {
+        //             _token: '{{ csrf_token() }}',
+        //             id: accountId,
+        //             status: status
+        //         },
+        //         success: function(response) {
+        //             if (response.success) {
+        //                 alert('{{ __('accounts.status_updated_successfully') }}');
+        //             } else {
+        //                 alert('{{ __('accounts.failed_to_update_status') }}');
+        //             }
+        //         },
+        //         error: function() {
+        //             alert('{{ __('accounts.something_went_wrong') }}');
+        //         }
+        //     });
+        // });
+    });
 </script>
 @endpush

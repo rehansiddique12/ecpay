@@ -37,6 +37,8 @@ class CategoryController extends Controller
         $input_status = $request->filled('status') ? $request->status : null;
         $today = Carbon::today();
 
+        $data['gateways'] = EWalletAccount::select('e_wallet_name')->distinct()->pluck('e_wallet_name')->toArray();
+
         // Payments Subquery
         $paymentsSubQuery = DB::table('payments')
             ->selectRaw('
@@ -74,6 +76,9 @@ class CategoryController extends Controller
             ])
            ->when($input_status !== null, function ($query) use ($input_status) {
                 return $query->where('e_wallet_accounts.status', $input_status);
+            })
+            ->when($request->filled('gateway_input'), function ($query) use ($request) {
+                $query->where('e_wallet_accounts.e_wallet_name', $request->gateway_input);
             })
             ->select(
                 'e_wallet_accounts.*',
