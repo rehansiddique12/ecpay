@@ -7,19 +7,19 @@
         <div class="row align-items-center">
             <div class="col-md-2">
                 <div class="form-group">
-                    <label>Status</label>
+                    <label>{{ __('reports.status') }}</label>
                     <select class="form-select form-select-sm" name="status">
-                        <option value="" {{ request()->status === null ? 'selected' : '' }}>All</option>
-                        <option value="1" {{ request()->status === '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ request()->status === '0' ? 'selected' : '' }}>In-Active</option>
+                        <option value="" {{ request()->status === null ? 'selected' : '' }}>{{ __('reports.all') }}</option>
+                        <option value="1" {{ request()->status === '1' ? 'selected' : '' }}>{{ __('reports.active') }}</option>
+                        <option value="0" {{ request()->status === '0' ? 'selected' : '' }}>{{ __('reports.inactive') }}</option>
                     </select>
                 </div>
             </div>
             <div class="col-md-2">
                 <div class="form-group">
-                    <label>Gateway</label>
+                    <label>@lang('reports.gateway')</label>
                     <select class="form-select form-select-sm select2" name="gateway_input"
-                        data-placeholder="Select Gateway">
+                        data-placeholder="{{ __('reports.select_gateway') }}">
                         {{-- <option></option> --}}
                         <option value="">{{ __('reports.all') }}</option>
                         @foreach ($gateways as $key => $value )

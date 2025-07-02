@@ -204,4 +204,6 @@ return [
     'sent' => 'Sent',
     'not_sent' => 'Not Sent',
     'no_sms_logs_found' => 'No sms logs found.',
+    'gateway' => 'Gateway',
+    'select_gateway' => 'Select Gateway',
 ];

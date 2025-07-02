@@ -204,5 +204,7 @@ return [
     'sent' => '已发送',
     'not_sent' => '未发送',
     'no_sms_logs_found' => '未找到短信日志。',
+    'gateway' => '网关',
+    'select_gateway' => '选择网关',
 
 ];
