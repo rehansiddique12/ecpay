@@ -9,7 +9,7 @@
         <div class="row gx-2 align-items-center">
             <div class="col-auto">
                 <div class="form-group mb-0">
-                    <label>Status</label>
+                    {{-- <label>Status</label> --}}
                     <select class="form-select form-select-sm" name="status"
                         onchange="document.getElementById('statusFilterForm').submit();">
                         <option value="" {{ request()->status === null ? 'selected' : '' }}>All</option>
