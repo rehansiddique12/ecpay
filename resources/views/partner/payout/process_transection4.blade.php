@@ -54,8 +54,8 @@
         }
 
         .pay-badge {
-            background: <?= $ewallet=="nagad"?"green":"#ff9800"  ?>;
-            color: <?= $ewallet=="nagad"?"white":"#000"  ?>;
+            background: #ff9800;
+            color: #000;
             font-weight: 700;
             border-radius: 4px;
             padding: 2px 10px;
@@ -88,8 +88,8 @@
         }
 
         .lang-btn.active {
-            background: <?= $ewallet=="nagad"?"green":"#ff9800"  ?>;
-            color: <?= $ewallet=="nagad"?"white":"#000"  ?>;
+            background: #ff9800;
+            color: #000;
         }
 
         .warning {
@@ -393,7 +393,7 @@ if ($ewallet == 'bkash') {
     @endif
     @if (!empty($data))
     <div class="container" id="intime">
-        <div class="header" style="background-color: {{ $bgcolor }};">
+        <div class="header" style="background-color: green;">
             <div class="header-row">
                 <div class="header-title" id="amount-label">
                     {{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk
@@ -626,7 +626,7 @@ function checkMinLength() {
                 return false;
             }
             // Set default language
-            setLang('en');
+            setLang('bn');
 
 
             function handleSubmit(event) {
