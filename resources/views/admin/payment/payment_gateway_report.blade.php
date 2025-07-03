@@ -72,7 +72,7 @@
                 </div>
 
 
-                <div class="col-md-3">
+                {{-- <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.transaction_type') }}</label>
                         <select name="transaction_type" class="form-select select2" data-allow-clear="true"
@@ -88,7 +88,7 @@
 
                         </select>
                     </div>
-                </div>
+                </div> --}}
 
                 <div class="col-md-3">
                     <div class="form-group mt-2">

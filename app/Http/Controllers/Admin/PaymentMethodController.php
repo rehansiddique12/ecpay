@@ -38,6 +38,8 @@ class PaymentMethodController extends Controller
 
         $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
+        // dd($partners);
+
         $paymentsQuery = Payment::selectRaw(
             'DATE(created_at) as completion_date,
             COUNT(*) as fund_count,
@@ -131,10 +133,24 @@ class PaymentMethodController extends Controller
                     ($combined[$date][$payment->api_id][$field] ?? 0) + ($payment->$field ?? 0);
             }
 
-            $e_combined[$date][$payment->e_wallet_name]['fund_count'] = $payment->fund_count ?? 0;
-            $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] = $payment->auto_process_count ?? 0;
-            $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] = $payment->manual_process_count ?? 0;
+            $e_combined[$date][$payment->e_wallet_name]['fund_count'] = 
+                isset($e_combined[$date][$payment->e_wallet_name]['fund_count']) 
+                    ? $e_combined[$date][$payment->e_wallet_name]['fund_count'] + ($payment->fund_count ?? 0) 
+                    : ($payment->fund_count ?? 0);
+
+            $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] = 
+                isset($e_combined[$date][$payment->e_wallet_name]['auto_process_count']) 
+                    ? $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] + ($payment->auto_process_count ?? 0) 
+                    : ($payment->auto_process_count ?? 0);
+
+            $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] = 
+                isset($e_combined[$date][$payment->e_wallet_name]['manual_process_count']) 
+                    ? $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] + ($payment->manual_process_count ?? 0) 
+                    : ($payment->manual_process_count ?? 0);
+
         }
+
+        // dd($e_combined);
 
         return view('admin.payment.payment_gateway_report', compact(
             'pageTitle',
