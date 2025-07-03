@@ -5575,10 +5575,11 @@ class PayoutRecordController extends Controller
 $EWalletAccount = EWalletAccount::where('status', 1)
     ->whereIn('e_wallet_name', $gatewayNames)
     ->get();
-        $accountIds = EWalletAccount::
-            where('status', 1)
-            ->whereIn('account_type', ['Withdrawal', 'Both'])
-            ->pluck('id');
+    $accountIds = EWalletAccount::where('status', 1)
+    ->whereIn('account_type', ['Withdrawal', 'Both'])
+    ->whereColumn('live_balance', '<=', 'low_balance_amount')
+    ->pluck('id');
+
 
         // Step 2: Check which IDs are already stored in Notification
         $existingNotifications = Notification::whereIn('ewallet_account_id', $accountIds)
@@ -5687,7 +5688,10 @@ $EWalletAccount = EWalletAccount::where('status', 1)
             // Categorize merchants by success rate
             $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
             $mediumPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 61 && $m['success_rate'] <= 80);
-            $lowPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] <= 60);
+            $lowPerformance = array_filter($merchantData, function ($m) {
+                return $m['success_rate'] > 0 && $m['success_rate'] <= 60;
+            });
+
 
         if ($request->ajax()) {
             return response()->json([
@@ -7028,22 +7032,22 @@ public function markAsRead(Notification $notification)
                     ->orderBy('status', 'desc')
                     ->lockForUpdate()
                     ->first();
-            
+
             if (!$account) {
                 DB::rollBack();
                 return response()->json(['message' => 'Account not exist.']);
             }
 
             $request->balance = str_replace(',', '', $request->balance);
-            
 
-            
+
+
             $account->live_balance = $request->balance;
             $account->save();
             DB::commit();
-            
 
-           
+
+
             return response()->json(['message' => 'Account Balance updated successfully'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
