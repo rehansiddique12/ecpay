@@ -96,7 +96,7 @@
             color: #e53935;
             font-size: 1rem;
             margin: 18px 24px 0 24px;
-            font-weight: 500;
+            font-weight: 800;
         }
 
         .form-section {
@@ -107,7 +107,7 @@
         }
 
         .form-group {
-            flex: 1 1 220px;
+            flex: 1 1 150px;
             min-width: 220px;
         }
 
@@ -129,12 +129,12 @@
             align-items: center;
             background: #f7fafc;
             border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 1.2rem;
-            font-weight: 500;
+            padding: 10px 10px;
+            font-size: 1.4rem;
+            font-weight: 600;
             margin-bottom: 6px;
             border: 1px solid #e0e0e0;
-            gap: 10px;
+            gap: 5px;
         }
 
         .copy-btn {
@@ -203,8 +203,8 @@
         }
 
         .trx-input {
-            width: 95%;
-            font-size: 1.1rem;
+            width: 96%;
+            font-size: 1.4rem;
             padding: 12px 10px;
             border: 2px solid #e53935;
             border-radius: 6px;
@@ -255,12 +255,39 @@
             display: block;
         }
 
+
+        .form-flex {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Default order for desktop */
+        .wallet-group {
+            order: 1;
+        }
+        .provider-group {
+            order: 2;
+        }
+
+        @media (min-width: 601px) {
+            .form-group {
+                width: auto;
+            }
+
+            .form-section {
+                flex-direction: row;
+            }
+        }
+
         @media (max-width: 600px) {
+            
+
+
             .container {
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
-                width: 100vw;
+                /* width: 100vw; */
                 min-width: 0;
                 max-width: 100vw;
                 padding: 0;
@@ -284,7 +311,7 @@
             }
 
             .wallet-box {
-                font-size: 1rem;
+                font-size: 1.4rem;
                 padding: 8px 6px;
             }
 
@@ -302,6 +329,14 @@
             .form-group {
                 min-width: 0;
                 width: 100%;
+            }
+
+            .wallet-group {
+                order: 2;
+            }
+
+            .provider-group {
+                order: 1;
             }
 
             .header-row {
@@ -326,7 +361,7 @@
             }
 
             .trx-input {
-                font-size: 1rem;
+                font-size: 1.4rem;
                 padding: 10px 8px;
             }
 
@@ -393,7 +428,7 @@ if ($ewallet == 'bkash') {
     @endif
     @if (!empty($data))
     <div class="container" id="intime">
-        <div class="header" style="background-color: green;">
+        <div class="header" style="background-color: #1A2421;">
             <div class="header-row">
                 <div class="header-title" id="amount-label">
                     {{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk
@@ -414,8 +449,19 @@ if ($ewallet == 'bkash') {
             If you change the amount of money (TK 500.00), you will not be able to get credit.
         </div>
 
-        <div class="form-section">
-            <div class="form-group">
+        <div class="form-section form-flex">
+            <div class="form-group provider-group" style="text-align:center;">
+                <div class="form-label" id="provider-label">Wallet provider</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:18px; padding: 20px; border-radius: 10px;">
+                    @if($logo)
+                        <img src="{{ $logo }}" alt="{{ ucfirst($ewallet) }} logo" style="width:230px;display:block;">
+                    @else
+                        <span>No wallet selected</span>
+                    @endif
+                </div>
+            </div>
+        
+            <div class="form-group wallet-group">
                 <label class="form-label" id="wallet-label">Wallet No *</label>
                 <div class="form-note" id="wallet-note">
                     This {{ $ewallet_to_show ?? 'wallet' }} number accepts only cashout
@@ -428,18 +474,8 @@ if ($ewallet == 'bkash') {
                     <button class="copy-btn" onclick="copyWallet()" title="Copy" style="background-color: {{ $bgcolor }};">COPY</button>
                 </div>
             </div>
-
-            <div class="form-group" style="text-align:center;">
-                <div class="form-label" id="provider-label">Wallet provider</div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:18px;  padding: 20px; border-radius: 10px;">
-                    @if($logo)
-                        <img src="{{ $logo }}" alt="{{ ucfirst($ewallet) }} logo" style="width:230px;display:block;">
-                    @else
-                        <span>No wallet selected</span>
-                    @endif
-                </div>
-            </div>
         </div>
+        
 
         <form action="{{ route('iframe.payment4') }}" method="POST" id="cashout-form" autocomplete="off" onsubmit="return handleSubmit(event)">
             @csrf
