@@ -1955,12 +1955,12 @@ class PayoutRecordController extends Controller
         $ewallet_to_show_bangla = "";
 
         if ($ewalletee == 'bkash') {
-            $logo = asset('assets/images/bkash4.png');
+            $logo = asset('assets/images/bkash6.png');
             $ewallet_to_show = "bKash";
             $ewallet_to_show_bangla = "বিকাশ";
         }
         if ($ewalletee == 'nagad') {
-            $logo = asset('assets/images/nagad4.png');
+            $logo = asset('assets/images/nagad6.png');
             $ewallet_to_show = "Nagad";
             $ewallet_to_show_bangla = "নগদ";
         }
