@@ -93,7 +93,7 @@
                         <p class="text-White font-semibold text-lg">GATEWAY PERFORMANCE MONITORING</p>
                         <div class="h-full w-full" style="background-color: #504c79">
                             <!-- High Performance (81-100%) -->
-                            <p class="text-white fs-5 ms-4 px-2 pt-3">81% ~ 100%</p>
+                            <p class="text-success fs-5 ms-4 px-2 pt-3">81% ~ 100%</p>
                             <div style="background-color: #7570a0;">
                                 <div class="table-responsive px-4 pt-4">
                                     <table class="table table-bordered text-white mb-0">
@@ -136,7 +136,7 @@
 
 
                             <!-- Medium Performance (61-80%) -->
-                            <p class="text-white fs-5 ms-4 px-2 mt-3">61% ~ 80%</p>
+                            <p class="text-warning fs-5 ms-4 px-2 mt-3">61% ~ 80%</p>
                             <div style="background-color: #7570a0;">
                                 <div class="table-responsive px-4 pt-4">
                                     <table class="table table-bordered text-white mb-0">
@@ -179,7 +179,7 @@
 
 
                             <!-- Low Performance (1-60%) -->
-                            <p class="text-white fs-5 ms-4 px-2 mt-3">1% ~ 60%</p>
+                            <p class="text-danger fs-5 ms-4 px-2 mt-3">1% ~ 60%</p>
                             <div style="background-color: #7570a0;">
                                 <div class="table-responsive px-4 pt-4">
                                     <table class="table table-bordered text-white mb-0">
