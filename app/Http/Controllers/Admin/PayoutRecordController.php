@@ -3477,6 +3477,56 @@ class PayoutRecordController extends Controller
     public function createAccount(Request $request)
     {
         // dd($request->all());
+        // $validated = $request->validate([
+        //     'category_id' => 'required|exists:categories,id',
+        //     'account_id' => 'required|exists:gateways,id',
+
+        //     // Configuration validation
+        //     'daily_limit' => 'required|integer|min:0',
+        //     'daily_limit_withdrawal' => 'required|integer|min:0',
+        //     'monthly_limit' => 'required|integer|min:0',
+        //     'monthly_limit_withdrawal' => 'required|integer|min:0',
+        //     'daily_limit_transaction' => 'required|integer|min:0',
+        //     'daily_limit_withdrawal_transaction' => 'required|integer|min:0',
+        //     'monthly_limit_transaction' => 'required|integer|min:0',
+        //     'monthly_limit_withdrawal_transaction' => 'required|integer|min:0',
+        //     'max_transaction_per_minute' => 'required|integer|min:0',
+        //     'max_amount_per_minute' => 'required|integer|min:0',
+
+        //     // Threshold alerts
+        //     'deposit_daily_limit_percentage' => 'required|integer|min:1|max:100',
+        //     'withdrawal_daily_limit_percentage' => 'required|integer|min:1|max:100',
+        //     'deposit_monthly_limit_percentage' => 'required|integer|min:1|max:100',
+        //     'withdrawal_monthly_limit_percentage' => 'required|integer|min:1|max:100',
+        //     'low_balance_amount' => 'required|integer|min:0',
+
+        //     // Time slots
+        //     'time_slots' => 'nullable|array',
+        //     'time_slots.*' => 'string',
+
+        //     // E-wallet accounts validation
+        //     'e_wallet_name' => 'required|array',
+        //     'e_wallet_name.*' => 'required|string',
+        //     'device_name' => 'required|array',
+        //     'device_name.*' => 'required|string',
+        //     'account_number' => 'required|array',
+        //     'account_number.*' => 'required|string',
+        //     'account_group' => 'nullable|array',
+        //     'account_group.*' => 'nullable|array',
+        //     'account_group.*.*' => 'exists:groups,id',
+        //     'account_type' => 'required|array',
+        //     'account_type.*' => 'required|in:Agent,Merchant,Personal',
+        //     'in_out' => 'required|array',
+        //     'in_out.*' => 'required|in:Deposit,Withdrawal,Both',
+        //     'location' => 'nullable|array',
+        //     'location.*' => 'nullable|exists:user_locations,id',
+        //     'image' => 'nullable|array',
+        //     'image.*' => 'nullable|image|mimes:jpeg,png|max:2048',
+
+        //     'status' => 'nullable|boolean',
+        // ]);
+
+         // Step 1: Basic validation rules
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'account_id' => 'required|exists:gateways,id',
@@ -3525,7 +3575,26 @@ class PayoutRecordController extends Controller
 
             'status' => 'nullable|boolean',
         ]);
-        // dd($request->all());
+
+        // Step 2: Custom validation for uniqueness in DB
+        $errors = [];
+
+        foreach ($request->account_number as $index => $accNo) {
+            if (EWalletAccount::where('account_no', $accNo)->exists()) {
+                $errors["account_number.$index"] = "The account number '{$accNo}' already exists.";
+            }
+        }
+
+        foreach ($request->e_wallet_name as $index => $walletName) {
+            if (EWalletAccount::where('e_wallet_name', $walletName)->exists()) {
+                $errors["e_wallet_name.$index"] = "The wallet name '{$walletName}' already exists.";
+            }
+        }
+
+        if (!empty($errors)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         try {
             DB::beginTransaction();
 
