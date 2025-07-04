@@ -50,12 +50,13 @@
         .pay-service {
             display: flex;
             align-items: center;
+            float: right;
             gap: 8px;
         }
 
         .pay-badge {
-            background: <?= $ewallet=="nagad"?"green":"#ff9800"  ?>;
-            color: <?= $ewallet=="nagad"?"white":"#000"  ?>;
+            background: #ff9800;
+            color: #000;
             font-weight: 700;
             border-radius: 4px;
             padding: 2px 10px;
@@ -88,15 +89,15 @@
         }
 
         .lang-btn.active {
-            background: <?= $ewallet=="nagad"?"green":"#ff9800"  ?>;
-            color: <?= $ewallet=="nagad"?"white":"#000"  ?>;
+            background: #ff9800;
+            color: #000;
         }
 
         .warning {
             color: #e53935;
             font-size: 1rem;
             margin: 18px 24px 0 24px;
-            font-weight: 500;
+            font-weight: 800;
         }
 
         .form-section {
@@ -107,7 +108,7 @@
         }
 
         .form-group {
-            flex: 1 1 220px;
+            flex: 1 1 150px;
             min-width: 220px;
         }
 
@@ -129,12 +130,12 @@
             align-items: center;
             background: #f7fafc;
             border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 1.2rem;
-            font-weight: 500;
+            padding: 10px 10px;
+            font-size: 1.4rem;
+            font-weight: 600;
             margin-bottom: 6px;
             border: 1px solid #e0e0e0;
-            gap: 10px;
+            gap: 5px;
         }
 
         .copy-btn {
@@ -203,8 +204,8 @@
         }
 
         .trx-input {
-            width: 100%;
-            font-size: 1.1rem;
+            width: 96%;
+            font-size: 1.4rem;
             padding: 12px 10px;
             border: 2px solid #e53935;
             border-radius: 6px;
@@ -255,12 +256,80 @@
             display: block;
         }
 
+
+        .form-flex {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Default order for desktop */
+        .wallet-group {
+            order: 1;
+        }
+        .provider-group {
+            order: 2;
+        }
+
+
+        .pay-service {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; /* allow wrap on small screen */
+    gap: 8px;
+}
+
+.pay-labels {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+        @media (min-width: 601px) {
+            .form-group {
+                width: auto;
+            }
+
+            .form-section {
+                flex-direction: row;
+            }
+        }
+
         @media (max-width: 600px) {
+
+
+            .pay-service {
+                flex: 1 1 25%;
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+
+            .header-title{
+                flex: 1 1 50%;
+                font-size: 1.6rem !important;
+            }
+
+            .pay-labels {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .lang-switch {
+                display: flex;
+                gap: 4px;
+            }
+            
+
+
             .container {
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
-                width: 100vw;
+                /* width: 100vw; */
                 min-width: 0;
                 max-width: 100vw;
                 padding: 0;
@@ -276,15 +345,16 @@
 
             .form-label,
             .trx-label,
-            .header-title,
             .header-desc,
             .service-label,
             .pay-badge {
                 font-size: 1rem !important;
             }
 
+            
+
             .wallet-box {
-                font-size: 1rem;
+                font-size: 1.4rem;
                 padding: 8px 6px;
             }
 
@@ -294,7 +364,7 @@
             }
 
             .submit-btn {
-                width: 100%;
+                width: 95%;
                 font-size: 1.05rem;
                 padding: 12px 0;
             }
@@ -304,10 +374,20 @@
                 width: 100%;
             }
 
+            .wallet-group {
+                order: 2;
+            }
+
+            .provider-group {
+                order: 1;
+            }
+
             .header-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
+                display: flex;
+                flex-direction: row; /* stay side-by-side */
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
             }
 
             .lang-switch {
@@ -326,7 +406,7 @@
             }
 
             .trx-input {
-                font-size: 1rem;
+                font-size: 1.4rem;
                 padding: 10px 8px;
             }
 
@@ -381,7 +461,7 @@ if ($ewallet == 'bkash') {
     $bgcolor = '#e2136e';
 } elseif ($ewallet == 'nagad') {
     
-    $bgcolor = '#FF9600';
+    $bgcolor = '#db3312';
 } elseif ($ewallet == 'rocket') {
    
     $bgcolor = '#8F2A85';
@@ -393,30 +473,53 @@ if ($ewallet == 'bkash') {
     @endif
     @if (!empty($data))
     <div class="container" id="intime">
-        <div class="header" style="background-color: {{ $bgcolor }};">
+        <div class="header" style="background-color: #32612D;">
             <div class="header-row">
-                <div class="header-title" id="amount-label">
-                    {{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk
+                <div class="header-title">
+                    <div  id="amount-label">
+                        {{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk
+                    </div>
+                    <div class="header-desc" id="amount-desc">Don't cash out more or less</div>
                 </div>
+                
                 <div class="pay-service">
-                    <span class="pay-badge">PAY</span>
-                    <span class="service-label">SERVICE</span>
+                    <div class="pay-labels">
+                        <span class="pay-badge">PAY</span>
+                        <span class="service-label">SERVICE</span>
+                    </div>
                     <div class="lang-switch">
                         <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
-                        <button class="lang-btn" id="lang-bn" onclick="setLang('bn')">Bang</button>
+                        <button class="lang-btn" id="lang-bn" onclick="setLang('bn')">বাং</button>
                     </div>
                 </div>
             </div>
-            <div class="header-desc" id="amount-desc">Don't cash out more or less</div>
+            
         </div>
 
+        
         <div class="warning" id="amount-warning">
-            If you change the amount of money (INR 500.00), you will not be able to get credit.
+            If you change the amount of money (TK 500.00), you will not be able to get credit.
         </div>
+        <div style="background-color:<?=$bgcolor?>;padding:10px;text-align:center;display:flex;align-items:center;gap:10px;">
+            <img src="{{ $logo }}" alt="{{ ucfirst($ewallet) }} logo" style="width:75px;height:75px;background-color:white;border-radius:50%;object-fit:contain;">
+            <span style="font-size:18px;font-weight:bold;color:white">{{ $ewallet_to_show ?? 'wallet' }} Deposit</span>
+        </div>
+        
 
-        <div class="form-section">
-            <div class="form-group">
-                <label class="form-label" id="wallet-label">Wallet No *</label>
+        <div class="form-section form-flex">
+            {{-- <div class="form-group provider-group" style="text-align:center;">
+                <div class="form-label" id="provider-label">Wallet provider</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:18px; padding: 20px; border-radius: 10px;">
+                    @if($logo)
+                        <img src="{{ $logo }}" alt="{{ ucfirst($ewallet) }} logo" style="width:230px;display:block;">
+                    @else
+                        <span>No wallet selected</span>
+                    @endif
+                </div>
+            </div> --}}
+        
+            <div class="form-group wallet-group">
+                <label class="form-label">Wallet No *</label>
                 <div class="form-note" id="wallet-note">
                     This {{ $ewallet_to_show ?? 'wallet' }} number accepts only cashout
                 </div>
@@ -428,26 +531,17 @@ if ($ewallet == 'bkash') {
                     <button class="copy-btn" onclick="copyWallet()" title="Copy" style="background-color: {{ $bgcolor }};">COPY</button>
                 </div>
             </div>
-
-            <div class="form-group" style="text-align:center;">
-                <div class="form-label" id="provider-label">Wallet provider</div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:18px;  padding: 20px; border-radius: 10px;">
-                    @if($logo)
-                        <img src="{{ $logo }}" alt="{{ ucfirst($ewallet) }} logo" style="width:230px;display:block;">
-                    @else
-                        <span>No wallet selected</span>
-                    @endif
-                </div>
-            </div>
         </div>
+        
 
         <form action="{{ route('iframe.payment4') }}" method="POST" id="cashout-form" autocomplete="off" onsubmit="return handleSubmit(event)">
             @csrf
 
             <div class="trx-section">
-                <label class="trx-label" for="trxid" id="trx-label">
-                    Enter the TrxID number of the cashout
-                    <span class="trx-required" id="trx-required">(required)</span>
+                <label class="trx-label" for="trxid" >
+                    <span id="trx-label">Enter the TrxID number of the cashout</span>
+                    
+                    <span style="color:{{ $bgcolor }}" id="trx-required">(required)</span>
                 </label>
 
 
@@ -474,7 +568,7 @@ if ($ewallet == 'bkash') {
             <input type="hidden" name="time" value="{{ time() }}">
 
             <button class="submit-btn" type="submit" id="submit-btn" style="background-color: {{ $bgcolor }};">
-                Confirm and Submit | জমা দিন
+                Confirm
             </button>
         </form>
 
@@ -488,10 +582,13 @@ if ($ewallet == 'bkash') {
                 If you cash out from any other wallet of this number, there is no possibility of getting the money.
             </span>
         </div>
+
+        <br>
+        <br>
+        
     </div>
 
-    
-    <div class="container" id="accnotfound" style="display: none;">
+    <div class="container" id="accnotfound" style="display: none; height: 100vh; justify-content: center; align-items: center;">
         <center>
         <div class="text-center">
             <svg style="width: 250px;margin:20px" viewBox="0 0 512 512"><path fill="<?=$bgcolor?>" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24l0 112c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-112c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>
@@ -499,6 +596,9 @@ if ($ewallet == 'bkash') {
         </div>
         </center>
     </div>
+
+
+    
 
     @endif
 
@@ -552,14 +652,14 @@ function checkMinLength() {
                 en: {
                     'amount-label': `{{ number_format($data['amount'] ?? 0, 2, '.', ',') }} Tk`,
                     'amount-desc': "Don't cash out more or less",
-                    'amount-warning': `If you change the amount of money (INR {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
+                    'amount-warning': `If you change the amount of money (TK {{ number_format($data['amount'] ?? 0, 2, '.', ',') }}), you will not be able to get credit.`,
                     'wallet-label': 'Wallet No *',
                     'wallet-note': `Only cashout is accepted at this {{ $ewallet_to_show ?? 'wallet' }} number `,
                     'provider-label': 'Wallet provider',
                     'provider-name': '{{ $ewallet_to_show ?? 'wallet' }} Deposit',
                     'trx-label': 'Enter the TrxID number of the cashout',
-                    'trx-required': '(required)',
-                    'submit-btn': 'Confirm and Submit',
+                    'trx-required': '(Required)',
+                    'submit-btn': 'Confirm',
                     'precaution-title': 'Precautions:',
                     'precaution-red': 'The transaction ID must be filled in correctly, otherwise the score will fail !',
                     'precaution-gray': 'Please make sure you cash out to <b>the {{ $ewallet_to_show ?? 'wallet' }} deposit wallet number</b>. If you cash out from any other wallet of this number, there is no possibility of getting the money."',
@@ -570,15 +670,15 @@ function checkMinLength() {
                     'amount-desc': 'কম বা বেশি ক্যাশ আউট করবেন না',
                     'amount-warning': 'আপনি যদি টাকার পরিমাণ পরিবর্তন করেন ({{ number_format($data['amount'] ?? 0, 2, '.', ',') }} টাকা), তাহলে আপনি ক্রেডিট পাবেন না।',
                     'wallet-label': 'ওয়ালেট নম্বর *',
-                    'wallet-note': 'শুধুমাত্র এই {{ $ewallet_to_show_bangla ?? 'wallet' }} নম্বরে ক্যাশআউট গ্রহণযোগ্য',
+                    'wallet-note': 'শুধুমাত্র এই {{ $ewallet_to_show ?? 'wallet' }} নম্বরে ক্যাশআউট গ্রহণযোগ্য',
                     'provider-label': 'ওয়ালেট প্রদানকারী',
-                    'provider-name': '{{ $ewallet_to_show_bangla ?? 'wallet' }} ডিপোজিট',
+                    'provider-name': '{{ $ewallet_to_show ?? 'wallet' }} ডিপোজিট',
                     'trx-label': 'ক্যাশআউটের TrxID নম্বর লিখুন',
-                    'trx-required': '(প্রয়োজনীয়)',
-                    'submit-btn': 'নিশ্চিত এবং জমা দিন',
+                    'trx-required': '(প্রয়োজন)',
+                    'submit-btn': 'নিশ্চিত',
                     'precaution-title': 'সতর্কতা:',
                     'precaution-red': 'লেনদেন আইডি অবশ্যই সঠিকভাবে পূরণ করতে হবে, না হলে স্কোর ফেল হবে!',
-                    'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>{{ $ewallet_to_show_bangla ?? 'wallet' }} ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
+                    'precaution-gray': 'অনুগ্রহ করে নিশ্চিত করুন আপনি <b>{{ $ewallet_to_show ?? 'wallet' }} ডিপোজিট ওয়ালেট নম্বরে</b> ক্যাশআউট করছেন। অন্য কোনো ওয়ালেট থেকে ক্যাশআউট করলে টাকা পাওয়ার কোনো সম্ভাবনা নেই।',
                     'trxid-placeholder': 'TrxID অবশ্যই সঠিক করতে হবে!'
                 }
             };
@@ -620,7 +720,7 @@ function checkMinLength() {
                 return false;
             }
             // Set default language
-            setLang('en');
+            setLang('bn');
 
 
             function handleSubmit(event) {
@@ -734,7 +834,7 @@ function checkMinLength() {
                     if (response.status === 'fail') {
                         $('#intime').hide();
                         // $('#outtime').hide();
-                        $('#accnotfound').show();
+                        $('#accnotfound').css('display', 'flex');
                         $('#failmessage').text(response.message);
 
                     }

@@ -49,10 +49,10 @@
                     <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                     {{-- @if (adminAccessRoute(config('role.partners.access.add'))) --}}
                     <button type="button" class="btn btn-primary mb-5" data-bs-toggle="modal" data-bs-target="#newModal">
-                        Add New
+                        {{ __('merchant.add_new') }}
                     </button>
                     <div class="d-flex justify-content-end mb-3">
-                        <label class="form-check-label me-2" for="showAllToggle">@lang('Show All')</label>
+                        <label class="form-check-label me-2" for="showAllToggle">{{ __('merchant.show_all') }}</label>
                         <input type="checkbox" id="showAllToggle" {{ $showAll == '1' ? 'checked' : '' }}>
                     </div>
 

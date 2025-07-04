@@ -7,6 +7,7 @@ use App\Models\Api;
 use App\Models\Log;
 use App\Models\Payout;
 use App\Models\Payment;
+use Carbon\CarbonPeriod;
 use App\Models\Settlement;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -37,29 +38,393 @@ class ReportsController extends Controller
     {
         $timezone = config('app.timezone');
         $now = Carbon::now($timezone);
-        $date = $now->toDateString();
-        $oneDayBefore = $now->subDay()->toDateString();
+        $defaultDate = $now->toDateString();
 
-        if ($request->filled('date')) {
-            $date = $request->date;
-            $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
-            $oneDayBefore = $carbonDate->subDay()->toDateString();
-        }
-        $fromDate = $request->filled('from_date') ? $request->from_date : $date;
-        $toDate = $request->filled('to_date') ? $request->to_date : $date;
+        $from_date = $request->filled('from_date') ? $request->from_date : $defaultDate . ' 00:00';
+        $to_date = $request->filled('to_date') ? $request->to_date : $now->toDateTimeString();
 
         $distinctWalletNames = EWalletAccount::select('e_wallet_name')->distinct()->pluck('e_wallet_name');
 
-        // Get all wallet accounts with pagination
-        // $EWalletAccounts = EWalletAccount::paginate(20);
-        $EWalletAccounts = EWalletAccount::when($request->filled('e_wallet_name'), function ($query) use ($request) {
-        $query->where('e_wallet_name', $request->e_wallet_name);
-        })
-        ->when($request->filled('account_no'), function ($query) use ($request) {
-            $query->where('account_no', 'LIKE', '%' . $request->account_no . '%');
-        })
-        ->paginate(20);
+        $carbonFrom = Carbon::parse($from_date)->startOfDay();
+        $carbonTo = Carbon::parse($to_date)->endOfDay();
+        $period = CarbonPeriod::create($carbonFrom, $carbonTo);
 
+        // Get all eWallet accounts
+        $EWalletAccounts = EWalletAccount::when($request->filled('e_wallet_name'), function ($query) use ($request) {
+            $query->where('e_wallet_name', $request->e_wallet_name);
+            })
+            ->when($request->filled('account_no'), function ($query) use ($request) {
+                $query->where('account_no', $request->account_no);
+            })
+            ->get();
+        $accountIds = $EWalletAccounts->pluck('id');
+        $eWalletNames = $EWalletAccounts->pluck('e_wallet_name');
+        $accountNumbers = $EWalletAccounts->pluck('account_no');
+
+        // Last available closing balance before start date
+        $previousBalances = DailyEWalletSummary::whereIn('e_wallet_id', $accountIds)
+            ->whereDate('created_at', '<', $carbonFrom->toDateString())
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('e_wallet_id')
+            ->map(function ($records) {
+                return $records->first(); // last closing balance before period
+            });
+
+        // DEPOSITS
+        $deposits_pre = Payment::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+        // WITHDRAWALS
+        $withdrawals_pre = Payout::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+        // TRANSFER IN
+        $transfersIn_pre = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('to_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet, to_account_no, SUM(amount) as total')
+            ->groupByRaw('e_wallet, to_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->to_account_no;
+            });
+
+        // TRANSFER OUT
+        $transfersOut_pre = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('from_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet, from_account_no, SUM(amount) as total')
+            ->groupByRaw('e_wallet, from_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->from_account_no;
+            });
+
+        // === Preload All Transactions with Grouping ===
+
+        // DEPOSITS
+        $deposits = Payment::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number . '|' . $item->date;
+            });
+
+        // WITHDRAWALS
+        $withdrawals = Payout::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number . '|' . $item->date;
+            });
+
+        // TRANSFER IN
+        $transfersIn = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('to_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet, to_account_no, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet, to_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->to_account_no . '|' . $item->date;
+            });
+
+        // TRANSFER OUT
+        $transfersOut = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('from_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet, from_account_no, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet, from_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->from_account_no . '|' . $item->date;
+            });
+
+        // === Prepare Data ===
+        $data = [];
+
+        foreach ($EWalletAccounts as $account) {
+            $balance = $previousBalances[$account->id]->closing_balance ?? 0.00;
+
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+                $key = $account->e_wallet_name . '|' . $account->account_no . '|' . $dateStr;
+                $key_pre = $account->e_wallet_name . '|' . $account->account_no;
+
+                if ($carbonFrom->toDateString() === $dateStr) {
+                    $deposit_pre = $deposits[$key_pre][0]->total ?? 0.00;
+                    $withdrawal_pre = $withdrawals[$key_pre][0]->total ?? 0.00;
+                    $in_pre = $transfersIn[$key_pre][0]->total ?? 0.00;
+                    $out_pre = $transfersOut[$key_pre][0]->total ?? 0.00;
+                    $total_pre = $deposit_pre - $withdrawal_pre + $in_pre - $out_pre;
+                    $balance = $balance + $total_pre;
+                }
+
+                $deposit = $deposits[$key][0]->total ?? 0.00;
+                $withdrawal = $withdrawals[$key][0]->total ?? 0.00;
+                $in = $transfersIn[$key][0]->total ?? 0.00;
+                $out = $transfersOut[$key][0]->total ?? 0.00;
+
+                if ($deposit > 0 || $withdrawal > 0 || $in > 0 || $out > 0) {
+                    $closing = $balance + $deposit - $withdrawal + $in - $out;
+
+                    $data[$dateStr][] = [
+                        'e_wallet_name' => $account->e_wallet_name,
+                        'account_no' => $account->account_no,
+                        'date' => $dateStr,
+                        'opening_balance' => $balance,
+                        'total_deposit' => $deposit,
+                        'total_withdrawal' => $withdrawal,
+                        'transfer_in' => $in,
+                        'transfer_out' => $out,
+                        'closing_balance' => $closing,
+                    ];
+
+                    $balance = $closing; // update for next date
+                }
+            }
+        }
+
+        $e_wallet_name = $request->e_wallet_name;
+        $account_no = $request->account_no;
+        $pageTitle = __('reports.daily_ewallet_summary');
+        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'from_date', 'to_date', 'data', 'EWalletAccounts', 'distinctWalletNames','e_wallet_name','account_no'));
+    }
+
+    public function daily_ewallet_summaryOLD3(Request $request)
+    {
+        $timezone = config('app.timezone');
+        $now = Carbon::now($timezone);
+        $defaultDate = $now->toDateString();
+
+        $from_date = $request->filled('from_date') ? $request->from_date : $defaultDate . ' 00:00';
+        $to_date = $request->filled('to_date') ? $request->to_date : $now->toDateTimeString();
+
+        $distinctWalletNames = EWalletAccount::select('e_wallet_name')->distinct()->pluck('e_wallet_name');
+
+        $carbonFrom = Carbon::parse($from_date)->startOfDay();
+        $carbonTo = Carbon::parse($to_date)->endOfDay();
+        $period = CarbonPeriod::create($carbonFrom, $carbonTo);
+
+        // Get all eWallet accounts
+        $EWalletAccounts = EWalletAccount::get();
+        $accountIds = $EWalletAccounts->pluck('id');
+        $eWalletNames = $EWalletAccounts->pluck('e_wallet_name');
+        $accountNumbers = $EWalletAccounts->pluck('account_no');
+
+        // Last available closing balance before start date
+        $previousBalances = DailyEWalletSummary::whereIn('e_wallet_id', $accountIds)
+            ->whereDate('created_at', '<', $carbonFrom->toDateString())
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('e_wallet_id')
+            ->map(function ($records) {
+                return $records->first(); // last closing balance before period
+            });
+
+            // DEPOSITS
+            $deposits_pre = Payment::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+            // WITHDRAWALS
+            $withdrawals_pre = Payout::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+            // TRANSFER IN
+            $transfersIn_pre = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('to_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet, to_account_no, SUM(amount) as total')
+            ->groupByRaw('e_wallet, to_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->to_account_no;
+            });
+
+            // TRANSFER OUT
+            $transfersOut_pre = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('from_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$carbonFrom, $from_date])
+            ->selectRaw('e_wallet, from_account_no, SUM(amount) as total')
+            ->groupByRaw('e_wallet, from_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->from_account_no;
+            });
+
+        // === Preload All Transactions with Grouping ===
+
+        // DEPOSITS
+        $deposits = Payment::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number . '|' . $item->date;
+            });
+
+        // WITHDRAWALS
+        $withdrawals = Payout::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet_name, e_wallet_phone_number')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number . '|' . $item->date;
+            });
+
+        // TRANSFER IN
+        $transfersIn = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('to_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet, to_account_no, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet, to_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->to_account_no . '|' . $item->date;
+            });
+
+        // TRANSFER OUT
+        $transfersOut = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('from_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('DATE(created_at) as date, e_wallet, from_account_no, SUM(amount) as total')
+            ->groupByRaw('DATE(created_at), e_wallet, from_account_no')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->e_wallet . '|' . $item->from_account_no . '|' . $item->date;
+            });
+
+            
+
+        // === Prepare Data ===
+        $data = [];
+
+        foreach ($EWalletAccounts as $account) {
+            $balance = $previousBalances[$account->id]->closing_balance ?? 0.00;
+
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+                $key = $account->e_wallet_name . '|' . $account->account_no . '|' . $dateStr;
+                $key_pre = $account->e_wallet_name . '|' . $account->account_no;
+
+                if ($carbonFrom->toDateString() === $dateStr) {
+                    $deposit_pre = $deposits[$key_pre][0]->total ?? 0.00;
+                    $withdrawal_pre = $withdrawals[$key_pre][0]->total ?? 0.00;
+                    $in_pre = $transfersIn[$key_pre][0]->total ?? 0.00;
+                    $out_pre = $transfersOut[$key_pre][0]->total ?? 0.00;
+                    $total_pre = $deposit_pre - $withdrawal_pre + $in_pre - $out_pre;
+                    $balance = $balance + $total_pre;
+                }
+
+                
+
+                $deposit = $deposits[$key][0]->total ?? 0.00;
+                $withdrawal = $withdrawals[$key][0]->total ?? 0.00;
+                $in = $transfersIn[$key][0]->total ?? 0.00;
+                $out = $transfersOut[$key][0]->total ?? 0.00;
+
+                if ($deposit > 0 || $withdrawal > 0 || $in > 0 || $out > 0) {
+                    $closing = $balance + $deposit - $withdrawal + $in - $out;
+
+                    $data[$dateStr][] = [
+                        'e_wallet_name' => $account->e_wallet_name,
+                        'account_no' => $account->account_no,
+                        'date' => $dateStr,
+                        'opening_balance' => $balance,
+                        'total_deposit' => $deposit,
+                        'total_withdrawal' => $withdrawal,
+                        'transfer_in' => $in,
+                        'transfer_out' => $out,
+                        'closing_balance' => $closing,
+                    ];
+
+                    $balance = $closing; // update for next date
+                }
+            }
+        }
+
+
+        // dd($data);
+
+        $e_wallet_name = $request->e_wallet_name;
+        $account_no = $request->account_no;
+        $pageTitle = __('reports.daily_ewallet_summary');
+        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'from_date', 'to_date', 'data', 'EWalletAccounts', 'distinctWalletNames','e_wallet_name','account_no'));
+    }
+
+    public function daily_ewallet_summary_old2(Request $request)
+    {
+        $timezone = config('app.timezone');
+        $now = Carbon::now($timezone);
+        $date = $now->toDateString();
+        $oneDayBefore = $now->subDay()->toDateString();
+
+        $from_date = date('Y-m-d')." 00:00";
+        $to_date = date('Y-m-d H:i');
+
+        if ($request->filled('from_date')) {
+            $from_date = $request->from_date;  //2025-06-27T00:00
+        }
+        
+
+        
+        if ($request->filled('to_date')) {
+            $to_date = $request->to_date; ////2025-06-28T00:00
+        }
+
+        $carbonDate = Carbon::parse($from_date);
+        $date = $carbonDate->toDateString();
+        $oneDayBefore = $carbonDate->copy()->subDay()->toDateString();
+
+        // Get all wallet accounts with pagination
+        $EWalletAccounts = EWalletAccount::get();
         $accountIds = $EWalletAccounts->pluck('id');
         $eWalletNames = $EWalletAccounts->pluck('e_wallet_name');
         $accountNumbers = $EWalletAccounts->pluck('account_no');
@@ -74,8 +439,7 @@ class ReportsController extends Controller
         $deposits = Payment::whereIn('e_wallet_name', $eWalletNames)
             ->whereIn('e_wallet_phone_number', $accountNumbers)
             ->where('status', 'Complete')
-            // ->whereDate('created_at', $date)
-            ->whereBetween('created_at', [$fromDate, $toDate])
+            ->whereBetween('created_at', [$from_date, $to_date])
             ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
             ->groupBy('e_wallet_name', 'e_wallet_phone_number')
             ->get()
@@ -87,8 +451,112 @@ class ReportsController extends Controller
         $withdrawals = Payout::whereIn('e_wallet_name', $eWalletNames)
             ->whereIn('e_wallet_phone_number', $accountNumbers)
             ->where('status', 'Complete')
-            // ->whereDate('created_at', $date)
-            ->whereBetween('created_at', [$fromDate, $toDate])
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupBy('e_wallet_name', 'e_wallet_phone_number')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+        // Preload transfers in
+        $transfersIn = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('to_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('e_wallet, to_account_no, SUM(amount) as total')
+            ->groupBy('e_wallet', 'to_account_no')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->e_wallet . '|' . $item->to_account_no;
+            });
+
+        // Preload transfers out
+        $transfersOut = EWalletTransfer::whereIn('e_wallet', $eWalletNames)
+            ->whereIn('from_account_no', $accountNumbers)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw('e_wallet, from_account_no, SUM(amount) as total')
+            ->groupBy('e_wallet', 'from_account_no')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->e_wallet . '|' . $item->from_account_no;
+            });
+
+        // Build the data array
+        $data = [];
+        foreach ($EWalletAccounts as $key => $account) {
+            $accountKey = $account->e_wallet_name . '|' . $account->account_no;
+
+            $openingBalance = $previousBalances[$account->id]->closing_balance ?? 0.00;
+            $totalDeposit = $deposits[$accountKey]->total ?? 0.00;
+            $totalWithdrawal = $withdrawals[$accountKey]->total ?? 0.00;
+            $transferIn = $transfersIn[$accountKey]->total ?? 0.00;
+            $transferOut = $transfersOut[$accountKey]->total ?? 0.00;
+
+            if($totalDeposit>0 || $totalWithdrawal>0 || $transferIn>0 || $transferOut>0){
+
+                
+
+                $data[$key] = [
+                    'e_wallet_name' => $account->e_wallet_name,
+                    'account_no' => $account->account_no,
+                    'opening_balance' => $openingBalance,
+                    'total_deposit' => $totalDeposit,
+                    'total_withdrawal' => $totalWithdrawal,
+                    'transfer_in' => $transferIn,
+                    'transfer_out' => $transferOut,
+                    'closing_balance' => $openingBalance + $totalDeposit - $totalWithdrawal + $transferIn - $transferOut
+                ];
+
+            }
+        }
+
+        $pageTitle = __('reports.daily_ewallet_summary');
+        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'from_date', 'to_date', 'data', 'EWalletAccounts'));
+    }
+
+
+    public function daily_ewallet_summary_old(Request $request)
+    {
+        $timezone = config('app.timezone');
+        $now = Carbon::now($timezone);
+        $date = $now->toDateString();
+        $oneDayBefore = $now->subDay()->toDateString();
+
+        if ($request->filled('date')) {
+            $date = $request->date;
+            $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
+            $oneDayBefore = $carbonDate->subDay()->toDateString();
+        }
+
+        // Get all wallet accounts with pagination
+        $EWalletAccounts = EWalletAccount::paginate(20);
+        $accountIds = $EWalletAccounts->pluck('id');
+        $eWalletNames = $EWalletAccounts->pluck('e_wallet_name');
+        $accountNumbers = $EWalletAccounts->pluck('account_no');
+
+        // Preload previous day's closing balances
+        $previousBalances = DailyEWalletSummary::whereIn('e_wallet_id', $accountIds)
+            ->whereDate('created_at', $oneDayBefore)
+            ->get()
+            ->keyBy('e_wallet_id');
+
+        // Preload deposits
+        $deposits = Payment::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereDate('created_at', $date)
+            ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
+            ->groupBy('e_wallet_name', 'e_wallet_phone_number')
+            ->get()
+            ->keyBy(function($item) {
+                return $item->e_wallet_name . '|' . $item->e_wallet_phone_number;
+            });
+
+        // Preload withdrawals
+        $withdrawals = Payout::whereIn('e_wallet_name', $eWalletNames)
+            ->whereIn('e_wallet_phone_number', $accountNumbers)
+            ->where('status', 'Complete')
+            ->whereDate('created_at', $date)
             ->selectRaw('e_wallet_name, e_wallet_phone_number, SUM(amount) as total')
             ->groupBy('e_wallet_name', 'e_wallet_phone_number')
             ->get()
@@ -100,8 +568,7 @@ class ReportsController extends Controller
         $transfersIn = EWalletTransaction::whereIn('to_e_wallet', $eWalletNames)
             ->whereIn('to_account_no', $accountNumbers)
             ->where('status', 'Complete')
-            // ->whereDate('created_at', $date)
-            ->whereBetween('created_at', [$fromDate, $toDate])
+            ->whereDate('created_at', $date)
             ->selectRaw('to_e_wallet, to_account_no, SUM(amount) as total')
             ->groupBy('to_e_wallet', 'to_account_no')
             ->get()
@@ -113,8 +580,7 @@ class ReportsController extends Controller
         $transfersOut = EWalletTransaction::whereIn('from_e_wallet', $eWalletNames)
             ->whereIn('from_account_no', $accountNumbers)
             ->where('status', 'Complete')
-            // ->whereDate('created_at', $date)
-            ->whereBetween('created_at', [$fromDate, $toDate])
+            ->whereDate('created_at', $date)
             ->selectRaw('from_e_wallet, from_account_no, SUM(amount) as total')
             ->groupBy('from_e_wallet', 'from_account_no')
             ->get()
@@ -133,22 +599,65 @@ class ReportsController extends Controller
             $transferIn = $transfersIn[$accountKey]->total ?? 0.00;
             $transferOut = $transfersOut[$accountKey]->total ?? 0.00;
 
-            $data[$key] = [
-                'e_wallet_name' => $account->e_wallet_name,
-                'account_no' => $account->account_no,
-                'opening_balance' => $openingBalance,
-                'total_deposit' => $totalDeposit,
-                'total_withdrawal' => $totalWithdrawal,
-                'transfer_in' => $transferIn,
-                'transfer_out' => $transferOut,
-                'closing_balance' => $openingBalance + $totalDeposit - $totalWithdrawal + $transferIn - $transferOut
-            ];
+            if($totalDeposit>0 || $totalWithdrawal>0 || $transferIn>0 || $transferOut>0){
+
+            
+
+                $data[$key] = [
+                    'e_wallet_name' => $account->e_wallet_name,
+                    'account_no' => $account->account_no,
+                    'opening_balance' => $openingBalance,
+                    'total_deposit' => $totalDeposit,
+                    'total_withdrawal' => $totalWithdrawal,
+                    'transfer_in' => $transferIn,
+                    'transfer_out' => $transferOut,
+                    'closing_balance' => $openingBalance + $totalDeposit - $totalWithdrawal + $transferIn - $transferOut
+                ];
+
+            }
         }
 
+        $e_wallet_name = $request->e_wallet_name;
+        $account_no = $request->account_no;
+
         $pageTitle = __('reports.daily_ewallet_summary');
-        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'fromDate', 'toDate', 'data', 'EWalletAccounts', 'distinctWalletNames'));
+        return view('admin.reports.daily_ewallet_summary', compact('pageTitle', 'date', 'data', 'EWalletAccounts'));
     }
 
+    public function smsLogs(Request $request)
+    {
+        $pageTitle = 'SMS Logs';
+
+        // for the dropdown filter
+        $distinctWalletNames = DB::table('sms_logs')->distinct()->pluck('e_wallet_name');
+
+        // query with filters
+        $logs = DB::table('sms_logs')
+            ->when($request->from_date, function ($q) use ($request) {
+                $q->where('created_at', '>=', $request->from_date);
+            })
+            ->when($request->to_date, function ($q) use ($request) {
+                $q->where('created_at', '<=', $request->to_date);
+            })
+            ->when($request->e_wallet_no, function ($q) use ($request) {
+                $q->where('e_wallet_no', $request->e_wallet_no);
+            })
+            ->when($request->type, function ($q) use ($request) {
+                $q->where('type', $request->type);
+            })
+            ->when($request->search_any, function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('customer_acc_no', 'like', '%' . $request->search_any . '%')
+                        ->orWhere('txn', 'like', '%' . $request->search_any . '%')
+                        ->orWhere('e_wallet_no', 'like', '%' . $request->search_any . '%');
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.reports.sms_logs', compact('pageTitle', 'logs', 'distinctWalletNames'));
+    }
 
 
     public function daily_transection_summary(Request $request)

@@ -54,10 +54,10 @@ return [
     'deactive' => 'DeActive',
     'select_location' => 'Select Location',
     'select_role' => 'Select Role',
-    'userManagement.search_placeholder' => 'Search...',
-    'userManagement.processing' => 'Processing...',
-    'userManagement.success_title' => 'Success!',
-    'userManagement.something_wrong' => 'Something went wrong, please try again.',
+    'search_placeholder' => 'Search...',
+    'processing' => 'Processing...',
+    'success_title' => 'Success!',
+    'something_wrong' => 'Something went wrong, please try again.',
 
     // User Location
     'user_locations' => 'User Locations',
@@ -132,6 +132,7 @@ return [
     'deleted' => 'Deleted!',
     'error' => 'Error!',
     'error_deleting_role' => 'There was an error deleting the role.',
+    'last_login'=>'Last Login',
 
 
 ];

@@ -248,6 +248,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/partner_account_balance_summary', [ReportsController::class, 'partner_account_balance_summary'])->name('reports.partner_account_balance_summary');
         Route::get('fix-partner-balance-summary-balance', [ReportsController::class, 'fix_partner_summary_closing_balance'])->name('dev_partner_summary_fix_balance');
 
+        // AA
+        // Route::get('reports/sms/logs', [ReportsController::class, 'smsLogs'])->name('admin.sms.logs');
+        Route::get('reports/sms_logs', [ReportsController::class, 'smsLogs'])->name('sms.logs');
         Route::get('reports/partner_account_balance_summaryv2', [ReportsController::class, 'partner_account_balance_summaryv2'])->name('reports.partner_account_balance_summaryv2');
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class, 'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
         Route::post('/apis/inline-update', [PayoutRecordController::class, 'inlineUpdate'])->name('apis.inlineUpdate');
@@ -640,15 +643,17 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 Route::middleware(['function_track_middleware'])->group(function () {
 
     Route::get('iframe/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class, 'processTransection'])->name('iframe.open');
-    Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
+    // Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection2'])->name('iframe.open');
 
     //temp
-    Route::get('iframe4/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection4'])->name('iframe.open4');
+    Route::get('iframe2/{username}/{ewallet}/{acc}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection4'])->name('iframe.open4');
     Route::post('process/payment4', [PartnerPayoutRecordController::class,'processNextPayment4'])->name('iframe.payment4');
 
     Route::get('iframe3/{username}/{ewallet}/{amount}/{transection_id?}/{sign?}/{member_id?}', [PartnerPayoutRecordController::class,'processTransection3'])->name('iframe.direct');
     Route::get('process/payment/{id}', [PartnerPayoutRecordController::class,'processNextPayment'])->name('iframe.payment');
-    Route::post('process/payment2', [PartnerPayoutRecordController::class,'processNextPayment2'])->name('iframe.payment2');
+
+    // Route::post('process/payment2', [PartnerPayoutRecordController::class,'processNextPayment2'])->name('iframe.payment2');
+
     Route::post('process/payment3', [PartnerPayoutRecordController::class,'processNextPayment3'])->name('iframe.payment3');
     Route::post('partner/verify/txn', [PartnerPayoutRecordController::class,'verifytxn'])->name('partner.verify.txn');
 

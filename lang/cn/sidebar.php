@@ -77,5 +77,7 @@ return [
 
     'audit_log' => '审计日志',
     'cs_tracker' => '客服追踪器',
+    'sms_logs'=> '短信日志',
+
 
 ];

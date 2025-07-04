@@ -470,6 +470,16 @@ $arr = [
         ],
     ],
 
+   'sms_logs' => [
+        'label' => 'SMS Logs',
+        'access' => [
+            'view' => ['admin.sms.logs'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
 
 
 

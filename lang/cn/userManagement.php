@@ -39,9 +39,9 @@ return [
     'phone_number' => '电话号码',
     'enter_phone' => '输入电话号码',
     'enter_password' => '输入密码',
-    'userManagement.search_placeholder' => '搜索...',
-    'userManagement.success_title' => '成功!',
-    'userManagement.something_wrong' => '出错了，请重试。',
+    'search_placeholder' => '搜索...',
+    'success_title' => '成功!',
+    'something_wrong' => '出错了，请重试。',
 
     // User Location
     'user_locations' => '用户位置',
@@ -88,4 +88,5 @@ return [
     'yes_delete_it' => '是的，删除!',
     'cancel' => '取消',
     'error_deleting_role' => '删除角色时出错。',
+    'last_login' => '上次登录',
 ];

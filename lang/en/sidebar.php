@@ -82,5 +82,6 @@ return [
     'summary_by_name' => 'Summary By Name',
     'summary_by_year' => 'Summary By Year ',
     'audit_log' => 'Audit Log',
-    'cs_tracker' =>'CS Tracker'
+    'cs_tracker' =>'CS Tracker',
+    'sms_logs' => 'SMS Logs',
 ];
