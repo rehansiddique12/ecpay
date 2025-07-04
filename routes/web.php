@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Webhook\WebhookController;
 use App\Http\Controllers\CCategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\LoginController;
@@ -197,6 +198,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
             return response()->json(['balance' => $api ? $api->balance : 0]);
         });
 
+
+
+        // WebHook Route
+        Route::get('/webhook', [WebhookController::class, 'index'])->name('webhook');
 
         // accounts details
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
