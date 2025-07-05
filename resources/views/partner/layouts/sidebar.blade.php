@@ -51,6 +51,7 @@ $languages = [
 'cn' =>'Chinese'
 ];
 
+$currentTz = collect($data)->firstWhere('timezone', $usertimezone);
 @endphp
 
 
@@ -88,6 +89,37 @@ $languages = [
                 </li>
                 <!-- /Search -->
 
+
+                {{-- TimeZone --}}
+
+                <form action="{{ route('partner.update_timezone') }}" method="POST" id="timezone-form">
+                    @csrf
+
+                    <li class="nav-item dropdown dropdown-language">
+                        <a class="nav-link dropdown-toggle btn btn-text-secondary rounded-pill" href="#" id="timezoneDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ $usertimezone ?? 'Select Timezone' }}
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="timezoneDropdown"
+                            style="max-height: 300px; overflow-y: auto;">
+                            @foreach($data as $tz)
+                                <li>
+                                    <button type="submit" name="timezone" value="{{ $tz['timezone'] }}"
+                                            class="dropdown-item @if($tz['timezone'] == $usertimezone) active @endif">
+                                        {{ $tz['timezone'] }} ({{ $tz['offset'] }})
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                </form>
+
+
+
+
+                {{-- TimeZone --}}
+
                 <!-- Language -->
                 <li class="nav-item dropdown-language dropdown">
                     {{-- <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
@@ -106,6 +138,7 @@ $languages = [
                         @endforeach
                     </ul>
                 </li>
+
                 <!--/ Language -->
 
  <!-- Style Switcher -->

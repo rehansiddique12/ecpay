@@ -100,7 +100,7 @@
                     </div>
 
                     <div class="mt-5">
-                        <a href="{{ route('admin.blance_export', ['from_date' => @request()->from_date, 'to_date' => @request()->to_date, 'partner' => @request()->partner, 'search_by_name' => @request()->search_by_name, 'adjustment' => @request()->adjustment]) }}"
+                        <a href="{{ route('partner.blance_export_for_partner', ['from_date' => @request()->from_date, 'to_date' => @request()->to_date, 'partner' => @request()->partner, 'search_by_name' => @request()->search_by_name, 'adjustment' => @request()->adjustment]) }}"
                             class="btn waves-effect waves-light btn-success" id="exportButton">
                             <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
                         </a>
@@ -135,7 +135,7 @@
                                 @forelse($records as $key => $item)
                                     @if (isset($item->api))
                                         <tr>
-                                            
+
                                             <td>{{ convertToUserTimezone($item->created_at) }}</td>
                                             <td>{{ $item->amount }}</td>
                                             <td>{{ $item->charges }}</td>
