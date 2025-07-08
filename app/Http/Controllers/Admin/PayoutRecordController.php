@@ -5739,26 +5739,26 @@ $EWalletAccount = EWalletAccount::where('status', 1)
 
             foreach ($pending_list as $payout) {
                 // Check if this payout is already being tracked
-                // $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
-                //                           ->whereNull('to')
-                //                           ->first();
+                $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                                          ->whereNull('to')
+                                          ->first();
 
-                // if ($existingTracker) {
+                if ($existingTracker) {
                     
-                //     if ($existingTracker->user_id != auth()->id()) {
-                //         $existingTracker->update([
-                //             'user_id' => auth()->id()
-                //         ]);
-                //     }
-                // } else {
+                    if ($existingTracker->user_id != auth()->id()) {
+                        $existingTracker->update([
+                            'user_id' => auth()->id()
+                        ]);
+                    }
+                } else {
                     
-                //     CsTracker::create([
-                //         'user_id' => auth()->id() ?? null,
-                //         'action' => 'Pending Payout ID: ' . $payout->id,
-                //         'from' => now(),
-                //         'to' => null
-                //     ]);
-                // }
+                    CsTracker::create([
+                        'user_id' => auth()->id() ?? null,
+                        'action' => 'Pending Payout ID: ' . $payout->id,
+                        'from' => now(),
+                        'to' => null
+                    ]);
+                }
             }
 
             $notifications = Notification::with('ewalletAccount')
@@ -5799,19 +5799,29 @@ $EWalletAccount = EWalletAccount::where('status', 1)
                     'manual_process_count' => 0
                 ]);
 
-                $successRate = $data->total_received > 0
-                    ? round(($data->total_processed / $data->total_received) * 100)
+                $abandoned = $data->total_received - ($data->auto_process_count + $data->manual_process_count);
+
+                $successRate = $data->total_received > 0 && $data->total_received - $abandoned
+                    ? (($data->auto_process_count / ($data->total_received - $abandoned)) * 100)
                     : 0;
+                    
 
                 $merchantData[] = [
                     'name' => $api->name,
-                    'success_rate' => $successRate,
+                    'success_rate' => number_format($successRate, 2),
                     'total_received' => $data->total_received,
                     'total_processed' => $data->total_processed,
                     'auto_process' => $data->auto_process_count,
                     'manual_process' => $data->manual_process_count
                 ];
+
+                
             }
+
+            usort($merchantData, function ($a, $b) {
+                return $b['success_rate'] <=> $a['success_rate'];
+            });
+            
 
             // Categorize merchants by success rate
             $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
