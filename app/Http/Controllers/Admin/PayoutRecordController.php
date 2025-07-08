@@ -902,7 +902,7 @@ class PayoutRecordController extends Controller
                 if (!$sum) {
                     $sum = 0;
                 }
-
+                $charge =0;
                 $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                 if ($commissions) {
                     $charge = $commissions->withdrawal_percentage * $data->amount / 100;
