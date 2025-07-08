@@ -569,6 +569,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
 
         Route::get('/partner/balance', [PartnerPayoutRecordController::class, 'partnerBalance'])->name('partner.balance');
         Route::get('/reports/export/{from_date?}', [PartnerPaymentLogController::class, 'export_by_blance'])->name('merchant_reports.export_by_blance');
+        Route::get('partner/balance/export', [PartnerPayoutRecordController::class,'export_for_blance2'])->name('blance_export_for_partner');
         Route::get('partner/balance/search', [PartnerPayoutRecordController::class, 'partnerBalanceSearch'])->name('partner.balance.search');
 
         Route::get('reports/partner_account_summary', [PartnerReportsController::class, 'partner_account_summary'])->name('reports.partner_account_summary');
@@ -599,6 +600,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
         Route::put('/password', [PartnerDashboardController::class, 'passwordUpdate'])->name('passwordUpdate');
         Route::post('/logout', [PartnerLoginController::class, 'logout'])->name('logout');
+        Route::post('/partner/profile/update-timezone', [PartnerDashboardController::class, 'updateTimezone'])->name('update_timezone');
 
         Route::get('payment/report', [PartnerPaymentLogController::class,'report'])->name('payment.report');
         Route::get('payment/report/search', [PartnerPaymentLogController::class,'reportSearch'])->name('payment.report.search');

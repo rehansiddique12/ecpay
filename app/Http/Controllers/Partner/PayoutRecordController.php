@@ -43,6 +43,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\DailyPartnerSummaryLog;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PartnerBalanceExportForPartner;
 use Illuminate\Support\Facades\Log as LaravelLog;
 
 class PayoutRecordController extends Controller
@@ -2806,7 +2808,7 @@ class PayoutRecordController extends Controller
                     $currentMonth = now()->format('Y-m');
                     $now = Carbon::now();
                     $twoHoursAgo = $now->subHours(2);
-                    
+
                     if (!$Txn) {
                         $Txn = new Txn();
                         $Txn->txn_no = $request->txn;
@@ -5369,6 +5371,31 @@ class PayoutRecordController extends Controller
         $partners = Api::where('type', 'Admin')->where('status', 1)->get();
 
         return view('partner.payout.partner_balance', compact('records', 'pageTitle', 'partners'));
+    }
+
+
+      public function export_for_blance2(Request $request)
+    {
+        $from_date = $request->query('from_date');
+        $to_date = $request->query('to_date');
+        $partner = $request->query('partner');
+        $search_by_name = $request->query('search_by_name');
+        $adjustment = $request->query('adjustment');
+        try {
+            // Use Carbon::parse() to handle various common date formats
+            $carbonFrom = $from_date ? Carbon::parse($from_date) : null;
+            $carbonTo = $to_date ? Carbon::parse($to_date) : null;
+
+            $sanitizedDate = $carbonFrom ? $carbonFrom->format('Y-m-d') : 'no_date';
+            $toDateFormatted = $carbonTo ? $carbonTo->format('Y-m-d') : null;
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid date format.'], 400);
+        }
+
+        return Excel::download(
+            new PartnerBalanceExportForPartner($sanitizedDate, $toDateFormatted, $partner, $search_by_name, $adjustment),
+            "partner_balance_by_date_{$sanitizedDate}.csv"
+        );
     }
 
 

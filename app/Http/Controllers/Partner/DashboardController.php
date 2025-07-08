@@ -384,6 +384,21 @@ class DashboardController extends Controller
         return view('partner.profile', compact('partner','data','usertimezone' , 'pageTitle'));
     }
 
+
+    public function updateTimezone(Request $request)
+    {
+        $request->validate([
+            'timezone' => 'required|timezone',
+        ]);
+
+        $user = auth()->user();
+        $user->timezone = $request->input('timezone');
+        $user->save();
+
+        return redirect()->back()->with('success', 'Timezone updated successfully!');
+    }
+
+
     public function formatOffset($offset) {
         $sign = ($offset < 0) ? '-' : '+';
         $hours = floor(abs($offset));
