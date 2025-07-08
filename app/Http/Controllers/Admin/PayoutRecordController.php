@@ -5772,7 +5772,7 @@ $EWalletAccount = EWalletAccount::where('status', 1)
             $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
             $today = Carbon::today()->toDateString();
-            $today = "2025-05-25";
+            
             $apis = Api::all();
 
             // Query for performance data
