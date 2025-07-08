@@ -315,6 +315,10 @@ class DevFunctionsController extends Controller
                         $account->balance += $data->amount;
                         $account->daily_sent -= $data->amount;
                         $account->monthly_sent -= $data->amount;
+
+                        $account->w_today_count--;
+                        $account->w_month_count--;
+
                         $account->send -= $data->amount;
                         $account->save();
 
@@ -535,6 +539,10 @@ class DevFunctionsController extends Controller
                             $account->balance -= $data->amount;
                             $account->daily_sent += $data->amount;
                             $account->monthly_sent += $data->amount;
+
+                            $account->w_today_count++;
+                            $account->w_month_count++;
+
                             $account->send += $data->amount;
                             $account->save();
 
@@ -681,21 +689,27 @@ class DevFunctionsController extends Controller
 
     public function updateLimits()
     {
-        $todayDate = now()->toDateString();  // Use Carbon for better date handling
-        $thisMonth = now()->month;
+        $todayDate = date('Y-m-d');
+        $thisMonth = date('m');
+        $e_wallet_accounts = EWalletAccount::get();
+        foreach ($e_wallet_accounts as $e_wallet_account) {
+            if ($e_wallet_account->last_limit_reset != $todayDate) {
+                $e_wallet_account->daily_received = 0;
+                $e_wallet_account->daily_sent = 0;
 
-        EWalletAccount::where('last_limit_reset', '!=', $todayDate)
-            ->update([
-                'daily_received' => 0,
-                'daily_sent' => 0,
-                'last_limit_reset' => $todayDate
-            ]);
+                $e_wallet_account->d_today_count = 0;
+                $e_wallet_account->w_today_count = 0;
+            }
+            if (date('m', strtotime($e_wallet_account->last_limit_reset)) != $thisMonth) {
+                $e_wallet_account->monthly_received = 0;
+                $e_wallet_account->monthly_sent = 0;
 
-        EWalletAccount::whereMonth('last_limit_reset', '!=', $thisMonth)
-            ->update([
-                'monthly_received' => 0,
-                'monthly_sent' => 0
-            ]);
+                $e_wallet_account->d_month_count = 0;
+                $e_wallet_account->w_month_count = 0;
+            }
+            $e_wallet_account->last_limit_reset = $todayDate;
+            $e_wallet_account->save();
+        }
     }
 
     public function convertStringToNumber($string)

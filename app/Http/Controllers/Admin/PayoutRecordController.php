@@ -1074,6 +1074,10 @@ class PayoutRecordController extends Controller
                         $account->balance += $data->amount;
                         $account->daily_sent -= $data->amount;
                         $account->monthly_sent -= $data->amount;
+
+                        $account->w_today_count--;
+                        $account->w_month_count--;
+
                         $account->send -= $data->amount;
                         $account->save();
 
@@ -1329,6 +1333,10 @@ class PayoutRecordController extends Controller
                             $account->balance -= $data->amount;
                             $account->daily_sent += $data->amount;
                             $account->monthly_sent += $data->amount;
+
+                            $account->w_today_count++;
+                            $account->w_month_count++;
+
                             $account->send += $data->amount;
                             $account->save();
 
@@ -1529,6 +1537,10 @@ class PayoutRecordController extends Controller
                     $account->balance += $pre_payout->amount;
                     $account->daily_sent -= $pre_payout->amount;
                     $account->monthly_sent -= $pre_payout->amount;
+
+                    $account->w_today_count--;
+                    $account->w_month_count--;
+
                     $account->send -= $pre_payout->amount;
                     $account->fee -= $pre_payout->fee;
                     $account->commission -= $pre_payout->commission;
@@ -1561,6 +1573,10 @@ class PayoutRecordController extends Controller
                     $account->balance -= $pre_payout->amount;
                     $account->daily_sent += $pre_payout->amount;
                     $account->monthly_sent += $pre_payout->amount;
+
+                    $account->w_today_count++;
+                    $account->w_month_count++;
+
                     $account->send += $pre_payout->amount;
                     $account->fee += $pre_payout->fee;
                     $account->commission += $pre_payout->commission;
@@ -2400,21 +2416,27 @@ class PayoutRecordController extends Controller
 
     public function updateLimits()
     {
-        $todayDate = now()->toDateString();  // Use Carbon for better date handling
-        $thisMonth = now()->month;
+        $todayDate = date('Y-m-d');
+        $thisMonth = date('m');
+        $e_wallet_accounts = EWalletAccount::get();
+        foreach ($e_wallet_accounts as $e_wallet_account) {
+            if ($e_wallet_account->last_limit_reset != $todayDate) {
+                $e_wallet_account->daily_received = 0;
+                $e_wallet_account->daily_sent = 0;
 
-        EWalletAccount::where('last_limit_reset', '!=', $todayDate)
-            ->update([
-                'daily_received' => 0,
-                'daily_sent' => 0,
-                'last_limit_reset' => $todayDate
-            ]);
+                $e_wallet_account->d_today_count = 0;
+                $e_wallet_account->w_today_count = 0;
+            }
+            if (date('m', strtotime($e_wallet_account->last_limit_reset)) != $thisMonth) {
+                $e_wallet_account->monthly_received = 0;
+                $e_wallet_account->monthly_sent = 0;
 
-        EWalletAccount::whereMonth('last_limit_reset', '!=', $thisMonth)
-            ->update([
-                'monthly_received' => 0,
-                'monthly_sent' => 0
-            ]);
+                $e_wallet_account->d_month_count = 0;
+                $e_wallet_account->w_month_count = 0;
+            }
+            $e_wallet_account->last_limit_reset = $todayDate;
+            $e_wallet_account->save();
+        }
     }
 
 
@@ -4915,6 +4937,10 @@ class PayoutRecordController extends Controller
                     $account->balance -= $payout->amount;
                     $account->daily_sent += $payout->amount;
                     $account->monthly_sent += $payout->amount;
+
+                    $account->w_today_count++;
+                    $account->w_month_count++;
+
                     $account->send += $payout->amount;
                     if ($request->filled('fee')) {
                         $account->fee += $request->fee;
@@ -5142,6 +5168,10 @@ class PayoutRecordController extends Controller
                                 $account->balance += $payout_data->amount;
                                 $account->daily_sent -= $payout_data->amount;
                                 $account->monthly_sent -= $payout_data->amount;
+
+                                $account->w_today_count--;
+                                $account->w_month_count--;
+
                                 $account->send -= $payout_data->amount;
                                 $account->save();
 
@@ -5402,6 +5432,10 @@ class PayoutRecordController extends Controller
                                 $account->balance += $payout_data->amount;
                                 $account->daily_sent -= $payout_data->amount;
                                 $account->monthly_sent -= $payout_data->amount;
+
+                                $account->w_today_count--;
+                                $account->w_month_count--;
+
                                 $account->send -= $payout_data->amount;
                                 $account->save();
 
@@ -5611,26 +5645,26 @@ $EWalletAccount = EWalletAccount::where('status', 1)
 
             foreach ($pending_list as $payout) {
                 // Check if this payout is already being tracked
-                $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
-                                          ->whereNull('to')
-                                          ->first();
+                // $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                //                           ->whereNull('to')
+                //                           ->first();
 
-                if ($existingTracker) {
-                    // Update only the user_id if different user accesses it
-                    if ($existingTracker->user_id != auth()->id()) {
-                        $existingTracker->update([
-                            'user_id' => auth()->id()
-                        ]);
-                    }
-                } else {
-                    // Create new record if doesn't exist
-                    CsTracker::create([
-                        'user_id' => auth()->id() ?? null,
-                        'action' => 'Pending Payout ID: ' . $payout->id,
-                        'from' => now(),
-                        'to' => null
-                    ]);
-                }
+                // if ($existingTracker) {
+                    
+                //     if ($existingTracker->user_id != auth()->id()) {
+                //         $existingTracker->update([
+                //             'user_id' => auth()->id()
+                //         ]);
+                //     }
+                // } else {
+                    
+                //     CsTracker::create([
+                //         'user_id' => auth()->id() ?? null,
+                //         'action' => 'Pending Payout ID: ' . $payout->id,
+                //         'from' => now(),
+                //         'to' => null
+                //     ]);
+                // }
             }
 
             $notifications = Notification::with('ewalletAccount')
@@ -5644,7 +5678,7 @@ $EWalletAccount = EWalletAccount::where('status', 1)
             $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
             $today = Carbon::today()->toDateString();
-
+            $today = "2025-05-25";
             $apis = Api::all();
 
             // Query for performance data
@@ -6087,6 +6121,10 @@ public function markAsRead(Notification $notification)
                     $account->balance += $data->amount;
                     $account->daily_received += $data->amount;
                     $account->monthly_received += $data->amount;
+
+                    $account->d_today_count++;
+                    $account->d_month_count++;
+
                     $account->received += $data->amount;
                     $account->save();
 
@@ -6730,10 +6768,11 @@ public function markAsRead(Notification $notification)
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }
 
-    public function getApiLog($url)
+    public function getApiLog(Request $request)
     {
-
-        $log = \App\Models\ApiLog::where('request_url',  $url)->orderby('id', 'Desc')->get();
+        
+        $log = \App\Models\ApiLog::where('request_url', $request->url)->orderBy('id', 'desc')->get();
+        
 
         if ($log) {
             return response()->json([
@@ -6747,10 +6786,10 @@ public function markAsRead(Notification $notification)
             'message' => 'No log found.'
         ]);
     }
-    public function getApiLog2($url)
+    public function getApiLog2(Request $request)
     {
 
-    $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $url . '%')
+    $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $request->url . '%')
     ->orderBy('id', 'DESC')
     ->get();
 

@@ -813,9 +813,14 @@
                     $('#log-content').html('<p>Loading...</p>');
 
                     $.ajax({
-                        url: 'get-api-log/' + apiUrl,
-                        method: 'GET',
+                        url: 'get-api-log',
+                        method: 'POST',
+                        data: {
+                            url: apiUrl,
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
                         success: function(response) {
+                            console.log(response);
                             if (response.success && response.data.length > 0) {
                                 let html = `
                                     <table class="table table-bordered table-striped w-[1000px]">
@@ -880,8 +885,12 @@
                     $('#logModal2 #log-content').html('<p>Loading...</p>');
 
                     $.ajax({
-                        url: 'get-api-log2/' + apiUrl,
-                        method: 'GET',
+                        url: 'get-api-log2/',
+                        method: 'POST',
+                        data: {
+                            url: apiUrl,
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
                         success: function(response) {
                             console.log(response);
                             if (response.success && response.data.length > 0) {

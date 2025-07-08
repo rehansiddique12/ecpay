@@ -665,10 +665,16 @@ class PaymentController extends Controller
             if ($e_wallet_account->last_limit_reset != $todayDate) {
                 $e_wallet_account->daily_received = 0;
                 $e_wallet_account->daily_sent = 0;
+
+                $e_wallet_account->d_today_count = 0;
+                $e_wallet_account->w_today_count = 0;
             }
             if (date('m', strtotime($e_wallet_account->last_limit_reset)) != $thisMonth) {
                 $e_wallet_account->monthly_received = 0;
                 $e_wallet_account->monthly_sent = 0;
+
+                $e_wallet_account->d_month_count = 0;
+                $e_wallet_account->w_month_count = 0;
             }
             $e_wallet_account->last_limit_reset = $todayDate;
             $e_wallet_account->save();

@@ -1083,6 +1083,10 @@ class PaymentLogController extends Controller
                     $account->balance += $data->amount;
                     $account->daily_received += $data->amount;
                     $account->monthly_received += $data->amount;
+
+                    $account->d_today_count++;
+                    $account->d_month_count++;
+
                     $account->received += $data->amount;
                     $account->save();
 
@@ -1346,6 +1350,10 @@ class PaymentLogController extends Controller
                         $account->balance -= $data->amount;
                         $account->daily_received -= $data->amount;
                         $account->monthly_received -= $data->amount;
+
+                        $account->d_today_count--;
+                        $account->d_month_count--;
+
                         $account->received -= $data->amount;
                         $account->save();
 
@@ -1526,6 +1534,10 @@ class PaymentLogController extends Controller
                         $account->balance -= $data->amount;
                         $account->daily_received -= $data->amount;
                         $account->monthly_received -= $data->amount;
+
+                        $account->d_today_count--;
+                        $account->d_month_count--;
+
                         $account->received -= $data->amount;
                         $account->fee -= $data->fee;
                         $account->commission -= $data->commission;
@@ -1558,6 +1570,10 @@ class PaymentLogController extends Controller
                         $account2->balance += $data->amount;
                         $account2->daily_received += $data->amount;
                         $account2->monthly_received += $data->amount;
+
+                        $account->d_today_count++;
+                        $account->d_month_count++;
+
                         $account2->received += $data->amount;
                         $account2->fee += $data->fee;
                         $account2->commission += $data->commission;
@@ -2853,6 +2869,10 @@ class PaymentLogController extends Controller
                 $account->balance += $request_amount;
                 $account->daily_received += $request_amount;
                 $account->monthly_received += $request_amount;
+
+                $account->d_today_count++;
+                $account->d_month_count++;
+
                 $account->received += $request_amount;
                 $account->save();
                 $commit = 0;
@@ -3123,10 +3143,16 @@ class PaymentLogController extends Controller
             if ($e_wallet_account->last_limit_reset != $todayDate) {
                 $e_wallet_account->daily_received = 0;
                 $e_wallet_account->daily_sent = 0;
+
+                $e_wallet_account->d_today_count = 0;
+                $e_wallet_account->w_today_count = 0;
             }
             if (date('m', strtotime($e_wallet_account->last_limit_reset)) != $thisMonth) {
                 $e_wallet_account->monthly_received = 0;
                 $e_wallet_account->monthly_sent = 0;
+
+                $e_wallet_account->d_month_count = 0;
+                $e_wallet_account->w_month_count = 0;
             }
             $e_wallet_account->last_limit_reset = $todayDate;
             $e_wallet_account->save();
