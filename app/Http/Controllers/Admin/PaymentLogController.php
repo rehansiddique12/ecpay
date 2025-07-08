@@ -825,20 +825,22 @@ class PaymentLogController extends Controller
         try {
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             AuditLog::create([
-                'user_id' => auth()->id(),
-                'module' => 'Payment Update Attempt',
-                'module_id' => $data->id,
-                'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
+                'user_id'     => auth()->id(),
+                'module'      => 'Payment Update Attempt',
+                'module_id'   => $data->id,
+                'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
             ]);
+
             if (!empty($request->sender)) {
                 $data->sender = $request->sender;
                 $data->save();
                 AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Sender Update',
-                    'module_id' => $data->id,
-                    'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'",
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Sender Update',
+                    'module_id'   => $data->id,
+                    'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'. Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                 ]);
+
             }
 
             $basic = (object)config('basic');
@@ -928,11 +930,12 @@ class PaymentLogController extends Controller
                     $payment=null;
 
                     AuditLog::create([
-                        'user_id' => auth()->id(),
-                        'module' => 'Payment Completed',
-                        'module_id' => $data->id,
-                        'description' => "Payment ID {$data->id} was successfully completed by user ".auth()->user()->name,
+                        'user_id'     => auth()->id(),
+                        'module'      => 'Payment Completed',
+                        'module_id'   => $data->id,
+                        'description' => "Payment ID {$data->id} was successfully completed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                     ]);
+
 
 
                     // $payment->delete();
@@ -1370,11 +1373,12 @@ class PaymentLogController extends Controller
 
                 $data->update();
                 AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Rejected',
-                    'module_id' => $data->id,
-                    'description' => "Payment ID {$data->id} was rejected by user ".auth()->user()->name,
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Rejected',
+                    'module_id'   => $data->id,
+                    'description' => "Payment ID {$data->id} was rejected by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                 ]);
+
 
                 //$user = $data->user;
 
@@ -1473,12 +1477,13 @@ class PaymentLogController extends Controller
             }
             if($commit==0){
                 DB::commit();
-                 AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Update No Change',
-                    'module_id' => $data->id,
-                    'description' => "Payment ID {$data->id} update resulted in no status change",
+                AuditLog::create([
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Update No Change',
+                    'module_id'   => $data->id,
+                    'description' => "Payment ID {$data->id} update resulted in no status change. Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                 ]);
+
             }
             return back();
         } catch (\Exception $e) {
