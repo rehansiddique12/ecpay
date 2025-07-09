@@ -4356,10 +4356,6 @@ class PayoutRecordController extends Controller
 
                 $Setting = Setting::where('name', 'last_account_active')->first();
 
-
-
-
-
                 $now = Carbon::now();
                 $startOfToday = $now->copy()->startOfDay();
                 $startOfMonth = $now->copy()->startOfMonth();
@@ -4439,10 +4435,6 @@ class PayoutRecordController extends Controller
                     ->values()
                     ->first();
 
-
-
-
-
                 // $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
                 //     ->where('type', 'Agent')
                 //     ->where('monthly_limit_withdrawal', '>', 'monthly_sent')
@@ -4506,6 +4498,7 @@ class PayoutRecordController extends Controller
                 }
 
                 $payout->transfer_status = 2;
+                $payout->status = "Pending";
                 $payout->e_wallet_phone_number = $account->account_no;
                 $payout->e_wallet_type = $account->type;
             }
@@ -5744,14 +5737,14 @@ $EWalletAccount = EWalletAccount::where('status', 1)
                                           ->first();
 
                 if ($existingTracker) {
-                    
+
                     if ($existingTracker->user_id != auth()->id()) {
                         $existingTracker->update([
                             'user_id' => auth()->id()
                         ]);
                     }
                 } else {
-                    
+
                     CsTracker::create([
                         'user_id' => auth()->id() ?? null,
                         'action' => 'Pending Payout ID: ' . $payout->id,
@@ -5772,7 +5765,7 @@ $EWalletAccount = EWalletAccount::where('status', 1)
             $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
             $today = Carbon::today()->toDateString();
-            
+
             $apis = Api::all();
 
             // Query for performance data
@@ -5804,7 +5797,7 @@ $EWalletAccount = EWalletAccount::where('status', 1)
                 $successRate = $data->total_received > 0 && $data->total_received - $abandoned
                     ? (($data->auto_process_count / ($data->total_received - $abandoned)) * 100)
                     : 0;
-                    
+
 
                 $merchantData[] = [
                     'name' => $api->name,
@@ -5815,13 +5808,13 @@ $EWalletAccount = EWalletAccount::where('status', 1)
                     'manual_process' => $data->manual_process_count
                 ];
 
-                
+
             }
 
             usort($merchantData, function ($a, $b) {
                 return $b['success_rate'] <=> $a['success_rate'];
             });
-            
+
 
             // Categorize merchants by success rate
             $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
@@ -6885,9 +6878,9 @@ public function markAsRead(Notification $notification)
 
     public function getApiLog(Request $request)
     {
-        
+
         $log = \App\Models\ApiLog::where('request_url', $request->url)->orderBy('id', 'desc')->get();
-        
+
 
         if ($log) {
             return response()->json([
