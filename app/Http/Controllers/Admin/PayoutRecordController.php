@@ -902,7 +902,7 @@ class PayoutRecordController extends Controller
                 if (!$sum) {
                     $sum = 0;
                 }
-                $charge =0;
+                $charge = 0;
                 $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                 if ($commissions) {
                     $charge = $commissions->withdrawal_percentage * $data->amount / 100;
@@ -957,7 +957,7 @@ class PayoutRecordController extends Controller
                 $data->save();
 
 
-                $status_to_show = "Payout ID {$data->id} Reqeust Status changed to Approved by user ".auth()->user()->name;
+                $status_to_show = "Payout ID {$data->id} Reqeust Status changed to Approved by user " . auth()->user()->name;
 
 
                 AuditLog::create([
@@ -1104,7 +1104,7 @@ class PayoutRecordController extends Controller
 
 
 
-                $status_to_show = "Payout ID {$data->id} Status changed to Rejected by user ".auth()->user()->name;
+                $status_to_show = "Payout ID {$data->id} Status changed to Rejected by user " . auth()->user()->name;
 
 
                 AuditLog::create([
@@ -1212,7 +1212,7 @@ class PayoutRecordController extends Controller
                     throw new \Exception("This transaction already completed!.");
                 } else {
 
-                    $log_exist = Log::where('transection_id', $data->id)->where('transection_type',2)
+                    $log_exist = Log::where('transection_id', $data->id)->where('transection_type', 2)
                         ->orderBy('id', 'desc')
                         ->first();
 
@@ -1228,7 +1228,7 @@ class PayoutRecordController extends Controller
                     $data->save();
 
 
-                    $status_to_show = "Payout ID {$data->id} Transfer Status changed to Completed by user ".auth()->user()->name;
+                    $status_to_show = "Payout ID {$data->id} Transfer Status changed to Completed by user " . auth()->user()->name;
 
 
                     AuditLog::create([
@@ -2622,17 +2622,17 @@ class PayoutRecordController extends Controller
                 if ($index === 0 && $firstAccountId) {
                     $account = EWalletAccount::findOrFail($firstAccountId);
                     $oldAccountType = $account->account_type;
-    $newAccountType = $request->in_out[$index];
+                    $newAccountType = $request->in_out[$index];
 
-    // Log only if changed
-    if ($oldAccountType !== $newAccountType) {
-        \App\Models\AuditLog::create([
-            'user_id'     => auth()->id(),
-            'module'      => 'EWalletAccount',
-            'module_id'   => $account->id,
-            'description' => auth()->user()->name . " changed account type from '{$oldAccountType}' to '{$newAccountType}' for eWallet account ID {$account->id}",
-        ]);
-    }
+                    // Log only if changed
+                    if ($oldAccountType !== $newAccountType) {
+                        \App\Models\AuditLog::create([
+                            'user_id'     => auth()->id(),
+                            'module'      => 'EWalletAccount',
+                            'module_id'   => $account->id,
+                            'description' => auth()->user()->name . " changed account type from '{$oldAccountType}' to '{$newAccountType}' for eWallet account ID {$account->id}",
+                        ]);
+                    }
 
                     $account->update($accountData);
 
@@ -2686,8 +2686,8 @@ class PayoutRecordController extends Controller
                             'module'      => 'EWalletAccount',
                             'module_id'   => $account->id,
                             'description' => auth()->user()->name .
-                                             ' updated time slots for EWalletAccount ID: ' . $account->id .
-                                             '. ' . implode(' | ', $logParts),
+                                ' updated time slots for EWalletAccount ID: ' . $account->id .
+                                '. ' . implode(' | ', $logParts),
                         ]);
                     }
 
@@ -3573,7 +3573,7 @@ class PayoutRecordController extends Controller
         //     'status' => 'nullable|boolean',
         // ]);
 
-         // Step 1: Basic validation rules
+        // Step 1: Basic validation rules
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'account_id' => 'required|exists:gateways,id',
@@ -4218,7 +4218,7 @@ class PayoutRecordController extends Controller
     public function payoutGateway()
     {
 
-        $gateways = Gateway::where('status', 1)->where('withdrawal_on' ,1)
+        $gateways = Gateway::where('status', 1)->where('withdrawal_on', 1)
             ->select('name', 'image')
             ->get();
 
@@ -4336,7 +4336,7 @@ class PayoutRecordController extends Controller
                 $member_id = $request->member_id;
             }
 
-            $method = Gateway::where('status', 1)->where('withdrawal_on' ,1)
+            $method = Gateway::where('status', 1)->where('withdrawal_on', 1)
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
@@ -4503,9 +4503,6 @@ class PayoutRecordController extends Controller
                 $payout->e_wallet_type = $account->type;
             }
 
-
-
-
             if ($source != env('APP_WEBSITE')) {
                 // $api_key->balance +=$request->amount;
                 // $api_key->save();
@@ -4531,9 +4528,6 @@ class PayoutRecordController extends Controller
                     }
                 }
             }
-
-
-
 
             $previous_pending = Payout::where('api_id', $api_key->id)
                 ->where(function ($query) {
@@ -4584,17 +4578,17 @@ class PayoutRecordController extends Controller
             foreach ($parentIds as  $parentId) {
 
                 $parent_charge = 0;
-
-                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
-                if ($parent_commission) {
-                    $parent_charge = $parent_commission->withdrawal_percentage * $request->amount / 100;
-                } else {
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                if (isset($commissions->id)) {
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->withdrawal_percentage * $request->amount / 100;
+                    } else {
+                        $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        if ($parent_commission) {
+                            $parent_charge = $parent_commission->withdrawal_percentage * $request->amount / 100;
+                        }
                     }
                 }
-
                 if ($parent_charge > 0) {
                     $PartnerCommission = new PartnerCommission();
                     $PartnerCommission->api_id = $api_key->id;
@@ -5679,7 +5673,7 @@ class PayoutRecordController extends Controller
         // Save to audit log
         AuditLog::create([
             'user_id'     => auth()->id(),
-            'module'      => ucfirst($request->type).' Workboard',
+            'module'      => ucfirst($request->type) . ' Workboard',
             'module_id'   => $new->id,
             'description' => auth()->user()->name . ' manually processed and duplicated a ' . $request->type . ' record. Original ID: ' . $original->id . ', New ID: ' . $new->id . ', New Amount: ' . $request->new_amount . ', Partner Transaction ID: ' . $new->partner_transection_id,
         ]);
@@ -5692,14 +5686,14 @@ class PayoutRecordController extends Controller
     {
         $gatewayNames = Gateway::where('status', 1)->pluck('name');
 
-// Get EWalletAccount records with status = 1 and matching e_wallet_name
-$EWalletAccount = EWalletAccount::where('status', 1)
-    ->whereIn('e_wallet_name', $gatewayNames)
-    ->get();
-    $accountIds = EWalletAccount::where('status', 1)
-    ->whereIn('account_type', ['Withdrawal', 'Both'])
-    ->whereColumn('live_balance', '<=', 'low_balance_amount')
-    ->pluck('id');
+        // Get EWalletAccount records with status = 1 and matching e_wallet_name
+        $EWalletAccount = EWalletAccount::where('status', 1)
+            ->whereIn('e_wallet_name', $gatewayNames)
+            ->get();
+        $accountIds = EWalletAccount::where('status', 1)
+            ->whereIn('account_type', ['Withdrawal', 'Both'])
+            ->whereColumn('live_balance', '<=', 'low_balance_amount')
+            ->pluck('id');
 
 
         // Step 2: Check which IDs are already stored in Notification
@@ -5730,98 +5724,97 @@ $EWalletAccount = EWalletAccount::where('status', 1)
             ->take(5)
             ->get();
 
-            foreach ($pending_list as $payout) {
-                // Check if this payout is already being tracked
-                $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
-                                          ->whereNull('to')
-                                          ->first();
+        foreach ($pending_list as $payout) {
+            // Check if this payout is already being tracked
+            $existingTracker = CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                ->whereNull('to')
+                ->first();
 
-                if ($existingTracker) {
+            if ($existingTracker) {
 
-                    if ($existingTracker->user_id != auth()->id()) {
-                        $existingTracker->update([
-                            'user_id' => auth()->id()
-                        ]);
-                    }
-                } else {
-
-                    CsTracker::create([
-                        'user_id' => auth()->id() ?? null,
-                        'action' => 'Pending Payout ID: ' . $payout->id,
-                        'from' => now(),
-                        'to' => null
+                if ($existingTracker->user_id != auth()->id()) {
+                    $existingTracker->update([
+                        'user_id' => auth()->id()
                     ]);
                 }
-            }
+            } else {
 
-            $notifications = Notification::with('ewalletAccount')
-            ->where('user_id',0)
+                CsTracker::create([
+                    'user_id' => auth()->id() ?? null,
+                    'action' => 'Pending Payout ID: ' . $payout->id,
+                    'from' => now(),
+                    'to' => null
+                ]);
+            }
+        }
+
+        $notifications = Notification::with('ewalletAccount')
+            ->where('user_id', 0)
             ->orderBy('created_at', 'desc')
             ->get();
 
 
 
 
-            $partners = Api::where('type', 'Admin')->pluck('name', 'id');
+        $partners = Api::where('type', 'Admin')->pluck('name', 'id');
 
-            $today = Carbon::today()->toDateString();
+        $today = Carbon::today()->toDateString();
 
-            $apis = Api::all();
+        $apis = Api::all();
 
-            // Query for performance data
-            $performanceData = Payment::selectRaw('
+        // Query for performance data
+        $performanceData = Payment::selectRaw(
+            '
                 api_id,
                 COUNT(*) as total_received,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as total_processed,
                 SUM(CASE WHEN completed_source != ? AND status = ? AND completed_source IS NOT NULL THEN 1 ELSE 0 END) as auto_process_count,
                 SUM(CASE WHEN completed_source = ? AND status = ? AND completed_source IS NOT NULL THEN 1 ELSE 0 END) as manual_process_count',
-                ['Complete', 'AdminPanel', 'Complete', 'AdminPanel', 'Complete']
-            )
+            ['Complete', 'AdminPanel', 'Complete', 'AdminPanel', 'Complete']
+        )
             ->whereDate('created_at', $today)
             ->groupBy('api_id')
             ->get()
             ->keyBy('api_id');
 
-            // Prepare the data for view
-            $merchantData = [];
-            foreach ($apis as $api) {
-                $data = $performanceData->get($api->id, (object)[
-                    'total_received' => 0,
-                    'total_processed' => 0,
-                    'auto_process_count' => 0,
-                    'manual_process_count' => 0
-                ]);
+        // Prepare the data for view
+        $merchantData = [];
+        foreach ($apis as $api) {
+            $data = $performanceData->get($api->id, (object)[
+                'total_received' => 0,
+                'total_processed' => 0,
+                'auto_process_count' => 0,
+                'manual_process_count' => 0
+            ]);
 
-                $abandoned = $data->total_received - ($data->auto_process_count + $data->manual_process_count);
+            $abandoned = $data->total_received - ($data->auto_process_count + $data->manual_process_count);
 
-                $successRate = $data->total_received > 0 && $data->total_received - $abandoned
-                    ? (($data->auto_process_count / ($data->total_received - $abandoned)) * 100)
-                    : 0;
-
-
-                $merchantData[] = [
-                    'name' => $api->name,
-                    'success_rate' => number_format($successRate, 2),
-                    'total_received' => $data->total_received,
-                    'total_processed' => $data->total_processed,
-                    'auto_process' => $data->auto_process_count,
-                    'manual_process' => $data->manual_process_count
-                ];
+            $successRate = $data->total_received > 0 && $data->total_received - $abandoned
+                ? (($data->auto_process_count / ($data->total_received - $abandoned)) * 100)
+                : 0;
 
 
-            }
+            $merchantData[] = [
+                'name' => $api->name,
+                'success_rate' => number_format($successRate, 2),
+                'total_received' => $data->total_received,
+                'total_processed' => $data->total_processed,
+                'auto_process' => $data->auto_process_count,
+                'manual_process' => $data->manual_process_count
+            ];
+        }
 
-            usort($merchantData, function ($a, $b) {
-                return $b['success_rate'] <=> $a['success_rate'];
-            });
+        usort($merchantData, function ($a, $b) {
+            return $b['success_rate'] <=> $a['success_rate'];
+        });
 
 
-            // Categorize merchants by success rate
-            $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
-            $mediumPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 61 && $m['success_rate'] <= 80);
-            $lowPerformance = array_filter($merchantData, function ($m) {
-                return $m['success_rate'] > 0 && $m['success_rate'] <= 60;
-            });
+        // Categorize merchants by success rate
+        $highPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 81);
+        $mediumPerformance = array_filter($merchantData, fn($m) => $m['success_rate'] >= 61 && $m['success_rate'] <= 80);
+        $lowPerformance = array_filter($merchantData, function ($m) {
+            return $m['success_rate'] > 0 && $m['success_rate'] <= 60;
+        });
 
 
         if ($request->ajax()) {
@@ -5831,60 +5824,64 @@ $EWalletAccount = EWalletAccount::where('status', 1)
                 'pending_list' => $pending_list,
                 'user_id' => auth()->id(),
                 'highPerformance' => $highPerformance,
-            'mediumPerformance' => $mediumPerformance,
-            'lowPerformance' => $lowPerformance
+                'mediumPerformance' => $mediumPerformance,
+                'lowPerformance' => $lowPerformance
             ]);
         }
 
         $pageTitle = "Workboard";
         // $apis = Api::get();
-        return view('admin.payout.workboard', compact('pageTitle', 'apis','highPerformance',
-        'mediumPerformance',
-        'lowPerformance'));
+        return view('admin.payout.workboard', compact(
+            'pageTitle',
+            'apis',
+            'highPerformance',
+            'mediumPerformance',
+            'lowPerformance'
+        ));
     }
 
     public function retry(Request $request)
-{
-    $payout = Payout::where('id', $request->id)->first();
+    {
+        $payout = Payout::where('id', $request->id)->first();
 
-    if (!$payout) {
-        return response()->json(['status' => false, 'message' => 'Payout not found or not of type Payout.'], 404);
+        if (!$payout) {
+            return response()->json(['status' => false, 'message' => 'Payout not found or not of type Payout.'], 404);
+        }
+
+        $payout->status = 'Pending';
+        $payout->transfer_status = 2;
+        $payout->save();
+
+        return response()->json(['status' => true, 'message' => 'Payout status updated.']);
     }
 
-    $payout->status = 'Pending';
-    $payout->transfer_status = 2;
-    $payout->save();
-
-    return response()->json(['status' => true, 'message' => 'Payout status updated.']);
-}
 
 
 
 
+    public function markAsRead(Notification $notification)
+    {
+        $notification->update([
+            'user_id' => auth()->id()
+        ]);
 
-public function markAsRead(Notification $notification)
-{
-    $notification->update([
-        'user_id' => auth()->id()
-    ]);
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'module' => 'Notification Workboard',
+            'description' => 'Notification marked as read by ' . auth()->user()->name,
+            'module_id' => $notification->ewallet_account_id,
+        ]);
 
-    AuditLog::create([
-        'user_id' => auth()->id(),
-        'module' => 'Notification Workboard',
-        'description' => 'Notification marked as read by '. auth()->user()->name,
-        'module_id' => $notification->ewallet_account_id,
-    ]);
+        // Add tracking record
+        CsTracker::create([
+            'user_id' => auth()->id(),
+            'action' => auth()->user()->name . ' closed the notification',
+            'from' => $notification->created_at,
+            'to' => now(),
+        ]);
 
-    // Add tracking record
-    CsTracker::create([
-        'user_id' => auth()->id(),
-        'action' => auth()->user()->name . ' closed the notification',
-        'from' => $notification->created_at,
-        'to' => now(),
-    ]);
-
-    return response()->json(['success' => true]);
-}
+        return response()->json(['success' => true]);
+    }
 
     public function fetchrecords(Request $request)
     {
@@ -5892,61 +5889,83 @@ public function markAsRead(Notification $notification)
         $source = $request->input('source');
 
 
-    $payments = collect();
-    $payouts = collect();
-    if ($source === 'all' || $source === 'payment') {
-        $payments = Payment::with('txn_record','api','eWalletAccount.location')->select(
-            'id', 'amount', 'sender', 'e_wallet_phone_number', 'txn_id', 'e_wallet_type','callback','api_id',
-            'e_wallet_name', 'status', 'created_at','updated_at', 'partner_transection_id',
-            'adjusted_by', DB::raw("'payment' as type")
-        )
-        ->latest('created_at')
-        ->where('show_none', 0)
-        ->when($query, function ($q) use ($query) {
-            $q->where(function ($subQuery) use ($query) {
-                $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
-                         ->orWhere('transaction', 'like', '%' . $query . '%')
-                         ->orWhere('member_id', 'like', '%' . $query . '%')
-                         ->orWhere('txn_id', 'like', '%' . $query . '%');
-            });
-        })
+        $payments = collect();
+        $payouts = collect();
+        if ($source === 'all' || $source === 'payment') {
+            $payments = Payment::with('txn_record', 'api', 'eWalletAccount.location')->select(
+                'id',
+                'amount',
+                'sender',
+                'e_wallet_phone_number',
+                'txn_id',
+                'e_wallet_type',
+                'callback',
+                'api_id',
+                'e_wallet_name',
+                'status',
+                'created_at',
+                'updated_at',
+                'partner_transection_id',
+                'adjusted_by',
+                DB::raw("'payment' as type")
+            )
+                ->latest('created_at')
+                ->where('show_none', 0)
+                ->when($query, function ($q) use ($query) {
+                    $q->where(function ($subQuery) use ($query) {
+                        $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
+                            ->orWhere('transaction', 'like', '%' . $query . '%')
+                            ->orWhere('member_id', 'like', '%' . $query . '%')
+                            ->orWhere('txn_id', 'like', '%' . $query . '%');
+                    });
+                })
 
 
-        ->take(10)
-        ->get();
-    }
+                ->take(10)
+                ->get();
+        }
 
-    if ($source === 'all' || $source === 'payout') {
-    $payouts = Payout::with('api')->select(
-            'id', 'amount', 'status', 'created_at', 'partner_transection_id','e_wallet_name', 'user_account_no as sender','api_id',
-            'updated_at', 'txn_id','adjusted_by', DB::raw("'payout' as type")
-        )
-        ->latest('created_at')
-        ->where('show_none', 0)
-        ->when($query, function ($q) use ($query) {
-            $q->where(function ($subQuery) use ($query) {
-                $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
-                         ->orWhere('member_id', 'like', '%' . $query . '%')
-                         ->orWhere('id', 'like', '%' . $query . '%')
-                         ->orWhere('txn_id', 'like', '%' . $query . '%');
-            });
-        })
+        if ($source === 'all' || $source === 'payout') {
+            $payouts = Payout::with('api')->select(
+                'id',
+                'amount',
+                'status',
+                'created_at',
+                'partner_transection_id',
+                'e_wallet_name',
+                'user_account_no as sender',
+                'api_id',
+                'updated_at',
+                'txn_id',
+                'adjusted_by',
+                DB::raw("'payout' as type")
+            )
+                ->latest('created_at')
+                ->where('show_none', 0)
+                ->when($query, function ($q) use ($query) {
+                    $q->where(function ($subQuery) use ($query) {
+                        $subQuery->where('partner_transection_id', 'like', '%' . $query . '%')
+                            ->orWhere('member_id', 'like', '%' . $query . '%')
+                            ->orWhere('id', 'like', '%' . $query . '%')
+                            ->orWhere('txn_id', 'like', '%' . $query . '%');
+                    });
+                })
 
-        ->take(10)
-        ->get();
-    }
-    if (!empty($query)) {
-        $firstTrx = $payouts->first(); // get the first matching payout (if any)
+                ->take(10)
+                ->get();
+        }
+        if (!empty($query)) {
+            $firstTrx = $payouts->first(); // get the first matching payout (if any)
 
-        AuditLog::create([
-            'user_id'   => auth()->id(),
-            'module'    => 'Transaction Search Workboard',
-            'module_id' => 0,
-            'description' =>  auth()->user()->name . ' searched transactions using keyword: "' . $query . '". Source: ' . $source.
-                             ' | Partner TRX Number: ' . ($firstTrx->partner_transection_id ?? 'N/A') .
-                             ' | Changes: Searched transactions using keyword "' . $query . '" from source "' . $source . '"',
-        ]);
-    }
+            AuditLog::create([
+                'user_id'   => auth()->id(),
+                'module'    => 'Transaction Search Workboard',
+                'module_id' => 0,
+                'description' =>  auth()->user()->name . ' searched transactions using keyword: "' . $query . '". Source: ' . $source .
+                    ' | Partner TRX Number: ' . ($firstTrx->partner_transection_id ?? 'N/A') .
+                    ' | Changes: Searched transactions using keyword "' . $query . '" from source "' . $source . '"',
+            ]);
+        }
 
 
         $merged = $payments->merge($payouts);
@@ -6008,7 +6027,7 @@ public function markAsRead(Notification $notification)
                 if (empty($request->txn_id)) {
                     $request->txn_id = "none";
                     $payment = PendingPayment::where('e_wallet_name', $data->gateway->code)
-                    ->where('status', 0)
+                        ->where('status', 0)
                         ->where('amount', $data->amount)
                         ->where('sender', $data->account_no)
                         ->whereDate('date', '=', $formattedDate)
@@ -6036,7 +6055,7 @@ public function markAsRead(Notification $notification)
                 }
 
 
-                if($payment){
+                if ($payment) {
                     $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
                     if ($check_payment_txn) {
                         DB::rollBack();
@@ -6065,7 +6084,7 @@ public function markAsRead(Notification $notification)
 
                     $payment->status = 1;
                     $payment->save();
-                    $payment=null;
+                    $payment = null;
 
 
                     AuditLog::create([
@@ -6255,7 +6274,7 @@ public function markAsRead(Notification $notification)
                     $PartnerCommission->status = 1;
                     $PartnerCommission->save();
                     $parent_api_key = Api::where('id', $PartnerCommission->from_id)->lockForUpdate()->first();
-                    if($parent_api_key){
+                    if ($parent_api_key) {
                         $parent_api_key->balance += $PartnerCommission->profit;
                         $parent_api_key->save();
 
@@ -6288,7 +6307,6 @@ public function markAsRead(Notification $notification)
                             $summary_log->save();
                         }
                     }
-
                 }
 
 
@@ -6489,7 +6507,7 @@ public function markAsRead(Notification $notification)
                 'user_id' => auth()->id(),
                 'module' => 'Payment Update Failed',
                 'module_id' => $request->id ?? null,
-                'description' => "Failed to update payment: ".$e->getMessage(),
+                'description' => "Failed to update payment: " . $e->getMessage(),
             ]);
             session()->flash('error', $e->getMessage());
             return back();
@@ -6787,7 +6805,7 @@ public function markAsRead(Notification $notification)
         $pageTitle = "Partners Adjustments";
         $partners = Api::where('type', 'Admin')->paginate(10);
         $domains = Api::where('type', 'Admin')->get();
-        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners','domains'));
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners', 'domains'));
     }
 
     public function export_for_blance(Request $request)
@@ -6803,7 +6821,7 @@ public function markAsRead(Notification $notification)
         } catch (\Exception $e) {
             return response()->json(['error' => 'Invalid date format.'], 400);
         }
-        return Excel::download(new PartnerMerchantExport($from_date , $userID), "merchant_report_by_date_{$sanitizedDate}.csv");
+        return Excel::download(new PartnerMerchantExport($from_date, $userID), "merchant_report_by_date_{$sanitizedDate}.csv");
     }
 
     public function partnerBalanceSearch(Request $request)
@@ -6840,7 +6858,7 @@ public function markAsRead(Notification $notification)
         $records = $records->orderBy('id', 'DESC')->paginate(20);
 
         $pageTitle = "Search Partner Adjustments";
-        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners','domains'));
+        return view('admin.payout.partner_balance', compact('records', 'pageTitle', 'partners', 'domains'));
     }
 
     public function export_for_blance2(Request $request)
@@ -6897,9 +6915,9 @@ public function markAsRead(Notification $notification)
     public function getApiLog2(Request $request)
     {
 
-    $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $request->url . '%')
-    ->orderBy('id', 'DESC')
-    ->get();
+        $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $request->url . '%')
+            ->orderBy('id', 'DESC')
+            ->get();
 
         if ($log) {
             return response()->json([
@@ -7087,7 +7105,7 @@ public function markAsRead(Notification $notification)
             $account->save();
 
 
-             // Telegram Setup
+            // Telegram Setup
             $support_chat_id = "-4786890063";
             $botToken_support = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
             $url_support = "https://api.telegram.org/bot{$botToken_support}/sendMessage";
@@ -7175,10 +7193,10 @@ public function markAsRead(Notification $notification)
             }
 
             $account = EWalletAccount::where('e_wallet_name', $request->e_wallet_name)
-                    ->where('account_no', $request->e_wallet_phone_number)
-                    ->orderBy('status', 'desc')
-                    ->lockForUpdate()
-                    ->first();
+                ->where('account_no', $request->e_wallet_phone_number)
+                ->orderBy('status', 'desc')
+                ->lockForUpdate()
+                ->first();
 
             if (!$account) {
                 DB::rollBack();
@@ -7204,6 +7222,4 @@ public function markAsRead(Notification $notification)
             return response()->json(['error' => 'An error occurred while processing your request'], 500);
         }
     }
-
-
 }
