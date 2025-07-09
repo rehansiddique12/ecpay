@@ -273,8 +273,8 @@
                                         $timeBetween5And10Minutes = $counts['time_between_5_and_10_minutes'] ?? 0;
                                         $time_greater_than_10_minutes = $counts['time_greater_than_10_minutes'] ?? 0;
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
                                                 : 0;
                                     @endphp
                             <tr>
