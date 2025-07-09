@@ -5698,7 +5698,7 @@ $EWalletAccount = EWalletAccount::where('status', 1)
         }
         $pending_list = Payout::where('updated_at', '<=', Carbon::now()->subMinutes(5))
             ->where('status', 'Pending')
-            // ->where('check_by', 0)
+            ->where('check_by', 0)
             ->orderBy('id', 'desc')
             ->take(5)
             ->get();
