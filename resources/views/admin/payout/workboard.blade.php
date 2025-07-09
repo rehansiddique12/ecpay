@@ -112,12 +112,12 @@
                                                 <tr class="text-White">
                                                     <td style="color: #fff">{{ $merchant['name'] }}</td>
                                                     <td style="color:
-                                                    @if($merchant['success_rate'] > 80)
-                                                        green
+                                                     @if($merchant['success_rate'] > 80)
+                                                    #0eee0e
                                                     @elseif($merchant['success_rate'] >= 61)
-                                                        yellow
+                                                        #ffff00
                                                     @else
-                                                        red
+                                                    #d61212e3
                                                     @endif
                                                 ;">
                                                     {{ $merchant['success_rate'] }}%
@@ -156,12 +156,12 @@
                                                     <td style="color: #fff">{{ $merchant['name'] }}</td>
                                                     <td style="color:
     @if($merchant['success_rate'] > 80)
-        green
-    @elseif($merchant['success_rate'] >= 61)
-        yellow
-    @else
-        red
-    @endif
+                                                    #0eee0e
+                                                    @elseif($merchant['success_rate'] >= 61)
+                                                        #ffff00
+                                                    @else
+                                                    #d61212e3
+                                                    @endif
 ;">
     {{ $merchant['success_rate'] }}%
 </td>
@@ -199,11 +199,11 @@
                                                     <td style="color: #fff">{{ $merchant['name'] }}</td>
                                                     <td style="color:
                                                     @if($merchant['success_rate'] > 80)
-                                                        green
+                                                    #0eee0e
                                                     @elseif($merchant['success_rate'] >= 61)
-                                                        yellow
+                                                        #ffff00
                                                     @else
-                                                        red
+                                                    #F37271
                                                     @endif
                                                 ;">
                                                     {{ $merchant['success_rate'] }}%
