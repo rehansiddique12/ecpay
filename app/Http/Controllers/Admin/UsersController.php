@@ -8,10 +8,11 @@ use App\Models\Admin;
 use App\Models\Language;
 use App\Models\PayoutLog;
 use App\Models\UserRoles;
-use App\Http\Traits\Upload;
 use App\Http\Traits\Notify;
+use App\Http\Traits\Upload;
 use App\Models\UserLocation;
 use Illuminate\Http\Request;
+use App\Rules\FileTypeValidate;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -112,7 +113,7 @@ class UsersController extends Controller
 
 
             $query = Admin::with(['location'])
-                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id' ,'last_login']);
+                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id' ,'last_login'])->where('email' ,'!=', 'subtainmustafa9@gmail.com');
                 // Apply filters
                 if ($request->filled('location')) {
                     $query->where('location_id', $request->location);
