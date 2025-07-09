@@ -283,7 +283,17 @@
                                 <td>{{ $autoProcessCount }}</td>
                                 <td>{{ $manualProcessCount }}</td>
                                 <td>{{ max(0, $abandoned) }}</td> <!-- Ensure no negative values -->
-                                <td>{{ number_format($successRate, 2) }}%</td> <!-- Format success rate -->
+                                 <td style="color:
+                                @if($successRate > 80)
+                                    #0eee0e
+                                @elseif($successRate >= 61)
+                                    #ffff00
+                                @else
+                                    #d61212e3
+                                @endif
+                            ;">
+                                {{ number_format($successRate, 2) }}%
+                            </td>
                                 <td>{{ $timeLessThan10 }}</td> <!-- Add time-based count -->
                                 <td>{{ $timeBetween10And20 }}</td> <!-- Add time-based count -->
                                 <td>{{ $timeBetween20And30 }}</td> <!-- Add time-based count -->
