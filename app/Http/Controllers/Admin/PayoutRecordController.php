@@ -902,7 +902,7 @@ class PayoutRecordController extends Controller
                 if (!$sum) {
                     $sum = 0;
                 }
-
+                $charge =0;
                 $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                 if ($commissions) {
                     $charge = $commissions->withdrawal_percentage * $data->amount / 100;
@@ -1504,12 +1504,31 @@ class PayoutRecordController extends Controller
             $pre_payout->e_wallet_phone_number = $request->e_wallet_phone_number;
             if ($pre_payout->status == "Reject" || $pre_payout->status == "Rejected") {
                 $pre_payout->status = "Pending";
+                AuditLog::create([
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payout Status Correction',
+                    'module_id'   => $pre_payout->id,
+                    'description' => "Status for payout ID {$pre_payout->id} changed from '{$pre_payout->status}' to 'Pending' by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                ]);
             }
             $pre_payout->save();
+
+            AuditLog::create([
+                'user_id'     => auth()->id(),
+                'module'      => 'E-Wallet Phone Number Update',
+                'module_id'   => $pre_payout->id,
+                'description' => "Updated e-wallet phone number to '{$request->e_wallet_phone_number}' for payout ID {$pre_payout->id} by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+            ]);
 
             // $pre_payout = PayoutLog::where('payout_id', $pre_payout->id)->lockForUpdate()->first();
             if ($pre_payout) {
                 if ($pre_payout->transfer_status == 3) {
+                    AuditLog::create([
+                        'user_id'     => auth()->id(),
+                        'module'      => 'Transfer Status Reset',
+                        'module_id'   => $pre_payout->id,
+                        'description' => "Transfer status reset from 3 to 1 for payout ID {$pre_payout->id} by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                    ]);
                     $pre_payout->transfer_status = 1;
                 }
             }
@@ -1579,6 +1598,12 @@ class PayoutRecordController extends Controller
                     $e_wallet_log_save->source = "update_e_wallet";
                     $e_wallet_log_save->save();
                 }
+                AuditLog::create([
+                    'user_id'     => auth()->id(),
+                    'module'      => 'E-Wallet Fund Transfer Adjustment',
+                    'module_id'   => $pre_payout->id,
+                    'description' => "Funds rebalanced for payout ID {$pre_payout->id} due to phone number change by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                ]);
             }
 
             DB::commit();
@@ -4293,9 +4318,20 @@ class PayoutRecordController extends Controller
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
+
+            if (!$method) {
+                return response()->json(['message' => 'Gateway not found.'], 404);
+            }
+
+
             $currentMonth = now()->format('Y-m');
             $charge = 0;
 
+            $check_partner_transaction = Payout::where('partner_transection_id'  , $request->partner_transection_id)->first();
+            if(isset($check_partner_transaction))
+            {
+                return response()->json(['message' => 'Partner Transaction id already exist.'], 404);
+            }
             $payout = new Payout();
 
 
@@ -5629,7 +5665,7 @@ class PayoutRecordController extends Controller
             'user_id'     => auth()->id(),
             'module'      => ucfirst($request->type).' Workboard',
             'module_id'   => $new->id,
-            'description' => auth()->user()->name . ' manually processed and duplicated a ' . $request->type . ' record. Original ID: ' . $original->id . ', New ID: ' . $new->id . ', New Amount: ' . $request->new_amount,
+            'description' => auth()->user()->name . ' manually processed and duplicated a ' . $request->type . ' record. Original ID: ' . $original->id . ', New ID: ' . $new->id . ', New Amount: ' . $request->new_amount . ', Partner Transaction ID: ' . $new->partner_transection_id,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Record duplicated successfully.']);
@@ -5874,13 +5910,18 @@ public function markAsRead(Notification $notification)
         ->get();
     }
     if (!empty($query)) {
+        $firstTrx = $payouts->first(); // get the first matching payout (if any)
+
         AuditLog::create([
-            'user_id'     => auth()->id(),
-            'module'      => 'Transaction Search Workboard',
-            'module_id'   => 0,
-            'description' => auth()->user()->name . ' searched transactions using keyword: "' . $query . '". Source: ' . $source,
+            'user_id'   => auth()->id(),
+            'module'    => 'Transaction Search Workboard',
+            'module_id' => 0,
+            'description' =>  auth()->user()->name . ' searched transactions using keyword: "' . $query . '". Source: ' . $source.
+                             ' | Partner TRX Number: ' . ($firstTrx->partner_transection_id ?? 'N/A') .
+                             ' | Changes: Searched transactions using keyword "' . $query . '" from source "' . $source . '"',
         ]);
     }
+
 
         $merged = $payments->merge($payouts);
         $mergedTransactions = $merged->sortByDesc('created_at')->values()->take(10);
@@ -5900,19 +5941,20 @@ public function markAsRead(Notification $notification)
         try {
             $data = Payment::where('id', $request->id)->lockForUpdate()->with('user', 'gateway')->firstOrFail();
             AuditLog::create([
-                'user_id' => auth()->id(),
-                'module' => 'Payment Update Attempt Workboard',
-                'module_id' => $data->id,
-                'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user ".auth()->user()->name,
+                'user_id'     => auth()->id(),
+                'module'      => 'Payment Update Attempt Workboard',
+                'module_id'   => $data->id,
+                'description' => "Attempting to update payment ID {$data->id} to status '{$request->status}' by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
             ]);
+
             if (!empty($request->sender)) {
                 $data->sender = $request->sender;
                 $data->save();
                 AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Sender Update Workboard',
-                    'module_id' => $data->id,
-                    'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'",
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Sender Update Workboard',
+                    'module_id'   => $data->id,
+                    'description' => "Updated sender for payment ID {$data->id} to '{$request->sender}'. Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                 ]);
             }
 
@@ -6001,11 +6043,12 @@ public function markAsRead(Notification $notification)
 
 
                     AuditLog::create([
-                        'user_id' => auth()->id(),
-                        'module' => 'Payment Completed',
-                        'module_id' => $data->id,
-                        'description' => "Payment ID {$data->id} was successfully completed by user ".auth()->user()->name,
+                        'user_id'     => auth()->id(),
+                        'module'      => 'Payment Completed',
+                        'module_id'   => $data->id,
+                        'description' => "Payment ID {$data->id} was successfully completed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                     ]);
+
 
                     // $payment->delete();
                 }
@@ -6310,11 +6353,12 @@ public function markAsRead(Notification $notification)
                 $data->feedback = $request->feedback;
                 $data->update();
                 AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Rejected Workboard',
-                    'module_id' => $data->id,
-                    'description' => "Payment ID {$data->id} was rejected by user ".auth()->user()->name,
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Rejected Workboard',
+                    'module_id'   => $data->id,
+                    'description' => "Payment ID {$data->id} was rejected by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                 ]);
+
 
                 //$user = $data->user;
 
@@ -6400,11 +6444,12 @@ public function markAsRead(Notification $notification)
             }
             if ($commit == 0) {
                 AuditLog::create([
-                    'user_id' => auth()->id(),
-                    'module' => 'Payment Update No Change Workboard',
-                    'module_id' => $data->id,
-                    'description' => "Payment ID {$data->id} update resulted in no status change",
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Update No Change Workboard',
+                    'module_id'   => $data->id,
+                    'description' => "Payment ID {$data->id} update resulted in no status change. Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                 ]);
+
                 DB::commit();
             }
             return response()->json(['success' => true]);
@@ -6440,11 +6485,12 @@ public function markAsRead(Notification $notification)
         $record->save();
 
         AuditLog::create([
-            'user_id' => auth()->id(),
-            'module' => ucfirst($request->type) . ' Transaction Workboard Adjustment',
-            'module_id' => $record->id,
-            'description' => ucfirst($request->type) . " transaction with ID {$record->id} was adjusted by user ". auth()->user()->name,
+            'user_id'     => auth()->id(),
+            'module'      => ucfirst($request->type) . ' Transaction Workboard Adjustment',
+            'module_id'   => $record->id,
+            'description' => ucfirst($request->type) . " transaction with ID {$record->id} was adjusted by user " . auth()->user()->name . ". Partner Transaction ID: " . ($record->partner_transection_id ?? 'N/A'),
         ]);
+
 
         return response()->json(['success' => true]);
     }
@@ -6469,11 +6515,12 @@ public function markAsRead(Notification $notification)
 
             // Save to audit_logs
             AuditLog::create([
-                'user_id' => auth()->id(),
-                'module' => ucfirst($type) . ' Transaction Workboard Card',
-                'module_id' => $record->id,
-                'description' => ucfirst($type) . " transaction with ID {$record->id} was closed by user ".auth()->user()->name,
+                'user_id'     => auth()->id(),
+                'module'      => ucfirst($type) . ' Transaction Workboard Card',
+                'module_id'   => $record->id,
+                'description' => ucfirst($type) . " transaction with ID {$record->id} was closed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($record->partner_transection_id ?? 'N/A'),
             ]);
+
 
             return response()->json(['success' => true]);
         }

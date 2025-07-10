@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Webhook\WebhookController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\TelegramGroupController;
@@ -25,6 +26,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::post('/direct/webhook/{source}/{acc}/{type}', [PaymentLogController::class, 'directwebhook']);
+Route::post('/sms/webhook/{source}/{acc}/{type}', [WebhookController::class, 'webhook']);
 
 Route::get('/paymentGateway', [PaymentController::class, 'paymentGateway']);
 

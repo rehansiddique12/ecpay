@@ -997,20 +997,24 @@ class PayoutRecordController extends Controller
     {
         $todayDate = date('Y-m-d');
         $thisMonth = date('m');
-        $e_wallet_accounts = EWalletAccount::select('last_limit_reset', 'daily_received', 'daily_sent', 'monthly_received', 'monthly_sent')->get();
+        $e_wallet_accounts = EWalletAccount::get();
         foreach ($e_wallet_accounts as $e_wallet_account) {
             if ($e_wallet_account->last_limit_reset != $todayDate) {
                 $e_wallet_account->daily_received = 0;
                 $e_wallet_account->daily_sent = 0;
-                $e_wallet_account->last_limit_reset = $todayDate;
-                $e_wallet_account->save();
+
+                $e_wallet_account->d_today_count = 0;
+                $e_wallet_account->w_today_count = 0;
             }
             if (date('m', strtotime($e_wallet_account->last_limit_reset)) != $thisMonth) {
                 $e_wallet_account->monthly_received = 0;
                 $e_wallet_account->monthly_sent = 0;
-                $e_wallet_account->last_limit_reset = $todayDate;
-                $e_wallet_account->save();
+
+                $e_wallet_account->d_month_count = 0;
+                $e_wallet_account->w_month_count = 0;
             }
+            $e_wallet_account->last_limit_reset = $todayDate;
+            $e_wallet_account->save();
         }
     }
 
@@ -1928,6 +1932,7 @@ class PayoutRecordController extends Controller
     public function processTransection4($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
 
+        LaravelLog::info('fn start processTransection4');
 
         $remainingTime = 600;
         $amount = str_replace(',', '', $amount);
@@ -1949,12 +1954,15 @@ class PayoutRecordController extends Controller
 
         $message = "";
         $banner = "";
+        $data['account_not_found'] = 0;
         $txn_verification = "";
         $ewalletee = strtolower($ewallet);
 
         $logo = "";
         $ewallet_to_show = "";
         $ewallet_to_show_bangla = "";
+
+        $data['gate_id'] = 0;
 
         if ($ewalletee == 'bkash') {
             $logo = asset('assets/images/bkash6.png');
@@ -2077,9 +2085,102 @@ class PayoutRecordController extends Controller
         }
 
 
-        $data['gate_id'] = $gate->id;
-        $data['phone_number'] = "Loading......";
+        $current_time = Carbon::now('Asia/Dhaka');
 
+        $account = EWalletAccount::where('e_wallet_name', $ewallet)
+            ->where('monthly_limit', '>', 'monthly_received')
+            ->whereRaw('daily_limit - daily_received > ?', [$amount])
+
+            ->where('daily_limit_transaction', '>', 'd_today_count')
+            ->where('monthly_limit_transaction', '>', 'd_month_count')
+
+            // ->where('max_transaction_per_minute', '>', 'd_one_min_count')
+            // ->where('max_amount_per_minute', '>', 'd_one_min_sum')
+
+            ->where('status', 1)
+            ->whereIn('account_type', ['Deposit', 'Both'])
+            ->with('timeSlots')
+            ->get()
+            ->filter(function ($single_account) use ($current_time, $amount) {
+                $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                    $from = Carbon::parse($slot->from_time);
+                    $to = Carbon::parse($slot->to_time);
+                    return $current_time->between($from, $to);
+                });
+
+                if (!$validTimeSlot) {
+                    return false;
+                }
+
+                // return true;
+
+                $lastUsed = Carbon::parse($single_account->d_last_used);
+
+                // Less than 1 minute ago
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    return $single_account->max_transaction_per_minute > $single_account->d_one_min_count &&
+                    $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
+                }
+
+                return $single_account->max_transaction_per_minute > 0 &&
+                        $single_account->max_amount_per_minute >= $amount;
+                
+
+            })
+            ->sortBy('d_last_used')
+            ->values()->first();
+
+
+            if (!$account) {
+                $data['account_not_found'] = 1;
+                $message = "You Can not Proceed With this E-wallet account";
+                return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            }
+
+            
+
+
+            $e_wallet_phone_number = $account->account_no;
+
+            $one_minute_ago = Carbon::now()->subMinute();
+
+            $one_minute_data = DB::table('payments')
+            ->where('e_wallet_name', $ewallet)
+            ->where('e_wallet_phone_number', $e_wallet_phone_number)
+            ->where('created_at', '>=', $one_minute_ago)
+            ->selectRaw('COUNT(*) as count, SUM(amount) as sum')
+            ->first();
+
+            
+
+               
+            $one_minute_data_count = 1;  
+            $one_minute_data_sum = $amount;
+
+            if ($one_minute_data && ($one_minute_data->count > 0 || $one_minute_data->sum > 0)) {
+                
+
+                $one_minute_data_count = $one_minute_data->count + 1;  
+                $one_minute_data_sum = $one_minute_data->sum + $amount;
+                
+
+                
+            }   
+
+
+        $account->d_one_min_count = $one_minute_data_count;
+        $account->d_one_min_sum = $one_minute_data_sum;
+        $account->d_last_used = $current_time;
+        $account->save();        
+        
+
+
+        $data['gate_id'] = $gate->id;
+        $data['phone_number'] = $account->account_no;
+        $data['account_type'] = $account->type;
+
+
+        LaravelLog::info('fn end processTransection4');
 
         // setting for theme style
         return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -2543,7 +2644,9 @@ class PayoutRecordController extends Controller
 
 
     public function processNextPayment4(Request $request)
-    {
+    {   
+
+        LaravelLog::info('fn start processNextPayment4');
 
         $username = $request->username;
         $ewallet = $request->ewallet;
@@ -3009,8 +3112,218 @@ class PayoutRecordController extends Controller
         return back()->with('error', $e->getMessage());
     }
 
+    public function createpayment(Request $request){
+
+        LaravelLog::info("createpayment start");
+
+        $username = $request->username;
+        $acc = $request->acc;
+        $amount = $request->amount;
+        $transection_id = $request->transection_id;
+        $member_id = $request->member_id;
+        $gate_id = $request->gate_id;
+
+        $ewallet = $request->ewallet;
+
+        $account_type = $request->account_type;
+        $phone_number = $request->phone_number;
+        $e_wallet_phone_number = $phone_number;
+
+
+        // $one_minute_ago = Carbon::now()->subMinute();
+
+        // $one_minute_data = Payment::where('created_at', '>=', $one_minute_ago)
+        //     ->where('e_wallet_name', $ewallet)
+        //     ->where('e_wallet_phone_number', $e_wallet_phone_number)
+        //     ->selectRaw('COUNT(*) as count, SUM(amount) as sum')
+        //     ->first();
+        
+        //     $one_minute_data_count = 1;  
+        //     $one_minute_data_sum = $amount;
+
+        // if ($one_minute_data && ($one_minute_data->count > 0 || $one_minute_data->sum > 0)) {
+            
+
+        //     $one_minute_data_count = $one_minute_data->count + 1;  
+        //     $one_minute_data_sum = $one_minute_data->sum + $amount;
+            
+
+            
+        // }   
+        
+        // $currentTime = Carbon::now('Asia/Dhaka');
+        // EWalletAccount::where('e_wallet_name', $ewallet)
+        //     ->where('account_no', $e_wallet_phone_number)
+        //     ->where('status', 1)
+        //     ->update([
+        //         'd_one_min_count' => $one_minute_data_count,
+        //         'd_one_min_sum'   => $one_minute_data_sum,
+        //         'd_last_used'     => $currentTime
+        //     ]);
+
+
+        //     LaravelLog::info("createpayment $e_wallet_phone_number $one_minute_data->count $one_minute_data->sum");
+        
+        $gate = Gateway::where('id', $gate_id)->first();
+
+        $api_key = API::where('username', $username)->where('status', 1)->where('type', 'Admin')->first();
+        if ($api_key) {
+            $secretKey = $api_key->secret_key;
+        } else {
+            $message = "Wrong API key.";
+            return response()->json(['status' => 'fail', 'message' => $message]);
+        }
+        $api_id = $api_key->id;
+
+        $currentMonth = now()->format('Y-m');
+        $sum = Payment::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('api_id', $api_id)
+            ->where('status', 'Complete')
+            ->sum('amount');
+
+        $charge = 0;
+
+
+        $commissions = Commission::where('category_id', $api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$ewallet}%")->where('type', 'like', "%{$account_type}%")->first();
+        if ($commissions) {
+            $charge = $commissions->deposit_percentage * $amount / 100;
+        } else {
+            $commissions = Commission::where('category_id', $api_key->category_id)->where('gateway_id', 'like', "%{$ewallet}%")->where('type', 'like', "%{$account_type}%")->orderBy('to_amount', 'desc')->first();
+            if ($commissions) {
+                $charge = $commissions->deposit_percentage * $amount / 100;
+            }
+        }
+
+
+        $reqAmount = $amount;
+        $payable = getAmount($reqAmount - $charge);
+        $final_amo = getAmount($payable * $gate->convention_rate);
+
+
+        $now = Carbon::now();
+        $twoHoursAgo = $now->subHours(2);
+        if (!empty($transection_id) || $transection_id != "0") {
+            $fund = Payment::where('partner_transection_id', $transection_id)->where('api_id', $api_key->id)->latest()->first();
+            if ($fund) {
+                if ($fund->status != 2) {
+                    $message = "Your Transection Already Processed!";
+                    return response()->json(['status' => 'fail', 'message' => $message]);
+                }
+            }
+        } else {
+            $fund = Payment::where('gateway_id', $gate->id)->where('amount', $amount)->where('status', 'Pending')->where('sender', $acc)->where('api_id', $api_key->id)->where('created_at', '>=', $twoHoursAgo)->latest()->first();
+        }
+
+        
+
+        if (!$fund) {
+            
+
+                    
+
+            $fund = new Payment();
+            $fund->user_id = 0;
+            $fund->gateway_id = $gate->id;
+            $fund->amount = $amount;
+            $fund->partner_transection_id = $transection_id;
+            if (isset($member_id) && !empty($member_id)) {
+                $fund->member_id = $member_id;
+            }
+
+            $fund->charge = $charge;
+            $fund->sender = $acc;
+            $fund->transaction = strRandom();
+            $fund->try = 0;
+            $fund->status = 'Pending';
+            $fund->api_id = $api_key->id;
+            $fund->e_wallet_phone_number = $e_wallet_phone_number;
+            $fund->request_source = "Iframe-2";
+            $fund->e_wallet_name = $gate->name;
+            $fund->save();
+
+            
+            
+        }
+
+        
+        return response()->json(['status' => 'success', 'fund_id' => $fund->id]);
+    }
+
     public function getaccount(Request $request)
     {
+        LaravelLog::info('fn start getaccount');
+
+        // $this->updateLimits();
+        // $this->updateEWallets();
+
+
+        
+        $ewallet = $request->ewallet;
+        $amount = $request->amount;
+
+        $current_time = Carbon::now('Asia/Dhaka');
+
+        $account = EWalletAccount::where('e_wallet_name', $ewallet)
+            ->where('monthly_limit', '>', 'monthly_received')
+            ->whereRaw('daily_limit - daily_received > ?', [$amount])
+
+            ->where('daily_limit_transaction', '>', 'd_today_count')
+            ->where('monthly_limit_transaction', '>', 'd_month_count')
+
+            // ->where('max_transaction_per_minute', '>', 'd_one_min_count')
+            // ->where('max_amount_per_minute', '>', 'd_one_min_sum')
+
+            ->where('status', 1)
+            ->whereIn('account_type', ['Deposit', 'Both'])
+            ->with('timeSlots')
+            ->get()
+            ->filter(function ($single_account) use ($current_time, $amount) {
+                $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                    $from = Carbon::parse($slot->from_time);
+                    $to = Carbon::parse($slot->to_time);
+                    return $current_time->between($from, $to);
+                });
+
+                if (!$validTimeSlot) {
+                    return false;
+                }
+
+                // return true;
+
+                $lastUsed = Carbon::parse($single_account->d_last_used);
+
+                // Less than 1 minute ago
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    return $single_account->max_transaction_per_minute > $single_account->d_one_min_count &&
+                    $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
+                }
+
+                return $single_account->max_transaction_per_minute > 0 &&
+                        $single_account->max_amount_per_minute >= $amount;
+                
+
+            })
+            ->sortBy('d_last_used')
+            ->values()->first();
+
+
+
+        if (!$account) {
+            $message = "You Can not Proceed With this E-wallet account";
+            return response()->json(['status' => 'fail', 'message' => $message]);
+        }
+
+        LaravelLog::info('fn  getaccount round robin applied');
+
+        return response()->json(['status' => 'success', 'phone_number' => $account->account_no, 'account_type' => $account->type]);
+        
+    }
+
+
+    public function getaccountCopy(Request $request)
+    {
+        LaravelLog::info('fn start getaccount');
 
         $this->updateLimits();
         $this->updateEWallets();
@@ -3039,7 +3352,7 @@ class PayoutRecordController extends Controller
         ];
 
         $jsaon =  json_encode($logarray);
-        LaravelLog::info('getaccount:' . $jsaon);
+        // LaravelLog::info('getaccount:' . $jsaon);
 
 
 
@@ -3128,6 +3441,8 @@ class PayoutRecordController extends Controller
             return response()->json(['status' => 'fail', 'message' => $message]);
         }
 
+        LaravelLog::info('fn  getaccount round robin applied');
+
 
         $gate = Gateway::where('id', $gate_id)->first();
 
@@ -3203,6 +3518,8 @@ class PayoutRecordController extends Controller
             $fund->e_wallet_name = $gate->name;
             $fund->save();
         }
+
+        LaravelLog::info('fn end getaccount');
         return response()->json(['status' => 'success', 'phone_number' => $account->account_no, 'account_type' => $account->type, 'fund_id' => $fund->id]);
     }
 

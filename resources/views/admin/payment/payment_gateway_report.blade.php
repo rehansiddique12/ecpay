@@ -150,9 +150,9 @@
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
-                                                : 0;
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                : 0;  
                                     @endphp
 
 
@@ -172,10 +172,11 @@
                                         $autoProcessCount = $counts['auto_process_count'] ?? 0;
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
+
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
-                                                : 0;
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                : 0;        
                                     @endphp
 
 
@@ -197,9 +198,9 @@
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
-                                                : 0;
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                : 0;  
                                     @endphp
 
 
@@ -273,8 +274,8 @@
                                         $timeBetween5And10Minutes = $counts['time_between_5_and_10_minutes'] ?? 0;
                                         $time_greater_than_10_minutes = $counts['time_greater_than_10_minutes'] ?? 0;
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
                                                 : 0;
                                     @endphp
                             <tr>
@@ -283,7 +284,17 @@
                                 <td>{{ $autoProcessCount }}</td>
                                 <td>{{ $manualProcessCount }}</td>
                                 <td>{{ max(0, $abandoned) }}</td> <!-- Ensure no negative values -->
-                                <td>{{ number_format($successRate, 2) }}%</td> <!-- Format success rate -->
+                                 <td style="color:
+                                @if($successRate > 80)
+                                    #0eee0e
+                                @elseif($successRate >= 61)
+                                    #ffff00
+                                @else
+                                    #d61212e3
+                                @endif
+                            ;">
+                                {{ number_format($successRate, 2) }}%
+                            </td>
                                 <td>{{ $timeLessThan10 }}</td> <!-- Add time-based count -->
                                 <td>{{ $timeBetween10And20 }}</td> <!-- Add time-based count -->
                                 <td>{{ $timeBetween20And30 }}</td> <!-- Add time-based count -->

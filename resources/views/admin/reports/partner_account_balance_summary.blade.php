@@ -14,8 +14,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.to_date') }}</label>
-                        <input type="date" class="form-control" value="{{ $to_date }}" name="to_date"
-                            id="datepicker" />
+                        <input type="date" class="form-control" value="{{ $to_date }}" name="to_date" id="datepicker" />
                     </div>
                 </div>
 
@@ -28,8 +27,9 @@
                             <option></option>
                             <option value="">{{ __('reports.all_source') }}</option>
                             @foreach ($domains as $partner)
-                                <option value="{{ $partner->id }}" @if (@request()->website == $partner->id) selected @endif>
-                                    {{ $partner->name }}</option>
+                            <option value="{{ $partner->id }}" @if (@request()->website == $partner->id) selected
+                                @endif>
+                                {{ $partner->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -72,6 +72,13 @@
                                     <th scope="col">{{ __('reports.closing_balance') }}</th>
                                     <th scope="col">{{ __('reports.difference') }}</th>
                                     <th scope="col">{{ __('reports.current_balance') }}</th>
+                                    @auth
+                                    @if (auth()->user()->username === 'dev')
+                                    <th scope="col"></th>
+                                    @endif
+                                    @endauth
+
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,9 +94,9 @@
                                 $commission = 0;
                                 ?>
                                 @if (isset($data))
-                                    @forelse($data as $key => $item)
-                                        <?php
-                                        
+                                @forelse($data as $key => $item)
+                                <?php
+
                                         $deposit_amount += $item['deposit_amount'];
                                         $deposit_charges += $item['deposit_charges'];
                                         $withdrawal_amount += $item['withdrawal_amount'];
@@ -99,24 +106,24 @@
                                         $adjustment += $item['adjustment'];
                                         $adjustment_charges += $item['adjustment_charges'];
                                         $commission += $item['commission'];
-                                        
+
                                         ?>
-                                        <tr>
-                                            <td>{{ $item['id'] }}</td>
-                                            <td>{{ $item['partner'] }}</td>
-                                            <td>{{ $item['date'] }}</td>
-                                            <td>{{ number_format($item['opening_balance'], 2) }}</td>
-                                            <td>{{ number_format($item['deposit_amount'], 2) }}</td>
-                                            <td>{{ number_format($item['deposit_charges'], 2) }}</td>
-                                            <td>{{ number_format($item['withdrawal_amount'], 2) }}</td>
-                                            <td>{{ number_format($item['withdrawal_charges'], 2) }}</td>
-                                            <td>{{ number_format($item['settlement_amount'], 2) }}</td>
-                                            <td>{{ number_format($item['settlement_charges'], 2) }}</td>
-                                            <td>{{ number_format($item['adjustment'], 2) }}</td>
-                                            <td>{{ number_format($item['adjustment_charges'], 2) }}</td>
-                                            <td>{{ number_format($item['commission'], 2) }}</td>
-                                            <td>{{ number_format($item['closing_balance'], 2) }}</td>
-                                            <?php
+                                <tr>
+                                    <td>{{ $item['id'] }}</td>
+                                    <td>{{ $item['partner'] }}</td>
+                                    <td>{{ $item['date'] }}</td>
+                                    <td>{{ number_format($item['opening_balance'], 2) }}</td>
+                                    <td>{{ number_format($item['deposit_amount'], 2) }}</td>
+                                    <td>{{ number_format($item['deposit_charges'], 2) }}</td>
+                                    <td>{{ number_format($item['withdrawal_amount'], 2) }}</td>
+                                    <td>{{ number_format($item['withdrawal_charges'], 2) }}</td>
+                                    <td>{{ number_format($item['settlement_amount'], 2) }}</td>
+                                    <td>{{ number_format($item['settlement_charges'], 2) }}</td>
+                                    <td>{{ number_format($item['adjustment'], 2) }}</td>
+                                    <td>{{ number_format($item['adjustment_charges'], 2) }}</td>
+                                    <td>{{ number_format($item['commission'], 2) }}</td>
+                                    <td>{{ number_format($item['closing_balance'], 2) }}</td>
+                                    <?php
                                             if (@request()->website && !empty(@request()->website)) {
                                                 if ($item['differance'] == 0) {
                                                     echo '<td>' . $item['differance'] . '</td>';
@@ -128,57 +135,68 @@
                                             }
                                             ?>
 
-                                            @if ($item['date'] == date('Y-m-d'))
-                                                @if ($item['current_balance'] - $item['closing_balance'] < 1 && $item['current_balance'] - $item['closing_balance'] > -1)
-                                                    <td style="background-color: green;color:white">
-                                                        {{ number_format($item['current_balance'], 2) }}</td>
-                                                @else
-                                                    <td style="background-color: red;color:white">
-                                                        {{ number_format($item['current_balance'], 2) }}</td>
-                                                @endif
-                                            @else
-                                                <td></td>
-                                            @endif
+                                    @if ($item['date'] == date('Y-m-d'))
+                                    @if ($item['current_balance'] - $item['closing_balance'] < 1 &&
+                                        $item['current_balance'] - $item['closing_balance']> -1)
+                                        <td style="background-color: green;color:white">
+                                            {{ number_format($item['current_balance'], 2) }}</td>
+                                        @else
+                                        <td style="background-color: red;color:white">
+                                            {{ number_format($item['current_balance'], 2) }}</td>
+                                        @endif
+                                        @else
+                                        <td></td>
+                                        @endif
+
+                                        @if (auth()->user()->username === 'dev' &&  $item['differance'] > 0.01)
+                                        <th scope="col">
+                                            <a href="">
+                                                <span class="badge">
+                                                    <i class="fas fa-edit"></i>
+                                                </span>
+                                            </a>
+                                        </th>
+                                        @endif
 
 
-                                        </tr>
+                                </tr>
 
-                                    @empty
-                                        <tr>
-                                            <td colspan="100%">
-                                                <p class="text-dark">{{ __('reports.no_data_found') }}</p>
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                    <thead class="thead-dark">
-                                        <tr>
-                                            <th></th>
-                                            <th>{{ __('reports.total') }}</th>
-                                            <th></th>
-                                            <th></th>
-                                            <th>{{ number_format($deposit_amount, 2) }}</th>
-                                            <th>{{ number_format($deposit_charges, 2) }}</th>
-                                            <th>{{ number_format($withdrawal_amount, 2) }}</th>
-                                            <th>{{ number_format($withdrawal_charges, 2) }}</th>
-                                            <th>{{ number_format($settlement_amount, 2) }}</th>
-                                            <th>{{ number_format($settlement_charges, 2) }}</th>
-                                            <th>{{ number_format($adjustment, 2) }}</th>
-                                            <th>{{ number_format($adjustment_charges, 2) }}</th>
-                                            <th>{{ number_format($commission, 2) }}</th>
-                                            <th></th>
-                                            <th></th>
-                                            <th></th>
+                                @empty
+                                <tr>
+                                    <td colspan="100%">
+                                        <p class="text-dark">{{ __('reports.no_data_found') }}</p>
+                                    </td>
+                                </tr>
+                                @endforelse
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th></th>
+                                        <th>{{ __('reports.total') }}</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th>{{ number_format($deposit_amount, 2) }}</th>
+                                        <th>{{ number_format($deposit_charges, 2) }}</th>
+                                        <th>{{ number_format($withdrawal_amount, 2) }}</th>
+                                        <th>{{ number_format($withdrawal_charges, 2) }}</th>
+                                        <th>{{ number_format($settlement_amount, 2) }}</th>
+                                        <th>{{ number_format($settlement_charges, 2) }}</th>
+                                        <th>{{ number_format($adjustment, 2) }}</th>
+                                        <th>{{ number_format($adjustment_charges, 2) }}</th>
+                                        <th>{{ number_format($commission, 2) }}</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
 
-                                        </tr>
+                                    </tr>
 
-                                    </thead>
+                                </thead>
                                 @endif
                             </tbody>
                         </table>
                     </div>
                     {{-- <div class="card-footer">
-                    {{ $records->appends($_GET)->links('partials.pagination') }}
-                </div> --}}
+                        {{ $records->appends($_GET)->links('partials.pagination') }}
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -187,9 +205,9 @@
     @push('js')
     @endpush
     @push('js')
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-        <script>
-            $(document).ready(function() {
+    <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script>
+        $(document).ready(function() {
                 $('form').on('submit', function() {
                     const $form = $(this);
                     const $submitButton = $form.find('button[type="submit"]');
@@ -220,10 +238,10 @@
                     }
                 });
             });
-        </script>
+    </script>
     @endpush
     @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
 
 </x-admin-layout>

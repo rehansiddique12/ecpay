@@ -291,8 +291,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/type/add', [PaymentTypeController::class, 'typeAdd'])->name('type.add');
         Route::put('/type/update/{id}', [PaymentTypeController::class, 'updatetype'])->name('type.update');
 
-        Route::get('/get-api-log/{url}', [PayoutRecordController::class, 'getApiLog'])->where('url', '.*');
-        Route::get('/get-api-log2/{url}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
+        // Route::get('/get-api-log/{url?}', [PayoutRecordController::class, 'getApiLog'])->where('url', '.*');
+        // Route::get('/get-api-log2/{url?}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
+
+        Route::match(['get', 'post'], '/get-api-log/{url?}', [PayoutRecordController::class, 'getApiLog'])->where('url', '.*');
+        Route::match(['get', 'post'], '/get-api-log2/{url?}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
+
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
         Route::post('/apis/toggle-status', [PayoutRecordController::class, 'toggleStatusApi'])->name('apis.toggleStatus');
@@ -668,6 +672,7 @@ Route::get('process/update-fund-order-status/iframe/{id}', [PartnerPayoutRecordC
 
 
 Route::post('process/iframe/getaccount', [PartnerPayoutRecordController::class,'getaccount'])->name('iframe.getaccount');
+Route::post('process/iframe/createpayment', [PartnerPayoutRecordController::class,'createpayment'])->name('iframe.createpayment');
 
 
     Route::get('partner/{username}/url', [PartnerPayoutRecordController::class, 'methods'])->name('partner.methods.get');
