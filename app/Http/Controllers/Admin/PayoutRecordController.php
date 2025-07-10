@@ -4340,6 +4340,12 @@ class PayoutRecordController extends Controller
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
+
+            if (!$method) {
+                return response()->json(['message' => 'Gateway not found.'], 404);
+            }
+
+
             $currentMonth = now()->format('Y-m');
             $charge = 0;
 
