@@ -98,8 +98,8 @@
                                             <a href="javascript:void(0);"
                                                 class="text-white p-1 d-inline-block mb-2 open-log-modal"
                                                 style="margin-left: 50px; border-radius: 8px; padding: 10px;"
-                                                data-id="{{ $item['api_endpoint_deposit'] }}">{{ __('merchant.log') }}</a>
-
+                                                data-id="{{ $item['api_endpoint_deposit'] }}">{{ __('merchant.log') }}
+                                            </a>
 
                                             <!-- API Endpoint Display -->
                                             {{ $item['api_endpoint_deposit'] }}
@@ -841,7 +841,7 @@
                                 response.data.forEach(function(log) {
                                     html += `
                                         <tr>
-                                            <td>${log.id}</td>
+                                            <td>${.id}</td>
                                             <td title="${log.request_url}" style="width: 30%; max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                 ${log.request_url}
                                             </td>
