@@ -150,9 +150,9 @@
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
-                                                : 0;
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                : 0;  
                                     @endphp
 
 
@@ -172,10 +172,11 @@
                                         $autoProcessCount = $counts['auto_process_count'] ?? 0;
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
+
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
-                                                : 0;
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                : 0;        
                                     @endphp
 
 
@@ -197,9 +198,9 @@
                                         $manualProcessCount = $counts['manual_process_count'] ?? 0;
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
                                         $successRate =
-                                            $fundCount > 0 && $fundCount - $abandoned > 0
-                                                ? ($autoProcessCount / ($fundCount - $abandoned)) * 100
-                                                : 0;
+                                            $fundCount > 0
+                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                : 0;  
                                     @endphp
 
 

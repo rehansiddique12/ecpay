@@ -4348,9 +4348,20 @@ class PayoutRecordController extends Controller
                 ->where('name', $request->e_wallet_name)
                 ->first();
 
+
+            if (!$method) {
+                return response()->json(['message' => 'Gateway not found.'], 404);
+            }
+
+
             $currentMonth = now()->format('Y-m');
             $charge = 0;
 
+            $check_partner_transaction = Payout::where('partner_transection_id'  , $request->partner_transection_id)->first();
+            if(isset($check_partner_transaction))
+            {
+                return response()->json(['message' => 'Partner Transaction id already exist.'], 404);
+            }
             $payout = new Payout();
 
 

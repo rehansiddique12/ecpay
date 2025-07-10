@@ -3170,97 +3170,31 @@ class PaymentLogController extends Controller
         $acc="01626821906";
         $type="Agent";
 
-        // $this->directwebhookddd($source, $acc, $type);
+        $this->directwebhookddd($source, $acc, $type);
 
-            // $cron_commissions = ParentCommission::get();
-            // foreach ($cron_commissions as $cron_commission) {
-            //     $new_commission = Commission::where('id', $cron_commission->commission_id)->first();
-            //     if($new_commission){
-
-
-            //         $cron_commission->from_amount = $new_commission->from_amount;
-            //         $cron_commission->to_amount = $new_commission->to_amount;
-            //         $cron_commission->type = $new_commission->type;
-            //         $cron_commission->gateway_id = $new_commission->gateway_id;
-            //         $cron_commission->save();
-            //     }
-
-            // }
-
-
-            // dd(Session::all());
-
-            // if (!Session::has('previousid')) {
-            //     Session::put('previousid', 0);
-            //     $request->session()->put('aaaaaa', 'xxxxx');
-            //     $previousid = 0;
-            // } else {
-            //     $request->session()->put('aaaaaa', 'nnnnn');
-            //     $previousid = Session::get('previousid');
-            // }
-
-            // dd(Session::all());
-
-            $previousid = $id;
-
-            $txnIds = PendingPayment::pluck('txn_id');
-            $paymentTxnIds = Payment::whereIn('txn_id', $txnIds)->where('txn_id','!=','none')
-                        ->pluck('txn_id')
-                        ->unique()
-                        ->toArray();
-                        $commaSeparated = '';
-                        foreach ($paymentTxnIds as $key => $paymentTxnId) {
-                            $commaSeparated .= $paymentTxnId;
-
-                            // Add comma if it's not the last element
-                            if ($key !== array_key_last($paymentTxnIds)) {
-                                $commaSeparated .= ',';
-                            }
-
-                        }
-
-
-            dd($commaSeparated);
-
-
-            $PendingPayments = PendingPayment::select('id','txn_id')->where('id', '>=', $previousid)->limit(100)->get();
-            dd($txnIds);
-            foreach ($PendingPayments as $PendingPayment) {
-                $previousid = $PendingPayment->id;
-                // Session::put('previousid', $PendingPayment->id);
-                $payment = Payment::select('id','txn_id')->where('txn_id', $PendingPayment->txn_id)->first();
-                if($payment){
-                    $PendingPayment->status = 1;
-                    $PendingPayment->save();
-                }
-
-            }
-
-
-            return view('admin.payment.makeatest', compact('previousid'));
+          
 
             exit;
     }
 
 
     public function directwebhookddd($source, $acc, $type){
-
+        
         $string = '{"from":"16216","fromName":"","to":"myself","tos":["myself"],"toName":"","toNames":[""],"content":"B2C: Cash-Out from A\/C: ***539 Tk1,000.00 Comm:Tk4.20; A\/C Balance: Tk469,249.21.TxnId: 5233259555 Date:14-MAR-25 06:31:14 am. Download https:\/\/bit.ly\/nexuspay","dir":"incoming","date":"2025-03-14T00:31:15.728Z"}';
 
-        $botToken = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
-        $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
-        $TestchatId = "-4771016562";
-        // $CompletedchatId = "-4754036101";
-        // $HoldchatId = "-4735989259";
-        // $RejectedchatId = "-4632357788";
-        $CompletedchatId = "-4771016562";
-        $HoldchatId = "-4771016562";
-        $RejectedchatId = "-4771016562";
-        // LaravelLog::info('Source:'.$source.' Acc:'.$acc.' Message:'.$string);
 
-            // Step 1: Find the position of "Text"
-            $textStart = strpos($string, '"content"');
+        $string1 = 'Cash In Successful.
+            Amount: Tk 3700.00
+            Customer: 01854060311
+            TxnID: 7450R0NJ
+            Comm: Tk 14.43
+            Balance: Tk 7078.10
+            09/07/2025 18:55';
+
+        $textStart = strpos($string, '"content"');
+
             $result=[];
+
             if(isset($textStart) && !empty($textStart)){
                 $colonPos = strpos($string, ':', $textStart);
                 $valueStart = strpos($string, '"', $colonPos + 1) + 1;
@@ -3268,32 +3202,44 @@ class PaymentLogController extends Controller
                 $text = substr($string, $valueStart, $valueEnd - $valueStart);
                 $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
                 $jsonWithoutText = rtrim($jsonWithoutText, ",");
+
                 $array = json_decode($jsonWithoutText, true);
+
                 $result = [];
+
+
                 if($array['from']=="bKash"){
+
                     $text = preg_replace('/\s*Download.*$/', '', $text);
+
                     if (strpos($text, "You have received") === 0) {
+
                         $t_type = 1;
+
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
+
                         // Extract customer phone number after "from" and before "Fee"
                         if (preg_match('/from .*?(\d+)\. (?:Fee|Ref)/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
+
                         // Extract commission after "Fee" and before "Balance"
                         if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['charge'] = floatval(str_replace(',', '', $matches[1]));
                         } else {
                             $result['charge'] = 0.00; // Default if not found
                         }
+
                         // Extract balance after "Balance Tk" and before "TrxID"
                         if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
                         } else {
                             $result['Balance'] = 0.00; // Default if not found
                         }
+
                         // Extract TrxID after "TrxID" and before "at"
                         if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
@@ -3452,6 +3398,7 @@ class PaymentLogController extends Controller
                     }
 
                 }elseif($array['from']=="16216"){
+
 
                     if (strpos($text, "B2C: Cash-In") === 0) {
 
@@ -3799,8 +3746,6 @@ class PaymentLogController extends Controller
 
 
 
-
-
                 if(isset($result['Comment']) && isset($result['Amount']) && isset($result['Customer']) && isset($result['TxnID']) && isset($result['Comm']) && isset($result['Balance']) && isset($result['DateTime'])){
                     $result['Amount'] = preg_replace('/[^0-9.]/', '', $result['Amount']);
                     $result['Balance'] = preg_replace('/[^0-9.]/', '', $result['Balance']);
@@ -3812,634 +3757,17 @@ class PaymentLogController extends Controller
                     $result['charge'] = floatval($result['charge']);
 
 
+               
+                    dd($result);
 
 
-                    $account_balance = 0;
-                    DB::beginTransaction();
-                    $account = EWalletAccount::where('e_wallet_name', $source)->where('account_no', $acc)->lockForUpdate()->first();
-                    if($account){
-                        $account_balance = $account->live_balance;
-                        if($account->type=="Agent" && $account->e_wallet_name=="bKash"){
-                            if($result['Comm']==0){
-                                $result['Comm'] = ( $result['Amount'] * 0.4 ) / 100;
-                            }
-                        }
-                    }
-
-                    $account_balance = floatval($account_balance);
-
-
-                    $final_balance_get = 0;
-                    $counter = 0;
-                    $recordsmatched = 0;
-                    $array_t = [];
-                    $SmsLogs = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->orderBy('id', 'desc')->take(3)->get()->sortBy('id');
-                    $sumMatched = $SmsLogs->sum('matched');
-                    if($sumMatched==6){
-                        foreach($SmsLogs as $singleSmsLog){
-                            $counter++;
-                            if($singleSmsLog->type==1){
-                                if($counter==1){
-                                    $pre_balance = $singleSmsLog->final_amount - $singleSmsLog->amount - $singleSmsLog->comm + $singleSmsLog->charge;
-                                }
-                                $total_deposit_n = $pre_balance + $singleSmsLog->amount + $singleSmsLog->comm - $singleSmsLog->charge;
-                                if(($singleSmsLog->final_amount - $total_deposit_n < 1) && ($total_deposit_n - $singleSmsLog->final_amount < 1)){
-                                    $array_t[$counter]['customer_acc_no'] = $singleSmsLog->customer_acc_no;
-                                    $array_t[$counter]['txn'] = $singleSmsLog->txn;
-                                    $array_t[$counter]['amount'] = $singleSmsLog->amount;
-                                    $array_t[$counter]['comm'] = $singleSmsLog->comm;
-                                    $array_t[$counter]['charge'] = $singleSmsLog->charge;
-                                    $array_t[$counter]['id'] = $singleSmsLog->id;
-                                    $array_t[$counter]['type'] = $singleSmsLog->type;
-                                    $pre_balance = $singleSmsLog->final_amount;
-                                    $recordsmatched++;
-                                    if($recordsmatched==3){
-                                        $final_balance_get = $singleSmsLog->final_amount;
-                                    }
-                                }
-                            }else{
-                                if($counter==1){
-                                    $pre_balance = $singleSmsLog->final_amount + $singleSmsLog->amount - $singleSmsLog->comm + $singleSmsLog->charge;
-                                }
-                                $total_withdrawal_n = $pre_balance - $singleSmsLog->amount + $singleSmsLog->comm - $singleSmsLog->charge;
-                                $total_withdrawal2_n = $pre_balance - $singleSmsLog->amount + $singleSmsLog->comm - 5;
-                                $total_withdrawal3_n = $pre_balance - $singleSmsLog->amount + $singleSmsLog->comm - 10;
-                                if(($singleSmsLog->final_amount - $total_withdrawal_n < 1) && ($total_withdrawal_n - $singleSmsLog->final_amount < 1)){
-                                    $array_t[$counter]['customer_acc_no'] = $singleSmsLog->customer_acc_no;
-                                    $array_t[$counter]['txn'] = $singleSmsLog->txn;
-                                    $array_t[$counter]['amount'] = $singleSmsLog->amount;
-                                    $array_t[$counter]['comm'] = $singleSmsLog->comm;
-                                    $array_t[$counter]['charge'] = $singleSmsLog->charge;
-                                    $array_t[$counter]['id'] = $singleSmsLog->id;
-                                    $array_t[$counter]['type'] = $singleSmsLog->type;
-                                    $pre_balance = $singleSmsLog->final_amount;
-                                    $recordsmatched++;
-                                    if($recordsmatched==3){
-                                        $final_balance_get = $singleSmsLog->final_amount;
-                                    }
-                                }elseif(($singleSmsLog->final_amount - $total_withdrawal2_n < 1) && ($total_withdrawal2_n - $singleSmsLog->final_amount < 1)){
-                                    $array_t[$counter]['customer_acc_no'] = $singleSmsLog->customer_acc_no;
-                                    $array_t[$counter]['txn'] = $singleSmsLog->txn;
-                                    $array_t[$counter]['amount'] = $singleSmsLog->amount;
-                                    $array_t[$counter]['comm'] = $singleSmsLog->comm;
-                                    $array_t[$counter]['charge'] = 5;
-                                    $array_t[$counter]['id'] = $singleSmsLog->id;
-                                    $array_t[$counter]['type'] = $singleSmsLog->type;
-                                    $pre_balance = $singleSmsLog->final_amount;
-                                    $recordsmatched++;
-                                    if($recordsmatched==3){
-                                        $final_balance_get = $singleSmsLog->final_amount;
-                                    }
-                                }elseif(($singleSmsLog->final_amount - $total_withdrawal3_n < 1) && ($total_withdrawal3_n - $singleSmsLog->final_amount < 1)){
-                                    $array_t[$counter]['customer_acc_no'] = $singleSmsLog->customer_acc_no;
-                                    $array_t[$counter]['txn'] = $singleSmsLog->txn;
-                                    $array_t[$counter]['amount'] = $singleSmsLog->amount;
-                                    $array_t[$counter]['comm'] = $singleSmsLog->comm;
-                                    $array_t[$counter]['charge'] = 10;
-                                    $array_t[$counter]['id'] = $singleSmsLog->id;
-                                    $array_t[$counter]['type'] = $singleSmsLog->type;
-                                    $pre_balance = $singleSmsLog->final_amount;
-                                    $recordsmatched++;
-                                    if($recordsmatched==3){
-                                        $final_balance_get = $singleSmsLog->final_amount;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if($recordsmatched==3){
-                        $account_balance = $final_balance_get;
-                    }
-
-
-
-                    $total_deposit = $account_balance + $result['Amount'] + $result['Comm'] - $result['charge'];
-                    $differance  = $total_deposit - $result['Balance'];
-
-                    $total_withdrawal = $account_balance - $result['Amount'] + $result['Comm'] - $result['charge'];
-                    $total_withdrawal2 = $account_balance - $result['Amount'] + $result['Comm'] - 5;
-                    $total_withdrawal3 = $account_balance - $result['Amount'] + $result['Comm'] - 10;
-
-                    if($t_type==2){
-                        $differance  = $total_withdrawal - $result['Balance'];
-                    }
-
-                    LaravelLog::info('SMS_Balance:'.$result['Balance'].' Account_Balance:'.$account_balance.' Differance:'.$differance.' Amount:'.$result['Amount'].' Comm:'.$result['Comm'].' Charge:'.$result['charge']);
-                    $saved = 2;
-                    if($t_type==1){
-                        if(($result['Balance'] - $total_deposit < 1) && ($total_deposit - $result['Balance'] < 1)){
-                            if($account){
-                                $account->live_balance = $result['Balance'];
-                                $account->save();
-                            }
-                            LaravelLog::info('Deposit Saved!!!!!!!!!');
-                            $saved = 1;
-                        }
-                    }else{
-                        if(($result['Balance'] - $total_withdrawal < 1) && ($total_withdrawal - $result['Balance'] < 1)){
-                            if($account){
-                                $account->live_balance = $result['Balance'];
-                                $account->save();
-                            }
-                            LaravelLog::info('Withdrawal Saved!!!!!!!!!');
-                            $saved = 1;
-                        }elseif(($result['Balance'] - $total_withdrawal2 < 1) && ($total_withdrawal2 - $result['Balance'] < 1)){
-                            if($account){
-                                $account->live_balance = $result['Balance'];
-                                $account->save();
-                            }
-                            LaravelLog::info('Withdrawal Saved!!!!!!!!!');
-                            $result['charge'] = 5;
-                            $saved = 1;
-                        }elseif(($result['Balance'] - $total_withdrawal3 < 1) && ($total_withdrawal3 - $result['Balance'] < 1)){
-                            if($account){
-                                $account->live_balance = $result['Balance'];
-                                $account->save();
-                            }
-                            LaravelLog::info('Withdrawal Saved!!!!!!!!!');
-                            $result['charge'] = 10;
-                            $saved = 1;
-                        }
-                    }
-
-
-
-
-
-
-                    $Log = new SmsLog();
-                    $Log->e_wallet_name = $source;
-                    $Log->e_wallet_no = $acc;
-                    $Log->customer_acc_no = $result['Customer'];
-                    $Log->txn = $result['TxnID'];
-                    $Log->account_last_amount = $account_balance;
-                    $Log->amount = $result['Amount'];
-                    $Log->comm = $result['Comm'];
-                    $Log->charge = $result['charge'];
-                    $Log->final_amount = $result['Balance'];
-                    $Log->type = $t_type;
-                    $Log->matched = $saved;
-                    $Log->save();
-
-
-                    DB::commit();
-
-
-
-
-
-                    $result['DateTime'] = str_replace('\\', "", $result['DateTime']);
-                    $date = Carbon::createFromFormat('d/m/Y H:i', $result['DateTime']);
-                    $result['DateTime'] = $date->format('h:ia d/m/y');
-                    $result['source'] = $source;
-                    $result['acc'] = $acc;
-                    $result['type'] = $type;
-
-
-
-                    if($Log->type==1){
-                        $tt_type = "Deposit";
-                    }else{
-                        $tt_type = "Withdrawal";
-                    }
-
-                    if($Log->matched==1){
-                        $tt_matched = "Saved";
-                        $thischatid = $CompletedchatId;
-                    }else{
-                        $tt_matched = "On Hold";
-                        $thischatid = $HoldchatId;
-                    }
-
-                    $formattedDateee = Carbon::parse($Log->created_at)->format('d-m-Y h:i A');
-
-
-
-                   $customer_accc = str_replace('*', '⋆', $Log->customer_acc_no);
-
-                    $message = "";
-                    $message .= "*$source => $acc => $type* \n";
-                    $message .= "*Type:* $tt_type \n";
-                    $message .= "*-------------------------------------* \n";
-                    $message .= "Customer: $customer_accc \n";
-                    $message .= "TXN: $Log->txn \n";
-                    $message .= "Amount: $Log->amount \n";
-                    $message .= "Comm: $Log->comm \n";
-                    $message .= "Charge: $Log->charge \n";
-                    $message .= "Final Balance: $Log->final_amount \n";
-                    $message .= "DateTime: $formattedDateee \n";
-                    $message .= "*-------------------------------------* \n";
-                    $message .= "*$tt_matched* \n";
-
-
-
-                    $response = Http::post($url, [
-                        'chat_id' => $thischatid,
-                        'text' => $message,
-                        'parse_mode' => 'Markdown',
-                    ]);
-
-                    dd('abc');
-
-
-                    if($saved == 2){
-                        LaravelLog::info('Balance not match-xxxxxxxxxxxxxxxx');
-
-                    }else{
-                        if($recordsmatched==3){
-                            foreach($array_t as $array_t_o){
-                                $logid = $array_t_o['id'];
-                                $SmsLogsingle = SmsLog::where('id', $logid)->first();
-                                if($array_t_o['type']==1){
-                                    $ttt_type = "Deposit";
-                                    $SmsLogsingle->charge = $array_t_o['charge'];
-                                    $SmsLogsingle->matched = 1;
-                                    $SmsLogsingle->save();
-                                    LaravelLog::info('x Deposit Saved txn: '.$array_t_o['txn']);
-                                    $parameters = [
-                                        "sender" => $array_t_o['customer_acc_no'],
-                                        "txn_id" => $array_t_o['txn'],
-                                        "amount" => $array_t_o['amount'],
-                                        "date" => $result['DateTime'],
-                                        "time" => $result['DateTime'],
-                                        "transaction_type" => "Payment IN",
-                                        "e_wallet_name" => $source,
-                                        "e_wallet_phone_number" => $acc,
-                                        "mac_address" => "111.111.11.111",
-                                        "e_wallet_type" => $type,
-                                        "commission" => $array_t_o['comm'],
-                                        "fee" => $array_t_o['charge'],
-                                        "api_key" => "IaUJUczIxjIJx6JvSPyfTDcYLvz6B86c"
-                                    ];
-
-                                    $thisrquest = request()->merge($parameters);
-
-                                    $maxAttempts = 5;
-                                    $attempt = 0;
-                                    $success = 0;
-
-                                    while ($attempt < $maxAttempts && $success==0) {
-                                        $response =  $this->addPaymentInfo($thisrquest);
-                                        $content = $response->getContent();
-                                        $txn_for_verify = $array_t_o['txn'];
-                                        LaravelLog::info('x Deposit Response txn: '. $txn_for_verify .' try('. $attempt + 1 .') '.$content);
-
-                                        if (stripos($content, 'lock') !== false) {
-                                            $success = 0;
-                                            sleep(1);
-                                        }else{
-                                            $success = 1;
-
-                                            if (stripos($content, 'pending') !== false) {
-                                               $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
-                                                if($Txn){
-                                                    $api_key = Api::where('id', $Txn->api_id)->where('type', 'Admin')->first();
-                                                    if($api_key){
-                                                        $parameters_for_verify = [
-                                                            "txn_id" => $txn_for_verify,
-                                                            "partner_transection_id" => $Txn->partner_transection_id,
-                                                            "api_key" => $api_key->api_key
-                                                        ];
-
-                                                        $thisrquest_for_verify = request()->merge($parameters_for_verify);
-                                                        $response_for_verify =  $this->verifyPaymentB($thisrquest_for_verify);
-                                                        $content_for_verify = $response_for_verify->getContent();
-                                                        LaravelLog::info('x Deposit Verify Response txn: '. $txn_for_verify .' response '.$content_for_verify);
-                                                    }
-                                                }
-                                            }
-
-
-
-                                        }
-
-                                        $attempt++;
-                                    }
-
-
-
-
-                                }else{
-                                    $ttt_type = "Withdrawal";
-                                    LaravelLog::info('x Withdrawal Saved txn: '.$array_t_o['txn']);
-                                }
-
-                                $formattedDateeee = Carbon::parse($SmsLogsingle->created_at)->format('d-m-Y h:i A');
-
-                                $customer_acccc = str_replace('*', '⋆', $SmsLogsingle->customer_acc_no);
-
-                                $message = "";
-                                $message .= "*$source => $acc => $type* \n";
-                                $message .= "*Type:* $ttt_type \n";
-                                $message .= "*-------------------------------------* \n";
-                                $message .= "Customer: $customer_acccc \n";
-                                $message .= "TXN: $SmsLogsingle->txn \n";
-                                $message .= "Amount: $SmsLogsingle->amount \n";
-                                $message .= "Comm: $SmsLogsingle->comm \n";
-                                $message .= "Charge: $SmsLogsingle->charge \n";
-                                $message .= "Final Balance: $SmsLogsingle->final_amount \n";
-                                $message .= "DateTime: $formattedDateeee \n";
-                                $message .= "*-------------------------------------* \n";
-                                $message .= "*Holded SMS Saved* \n";
-
-                                $response = Http::post($url, [
-                                    'chat_id' => $CompletedchatId,
-                                    'text' => $message,
-                                    'parse_mode' => 'Markdown',
-                                ]);
-
-                            }
-                        }
-
-                    }
-
-
-
-
-
-
-
-
-                    $SmsLog = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->where('matched', 2)->orderBy('id', 'desc')->first();
-                    if($SmsLog){
-                        if($SmsLog->type==1){
-                            $previous_total_deposit = $result['Balance'] + $SmsLog->amount + $SmsLog->comm - $SmsLog->charge;
-                            if(($SmsLog->final_amount - $previous_total_deposit < 1) && ($previous_total_deposit - $SmsLog->final_amount < 1)){
-                                $SmsLog->matched = 1;
-                                $SmsLog->save();
-
-                                LaravelLog::info('Previous Deposit Saved!!!!!!!!!');
-
-                                DB::beginTransaction();
-                                $accountt = EWalletAccount::where('e_wallet_name', $source)->where('account_no', $acc)->lockForUpdate()->first();
-                                if($accountt){
-                                    $accountt->live_balance = $SmsLog->final_amount;
-                                    $accountt->save();
-                                }
-                                DB::commit();
-
-                                $parameters = [
-                                    "sender" => $SmsLog->customer_acc_no,
-                                    "txn_id" => $SmsLog->txn,
-                                    "amount" => $SmsLog->amount,
-                                    "date" => $result['DateTime'],
-                                    "time" => $result['DateTime'],
-                                    "transaction_type" => $result['Comment'],
-                                    "e_wallet_name" => $source,
-                                    "e_wallet_phone_number" => $acc,
-                                    "mac_address" => "111.111.11.111",
-                                    "e_wallet_type" => $type,
-                                    "commission" => $SmsLog->comm,
-                                    "fee" => $SmsLog->charge,
-                                    "api_key" => "IaUJUczIxjIJx6JvSPyfTDcYLvz6B86c"
-                                ];
-
-                                $thisrquest = request()->merge($parameters);
-
-                                $maxAttempts = 5;
-                                $attempt = 0;
-                                $success = 0;
-
-                                while ($attempt < $maxAttempts && $success==0) {
-                                    $response =  $this->addPaymentInfo($thisrquest);
-                                    $content = $response->getContent();
-                                    $txn_for_verify = $SmsLog->txn;
-                                    LaravelLog::info('Direct IFTTT Response Previous txn: '. $txn_for_verify .' try('. $attempt + 1 .') '.$content);
-
-                                    if (stripos($content, 'lock') !== false) {
-                                        $success = 0;
-                                        sleep(1);
-                                    }else{
-                                        $success = 1;
-
-                                        if (stripos($content, 'pending') !== false) {
-                                            $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
-                                            if($Txn){
-                                                $api_key = Api::where('id', $Txn->api_id)->where('type', 'Admin')->first();
-                                                if($api_key){
-                                                    $parameters_for_verify = [
-                                                        "txn_id" => $txn_for_verify,
-                                                        "partner_transection_id" => $Txn->partner_transection_id,
-                                                        "api_key" => $api_key->api_key
-                                                    ];
-
-                                                    $thisrquest_for_verify = request()->merge($parameters_for_verify);
-                                                    $response_for_verify =  $this->verifyPaymentB($thisrquest_for_verify);
-                                                    $content_for_verify = $response_for_verify->getContent();
-                                                    LaravelLog::info('x Deposit Verify Response txn: '. $txn_for_verify .' response '.$content_for_verify);
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    $attempt++;
-                                }
-
-
-                                $formattedDateeeee = Carbon::parse($SmsLog->created_at)->format('d-m-Y h:i A');
-
-                                $message = "";
-                                $message .= "*$source => $acc => $type* \n";
-                                $message .= "*Type:* Deposit \n";
-                                $message .= "*-------------------------------------* \n";
-                                $message .= "Customer: $SmsLog->customer_acc_no \n";
-                                $message .= "TXN: $SmsLog->txn \n";
-                                $message .= "Amount: $SmsLog->amount \n";
-                                $message .= "Comm: $SmsLog->comm \n";
-                                $message .= "Charge: $SmsLog->charge \n";
-                                $message .= "Final Balance: $SmsLog->final_amount \n";
-                                $message .= "DateTime: $formattedDateeeee \n";
-                                $message .= "*-------------------------------------* \n";
-                                $message .= "*Holded SMS Saved* \n";
-
-                                $response = Http::post($url, [
-                                    'chat_id' => $CompletedchatId,
-                                    'text' => $message,
-                                    'parse_mode' => 'Markdown',
-                                ]);
-                            }
-                        }else{
-
-
-                            $previous_withdrawal = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - $SmsLog->charge;
-                            $previous_withdrawal2 = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - 5;
-                            $previous_withdrawal3 = $result['Balance'] - $SmsLog->amount + $SmsLog->comm - 10;
-
-                            DB::beginTransaction();
-                            $accountt = EWalletAccount::where('e_wallet_name', $source)->where('account_no', $acc)->lockForUpdate()->first();
-                            $p_matched = 2;
-                            if(($SmsLog->final_amount - $previous_withdrawal < 1) && ($previous_withdrawal - $SmsLog->final_amount < 1)){
-                                if($accountt){
-                                    $accountt->live_balance = $SmsLog->final_amount;
-                                    $accountt->save();
-                                }
-                                $p_matched = 1;
-                                LaravelLog::info('Previous Withdrawal Saved!!!!!!!!!');
-                            }elseif(($SmsLog->final_amount - $previous_withdrawal2 < 1) && ($previous_withdrawal2 - $SmsLog->final_amount < 1)){
-                                if($accountt){
-                                    $accountt->live_balance = $SmsLog->final_amount;
-                                    $SmsLog->charge = 5;
-                                    $accountt->save();
-                                }
-                                $p_matched = 1;
-                                LaravelLog::info('Previous Withdrawal Saved!!!!!!!!!');
-
-                            }elseif(($SmsLog->final_amount - $previous_withdrawal3 < 1) && ($previous_withdrawal3 - $SmsLog->final_amount < 1)){
-                                if($accountt){
-                                    $accountt->live_balance = $SmsLog->final_amount;
-                                    $SmsLog->charge = 10;
-                                    $accountt->save();
-                                }
-                                $p_matched = 1;
-                                LaravelLog::info('Previous Withdrawal Saved!!!!!!!!!');
-                            }
-
-                            DB::commit();
-
-
-                            $SmsLog->matched = $p_matched;
-                            $SmsLog->save();
-
-                            if($p_matched==1){
-                                $formattedDateeeeee = Carbon::parse($SmsLog->created_at)->format('d-m-Y h:i A');
-
-                                $message = "";
-                                $message .= "*$source => $acc => $type* \n";
-                                $message .= "*Type:* Withdrawal \n";
-                                $message .= "*-------------------------------------* \n";
-                                $message .= "Customer: $SmsLog->customer_acc_no \n";
-                                $message .= "TXN: $SmsLog->txn \n";
-                                $message .= "Amount: $SmsLog->amount \n";
-                                $message .= "Comm: $SmsLog->comm \n";
-                                $message .= "Charge: $SmsLog->charge \n";
-                                $message .= "Final Balance: $SmsLog->final_amount \n";
-                                $message .= "DateTime: $formattedDateeeeee \n";
-                                $message .= "*-------------------------------------* \n";
-                                $message .= "*Holded SMS Saved* \n";
-
-                                $response = Http::post($url, [
-                                    'chat_id' => $CompletedchatId,
-                                    'text' => $message,
-                                    'parse_mode' => 'Markdown',
-                                ]);
-                            }
-
-
-
-
-
-
-                        }
-
-                    }
-
-
-
-
-                    if(($result['Balance'] - $total_deposit < 1) && ($total_deposit - $result['Balance'] < 1)){
-                        $parameters = [
-                            "sender" => $result['Customer'],
-                            "txn_id" => $result['TxnID'],
-                            "amount" => $result['Amount'],
-                            "date" => $result['DateTime'],
-                            "time" => $result['DateTime'],
-                            "transaction_type" => $result['Comment'],
-                            "e_wallet_name" => $source,
-                            "e_wallet_phone_number" => $acc,
-                            "mac_address" => "111.111.11.111",
-                            "e_wallet_type" => $type,
-                            "commission" => $result['Comm'],
-                            "fee" => $result['charge'],
-                            "api_key" => "IaUJUczIxjIJx6JvSPyfTDcYLvz6B86c"
-                        ];
-
-                        $thisrquest = request()->merge($parameters);
-
-                        $maxAttempts = 5;
-                        $attempt = 0;
-                        $success = 0;
-
-                        while ($attempt < $maxAttempts && $success==0) {
-                            $response =  $this->addPaymentInfo($thisrquest);
-                            $content = $response->getContent();
-                            $txn_for_verify = $result['TxnID'];
-                            LaravelLog::info('Direct IFTTT Response txn: '. $txn_for_verify .' try('. $attempt + 1 .') '.$content);
-
-                            if (stripos($content, 'lock') !== false) {
-                                $success = 0;
-                                sleep(1);
-                            }else{
-                                $success = 1;
-
-                                if (stripos($content, 'pending') !== false) {
-
-                                    $Txn = Txn::where('txn_no', $txn_for_verify)->orderBy('id', 'DESC')->first();
-                                    if($Txn){
-                                        $api_key = Api::where('id', $Txn->api_id)->where('type', 'Admin')->first();
-                                        if($api_key){
-                                            $parameters_for_verify = [
-                                                "txn_id" => $txn_for_verify,
-                                                "partner_transection_id" => $Txn->partner_transection_id,
-                                                "api_key" => $api_key->api_key
-                                            ];
-
-                                            $thisrquest_for_verify = request()->merge($parameters_for_verify);
-                                            $response_for_verify =  $this->verifyPaymentB($thisrquest_for_verify);
-                                            $content_for_verify = $response_for_verify->getContent();
-                                            LaravelLog::info('x Deposit Verify Response txn: '. $txn_for_verify .' response '.$content_for_verify);
-                                        }
-                                    }
-                                }
-                            }
-
-                            $attempt++;
-                        }
-                    }
-
-
-                    $SmsLognotmatcheds = SmsLog::where('e_wallet_name', $source)->where('e_wallet_no', $acc)->where('matched', 2)->where('sent', 0)->orderBy('id', 'desc')->skip(3)->take(PHP_INT_MAX)->get();
-                    foreach($SmsLognotmatcheds as $SmsLognotmatched){
-                            if($SmsLognotmatched->type==1){
-                                $ttttt_type = "Deposit";
-                            }else{
-                                $ttttt_type = "Withdrawal";
-                            }
-
-                            $formattedDateeeeeeee = Carbon::parse($SmsLognotmatched->created_at)->format('d-m-Y h:i A');
-                            $message = "";
-                            $message .= "*$source => $acc => $type* \n";
-                            $message .= "*Type:* $ttttt_type \n";
-                            $message .= "*-------------------------------------* \n";
-                            $message .= "Customer: $SmsLognotmatched->customer_acc_no \n";
-                            $message .= "TXN: $SmsLognotmatched->txn \n";
-                            $message .= "Amount: $SmsLognotmatched->amount \n";
-                            $message .= "Comm: $SmsLognotmatched->comm \n";
-                            $message .= "Charge: $SmsLognotmatched->charge \n";
-                            $message .= "Final Balance: $SmsLognotmatched->final_amount \n";
-                            $message .= "DateTime: $formattedDateeeeeeee \n";
-                            $message .= "*-------------------------------------* \n";
-                            $message .= "*Holded SMS Rejected* \n";
-
-                            $response = Http::post($url, [
-                                'chat_id' => $RejectedchatId,
-                                'text' => $message,
-                                'parse_mode' => 'Markdown',
-                            ]);
-
-                            $SmsLognotmatched->sent = 1;
-                            $SmsLognotmatched->save();
-
-                        }
-
-
-
-                    return 'success';
-                }else{
-                    LaravelLog::info('Formate note match-xxxxxxxxxxxxxxxx');
+                    
                 }
 
             }
+
+
+            
 
            return 'success';
     }
