@@ -1510,6 +1510,12 @@ class PayoutRecordController extends Controller
                     'module_id'   => $pre_payout->id,
                     'description' => "Status for payout ID {$pre_payout->id} changed from '{$pre_payout->status}' to 'Pending' by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
                 ]);
+                CsTracker::create([
+                    'user_id' => auth()->id(),
+                    'action'  => "Payout ID {$pre_payout->id} status changed from '{$pre_payout->status}' to 'Pending' by " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                    'from'    => now(),
+                    'to'      => null,
+                ]);
             }
             $pre_payout->save();
 
@@ -1520,6 +1526,14 @@ class PayoutRecordController extends Controller
                 'description' => "Updated e-wallet phone number to '{$request->e_wallet_phone_number}' for payout ID {$pre_payout->id} by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
             ]);
 
+            CsTracker::create([
+                'user_id' => auth()->id(),
+                'action'  => "Updated e-wallet phone number to '{$request->e_wallet_phone_number}' for payout ID {$pre_payout->id} by " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                'from'    => now(),
+                'to'      => null,
+            ]);
+
+
             // $pre_payout = PayoutLog::where('payout_id', $pre_payout->id)->lockForUpdate()->first();
             if ($pre_payout) {
                 if ($pre_payout->transfer_status == 3) {
@@ -1529,6 +1543,14 @@ class PayoutRecordController extends Controller
                         'module_id'   => $pre_payout->id,
                         'description' => "Transfer status reset from 3 to 1 for payout ID {$pre_payout->id} by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
                     ]);
+
+                    CsTracker::create([
+                        'user_id' => auth()->id(),
+                        'action'  => "Transfer status reset from 3 to 1 for payout ID {$pre_payout->id} by " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                        'from'    => now(),
+                        'to'      => null,
+                    ]);
+
                     $pre_payout->transfer_status = 1;
                 }
             }
@@ -1604,6 +1626,14 @@ class PayoutRecordController extends Controller
                     'module_id'   => $pre_payout->id,
                     'description' => "Funds rebalanced for payout ID {$pre_payout->id} due to phone number change by user " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
                 ]);
+
+                CsTracker::create([
+                    'user_id' => auth()->id(),
+                    'action'  => "Funds rebalanced for payout ID {$pre_payout->id} due to phone number change by " . auth()->user()->name . ". Partner Transaction ID: " . ($pre_payout->partner_transection_id ?? 'N/A'),
+                    'from'    => now(),
+                    'to'      => null,
+                ]);
+
             }
 
             DB::commit();
