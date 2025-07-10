@@ -3183,7 +3183,7 @@ class PaymentLogController extends Controller
         $string = '{"from":"16216","fromName":"","to":"myself","tos":["myself"],"toName":"","toNames":[""],"content":"B2C: Cash-Out from A\/C: ***539 Tk1,000.00 Comm:Tk4.20; A\/C Balance: Tk469,249.21.TxnId: 5233259555 Date:14-MAR-25 06:31:14 am. Download https:\/\/bit.ly\/nexuspay","dir":"incoming","date":"2025-03-14T00:31:15.728Z"}';
 
 
-        $string1 = 'Cash In Successful.
+        $string = 'Cash In Successful.
             Amount: Tk 3700.00
             Customer: 01854060311
             TxnID: 7450R0NJ
