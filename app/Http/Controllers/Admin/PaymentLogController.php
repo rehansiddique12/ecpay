@@ -3792,18 +3792,34 @@ class PaymentLogController extends Controller
 
             // Step 1: Find the position of "Text"
             $textStart = strpos($string, '"content"');
+            $format = 1;
+            if(!$textStart){
+                $textStart = $string;
+                $format = 2;
+            }
 
             $result=[];
 
             if(isset($textStart) && !empty($textStart)){
-                $colonPos = strpos($string, ':', $textStart);
-                $valueStart = strpos($string, '"', $colonPos + 1) + 1;
-                $valueEnd = strpos($string, '",', $valueStart);
-                $text = substr($string, $valueStart, $valueEnd - $valueStart);
-                $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
-                $jsonWithoutText = rtrim($jsonWithoutText, ",");
-
-                $array = json_decode($jsonWithoutText, true);
+                if($format==1){
+                    $colonPos = strpos($string, ':', $textStart);
+                    $valueStart = strpos($string, '"', $colonPos + 1) + 1;
+                    $valueEnd = strpos($string, '",', $valueStart);
+                    $text = substr($string, $valueStart, $valueEnd - $valueStart);
+                    $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
+                    $jsonWithoutText = rtrim($jsonWithoutText, ",");
+                    $array = json_decode($jsonWithoutText, true);
+                }else{
+                    $text = $textStart;
+                    $array = [];
+                    if(strtolower($source)=="nagad"){
+                        $array['from']="NAGAD";
+                    }elseif(strtolower($source)=="bkash"){
+                        $array['from']="bKash";
+                    }elseif(strtolower($source)=="rocket"){
+                        $array['from']="16216";
+                    }
+                }
 
                 $result = [];
 
