@@ -957,7 +957,7 @@ class TelegramGroupController extends Controller
                                                                                     
                                                                                     
                                                                                     if ($source != env('APP_WEBSITE')) {
-                                                                                        $api_balance_row = Api::where('api_key', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
+                                                                                        $api_balance_row = Api::where('id', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
                                                                                         $net_amount = $payment->amount - $charge; // Move this outside the if block
                                                                                         
                                                                                         if ($api_balance_row) {
