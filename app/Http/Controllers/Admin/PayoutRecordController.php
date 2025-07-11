@@ -4252,7 +4252,6 @@ class PayoutRecordController extends Controller
                 return response()->json(['errors' => $validator->errors()], 400);
             }
 
-
             $acc = $request->user_account_no;
             $ewalletee = strtolower($request->e_wallet_name);
 
@@ -4372,12 +4371,7 @@ class PayoutRecordController extends Controller
                 $this->updateLimits();
                 $this->updateEWallets();
 
-
                 $Setting = Setting::where('name', 'last_account_active')->first();
-
-
-
-
 
                 $now = Carbon::now();
                 $startOfToday = $now->copy()->startOfDay();
@@ -4525,17 +4519,14 @@ class PayoutRecordController extends Controller
                 }
 
                 $payout->transfer_status = 2;
+                $payout->status = "Pending";
                 $payout->e_wallet_phone_number = $account->account_no;
                 $payout->e_wallet_type = $account->type;
             }
 
-
-
-
             if ($source != env('APP_WEBSITE')) {
                 // $api_key->balance +=$request->amount;
                 // $api_key->save();
-
 
                 $sum = Payout::whereYear('created_at', now()->year)
                     ->whereMonth('created_at', now()->month)
