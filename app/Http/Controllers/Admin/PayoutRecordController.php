@@ -4519,7 +4519,6 @@ class PayoutRecordController extends Controller
                 }
 
                 $payout->transfer_status = 2;
-                $payout->status = "Pending";
                 $payout->e_wallet_phone_number = $account->account_no;
                 $payout->e_wallet_type = $account->type;
             }
