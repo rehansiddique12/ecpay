@@ -3172,18 +3172,16 @@ class PaymentLogController extends Controller
 
         $this->directwebhookddd($source, $acc, $type);
 
-          
-
             exit;
     }
 
 
     public function directwebhookddd($source, $acc, $type){
-        
+
         $string = '{"from":"16216","fromName":"","to":"myself","tos":["myself"],"toName":"","toNames":[""],"content":"B2C: Cash-Out from A\/C: ***539 Tk1,000.00 Comm:Tk4.20; A\/C Balance: Tk469,249.21.TxnId: 5233259555 Date:14-MAR-25 06:31:14 am. Download https:\/\/bit.ly\/nexuspay","dir":"incoming","date":"2025-03-14T00:31:15.728Z"}';
 
 
-        $string1 = 'Cash In Successful.
+        $string = 'Cash In Successful.
             Amount: Tk 3700.00
             Customer: 01854060311
             TxnID: 7450R0NJ
@@ -3308,10 +3306,6 @@ class PaymentLogController extends Controller
                         }else{
                             $t_type = 2;
                         }
-
-
-
-
 
                         // Extract amount after "Tk" and remove commas
                         if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
@@ -3509,9 +3503,6 @@ class PaymentLogController extends Controller
                         $text = preg_replace('/\s*Download.*$/', '', $text);
 
 
-
-
-
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
@@ -3582,8 +3573,6 @@ class PaymentLogController extends Controller
                         }
 
 
-
-
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
@@ -3594,7 +3583,6 @@ class PaymentLogController extends Controller
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
                         }
-
 
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
@@ -3611,21 +3599,12 @@ class PaymentLogController extends Controller
                         $result['Comment'] = "Cash In";
                         $result['Comm'] = 0;
 
-
-
-
-
                     }elseif (strpos($text, "Cash-Out to") === 0) {
 
-
-
                         $t_type = 2;
-
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
                         $text = preg_replace('/\s*download.*$/', '', $text);
-
-
 
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
@@ -3647,14 +3626,9 @@ class PaymentLogController extends Controller
                             }
                         }
 
-
-
                         if(!isset($result['charge']) || empty($result['charge'])){
                             $result['charge'] = 0;
                         }
-
-
-
 
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
@@ -3667,16 +3641,10 @@ class PaymentLogController extends Controller
                             }
                         }
 
-
-
-
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-
-
-
 
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
@@ -3691,20 +3659,11 @@ class PaymentLogController extends Controller
 
 
 
-
-
                     }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
 
-
-
                         $t_type = 2;
-
                         $text = str_replace('\\', "", $text);
                         $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-
 
                         if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
@@ -3714,37 +3673,29 @@ class PaymentLogController extends Controller
                         if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
                             $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                         }
-
                         // Extract Commission after "Comm" and before ";"
                         if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                             $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
                         }
-
                         // Extract Balance after "Balance:" and before "TxnId"
                         if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                             $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                         }
-
                         // Extract Transaction ID after "TxnId:" and before "Date"
                         if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
                             $result['TxnID'] = $matches[1];
                         }
-
                         // Extract DateTime after "Date:"
                         if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
                             $result['DateTime'] = $matches[1];
                             $result['DateTime'] = rtrim($result['DateTime'], '.');
                             $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
                         }
-
                         $result['Comment'] = "Cash Transferred";
                         $result['Comm'] = 0;
 
                     }
                 }
-
-
-
 
                 if(isset($result['Comment']) && isset($result['Amount']) && isset($result['Customer']) && isset($result['TxnID']) && isset($result['Comm']) && isset($result['Balance']) && isset($result['DateTime'])){
                     $result['Amount'] = preg_replace('/[^0-9.]/', '', $result['Amount']);
@@ -3756,18 +3707,12 @@ class PaymentLogController extends Controller
                     $result['Comm'] = floatval($result['Comm']);
                     $result['charge'] = floatval($result['charge']);
 
-
-               
-                    dd($result);
+                    // dd($result);
 
 
-                    
                 }
 
             }
-
-
-            
 
            return 'success';
     }
@@ -3792,18 +3737,34 @@ class PaymentLogController extends Controller
 
             // Step 1: Find the position of "Text"
             $textStart = strpos($string, '"content"');
+            $format = 1;
+            if(!$textStart){
+                $textStart = $string;
+                $format = 2;
+            }
 
             $result=[];
 
             if(isset($textStart) && !empty($textStart)){
-                $colonPos = strpos($string, ':', $textStart);
-                $valueStart = strpos($string, '"', $colonPos + 1) + 1;
-                $valueEnd = strpos($string, '",', $valueStart);
-                $text = substr($string, $valueStart, $valueEnd - $valueStart);
-                $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
-                $jsonWithoutText = rtrim($jsonWithoutText, ",");
-
-                $array = json_decode($jsonWithoutText, true);
+                if($format==1){
+                    $colonPos = strpos($string, ':', $textStart);
+                    $valueStart = strpos($string, '"', $colonPos + 1) + 1;
+                    $valueEnd = strpos($string, '",', $valueStart);
+                    $text = substr($string, $valueStart, $valueEnd - $valueStart);
+                    $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
+                    $jsonWithoutText = rtrim($jsonWithoutText, ",");
+                    $array = json_decode($jsonWithoutText, true);
+                }else{
+                    $text = $textStart;
+                    $array = [];
+                    if(strtolower($source)=="nagad"){
+                        $array['from']="NAGAD";
+                    }elseif(strtolower($source)=="bkash"){
+                        $array['from']="bKash";
+                    }elseif(strtolower($source)=="rocket"){
+                        $array['from']="16216";
+                    }
+                }
 
                 $result = [];
 

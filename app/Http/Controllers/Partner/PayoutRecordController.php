@@ -3611,7 +3611,7 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'Wrong Username OR Username Not Exist.'], 404);
         }
 
-
+        
 
 
         if ($api_key->min_deposit > $amount) {
@@ -3626,11 +3626,302 @@ class PayoutRecordController extends Controller
         }
 
 
+        $start = now()->startOfMonth();
+        $end = now()->endOfMonth();
+
+        $sum = Payment::whereBetween('created_at', [$start, $end])
+            ->where('api_id', $api_id)
+            ->where('status', 'Complete')
+            ->sum('amount');
+
+        
+       
+
+           
+
+        $charge = 0;
+
+        $e_wallet_name = "bKash";
+        $acc_type = "Merchant";
+
+        $commissions = Commission::where('category_id', $api_key->category_id)
+            ->where('gateway_id', 'like', "%{$e_wallet_name}%")
+            ->where('type', 'like', "%{$acc_type}%")
+            ->where(function ($q) use ($sum) {
+                $q->where(function ($q2) use ($sum) {
+                    $q2->where('from_amount', '<=', $sum)
+                    ->where('to_amount', '>=', $sum);
+                })->orWhere(function ($q3) {
+                    $q3->whereRaw('1 = 1'); // fallback
+                });
+            })
+            ->orderByRaw("CASE WHEN from_amount <= ? AND to_amount >= ? THEN 0 ELSE 1 END", [$sum, $sum])
+            ->orderBy('to_amount', 'desc')
+            ->first();
+
+        $charge = $commissions ? $commissions->deposit_percentage * $amount / 100 : 0;
+
+
+        
+
+        $reqAmount = $amount;
+        $payable = getAmount($reqAmount - $charge);
+        $final_amo = getAmount($payable * $gate->convention_rate);
+
+        $fund = Payment::where('partner_transection_id', $transection_id)
+        ->where('api_id', $api_key->id)
+        ->exists();    
+        if ($fund) {
+            $message = "This partner transaction ID has already been created!";
+            return response()->json(['status' => 'fail', 'message' => $message]);
+        }
+        
+
+        if (!empty($transection_id) || $transection_id != "0") {
+
+            $merchantinvoice = $transection_id;
+        } else {
+
+            $merchantinvoice = "Invoice" . time();
+        }
+
+        
+
+        $Setting = Setting::where('name', 'last_merchant_account_active')->first();
+
+        $recordcounts = Payment::where('gateway_id', $gate->id)
+            ->where('created_at', '>=', $Setting->value)
+            ->whereNotNull('live_payment_id')
+            ->where('live_payment_id', '!=', '')
+            ->select('e_wallet_phone_number', DB::raw('count(*) as total'))
+            ->groupBy('e_wallet_phone_number')
+            ->pluck('total', 'e_wallet_phone_number')
+            ->toArray();
+
+            
+        $accounts = MerchantAccount::where('status', 1)
+        ->get()
+        ->sortBy(fn($acc) => $recordcounts[$acc->e_wallet_phone_number] ?? 0)
+        ->values()
+        ->all();
+
+        $count = count($accounts);
+
+        if ($count<1) {
+            return response()->json(['error' => 'This gateway has been deactivated by the Administrator.'], 422);
+        }
+
+        $account_get = 0;
+
+        foreach($accounts as $account){
+            
+            $accessToken = $this->getBkashToken($account);
+            
+            if(isset($accessToken)){
+                $createBkashPayment = $this->createBkashPayment($accessToken, $amount, $merchantinvoice, $account);
+                if(isset($createBkashPayment['paymentID'])){
+                    LaravelLog::info('Account Choosed:' . $account->e_wallet_phone_number);
+                    $account_get = 1;
+                    break;
+                }
+            }
+
+            LaravelLog::info('Account Deactivated:' . $account->e_wallet_phone_number);
+            $account->status = 0;
+            $account->save();
+            
+        }
+
+
+        if ($account_get==0) {
+            return response()->json(['error' => 'This gateway has been deactivated by the Administrator.'], 422);
+        }
+
+
+        
+        $e_wallet_phone_number = $account->e_wallet_phone_number;
+
+
+        $fund = new Payment();
+        $fund->gateway_id = $gate->id;
+        $fund->amount = $amount;
+        $fund->partner_transection_id = $transection_id;
+        if (isset($member_id) && !empty($member_id)) {
+            $fund->member_id = $member_id;
+        }
+
+        $fund->charge = $charge;
+        // $fund->account_no = $acc;
+        $fund->transaction = strRandom();
+        $fund->try = 0;
+        $fund->status = "Pending";
+        $fund->api_id = $api_key->id;
+        $fund->e_wallet_phone_number = $e_wallet_phone_number;
+        $fund->request_source = "Iframe-3";
+        $fund->e_wallet_name = $gate->name;
+        $fund->sender = '';
+
+        
+        // dd($account);
+        
+
+        // dd($createBkashPayment);
+        if (isset($createBkashPayment['paymentID'])) {
+            $fund->live_payment_id = $createBkashPayment['paymentID'];
+            $fund->save();
+
+
+            if($commissions){
+                $parentIds = ParentCommission::where('user_id', $api_key->id)
+                    ->pluck('parent_id')
+                    ->unique()
+                    ->values();
+                foreach ($parentIds as  $parentId) {
+
+                    $parent_charge = 0;
+
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                    if ($parent_commission) {
+                        $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
+                    } else {
+                        $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        if ($parent_commission) {
+                            $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
+                        }
+                    }
+
+                    if ($parent_charge > 0) {
+                        $PartnerCommission = new PartnerCommission();
+                        $PartnerCommission->api_id = $api_key->id;
+                        $PartnerCommission->from_id = $parentId;
+                        $PartnerCommission->type = 1;
+                        $PartnerCommission->amount = $amount;
+                        $PartnerCommission->charges = $charge;
+                        $PartnerCommission->total_amount = $amount - $charge;
+                        $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
+                        $profit_p = $parent_commission->deposit_percentage;
+                        $profit = $profit_p * $amount / 100;
+                        $PartnerCommission->profit = $profit;
+                        $PartnerCommission->profit_p = $profit_p;
+                        $PartnerCommission->transaction_id = $fund['id'];
+                        $PartnerCommission->status = 0;
+                        $PartnerCommission->save();
+                    }
+                }
+            }
+
+
+
+
+            return redirect()->away($createBkashPayment['bkashURL']);
+        } else {
+            return response()->json(['message' => 'Gateway Error.'], 404);
+        }
+        exit;
+    }
+
+
+    public function processTransection3copy($username, $ewallet, $amount, $transection_id = 0, $sign = null, $member_id = null)
+    {
+        $amount = str_replace(',', '', $amount);
+        $data = [
+            'username' => $username,
+            'ewallet' => $ewallet,
+            'amount' => $amount,
+            'transection_id' => $transection_id,
+            'member_id' => $member_id,
+            'phone_number' => ''
+        ];
+
+        $data_jsaon =  json_encode($data);
+        LaravelLog::info('processTransection3:' . $data_jsaon);
+
+        $message = "";
+        $txn_verification = "";
+        $ewalletee = strtolower($ewallet);
+
+        if ($ewalletee != "bkash") {
+            return response()->json(['message' => 'You are only allowed to proceed with Bkash E-Wallet'], 404);
+        }
+
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        if (!$gate) {
+            $message = "Gateway is inactive.";
+            return response()->json(['message' => $message], 404);
+        }
+
+        $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
+        if ($api_key && $api_key->type == "Admin") {
+            $api_id = $api_key->id;
+            $secretKey = $api_key->secret_key;
+            $txn_verification = $api_key->txn_verification;
+            $data['redirect_url'] = $api_key->redirect_url;
+
+
+
+            if ($api_key->sign == 1) {
+                if (isset($sign) && !empty($sign)) {
+                    $string_to_hash = json_encode(array(
+                        "amount" => $amount,
+                        "api_key" => $api_key->api_key,
+                        "e_wallet_name" => $ewallet
+                    ));
+
+                    $hash = hash("sha256", $string_to_hash);
+                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+
+                    $timestamp = time();
+                    $timestamp_str = (string) $timestamp;
+                    $timestamp_length = strlen($timestamp_str);
+                    $decoded = base64_decode($sign);
+                    $request_hash = substr($decoded, 0, -$timestamp_length);
+                    $sign_timestamp = substr($decoded, -$timestamp_length);
+                    if (hash_equals($request_hash, $hmac)) {
+                        if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
+                            $signature = Signature::where('sign', $sign)->first();
+                            if (!$signature) {
+                                $signature = new Signature();
+                                $signature->sign = $sign;
+                                $signature->save();
+                            } else {
+                                return response()->json(['code' => 601, 'message' => 'signature Already Used.'], 404);
+                            }
+                        } else {
+                            return response()->json(['code' => 602, 'message' => 'signature Timeout'], 404);
+                        }
+                    } else {
+                        return response()->json(['code' => 603, 'message' => 'Wrong Sign. Data may have been tampered with.'], 404);
+                    }
+                } else {
+                    return response()->json(['code' => 604, 'message' => 'sign parameter should not be empty.'], 404);
+                }
+            }
+        } else {
+            return response()->json(['message' => 'Wrong Username OR Username Not Exist.'], 404);
+        }
+
+        
+
+
+        if ($api_key->min_deposit > $amount) {
+            $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
+            return response()->json(['message' => $message], 404);
+        }
+
+
+        if ($gate->max_amount < $amount) {
+            $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
+            return response()->json(['message' => $message], 404);
+        }
+
+        
         $sum = Payment::whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->where('api_id', $api_id)
             ->where('status', 'Complete')
             ->sum('amount');
+
+           
 
         $charge = 0;
 
@@ -3647,7 +3938,6 @@ class PayoutRecordController extends Controller
             }
         }
 
-
         $reqAmount = $amount;
         $payable = getAmount($reqAmount - $charge);
         $final_amo = getAmount($payable * $gate->convention_rate);
@@ -3659,6 +3949,7 @@ class PayoutRecordController extends Controller
             return response()->json(['status' => 'fail', 'message' => $message]);
         }
 
+        
 
         if (!empty($transection_id) || $transection_id != "0") {
 
@@ -3668,6 +3959,7 @@ class PayoutRecordController extends Controller
             $merchantinvoice = "Invoice" . time();
         }
 
+        
 
         $Setting = Setting::where('name', 'last_merchant_account_active')->first();
 
@@ -3680,12 +3972,16 @@ class PayoutRecordController extends Controller
             ->pluck('total', 'e_wallet_phone_number')
             ->toArray();
 
+            
         $account = MerchantAccount::where('status', 1)
             ->get()
             ->sortBy(function ($single_account) use ($recordcounts) {
                 return $recordcounts[$single_account->e_wallet_phone_number] ?? 0;
             })
-            ->values()->first();
+            ->values()->toArray();
+
+
+            dd($account);
 
         if (!$account) {
             return response()->json(['error' => 'This gateway has been deactivated by the Administrator.'], 422);
@@ -3715,11 +4011,15 @@ class PayoutRecordController extends Controller
         $fund->e_wallet_name = $gate->name;
         $fund->sender = '';
 
-
+        
+        // dd($account);
         $accessToken = $this->getBkashToken($account);
+
+        
+
         $createBkashPayment = $this->createBkashPayment($accessToken, $amount, $merchantinvoice, $account);
 
-
+        // dd($createBkashPayment);
         if (isset($createBkashPayment['paymentID'])) {
             $fund->live_payment_id = $createBkashPayment['paymentID'];
             $fund->save();
