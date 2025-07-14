@@ -2174,6 +2174,13 @@ class PayoutRecordController extends Controller
     {
         DB::beginTransaction(); // Start a transaction
         try {
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $request->partner_id,
+                'description' => 'API Balance adjustment initiated.',
+            ]);
+
             if ($request->amount_type == 2) {
                 $amount = -$request->amount;
             } else {
@@ -2185,9 +2192,24 @@ class PayoutRecordController extends Controller
                 $charges = ($request->amount / 100) * $request->charges;
             }
 
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $request->partner_id,
+                'description' => 'Amount calculated: ' . $amount . ', Charges calculated: ' . $charges,
+            ]);
+
             $api = Api::where('id', $request->partner_id)->lockForUpdate()->firstOrFail();
+            $old_balance = $api->balance;
             $api->balance += ($amount - $charges);
             $api->save();
+
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $request->partner_id,
+                'description' => 'Balance updated. Old Balance: ' . $old_balance . ', New Balance: ' . $api->balance,
+            ]);
 
             $new_api_transaction = new ApiTransaction;
             $new_api_transaction->amount = $amount;
@@ -2199,6 +2221,13 @@ class PayoutRecordController extends Controller
             $new_api_transaction->charges = $charges;
             $new_api_transaction->save();
 
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $new_api_transaction->id,
+                'description' => 'API Transaction saved.',
+            ]);
+
             $Log = new Log();
             $Log->date_time = $new_api_transaction->created_at;
             $Log->final_amount = $amount - $charges;
@@ -2209,11 +2238,32 @@ class PayoutRecordController extends Controller
             $Log->source = 'APIBalanceAdd';
             $Log->save();
 
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $new_api_transaction->id,
+                'description' => 'Internal Log saved for API balance adjustment.',
+            ]);
+
             DB::commit();
+
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $request->partner_id,
+                'description' => 'Transaction committed successfully.',
+            ]);
             session()->flash('success', 'Successfully Updated Balance');
             return back();
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction on error
+
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'API Balance Adjustment',
+                'module_id' => $request->partner_id,
+                'description' => 'Transaction failed and rolled back: ' . $e->getMessage(),
+            ]);
             session()->flash('error', 'Failed to Update Balance: ' . $e->getMessage());
             return back()->withInput();
         }
@@ -4135,10 +4185,14 @@ class PayoutRecordController extends Controller
 
     public function transferBalanceAdd(Request $request)
     {
-        // dd($request->all());
-        // dd('hello');
         $transfer_from = $request->transfer_from1;
         $transfer_to = $request->transfer_to1;
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'module' => 'Transfer Balance',
+            'module_id' => 0,
+            'description' => 'Transfer initiated: ' . $request->category,
+        ]);
 
         $EWalletTransaction = new EWalletTransfer;
 
@@ -4166,6 +4220,13 @@ class PayoutRecordController extends Controller
             $EWalletTransaction->e_wallet = $from_e_wallet_accounts->e_wallet_name;
         }
 
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'module' => 'Transfer Balance',
+            'module_id' => 0,
+            'description' => 'Accounts fetched for transfer: From ' . $EWalletTransaction->from_account_no . ' To ' . $EWalletTransaction->to_account_no,
+        ]);
+
         if ($EWalletTransaction->from_e_wallet_id > 0) {
             $matched = 0;
             $SmsLog = SmsLog::where('e_wallet_name', $from_e_wallet_accounts->e_wallet_name)->where('txn', $request->txn_id)->where('e_wallet_no', $from_e_wallet_accounts->account_no)->orderBy('id', 'desc')->first();
@@ -4176,9 +4237,18 @@ class PayoutRecordController extends Controller
             }
 
             if ($matched == 0) {
+                $old_balance = $from_e_wallet_accounts->balance;
                 $from_e_wallet_accounts->balance = $from_e_wallet_accounts->balance - $request->amount - $request->charges + $request->comission;
                 $from_e_wallet_accounts->live_balance = $from_e_wallet_accounts->live_balance - $request->amount - $request->charges + $request->comission;
                 $from_e_wallet_accounts->save();
+
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Transfer Balance',
+                    'module_id' => $from_e_wallet_accounts->id,
+                    'description' => 'Deducted balance from sender. Old Balance: ' . $old_balance . ', New Balance: ' . $from_e_wallet_accounts->balance,
+                ]);
+
             }
         }
 
@@ -4192,9 +4262,17 @@ class PayoutRecordController extends Controller
             }
 
             if ($matched == 0) {
+                $old_balance = $to_e_wallet_accounts->balance;
                 $to_e_wallet_accounts->balance = $to_e_wallet_accounts->balance + $request->amount - $request->charges + $request->comission;
                 $to_e_wallet_accounts->live_balance = $to_e_wallet_accounts->live_balance + $request->amount - $request->charges + $request->comission;
                 $to_e_wallet_accounts->save();
+
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Transfer Balance',
+                    'module_id' => $to_e_wallet_accounts->id,
+                    'description' => 'Added balance to receiver. Old Balance: ' . $old_balance . ', New Balance: ' . $to_e_wallet_accounts->balance,
+                ]);
             }
         }
 
@@ -4215,11 +4293,28 @@ class PayoutRecordController extends Controller
 
             $uploadedImage = $this->uploadImage($request->image, config('location.receipts.path'));
             $EWalletTransaction->image = $uploadedImage;
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'module' => 'Transfer Balance',
+                'module_id' => 0,
+                'description' => 'Transfer receipt image uploaded.',
+            ]);
             $EWalletTransaction->save();
         }
         $EWalletTransaction->save();
-
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'module' => 'Transfer Balance',
+            'module_id' => $EWalletTransaction->id,
+            'description' => 'Transfer transaction saved.',
+        ]);
         session()->flash('success', 'Added Successfully');
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'module' => 'Transfer Balance',
+            'module_id' => $EWalletTransaction->id,
+            'description' => 'Transfer completed successfully.',
+        ]);
         return back();
     }
 
