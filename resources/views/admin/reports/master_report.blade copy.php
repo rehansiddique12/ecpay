@@ -80,22 +80,12 @@
                                             <td>{{ number_format($item['deposit_amount'], 2) }}</td>
                                             <td>{{ number_format($item['deposit_charges'], 2) }}</td>
                                             <td>{{ number_format($item['deposit_e_wallet_charges'], 2) }}</td>
-                                            <!-- <td>{{ number_format($item['deposit_commission'], 2) }}</td> -->                                 
-                                            <td>
-                                                <a href="#" class="show-commission" data-date="{{ $item['date'] }}" data-type="deposit">
-                                                    {{ number_format($item['deposit_commission'], 2) }}
-                                                </a>
-                                            </td>
+                                            <td>{{ number_format($item['deposit_commission'], 2) }}</td>
                                             <td>{{ $item['withdrawal_record_count'] }}</td>
                                             <td>{{ number_format($item['withdrawal_amount'], 2) }}</td>
                                             <td>{{ number_format($item['withdrawal_charges'], 2) }}</td>
                                             <td>{{ number_format($item['withdrawal_e_wallet_charges'], 2) }}</td>
-                                            <!-- <td>{{ number_format($item['withdrawal_commission'], 2) }}</td> -->
-                                            <td>
-                                                <a href="#" class="show-commission" data-date="{{ $item['date'] }}" data-type="withdrawal">
-                                                    {{ number_format($item['withdrawal_commission'], 2) }}
-                                                </a>
-                                            </td>
+                                            <td>{{ number_format($item['withdrawal_commission'], 2) }}</td>
                                             <td>{{ number_format($item['commission_amount'], 2) }}</td>
                                             <td>{{ number_format($item['top_up_amount'], 2) }}</td>
                                             <td>{{ number_format($item['top_up_charges'], 2) }}</td>
@@ -153,60 +143,8 @@
                 </div>
             </div>
         </div>
+
     </div>
-
-    <div class="modal modal-top fade" id="commissionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content shadow">
-            <div class="modal-header text-white">
-                <h5 class="modal-title" id="commissionModalLabel">Commission</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body">
-                <div id="commissionModalBody">
-                    <p>Loading...</p>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">
-                    {{ __('accounts.close') }}
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-   @push('js')
-<script>
-    $(document).on('click', '.show-commission', function (e) {
-        e.preventDefault();
-
-        let date = $(this).data('date');
-        let type = $(this).data('type');
-
-        const typeText = type === 'deposit' ? 'Deposit' : 'Withdrawal';
-        $('#commissionModalLabel').text(typeText + ' Commissions');
-
-        $('#commissionModalBody').html('<p>Loading...</p>');
-        $('#commissionModal').modal('show');
-
-        $.ajax({
-            url: "{{ route('admin.reports.commission_breakdown') }}",
-            method: "GET",
-            data: { date, type },
-            success: function (response) {
-                $('#commissionModalBody').html(response.html);
-            },
-            error: function () {
-                $('#commissionModalBody').html('<p class="text-danger">Failed to load data.</p>');
-            }
-        });
-    });
-</script>
-@endpush
-
-
+    @push('js')
+    @endpush
 </x-admin-layout>

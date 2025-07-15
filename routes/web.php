@@ -235,6 +235,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/logs', [ReportsController::class, 'logs'])->name('reports.logs');
         Route::get('reports/cal2', [ReportsController::class, 'cal2'])->name('reports.cal2');
         Route::get('reports/master_report', [ReportsController::class, 'master_report'])->name('reports.master_report');
+        Route::get('reports/commission-breakdown', [ReportsController::class, 'commissionBreakdown'])
+    ->name('reports.commission_breakdown');
         Route::get('reports/revenue_center', [ReportsController::class, 'revenue_center'])->name('reports.revenue_center');
         Route::get('reports/live_ewallet_balance', [ReportsController::class, 'live_ewallet_balance'])->name('reports.live_ewallet_balance');
         Route::get('reports/daily_ewallet_summary', [ReportsController::class, 'daily_ewallet_summary'])->name('reports.daily_ewallet_summary');
