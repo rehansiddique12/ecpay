@@ -1,4 +1,4 @@
-<x-admin-layout :title="$pageTitle">
+    <x-admin-layout :title="$pageTitle">
     <style>
         #pagination {
             margin-top: 1rem;
@@ -27,9 +27,11 @@
                         <option value="Deposit Log" {{ request('module') == 'Deposit Log' ? 'selected' : '' }}>Deposit Log</option>
                         <option value="Withdrawal Log" {{ request('module') == 'Withdrawal Log' ? 'selected' : '' }}>Withdrawal Log</option>
                         <option value="Account Management" {{ request('module') == 'Account Management' ? 'selected' : '' }}>Account Management</option>
+                        <option value="API Balance Adjustment" {{ request('module') == 'API Balance Adjustment' ? 'selected' : '' }}>API Balance Adjustment</option>
+                        <option value="Transfer Balance" {{ request('module') == 'Transfer Balance' ? 'selected' : '' }}>Transfer Balance</option>
                     </select>
-
                 </div>
+
 
                 <div class="col-md-3">
                     <input type="date" name="date" value="{{ request('date') }}" class="form-control" />
@@ -73,6 +75,10 @@
                                         str_contains($module, 'Account Management')
                                     ) {
                                         $label = 'Account Management';
+                                    } elseif (str_contains($module, 'API Balance Adjustment')) {
+                                        $label = 'API Balance Adjustment';
+                                    } elseif (str_contains($module, 'Transfer Balance')) {
+                                        $label = 'Transfer Balance';
                                     }
                                 @endphp
                                 {{ $label }}
