@@ -128,7 +128,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/create_transaction_log', [DevFunctionsController::class, 'create_transaction_log']);
 
 
-    Route::group(['middleware' => ['auth:admin']], function () {
+    Route::group(['middleware' => ['auth:admin', 'check.admin.status']], function () {
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
         // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');

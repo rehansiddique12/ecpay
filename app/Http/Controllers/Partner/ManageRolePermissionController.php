@@ -26,7 +26,10 @@ class ManageRolePermissionController extends Controller
         if ($request->ajax()) {
             // Prepare the query for Admins
             $query = Api::select(['id', 'name', 'username', 'email', 'phone', 'status', 'admin_access', 'role_type'])
-                ->where('id', '!=', auth()->guard('partner')->id())->where('api_key', $user->api_key)->where('type', '!=', 'Admin');
+                ->where('id', '!=', auth()
+                ->guard('partner')->id())
+                ->where('api_key', $user->api_key)
+                ->where('type', '!=', 'Admin');
 
             // Return DataTables response
             return DataTables::of($query)
