@@ -3112,6 +3112,7 @@ class PaymentLogController extends Controller
                 $payment = $pending_payment;
                 $payment->status = "Pending";
             }
+
             $e_wallet_log_save = new EWalletLog();
             $e_wallet_log_save->previous_balance = $previous_account_balance;
             $e_wallet_log_save->amount = $request_amount;
@@ -3124,6 +3125,7 @@ class PaymentLogController extends Controller
             $e_wallet_log_save->account_id = $account->id;
             $e_wallet_log_save->source = "addPaymentInfo";
             $e_wallet_log_save->save();
+            
             if($commit == 0){
                 DB::commit();
             }
@@ -3822,6 +3824,26 @@ class PaymentLogController extends Controller
                 }
 
                 $result = [];
+
+                $sms_type = "";
+                if(strpos(strtolower($text), "b2b") === 0){
+                    $sms_type .= "B2B";
+                }elseif(strpos(strtolower($text), "b2c") === 0){
+                    $sms_type .= "B2C";
+                }
+
+                if(!empty($sms_type)){
+                    if(strpos(strtolower($text), "cash in") === 0){
+                        $sms_type .= " Cash-In";
+                    }elseif(strpos(strtolower($text), "cash out") === 0){
+                        $sms_type .= " Cash-Out";
+                    }elseif(strpos(strtolower($text), "cash-in") === 0){
+                        $sms_type .= " Cash-In";
+                    }elseif(strpos(strtolower($text), "cash-out") === 0){
+                        $sms_type .= " Cash-Out";
+                    }
+                }
+                    
 
 
                 if($array['from']=="bKash"){
@@ -4534,6 +4556,7 @@ class PaymentLogController extends Controller
                     $Log->charge = $result['charge'];
                     $Log->final_amount = $result['Balance'];
                     $Log->type = $t_type;
+                    $Log->sms_type = $sms_type;
                     $Log->matched = $saved;
                     $Log->save();
 
