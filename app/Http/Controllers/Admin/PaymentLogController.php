@@ -3771,20 +3771,20 @@ class PaymentLogController extends Controller
                 $result = [];
 
                 $sms_type = "";
-                if(strpos(strtolower($text), "b2b") === 0){
+                if(strpos(strtolower($text), "b2b") !== false){
                     $sms_type .= "B2B";
-                }elseif(strpos(strtolower($text), "b2c") === 0){
+                }elseif(strpos(strtolower($text), "b2c") !== false){
                     $sms_type .= "B2C";
                 }
 
                 if(!empty($sms_type)){
-                    if(strpos(strtolower($text), "cash in") === 0){
+                    if(strpos(strtolower($text), "cash in") !== false){
                         $sms_type .= " Cash-In";
-                    }elseif(strpos(strtolower($text), "cash out") === 0){
+                    }elseif(strpos(strtolower($text), "cash out") !== false){
                         $sms_type .= " Cash-Out";
-                    }elseif(strpos(strtolower($text), "cash-in") === 0){
+                    }elseif(strpos(strtolower($text), "cash-in") !== false){
                         $sms_type .= " Cash-In";
-                    }elseif(strpos(strtolower($text), "cash-out") === 0){
+                    }elseif(strpos(strtolower($text), "cash-out") !== false){
                         $sms_type .= " Cash-Out";
                     }
                 }
