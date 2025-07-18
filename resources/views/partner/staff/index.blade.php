@@ -54,8 +54,6 @@
             </div>
         </div>
 
-
-
         <!-- Edit API Modal -->
         <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editApiLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -226,8 +224,6 @@
             </div>
         </div>
 
-
-
         <!-- Modal for Add button -->
         <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
             aria-hidden="true" data-bs-backdrop="static">
@@ -384,38 +380,21 @@
 
 
     @push('js')
+    <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{asset('assets/DataTables/datatables.min.js')}}"></script>
+
     <script>
-        // Handle form submission via AJAX
-        $('#partner_staff_table').DataTable({
-            processing: false,  // We will manually control the loading spinner
+        let table = $('#partner_staff_table').DataTable({
+            processing: true,
             serverSide: true,
-            stateSave: true,
             ajax: {
                 url: "{{ route('partner.staff') }}",
                 type: 'GET',
                 beforeSend: function () {
-                    // Show the loader spinner when the DataTable starts loading
-                    $('#tableLoader').removeClass('d-none'); // Show the spinner
-                    // Disable interactions with the table (edit buttons, etc.)
-                    $('#partner_staff_table').css('pointer-events', 'none');
+                    $('#tableLoader').removeClass('d-none');
                 },
                 complete: function () {
-                    // Hide the loader spinner once the DataTable has finished loading
-                    $('#tableLoader').addClass('d-none'); // Hide the spinner
-                    // Re-enable interactions with the table
-                    $('#partner_staff_table').css('pointer-events', 'auto');
-                },
-                dataSrc: function (json) {
-                    if (json.error) {
-                        Swal.fire('Error', json.error, 'error');
-                        return [];
-                    }
-                    return json.data;
-                },
-                error: function (xhr, error, code) {
-                    Swal.fire('Failed!', 'Could not load data: ' + error, 'error');
+                    $('#tableLoader').addClass('d-none');
                 }
             },
             columns: [
@@ -424,72 +403,50 @@
                 { data: 'email', name: 'email' },
                 { data: 'phone', name: 'phone' },
                 { data: 'status', name: 'status', orderable: false },
-                @if(partnerAccessRoute(config('role.manage_staff.access.edit')))
-                    { data: 'action', name: 'action', orderable: false, searchable: false },
-                @endif
+                { data: 'action', name: 'action', orderable: false, searchable: false }
             ],
-            order: [[0, 'asc']], // Default sorting by SL column
-            columnDefs: [
-                { targets: '_all', orderable: false }, // Disable sorting for all columns
-            ],
-            pageLength: 10, // Default page length
-            lengthMenu: [
-                [10, 25, 50, -1],
-                ['10 rows', '25 rows', '50 rows', 'All']
-            ],
+            order: [[0, 'desc']],
             language: {
-                search: "_INPUT_",
                 searchPlaceholder: "Search...",
-                processing: "<div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Processing...</span></div> <!-- You can customize this text -->", // Custom processing message with spinner
-            },
-            info: false, // Hide "Showing X to Y of Z entries" text
+                processing: "<div class='spinner-border text-primary'></div>"
+            }
         });
 
-        $(document).ready(function () {
-            "use strict";
-            $('.selectAll').on('click', function () {
-                if ($(this).is(':checked')) {
-                    $(this).parents('.select-all-access').find('input[type="checkbox"]').attr('checked', 'checked')
-                } else {
-                    $(this).parents('.select-all-access').find('input[type="checkbox"]').removeAttr('checked')
-                }
-            });
+        $(document).on('change', '.selectAll', function () {
+            const checked = $(this).is(':checked');
+            $(this).closest('.select-all-access').find('input[type="checkbox"]').prop('checked', checked);
+        });
 
-            $('#addModal form').on('submit', function (e) {
-                e.preventDefault();
 
-                var form = $(this);
-                var url = form.attr('action');
-                var data = form.serialize();
+        $('#addModal form').on('submit', function (e) {
+            e.preventDefault();
+            const form = $(this);
+            const url = form.attr('action');
+            const data = form.serialize();
 
-                // Clear existing validation error messages
-                form.find('.text-danger').remove();
+            form.find('.text-danger').remove();
 
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: data,
-                    success: function (response) {
-                        $('#addModal').modal('hide');
-                        location.reload();
-                    },
-                    error: function (xhr) {
-                        // If there are validation errors, display them in the modal
-                        if (xhr.status === 422) {
-                            var errors = xhr.responseJSON.errors;
-                            $.each(errors, function (field, errorMessage) {
-                                var inputField = form.find('[name="' + field + '"]');
-                                var errorDiv = $('<div class="text text-danger">' + errorMessage[0] + '</div>');
-                                inputField.closest('.form-group').append(errorDiv);
-                            });
-                        }
+            $.post(url, data)
+                .done(() => {
+                    $('#addModal').modal('hide');
+                    form[0].reset();
+                    table.ajax.reload(null, true);
+                    Swal.fire('Success', 'Staff added successfully.', 'success');
+                })
+                .fail(xhr => {
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        $.each(errors, function (field, messages) {
+                            const input = form.find(`[name="${field}"]`);
+                            input.after(`<div class="text-danger">${messages[0]}</div>`);
+                        });
+                    } else {
+                        Swal.fire('Error', 'Something went wrong.', 'error');
                     }
                 });
-            });
+        });
 
-        })
-
-        function submitForm(form) {
+        window.submitForm = function (form) {
             event.preventDefault();
 
             let $form = $(form);
@@ -503,16 +460,12 @@
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    // Optional: disable button / show spinner
+                    // Optional: loading indicator
                 },
-                success: function (response) {
-                    $('#editModal').modal('hide'); // Hide modal
-                    $('#editForm')[0].reset(); // Optional: reset form
-                    // Reload DataTable
-                    if ($.fn.DataTable.isDataTable('#partner_staff_table')) {
-                        $('#partner_staff_table').DataTable().ajax.reload(null, false); // false to stay on the current page
-                    }
-                    // Optional: Show success alert
+                success: function () {
+                    $('#editModal').modal('hide');
+                    $form[0].reset();
+                    table.ajax.reload(null, false);
                     Swal.fire({
                         icon: 'success',
                         title: 'Updated!',
@@ -534,9 +487,12 @@
                 }
             });
 
-            return false; // Prevent default form submit
-        }
+            return false;
+        };
     </script>
+
+
+
     @endpush
 
 </x-partner-layout>

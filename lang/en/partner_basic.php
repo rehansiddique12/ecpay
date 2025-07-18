@@ -278,6 +278,7 @@ return [
 'Approved_Amount_en' => 'Approved Amount',
 'Total_QTY_en' => 'Total QTY',
 'Total_Amount_en' => 'Total Amount',
+'Add_New_en' => 'Add_New',
 
 
 

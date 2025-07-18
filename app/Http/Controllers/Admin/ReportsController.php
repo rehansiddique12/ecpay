@@ -2162,175 +2162,204 @@ public function logs(Request $request)
     }
 
     public function master_report(Request $request)
-{
-    $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
-    $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d');
+    {
+        $from_date = $request->filled('from_date') ? $request->from_date : date('Y-m-d');
+        $to_date = $request->filled('to_date') ? $request->to_date : date('Y-m-d');
 
-    $domains = Api::where('type', 'Admin')->where('website', '!=', env('APP_WEBSITE'))->get();
-    $partners = Api::where('type', 'Admin')->get();
+        $domains = Api::where('type', 'Admin')->where('website', '!=', env('APP_WEBSITE'))->get();
+        $partners = Api::where('type', 'Admin')->get();
 
-    $dates = collect();
-    $currentDate = strtotime($from_date);
-    $endDate = strtotime($to_date);
+        $dates = collect();
+        $currentDate = strtotime($from_date);
+        $endDate = strtotime($to_date);
 
-    while ($currentDate <= $endDate) {
-        $dates->push(date('Y-m-d', $currentDate));
-        $currentDate = strtotime('+1 day', $currentDate);
+        while ($currentDate <= $endDate) {
+            $dates->push(date('Y-m-d', $currentDate));
+            $currentDate = strtotime('+1 day', $currentDate);
+        }
+
+        // Fetch and group all needed data
+        $deposits = Payment::whereBetween('created_at', [$from_date, $to_date])
+            ->where('status', 'Complete')
+            ->selectRaw("DATE(created_at) as date, SUM(amount) as deposit_amount, SUM(charge) as deposit_charges, SUM(e_wallet_charges) as deposit_e_wallet_charges, SUM(commission) as deposit_commission, COUNT(*) as deposit_record_count")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $withdrawals = Payout::whereBetween('created_at', [$from_date, $to_date])
+            ->where('status', 'Complete')
+            ->selectRaw("DATE(created_at) as date, SUM(amount) as withdrawal_amount, SUM(charge) as withdrawal_charges, SUM(e_wallet_charges) as withdrawal_e_wallet_charges, SUM(commission) as withdrawal_commission, COUNT(*) as withdrawal_record_count")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $settlements = Settlement::where('status', 1)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw("DATE(created_at) as date, SUM(amount) as settlement_amount, SUM(charges) as settlement_charges")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $top_ups = ApiTransaction::where('adjustment', 4)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw("DATE(created_at) as date, SUM(amount) as adjustment_amount, SUM(charges) as adjustment_charges")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $adjustments = ApiTransaction::where('adjustment', '!=', 4)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw("DATE(created_at) as date, SUM(amount) as adjustment_amount, SUM(charges) as adjustment_charges")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $partnerCommissions = PartnerCommission::where('status', 1)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw("DATE(created_at) as date, SUM(profit) as commission_amount")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $transfers = EWalletTransfer::whereBetween('transaction_date_time', [$from_date, $to_date])
+            ->selectRaw("DATE(transaction_date_time) as date, SUM(charges) as transfer_charges")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $dailySummaries = DailyEWalletSummary::whereBetween('created_at', [$from_date, $to_date])
+            ->selectRaw("DATE(created_at) as date, SUM(actual_balance) as e_wallet_balance")
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $e_wallet_balance_today = EWalletAccount::selectRaw('COALESCE(SUM(balance), 0) as e_wallet_balance')->value('e_wallet_balance');
+
+        $data = [];
+        foreach ($dates as $date) {
+            $deposit = $deposits->get($date) ?? (object)[
+                'deposit_record_count' => 0,
+                'deposit_amount' => 0,
+                'deposit_charges' => 0,
+                'deposit_e_wallet_charges' => 0,
+                'deposit_commission' => 0
+            ];
+
+            $withdrawal = $withdrawals->get($date) ?? (object)[
+                'withdrawal_record_count' => 0,
+                'withdrawal_amount' => 0,
+                'withdrawal_charges' => 0,
+                'withdrawal_e_wallet_charges' => 0,
+                'withdrawal_commission' => 0
+            ];
+
+            $settlement = $settlements->get($date) ?? (object)[
+                'settlement_amount' => 0,
+                'settlement_charges' => 0
+            ];
+
+            $top_up = $top_ups->get($date) ?? (object)[
+                'adjustment_amount' => 0,
+                'adjustment_charges' => 0
+            ];
+
+            $adjustment = $adjustments->get($date) ?? (object)[
+                'adjustment_amount' => 0,
+                'adjustment_charges' => 0
+            ];
+
+            $partnerCommission = $partnerCommissions->get($date) ?? (object)[
+                'commission_amount' => 0
+            ];
+
+            $transfer = $transfers->get($date) ?? (object)[
+                'transfer_charges' => 0
+            ];
+
+            $total_charges = $deposit->deposit_charges + $withdrawal->withdrawal_charges;
+
+            $revenue = ($deposit->deposit_charges + $withdrawal->withdrawal_charges - $partnerCommission->commission_amount +
+                    $adjustment->adjustment_charges + $top_up->adjustment_charges + $settlement->settlement_charges) +
+                    ($deposit->deposit_commission - $deposit->deposit_e_wallet_charges +
+                    $withdrawal->withdrawal_commission - $withdrawal->withdrawal_e_wallet_charges - $transfer->transfer_charges);
+
+            $total = ($date == date('Y-m-d')) ? $e_wallet_balance_today : ($dailySummaries->get($date)->e_wallet_balance ?? 0);
+
+            $data[] = [
+                'date' => $date,
+                'deposit_record_count' => $deposit->deposit_record_count,
+                'deposit_amount' => $deposit->deposit_amount,
+                'deposit_charges' => $deposit->deposit_charges,
+                'deposit_e_wallet_charges' => $deposit->deposit_e_wallet_charges,
+                'deposit_commission' => $deposit->deposit_commission,
+                'withdrawal_record_count' => $withdrawal->withdrawal_record_count,
+                'withdrawal_amount' => $withdrawal->withdrawal_amount,
+                'withdrawal_charges' => $withdrawal->withdrawal_charges,
+                'withdrawal_e_wallet_charges' => $withdrawal->withdrawal_e_wallet_charges,
+                'withdrawal_commission' => $withdrawal->withdrawal_commission,
+                'total_charges' => $total_charges,
+                'settlement_amount' => $settlement->settlement_amount,
+                'settlement_charges' => $settlement->settlement_charges,
+                'top_up_amount' => $top_up->adjustment_amount,
+                'top_up_charges' => $top_up->adjustment_charges,
+                'adjustment_amount' => $adjustment->adjustment_amount,
+                'adjustment_charges' => $adjustment->adjustment_charges,
+                'transfer_charges' => $transfer->transfer_charges,
+                'commission_amount' => $partnerCommission->commission_amount,
+                'revenue' => $revenue,
+                'total' => $total,
+            ];
+        }
+
+
+        $total_deposit_qty = array_sum(array_column($data, 'deposit_record_count'));
+        $total_deposit_amount = array_sum(array_column($data, 'deposit_amount'));
+        $total_deposit_charges = array_sum(array_column($data, 'deposit_charges'));
+        $total_deposit_e_wallet_charges = array_sum(array_column($data, 'deposit_e_wallet_charges'));
+        $total_deposit_commission = array_sum(array_column($data, 'deposit_commission'));
+        $total_withdrawal_qty = array_sum(array_column($data, 'withdrawal_record_count'));
+        $total_withdrawal_amount = array_sum(array_column($data, 'withdrawal_amount'));
+        $total_withdrawal_charges = array_sum(array_column($data, 'withdrawal_charges'));
+        $total_commission_amount = array_sum(array_column($data, 'commission_amount'));
+        $total_top_up_amount = array_sum(array_column($data, 'top_up_amount'));
+        $total_top_up_charges = array_sum(array_column($data, 'top_up_charges'));
+        $total_adjustment_amount = array_sum(array_column($data, 'adjustment_amount'));
+        $total_adjustment_charges = array_sum(array_column($data, 'adjustment_charges'));
+        $total_settlement_amount = array_sum(array_column($data, 'settlement_amount'));
+        $total_revenue = array_sum(array_column($data, 'revenue'));
+
+        $pageTitle = __('reports.partner_account_summary');
+        return view('admin.reports.master_report', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date', 'total_deposit_qty', 'total_deposit_amount', 'total_deposit_charges', 'total_deposit_e_wallet_charges', 'total_deposit_commission', 'total_withdrawal_qty', 'total_withdrawal_amount', 'total_withdrawal_charges', 'total_commission_amount', 'total_top_up_amount', 'total_top_up_charges', 'total_adjustment_amount', 'total_adjustment_charges', 'total_settlement_amount', 'total_revenue'));
+    }
+    public function commissionBreakdown(Request $request)
+    {
+        $date = $request->input('date');
+        $type = $request->input('type'); // 'deposit' or 'withdrawal'
+
+        if (!in_array($type, ['deposit', 'withdrawal'])) {
+            return response()->json(['html' => '<p>Invalid type provided.</p>']);
+        }
+
+        $model = $type === 'deposit' ? Payment::class : Payout::class;
+
+        $commissions = $model::whereDate('created_at', $date)
+            ->where('status', 'Complete')
+            ->selectRaw('e_wallet_name, SUM(commission) as total_commission')
+            ->groupBy('e_wallet_name')
+            ->get();
+
+        if ($commissions->isEmpty()) {
+            return response()->json(['html' => '<p>No commission found for this date.</p>']);
+        }
+
+        $html = '';
+        foreach ($commissions as $item) {
+            $html .= '<div><strong>' . strtoupper(e($item->e_wallet_name)) . ':</strong> ' . number_format($item->total_commission, 2) . '</div>';
+        }
+
+        return response()->json(['html' => $html]);
     }
 
-    // Fetch and group all needed data
-    $deposits = Payment::whereBetween('created_at', [$from_date, $to_date])
-        ->where('status', 'Complete')
-        ->selectRaw("DATE(created_at) as date, SUM(amount) as deposit_amount, SUM(charge) as deposit_charges, SUM(e_wallet_charges) as deposit_e_wallet_charges, SUM(commission) as deposit_commission, COUNT(*) as deposit_record_count")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $withdrawals = Payout::whereBetween('created_at', [$from_date, $to_date])
-        ->where('status', 'Complete')
-        ->selectRaw("DATE(created_at) as date, SUM(amount) as withdrawal_amount, SUM(charge) as withdrawal_charges, SUM(e_wallet_charges) as withdrawal_e_wallet_charges, SUM(commission) as withdrawal_commission, COUNT(*) as withdrawal_record_count")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $settlements = Settlement::where('status', 1)
-        ->whereBetween('created_at', [$from_date, $to_date])
-        ->selectRaw("DATE(created_at) as date, SUM(amount) as settlement_amount, SUM(charges) as settlement_charges")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $top_ups = ApiTransaction::where('adjustment', 4)
-        ->whereBetween('created_at', [$from_date, $to_date])
-        ->selectRaw("DATE(created_at) as date, SUM(amount) as adjustment_amount, SUM(charges) as adjustment_charges")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $adjustments = ApiTransaction::where('adjustment', '!=', 4)
-        ->whereBetween('created_at', [$from_date, $to_date])
-        ->selectRaw("DATE(created_at) as date, SUM(amount) as adjustment_amount, SUM(charges) as adjustment_charges")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $partnerCommissions = PartnerCommission::where('status', 1)
-        ->whereBetween('created_at', [$from_date, $to_date])
-        ->selectRaw("DATE(created_at) as date, SUM(profit) as commission_amount")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $transfers = EWalletTransfer::whereBetween('transaction_date_time', [$from_date, $to_date])
-        ->selectRaw("DATE(transaction_date_time) as date, SUM(charges) as transfer_charges")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $dailySummaries = DailyEWalletSummary::whereBetween('created_at', [$from_date, $to_date])
-        ->selectRaw("DATE(created_at) as date, SUM(actual_balance) as e_wallet_balance")
-        ->groupBy('date')
-        ->get()
-        ->keyBy('date');
-
-    $e_wallet_balance_today = EWalletAccount::selectRaw('COALESCE(SUM(balance), 0) as e_wallet_balance')->value('e_wallet_balance');
-
-    $data = [];
-    foreach ($dates as $date) {
-        $deposit = $deposits->get($date) ?? (object)[
-            'deposit_record_count' => 0,
-            'deposit_amount' => 0,
-            'deposit_charges' => 0,
-            'deposit_e_wallet_charges' => 0,
-            'deposit_commission' => 0
-        ];
-
-        $withdrawal = $withdrawals->get($date) ?? (object)[
-            'withdrawal_record_count' => 0,
-            'withdrawal_amount' => 0,
-            'withdrawal_charges' => 0,
-            'withdrawal_e_wallet_charges' => 0,
-            'withdrawal_commission' => 0
-        ];
-
-        $settlement = $settlements->get($date) ?? (object)[
-            'settlement_amount' => 0,
-            'settlement_charges' => 0
-        ];
-
-        $top_up = $top_ups->get($date) ?? (object)[
-            'adjustment_amount' => 0,
-            'adjustment_charges' => 0
-        ];
-
-        $adjustment = $adjustments->get($date) ?? (object)[
-            'adjustment_amount' => 0,
-            'adjustment_charges' => 0
-        ];
-
-        $partnerCommission = $partnerCommissions->get($date) ?? (object)[
-            'commission_amount' => 0
-        ];
-
-        $transfer = $transfers->get($date) ?? (object)[
-            'transfer_charges' => 0
-        ];
-
-        $total_charges = $deposit->deposit_charges + $withdrawal->withdrawal_charges;
-
-        $revenue = ($deposit->deposit_charges + $withdrawal->withdrawal_charges - $partnerCommission->commission_amount +
-                $adjustment->adjustment_charges + $top_up->adjustment_charges + $settlement->settlement_charges) +
-                ($deposit->deposit_commission - $deposit->deposit_e_wallet_charges +
-                $withdrawal->withdrawal_commission - $withdrawal->withdrawal_e_wallet_charges - $transfer->transfer_charges);
-
-        $total = ($date == date('Y-m-d')) ? $e_wallet_balance_today : ($dailySummaries->get($date)->e_wallet_balance ?? 0);
-
-        $data[] = [
-            'date' => $date,
-            'deposit_record_count' => $deposit->deposit_record_count,
-            'deposit_amount' => $deposit->deposit_amount,
-            'deposit_charges' => $deposit->deposit_charges,
-            'deposit_e_wallet_charges' => $deposit->deposit_e_wallet_charges,
-            'deposit_commission' => $deposit->deposit_commission,
-            'withdrawal_record_count' => $withdrawal->withdrawal_record_count,
-            'withdrawal_amount' => $withdrawal->withdrawal_amount,
-            'withdrawal_charges' => $withdrawal->withdrawal_charges,
-            'withdrawal_e_wallet_charges' => $withdrawal->withdrawal_e_wallet_charges,
-            'withdrawal_commission' => $withdrawal->withdrawal_commission,
-            'total_charges' => $total_charges,
-            'settlement_amount' => $settlement->settlement_amount,
-            'settlement_charges' => $settlement->settlement_charges,
-            'top_up_amount' => $top_up->adjustment_amount,
-            'top_up_charges' => $top_up->adjustment_charges,
-            'adjustment_amount' => $adjustment->adjustment_amount,
-            'adjustment_charges' => $adjustment->adjustment_charges,
-            'transfer_charges' => $transfer->transfer_charges,
-            'commission_amount' => $partnerCommission->commission_amount,
-            'revenue' => $revenue,
-            'total' => $total,
-        ];
-    }
-
-
-    $total_deposit_qty = array_sum(array_column($data, 'deposit_record_count'));
-    $total_deposit_amount = array_sum(array_column($data, 'deposit_amount'));
-    $total_deposit_charges = array_sum(array_column($data, 'deposit_charges'));
-    $total_deposit_e_wallet_charges = array_sum(array_column($data, 'deposit_e_wallet_charges'));
-    $total_deposit_commission = array_sum(array_column($data, 'deposit_commission'));
-    $total_withdrawal_qty = array_sum(array_column($data, 'withdrawal_record_count'));
-    $total_withdrawal_amount = array_sum(array_column($data, 'withdrawal_amount'));
-    $total_withdrawal_charges = array_sum(array_column($data, 'withdrawal_charges'));
-    $total_commission_amount = array_sum(array_column($data, 'commission_amount'));
-    $total_top_up_amount = array_sum(array_column($data, 'top_up_amount'));
-    $total_top_up_charges = array_sum(array_column($data, 'top_up_charges'));
-    $total_adjustment_amount = array_sum(array_column($data, 'adjustment_amount'));
-    $total_adjustment_charges = array_sum(array_column($data, 'adjustment_charges'));
-    $total_settlement_amount = array_sum(array_column($data, 'settlement_amount'));
-    $total_revenue = array_sum(array_column($data, 'revenue'));
-
-    $pageTitle = __('reports.partner_account_summary');
-    return view('admin.reports.master_report', compact('pageTitle', 'domains', 'data', 'from_date', 'to_date', 'total_deposit_qty', 'total_deposit_amount', 'total_deposit_charges', 'total_deposit_e_wallet_charges', 'total_deposit_commission', 'total_withdrawal_qty', 'total_withdrawal_amount', 'total_withdrawal_charges', 'total_commission_amount', 'total_top_up_amount', 'total_top_up_charges', 'total_adjustment_amount', 'total_adjustment_charges', 'total_settlement_amount', 'total_revenue'));
-}
 
     public function fix_partner_summary_closing_balance(Request $request)
     {

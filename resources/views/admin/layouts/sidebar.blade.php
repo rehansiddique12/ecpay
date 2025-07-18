@@ -1046,7 +1046,14 @@ $languages = [
                                 <div data-i18n="Withdrawal Report">{{ __('sidebar.withdrawal_report') }}</div>
                             </a>
                         </li>
-
+                        @if (adminAccessRoute(config('role.sms_logs.access.view')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.sms.logs' ? 'active' : '' }}">
+                                <a href="{{ route('admin.sms.logs') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-message"></i>
+                                    <div data-i18n="SMS Logs">{{ __('sidebar.sms_logs') }}</div>
+                                </a>
+                            </li>
+                        @endif
 
                         {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout.report.daily', 'admin.payout.report.daily.search']) ? 'active' : '' }}">
@@ -1199,14 +1206,6 @@ $languages = [
                                 <div data-i18n="Payment Type">{{ __('sidebar.payment_type') }}</div>
                             </a>
                         </li>
-                        @endif
-                        @if (adminAccessRoute(config('role.sms_logs.access.view')))
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.sms.logs' ? 'active' : '' }}">
-                                <a href="{{ route('admin.sms.logs') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-message"></i>
-                                    <div data-i18n="SMS Logs">{{ __('sidebar.sms_logs') }}</div>
-                                </a>
-                            </li>
                         @endif
                     </ul>
                 </li>
