@@ -111,7 +111,7 @@
                                     <div class="input-group ">
                                         <input type="text" class="form-control "
                                                name="minimum_deposit_amount"
-                                               value="{{ old('minimum_deposit_amount', (float) number_format($method->min_amount, 2, 2, '.', '') ?: '') }}"
+                                               value="{{ old('minimum_deposit_amount', (float) number_format($method->min_amount, 2, '.', '') ?: '') }}"
                                                required="">
                                         <div class="input-group-append">
                                             <div class="input-group-text">
@@ -133,7 +133,7 @@
                                     <div class="input-group ">
                                         <input type="text" class="form-control "
                                                name="maximum_deposit_amount"
-                                               value="{{ old('maximum_deposit_amount', (float) number_format($method->max_amount, 2, 2, '.', '') ?: '') }}"
+                                               value="{{ old('maximum_deposit_amount', (float) number_format($method->max_amount, 2, '.', '') ?: '') }}"
                                                required="">
                                         <div class="input-group-append">
                                             <div class="input-group-text">
@@ -157,7 +157,7 @@
                                     <div class="input-group ">
                                         <input type="text" class="form-control "
                                                name="percentage_charge"
-                                               value="{{ old('percentage_charge', (float) number_format($method->percentage_charge, 2, 2, '.', '') ?: 0) }}"
+                                               value="{{ old('percentage_charge', (float) number_format($method->percentage_charge, 2, '.', '') ?: 0) }}"
                                                required="">
                                         <div class="input-group-append">
                                             <div class="input-group-text">
@@ -179,7 +179,7 @@
                                     <div class="input-group ">
                                         <input type="text" class="form-control "
                                                name="fixed_charge"
-                                               value="{{ old('fixed_charge', (float) number_format($method->fixed_charge, 2, 2, '.', '') ?: 0) }}"
+                                               value="{{ old('fixed_charge', (float) number_format($method->fixed_charge, 2, '.', '') ?: 0) }}"
                                                required="">
                                         <div class="input-group-append">
                                             <div class="input-group-text">

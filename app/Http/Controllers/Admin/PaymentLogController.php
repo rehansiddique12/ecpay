@@ -187,7 +187,7 @@ class PaymentLogController extends Controller
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         // dd($funds_t);
         $fund_count = $funds_t->fund_count;
-        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
         // (float) number_format($funds_t->fund_sum, 2, '.', '')
         $from_date = date('Y-m-d');
         $to_date = date('Y-m-d');
@@ -327,7 +327,7 @@ class PaymentLogController extends Controller
 
             if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
                 $fund_count = $funds_t[0]->amount_count;
-                $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, 2, '.', '');
+                $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, '.', '');
             }
 
             // Paginated list of payments
@@ -489,7 +489,7 @@ class PaymentLogController extends Controller
 
         if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
             $fund_count = $funds_t[0]->amount_count;
-            $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, 2, '.', '');
+            $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, '.', '');
         }
 
         // Paginated list of payments
@@ -713,7 +713,7 @@ class PaymentLogController extends Controller
             ->first();
 
         $fund_count = $funds_t->fund_count;
-        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
 
         return view('admin.payment.reportdetail', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
     }
@@ -985,11 +985,11 @@ class PaymentLogController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = (float) number_format($charge, 2, 2, '.', '');
+                        $charge = (float) number_format($charge, 2, '.', '');
                         // $charge = floor($charge * 100) / 100;
 
                         $net_amount = $data->amount - $charge;
-                        $net_amount = (float) number_format($net_amount, 2, 2, '.', '');
+                        $net_amount = (float) number_format($net_amount, 2, '.', '');
                         // $net_amount = floor($net_amount * 100) / 100;
 
                         $partner_api_key->balance += $net_amount;
@@ -1020,7 +1020,7 @@ class PaymentLogController extends Controller
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $data->api_id)->whereDate('created_at', '>=', $data->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                    $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                     $DailyPartnerSummary_record->save();
@@ -1137,7 +1137,7 @@ class PaymentLogController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                            $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -1287,7 +1287,7 @@ class PaymentLogController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($data->amount - $data->charge);
-                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -1325,7 +1325,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
-                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -2121,7 +2121,7 @@ class PaymentLogController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = (float) number_format($charge, 2, 2, '.', '');
+                        $charge = (float) number_format($charge, 2, '.', '');
 
                         $api_balance_row = Api::where('api_key', $request->api_key)->where('type', 'Admin')->lockForUpdate()->first();
                         $net_amount = $payment_record->amount - $charge;
@@ -2172,7 +2172,7 @@ class PaymentLogController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -2217,7 +2217,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -2480,7 +2480,7 @@ class PaymentLogController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = (float) number_format($charge, 2, 2, '.', '');
+                        $charge = (float) number_format($charge, 2, '.', '');
 
                         $api_balance_row = Api::where('api_key', $request->api_key)->where('type', 'Admin')->lockForUpdate()->first();
                         $net_amount = $payment_record->amount - $charge;
@@ -2531,7 +2531,7 @@ class PaymentLogController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -2576,7 +2576,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -2932,7 +2932,7 @@ class PaymentLogController extends Controller
                             }
                             $charge = str_replace(',', '', $charge);
                             $charge = (float)$charge;
-                            $charge = (float) number_format($charge, 2, 2, '.', '');
+                            $charge = (float) number_format($charge, 2, '.', '');
                             $net_amount = $request_amount - $charge;
                             $partner_api_key->balance += $net_amount;
                             $partner_api_key->save();
@@ -2982,7 +2982,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -3020,7 +3020,7 @@ class PaymentLogController extends Controller
                                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
+                                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                         $DailyPartnerSummary_record->save();
@@ -3152,7 +3152,7 @@ class PaymentLogController extends Controller
             $e_wallet_log_save->account_id = $account->id;
             $e_wallet_log_save->source = "addPaymentInfo";
             $e_wallet_log_save->save();
-            
+
             if($commit == 0){
                 DB::commit();
             }
@@ -3815,7 +3815,7 @@ class PaymentLogController extends Controller
                         $sms_type .= " Cash-Out";
                     }
                 }
-                    
+
 
 
                 if($array['from']=="bKash"){
