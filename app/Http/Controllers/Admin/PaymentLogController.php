@@ -1617,14 +1617,20 @@ class PaymentLogController extends Controller
                 'api_key' => 'required|string',
                 'partner_transaction_id' => 'required|string',
             ]);
+            
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
             }
 
+            $admin_api = Api::where('api_key', $request->api_key)->where('status', 1)->where('website', env('APP_WEBSITE'))->first();
+            if (!$admin_api) {
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
+
             $payment = Payment::where('partner_transection_id', $request->partner_transaction_id)->with('gateway')->latest()->first();
             if ($payment) {
-                $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+                $api_key = Api::where('id', $payment->api_id)->first();
                 if ($api_key) {
                     if ($api_key && !empty($api_key->api_endpoint_deposit) && $api_key->website != env('APP_WEBSITE')) {
                         $string_to_hash = json_encode(array(
@@ -1704,8 +1710,6 @@ class PaymentLogController extends Controller
                             return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
                         }
                     }
-                }else{
-                    return response()->json(['message' => 'Wrong API key'], 404);
                 }
             }else{
                 return response()->json(['message' => 'Payment not found'], 404);

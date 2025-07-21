@@ -152,7 +152,7 @@
                                         $successRate =
                                             $fundCount > 0
                                                 ? (float) number_format(((($autoProcessCount + $manualProcessCount) / $fundCount) * 100), 2, '.', '')
-                                                : 0;  
+                                                : 0;
                                     @endphp
 
 
@@ -175,8 +175,10 @@
 
                                         $successRate =
                                             $fundCount > 0
-                                                ? (($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
-                                                : 0;        
+                                                ? (($autoProcessCount + $manualProcessCount) / $fundCount) * 100
+                                                : 0;
+
+
                                     @endphp
 
 
@@ -200,7 +202,7 @@
                                         $successRate =
                                             $fundCount > 0
                                                 ? (float) number_format(((($autoProcessCount + $manualProcessCount) / $fundCount) * 100), 2, '.', '')
-                                                : 0;  
+                                                : 0;
                                     @endphp
 
 
