@@ -1655,9 +1655,14 @@ class PayoutRecordController extends Controller
                 return response()->json(['errors' => $validator->errors()], 400);
             }
 
+            $admin_api = Api::where('api_key', $request->api_key)->where('status', 1)->where('website', env('APP_WEBSITE'))->first();
+            if (!$admin_api) {
+                return response()->json(['message' => 'Wrong API key'], 404);
+            }
+
             $payout = Payout::where('partner_transection_id', $request->partner_transaction_id)->first();
             if ($payout) {
-                $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+                $api_key = Api::where('id', $payout->api_id)->first();
                 if ($api_key) {
                     if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
 
@@ -1744,8 +1749,6 @@ class PayoutRecordController extends Controller
                             return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
                         }
                     }
-                }else{
-                    return response()->json(['message' => 'Wrong API key'], 404);
                 }
             }else{
                 return response()->json(['message' => 'Withdrawal not found'], 404);
