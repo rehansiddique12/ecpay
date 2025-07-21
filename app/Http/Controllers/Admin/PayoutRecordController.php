@@ -425,7 +425,7 @@ class PayoutRecordController extends Controller
             ->first();
 
         $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
 
         return view('admin.payout.report_detail', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
     }
@@ -472,7 +472,7 @@ class PayoutRecordController extends Controller
 
         // Get totals separately
         $fund_count = (clone $baseQuery)->count();
-        $fund_sum = round((clone $baseQuery)->sum('amount'), 2);
+        $fund_sum = (float) number_format((clone $baseQuery)->sum('amount'), 2, '.', '');
 
         // Get paginated records
         $records = $baseQuery
@@ -714,7 +714,7 @@ class PayoutRecordController extends Controller
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway')->paginate(config('basic.paginate'));
         $funds_t = Payout::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
         $from_date = date('Y-m-d');
         return view('admin.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'from_date'));
     }
@@ -1007,7 +1007,7 @@ class PayoutRecordController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($data->amount + $data->charge);
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -1045,7 +1045,7 @@ class PayoutRecordController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -1256,7 +1256,7 @@ class PayoutRecordController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($data->amount + $data->charge);
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -1294,7 +1294,7 @@ class PayoutRecordController extends Controller
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                    $amount_to_update = round($amount_to_update, 2);
+                                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                     $DailyPartnerSummary_record->save();
@@ -1643,6 +1643,115 @@ class PayoutRecordController extends Controller
             session()->flash('error', $e->getMessage());
             return back();
         }
+    }
+
+    public function payout_callback(Request $request){
+            $validator = Validator::make($request->all(), [
+                'api_key' => 'required|string',
+                'partner_transaction_id' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+
+            $payout = Payout::where('partner_transection_id', $request->partner_transaction_id)->first();
+            if ($payout) {
+                $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+                if ($api_key) {
+                    if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
+
+                        $string_to_hash = json_encode(array(
+                            "amount" => strval($this->convertStringToNumber($payout->amount)),
+                            "api_key" => $api_key->api_key,
+                            "e_wallet_name" => $payout->e_wallet_name,
+                            "id" => strval($payout->id),
+                            'transaction_type' => 'Withdrawal',
+                            "user_account_no" => strval($payout->user_account_no),
+                        ));
+                        $secretKey = $api_key->secret_key;
+                        $hash = hash("sha256", $string_to_hash);
+                        $hmac = hash_hmac('sha256', $hash, $secretKey);
+                        $timestamp = time();
+                        $combined = $hmac . $timestamp;
+                        $sign = base64_encode($combined);
+
+                        $datetime = Carbon::parse($payout->date_time);
+
+                        $api_date = $datetime->toDateString();   // '2025-05-19'
+                        $api_time = $datetime->toTimeString();   // '15:43:00'
+
+                        $array_data = [
+                            'id' => $payout->id,
+                            'partner_transection_id' => $payout->partner_transection_id,
+                            'transaction_type' => 'Withdrawal',
+                            'e_wallet_name' => $payout->e_wallet_name,
+                            'amount' => $this->convertStringToNumber($payout->amount),
+                            'user_account_no' => $payout->user_account_no,
+                            'txn_id' => $payout->txn_id,
+                            'e_wallet_phone_number' => $payout->e_wallet_phone_number,
+                            'e_wallet_type' => $payout->e_wallet_type,
+                            'charges' => $this->convertStringToNumber($payout->charge),
+                            'status' => $payout->status,
+                            'completion_date' => $api_date,
+                            'completion_time' => $api_time,
+                            'created_at' => $payout->created_at,
+                            'updated_at' => $payout->updated_at,
+                            'sign' => $sign,
+                            // 'remarks' => $payout_log->feedback,
+
+                        ];
+
+                        if (!empty($payout->member_id)) {
+                            $array_data['member_id'] = $payout->member_id;
+                        }
+
+
+                        $requestData = [
+                            'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                            'request_url' => $api_key->api_endpoint_withdrawal,
+                            'request_payload' => json_encode($array_data),
+                            'request_headers' => json_encode([
+                                'Content-Type' => 'application/json',
+                                'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
+                            ]),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+
+                        $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                        $csrfToken = csrf_token();
+                        $responseData = [];
+                        try {
+
+                            $response = Http::withHeaders([
+                                'Content-Type' => 'application/json',
+                                'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                            ])
+                                ->post($api_key->api_endpoint_withdrawal, $array_data);
+
+                            $responseData = [
+                                'response_code' => $response->status(),
+                                'response_payload' => $response->body(),
+                                'response_headers' => json_encode($response->headers()),
+                            ];
+
+                            DB::table('api_logs')->where('id', $logId)->update($responseData);
+
+                            return response()->json(['status' => 'success', 'message' => 'Callback successfully sent.', 'code' => $responseData['response_code'], 'response_payload' => $responseData['response_payload']], 201);
+                        } catch (\Exception $e) {
+                            return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
+                        }
+                    }
+                }else{
+                    return response()->json(['message' => 'Wrong API key'], 404);
+                }
+            }else{
+                return response()->json(['message' => 'Withdrawal not found'], 404);
+            }
+
+            return response()->json(['status' => 'error', 'message' => 'Unknown Error', 'code' => '', 'response_payload' => ''], 200);
     }
 
     public function runCallback(Request $request)
@@ -2294,7 +2403,7 @@ class PayoutRecordController extends Controller
             ->get();
 
         foreach ($dailySummaries as $summary) {
-            $summary->increment('closing_balance', round($amount - $charges, 2));
+            $summary->increment('closing_balance', (float) number_format($amount - $charges, 2, 2, '.', ''));
 
             // Insert summary log
             DailyPartnerSummaryLog::create([
@@ -3260,7 +3369,7 @@ class PayoutRecordController extends Controller
                                         $DailyPartnerSummary_records =  DailyPartnerSummary::select('id', 'closing_balance')->where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $profit;
-                                            $amount_to_update = round($amount_to_update, 2);
+                                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                             $DailyPartnerSummary_record->save();
@@ -3351,7 +3460,7 @@ class PayoutRecordController extends Controller
                                         $DailyPartnerSummary_records =  DailyPartnerSummary::select('id', 'closing_balance')->where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $profit;
-                                            $amount_to_update = round($amount_to_update, 2);
+                                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                             $DailyPartnerSummary_record->save();
@@ -3455,7 +3564,7 @@ class PayoutRecordController extends Controller
                                     $DailyPartnerSummary_records =  DailyPartnerSummary::select('id', 'closing_balance')->where('api_id', $main_parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $profit;
-                                        $amount_to_update = round($amount_to_update, 2);
+                                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                         $DailyPartnerSummary_record->save();
@@ -3545,7 +3654,7 @@ class PayoutRecordController extends Controller
                                     $DailyPartnerSummary_records =  DailyPartnerSummary::select('id', 'closing_balance')->where('api_id', $main_parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $profit;
-                                        $amount_to_update = round($amount_to_update, 2);
+                                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                         $DailyPartnerSummary_record->save();
@@ -4055,7 +4164,7 @@ class PayoutRecordController extends Controller
             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api->id)->whereDate('created_at', '>=', $Settlement->created_at)->get();
             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                 $amount_to_update = $DailyPartnerSummary_record->closing_balance - $Settlement->net_amount;
-                $amount_to_update = round($amount_to_update, 2);
+                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                 $DailyPartnerSummary_record->save();
@@ -4122,7 +4231,7 @@ class PayoutRecordController extends Controller
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api->id)->whereDate('created_at', '>=', $Settlement->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + $Settlement->net_amount;
-                    $amount_to_update = round($amount_to_update, 2);
+                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                     $DailyPartnerSummary_record->save();
@@ -4838,11 +4947,11 @@ class PayoutRecordController extends Controller
             $payout->update(['e_wallet_name' => $updatedName]);
 
             $array[$count] = $payout;
-            $array[$count]['amount'] = round($payout->amount, 2);
-            $array[$count]['charge'] = round($payout->charge, 2);
-            $array[$count]['fee'] = round($payout->fee, 2);
-            $array[$count]['e_wallet_charges'] = round($payout->e_wallet_charges, 2);
-            $array[$count]['commission'] = round($payout->commission, 2);
+            $array[$count]['amount'] = (float) number_format($payout->amount, 2, 2, '.', '');
+            $array[$count]['charge'] = (float) number_format($payout->charge, 2, 2, '.', '');
+            $array[$count]['fee'] = (float) number_format($payout->fee, 2, 2, '.', '');
+            $array[$count]['e_wallet_charges'] = (float) number_format($payout->e_wallet_charges, 2, 2, '.', '');
+            $array[$count]['commission'] = (float) number_format($payout->commission, 2, 2, '.', '');
 
             $count++;
         }
@@ -5009,7 +5118,7 @@ class PayoutRecordController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $payout->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($payout->amount + $payout->charge);
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -5048,7 +5157,7 @@ class PayoutRecordController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -5232,7 +5341,7 @@ class PayoutRecordController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $payout_data->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($payout_data->amount + $payout_data->charge);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -5271,7 +5380,7 @@ class PayoutRecordController extends Controller
                                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
-                                        $amount_to_update = round($amount_to_update, 2);
+                                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                         $DailyPartnerSummary_record->save();
@@ -5494,7 +5603,7 @@ class PayoutRecordController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $payout_data->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($payout_data->amount + $payout_data->charge);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -5533,7 +5642,7 @@ class PayoutRecordController extends Controller
                                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
-                                        $amount_to_update = round($amount_to_update, 2);
+                                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                         $DailyPartnerSummary_record->save();
@@ -5686,7 +5795,7 @@ class PayoutRecordController extends Controller
     public function convertStringToNumber($string)
     {
         if (strpos($string, '.') !== false) {
-            return (float)$string;
+            return number_format((float)$string, 2, '.', '');
         } else {
             return (int)$string;
         }
@@ -5835,7 +5944,7 @@ class PayoutRecordController extends Controller
             ]);
 
             $successRate = $data->total_received > 0
-                ? round(($data->total_processed / $data->total_received) * 100)
+                ? (float) number_format((($data->total_processed / $data->total_received) * 100), 2, '.', '')
                 : 0;
 
             $merchantData[] = [
@@ -6180,11 +6289,11 @@ class PayoutRecordController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = round($charge, 2);
+                        $charge = (float) number_format($charge, 2, 2, '.', '');
                         // $charge = floor($charge * 100) / 100;
 
                         $net_amount = $data->amount - $charge;
-                        $net_amount = round($net_amount, 2);
+                        $net_amount = (float) number_format($net_amount, 2, 2, '.', '');
                         // $net_amount = floor($net_amount * 100) / 100;
 
                         $partner_api_key->balance += $net_amount;
@@ -6215,7 +6324,7 @@ class PayoutRecordController extends Controller
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $data->api_id)->whereDate('created_at', '>=', $data->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                    $amount_to_update = round($amount_to_update, 2);
+                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                     $DailyPartnerSummary_record->save();
@@ -6326,7 +6435,7 @@ class PayoutRecordController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();

@@ -187,7 +187,8 @@ class PaymentLogController extends Controller
         $funds_t = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         // dd($funds_t);
         $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
+        // (float) number_format($funds_t->fund_sum, 2, '.', '')
         $from_date = date('Y-m-d');
         $to_date = date('Y-m-d');
 
@@ -326,7 +327,7 @@ class PaymentLogController extends Controller
 
             if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
                 $fund_count = $funds_t[0]->amount_count;
-                $fund_sum = round($funds_t[0]->amount_sum, 2);
+                $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, 2, '.', '');
             }
 
             // Paginated list of payments
@@ -488,7 +489,7 @@ class PaymentLogController extends Controller
 
         if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
             $fund_count = $funds_t[0]->amount_count;
-            $fund_sum = round($funds_t[0]->amount_sum, 2);
+            $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, 2, '.', '');
         }
 
         // Paginated list of payments
@@ -712,7 +713,7 @@ class PaymentLogController extends Controller
             ->first();
 
         $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
 
         return view('admin.payment.reportdetail', compact('funds', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
     }
@@ -984,11 +985,11 @@ class PaymentLogController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = round($charge, 2);
+                        $charge = (float) number_format($charge, 2, 2, '.', '');
                         // $charge = floor($charge * 100) / 100;
 
                         $net_amount = $data->amount - $charge;
-                        $net_amount = round($net_amount, 2);
+                        $net_amount = (float) number_format($net_amount, 2, 2, '.', '');
                         // $net_amount = floor($net_amount * 100) / 100;
 
                         $partner_api_key->balance += $net_amount;
@@ -1019,7 +1020,7 @@ class PaymentLogController extends Controller
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $data->api_id)->whereDate('created_at', '>=', $data->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                    $amount_to_update = round($amount_to_update, 2);
+                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                     $DailyPartnerSummary_record->save();
@@ -1136,7 +1137,7 @@ class PaymentLogController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -1286,7 +1287,7 @@ class PaymentLogController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($data->amount - $data->charge);
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -1324,7 +1325,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -1611,14 +1612,115 @@ class PaymentLogController extends Controller
 
     }
 
+    public function payment_callback(Request $request){
+            $validator = Validator::make($request->all(), [
+                'api_key' => 'required|string',
+                'partner_transaction_id' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 400);
+            }
+
+            $payment = Payment::where('partner_transection_id', $request->partner_transaction_id)->with('gateway')->latest()->first();
+            if ($payment) {
+                $api_key = Api::where('api_key', $request->api_key)->where('type', 'Admin')->first();
+                if ($api_key) {
+                    if ($api_key && !empty($api_key->api_endpoint_deposit) && $api_key->website != env('APP_WEBSITE')) {
+                        $string_to_hash = json_encode(array(
+                            "amount" => strval($this->convertStringToNumber($payment->amount)),
+                            "api_key" => $api_key->api_key,
+                            "e_wallet_name" => $payment->e_wallet_name,
+                            "id" => strval($payment->id),
+                            'transaction_type' => 'Deposit',
+                            "user_account_no" => strval($payment->sender),
+
+                        ));
+                        $secretKey = $api_key->secret_key;
+                        $hash = hash("sha256", $string_to_hash);
+                        $hmac = hash_hmac('sha256', $hash, $secretKey);
+                        $timestamp = time();
+                        $combined = $hmac . $timestamp;
+                        $sign = base64_encode($combined);
+
+
+                        $array_data = [
+                                    'id' => $payment->id,
+                                    'partner_transection_id' => $payment->partner_transection_id,
+                                    'transaction_type' => 'Deposit',
+                                    'e_wallet_name' => $payment->e_wallet_name,
+                                    'amount' => $this->convertStringToNumber($payment->amount),
+                                    'user_account_no' => $payment->sender,
+                                    'txn_id' => $payment->txn_id,
+                                    'e_wallet_phone_number' => $payment->e_wallet_phone_number,
+                                    'e_wallet_type' => $payment->e_wallet_type,
+                                    'charges' => $this->convertStringToNumber($payment->charge),
+                                    'status' => $payment->status,
+                                    'completion_date' => Carbon::parse($payment->date_time)->toDateString(),
+                                    'completion_time' => Carbon::parse($payment->date_time)->toTimeString(),
+                                    'created_at' => $payment->created_at,
+                                    'updated_at' => $payment->updated_at,
+                                    'sign' => $sign,
+                        ];
+
+                        if(!empty($payment->member_id)){
+                            $array_data['member_id'] = $payment->member_id;
+                        }
+
+
+                        $requestData = [
+                            'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                            'request_url' => $api_key->api_endpoint_deposit,
+                            'request_payload' => json_encode($array_data),
+                            'request_headers' => json_encode([
+                                'Content-Type' => 'application/json',
+                                'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
+                            ]),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+
+                        $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                        $csrfToken = csrf_token();
+                        $responseData = [];
+                        try {
+                            $response = Http::withHeaders([
+                                'Content-Type' => 'application/json',
+                                'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                            ])
+                                ->post($api_key->api_endpoint_deposit, $array_data);
+
+
+                            $responseData = [
+                                'response_code' => $response->status(),
+                                'response_payload' => $response->body(),
+                                'response_headers' => json_encode($response->headers()),
+                            ];
+
+                            DB::table('api_logs')->where('id', $logId)->update($responseData);
+                            return response()->json(['status' => 'success', 'message' => 'Callback successfully sent.', 'code' => $responseData['response_code'], 'response_payload' => $responseData['response_payload']], 201);
+                        } catch (\Exception $e) {
+                            return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
+                        }
+                    }
+                }else{
+                    return response()->json(['message' => 'Wrong API key'], 404);
+                }
+            }else{
+                return response()->json(['message' => 'Payment not found'], 404);
+            }
+
+            return response()->json(['status' => 'error', 'message' => 'Unknown Error', 'code' => '', 'response_payload' => ''], 200);
+    }
+
     public function runCallback(Request $request)
     {
         $data = $request->all();
         $payment = Payment::where('id', $request->id)->with('gateway')->latest()->first();
         if ($payment) {
             $api_key = Api::where('id', $payment->api_id)->first();
-            // $data = Payment::where('transaction_id', $payment->id)->first();
-            if ($payment) {
+            if ($api_key) {
                 if ($api_key && !empty($api_key->api_endpoint_deposit) && $api_key->website != env('APP_WEBSITE')) {
                     $string_to_hash = json_encode(array(
                         "amount" => strval($this->convertStringToNumber($payment->amount)),
@@ -1685,81 +1787,6 @@ class PaymentLogController extends Controller
                             ->post($api_key->api_endpoint_deposit, $array_data);
 
 
-                        $responseData = [
-                            'response_code' => $response->status(),
-                            'response_payload' => $response->body(),
-                            'response_headers' => json_encode($response->headers()),
-                        ];
-
-                        DB::table('api_logs')->where('id', $logId)->update($responseData);
-                        return response()->json(['status' => 'success', 'message' => 'Callback successfully sent.', 'code' => $responseData['response_code'], 'response_payload' => $responseData['response_payload']], 201);
-                    } catch (\Exception $e) {
-                        return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
-                    }
-                }
-            } else {
-                if ($api_key && !empty($api_key->api_endpoint_deposit) && $api_key->website != env('APP_WEBSITE')) {
-                    $string_to_hash = json_encode(array(
-                        "amount" => strval($this->convertStringToNumber($payment->amount)),
-                        "api_key" => $api_key->api_key,
-                        "e_wallet_name" => $payment->gateway->name,
-                        "id" => '',
-                        'transaction_type' => 'Deposit',
-                        "user_account_no" => strval($payment->account_no),
-
-                    ));
-                    $secretKey = $api_key->secret_key;
-                    $hash = hash("sha256", $string_to_hash);
-                    $hmac = hash_hmac('sha256', $hash, $secretKey);
-                    $timestamp = time();
-                    $combined = $hmac . $timestamp;
-                    $sign = base64_encode($combined);
-
-                    $array_data = [
-                                'id' => '',
-                                'partner_transection_id' => $payment->partner_transection_id,
-                                'transaction_type' => 'Deposit',
-                                'e_wallet_name' => $payment->gateway->name,
-                                'amount' => $this->convertStringToNumber($payment->amount),
-                                'user_account_no' => $payment->account_no,
-                                'txn_id' => '',
-                                'e_wallet_phone_number' => $payment->e_wallet_phone_number,
-                                'e_wallet_type' => '',
-                                'charges' => $this->convertStringToNumber($payment->charge),
-                                'status' => 'Reject',
-                                'completion_date' => '',
-                                'completion_time' => '',
-                                'created_at' => $payment->created_at,
-                                'updated_at' => $payment->updated_at,
-                                'sign' => $sign,
-                    ];
-
-                    if(!empty($payment->member_id)){
-                        $array_data['member_id'] = $payment->member_id;
-                    }
-
-                    $requestData = [
-                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
-                        'request_url' => $api_key->api_endpoint_deposit,
-                        'request_payload' => json_encode($array_data),
-                        'request_headers' => json_encode([
-                            'Content-Type' => 'application/json',
-                            'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
-                        ]),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-
-                    $logId = DB::table('api_logs')->insertGetId($requestData);
-
-                    $csrfToken = csrf_token();
-                    $responseData = [];
-                    try {
-                        $response = Http::withHeaders([
-                            'Content-Type' => 'application/json',
-                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
-                        ])
-                            ->post($api_key->api_endpoint_deposit, $array_data);
                         $responseData = [
                             'response_code' => $response->status(),
                             'response_payload' => $response->body(),
@@ -2094,7 +2121,7 @@ class PaymentLogController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = round($charge, 2);
+                        $charge = (float) number_format($charge, 2, 2, '.', '');
 
                         $api_balance_row = Api::where('api_key', $request->api_key)->where('type', 'Admin')->lockForUpdate()->first();
                         $net_amount = $payment_record->amount - $charge;
@@ -2145,7 +2172,7 @@ class PaymentLogController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -2190,7 +2217,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -2453,7 +2480,7 @@ class PaymentLogController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = round($charge, 2);
+                        $charge = (float) number_format($charge, 2, 2, '.', '');
 
                         $api_balance_row = Api::where('api_key', $request->api_key)->where('type', 'Admin')->lockForUpdate()->first();
                         $net_amount = $payment_record->amount - $charge;
@@ -2504,7 +2531,7 @@ class PaymentLogController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -2549,7 +2576,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -2905,7 +2932,7 @@ class PaymentLogController extends Controller
                             }
                             $charge = str_replace(',', '', $charge);
                             $charge = (float)$charge;
-                            $charge = round($charge, 2);
+                            $charge = (float) number_format($charge, 2, 2, '.', '');
                             $net_amount = $request_amount - $charge;
                             $partner_api_key->balance += $net_amount;
                             $partner_api_key->save();
@@ -2955,7 +2982,7 @@ class PaymentLogController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -2993,7 +3020,7 @@ class PaymentLogController extends Controller
                                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                        $amount_to_update = round($amount_to_update, 2);
+                                        $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                         $DailyPartnerSummary_record->save();

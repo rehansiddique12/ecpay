@@ -686,11 +686,11 @@ class TelegramGroupController extends Controller
                                                         
                                                                                 $charge = str_replace(',', '', $charge);
                                                                                 $charge = (float)$charge;
-                                                                                $charge = round($charge, 2);
+                                                                                $charge = (float) number_format($charge, 2, 2, '.', '');
                                                                                 
                                                                                 $amount = str_replace(',', '', $amount);
                                                                                 $amount = (float)$amount;
-                                                                                $amount = round($amount, 2);
+                                                                                $amount = (float) number_format($amount, 2, 2, '.', '');
                                                                             
                                                                                 if($amount>0){
                                                                                     $final_amo = getAmount($amount - $charge);
@@ -840,7 +840,7 @@ class TelegramGroupController extends Controller
                                                                                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                                                                                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                                                                            $amount_to_update = round($amount_to_update, 2);
+                                                                                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                                                                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                             $DailyPartnerSummary_record->save();
@@ -891,7 +891,7 @@ class TelegramGroupController extends Controller
                                                                                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                                                                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                                                                                    $amount_to_update = round($amount_to_update, 2);
+                                                                                                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                                                                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                                     $DailyPartnerSummary_record->save();
@@ -2660,11 +2660,11 @@ class TelegramGroupController extends Controller
                                                         
                                                                                 $charge = str_replace(',', '', $charge);
                                                                                 $charge = (float)$charge;
-                                                                                $charge = round($charge, 2);
+                                                                                $charge = (float) number_format($charge, 2, 2, '.', '');
                                                                                 
                                                                                 $amount = str_replace(',', '', $amount);
                                                                                 $amount = (float)$amount;
-                                                                                $amount = round($amount, 2);
+                                                                                $amount = (float) number_format($amount, 2, 2, '.', '');
                                                                             
                                                                                 if($amount>0){
                                                                                     $final_amo = getAmount($amount - $charge);
@@ -2814,7 +2814,7 @@ class TelegramGroupController extends Controller
                                                                                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                                                                                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                                                                            $amount_to_update = round($amount_to_update, 2);
+                                                                                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                                                                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                             $DailyPartnerSummary_record->save();
@@ -2865,7 +2865,7 @@ class TelegramGroupController extends Controller
                                                                                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                                                                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                                                                                    $amount_to_update = round($amount_to_update, 2);
+                                                                                                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                                                                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                                     $DailyPartnerSummary_record->save();
@@ -4010,11 +4010,11 @@ class TelegramGroupController extends Controller
                                                 
                                                                     $charge = str_replace(',', '', $charge);
                                                                     $charge = (float)$charge;
-                                                                    $charge = round($charge, 2);
+                                                                    $charge = (float) number_format($charge, 2, 2, '.', '');
                                                                     
                                                                     $amount = str_replace(',', '', $amount);
                                                                     $amount = (float)$amount;
-                                                                    $amount = round($amount, 2);
+                                                                    $amount = (float) number_format($amount, 2, 2, '.', '');
                                                                     
                                                                     if($amount>0){
                                                                         $final_amo = getAmount($amount - $charge);
@@ -4162,7 +4162,7 @@ class TelegramGroupController extends Controller
                                                                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                                                                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                                                                    $amount_to_update = round($amount_to_update, 2);
+                                                                                    $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                                                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                     $DailyPartnerSummary_record->save();
@@ -4213,7 +4213,7 @@ class TelegramGroupController extends Controller
                                                                                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                                                                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                                                                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                                                                            $amount_to_update = round($amount_to_update, 2);
+                                                                                            $amount_to_update = (float) number_format($amount_to_update, 2, 2, '.', '');
                                                                                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                                                                                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                                                                             $DailyPartnerSummary_record->save();

@@ -73,8 +73,8 @@ class DashboardController extends Controller
             ->where('api_id', $api_id)
             ->first();
         $transection_data['total_payout_count'] = $funds_t->fund_count;
-        $transection_data['total_payout_sum'] = round($funds_t->fund_sum, 2);
-        $transection_data['total_payout_charge'] = round($funds_t->charge_sum ?? 0, 2);
+        $transection_data['total_payout_sum'] = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
+        $transection_data['total_payout_charge'] = (float) number_format($funds_t->charge_sum ?? 0, 2, 2, '.', '');
 
         $currentDate = Carbon::now()->toDateString();
 
@@ -85,8 +85,8 @@ class DashboardController extends Controller
             ->first();
 
         $transection_data['total_payout_count_today'] = $funds_today->fund_count ?? 0;
-        $transection_data['total_payout_sum_today'] = round($funds_today->fund_sum ?? 0, 2);
-        $transection_data['total_payout_charge_today'] = round($funds_today->charge_sum ?? 0, 2);
+        $transection_data['total_payout_sum_today'] = (float) number_format($funds_today->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_payout_charge_today'] = (float) number_format($funds_today->charge_sum ?? 0, 2, 2, '.', '');
 
 
         // Get the first day of the current month
@@ -102,14 +102,14 @@ class DashboardController extends Controller
             ->first();
 
         $transection_data['total_payout_count_current_month'] = $funds_current_month->fund_count ?? 0;
-        $transection_data['total_payout_sum_current_month'] = round($funds_current_month->fund_sum ?? 0, 2);
-        $transection_data['total_payout_charge_current_month'] = round($funds_current_month->charge_sum ?? 0, 2);
+        $transection_data['total_payout_sum_current_month'] = (float) number_format($funds_current_month->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_payout_charge_current_month'] = (float) number_format($funds_current_month->charge_sum ?? 0, 2, 2, '.', '');
 
         $payments = Payment::where('status', '!=', 'initiate')->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charge) as charge_sum')
             ->where('api_id', $api_id)->first();
         $transection_data['total_payment_count'] = $payments->fund_count;
-        $transection_data['total_payment_sum'] = round($payments->fund_sum, 2);
-        $transection_data['total_payment_charge'] = round($payments->charge_sum, 2);
+        $transection_data['total_payment_sum'] = (float) number_format($payments->fund_sum, 2, 2, '.', '');
+        $transection_data['total_payment_charge'] = (float) number_format($payments->charge_sum, 2, 2, '.', '');
 
 
         $currentDate = Carbon::now()->toDateString();
@@ -121,8 +121,8 @@ class DashboardController extends Controller
             ->first();
 
         $transection_data['total_payment_count_today'] = $payments_today->fund_count ?? 0;
-        $transection_data['total_payment_sum_today'] = round($payments_today->fund_sum ?? 0, 2);
-        $transection_data['total_payment_charge_today'] = round($payments_today->charge_sum ?? 0, 2);
+        $transection_data['total_payment_sum_today'] = (float) number_format($payments_today->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_payment_charge_today'] = (float) number_format($payments_today->charge_sum ?? 0, 2, 2, '.', '');
 
 
         $firstDayOfMonth = Carbon::now()->startOfMonth()->toDateString();
@@ -137,8 +137,8 @@ class DashboardController extends Controller
             ->first();
 
         $transection_data['total_payment_count_current_month'] = $payments_current_month->fund_count ?? 0;
-        $transection_data['total_payment_sum_current_month'] = round($payments_current_month->fund_sum ?? 0, 2);
-        $transection_data['total_payment_charge_current_month'] = round($payments_current_month->charge_sum ?? 0, 2);
+        $transection_data['total_payment_sum_current_month'] = (float) number_format($payments_current_month->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_payment_charge_current_month'] = (float) number_format($payments_current_month->charge_sum ?? 0, 2, 2, '.', '');
 
 
         $sum = Payout::whereYear('created_at', now()->year)
@@ -161,23 +161,23 @@ class DashboardController extends Controller
         }
 
         $withdrawal_able_amount = $user->balance - $charge;
-        $transection_data['withdrawal_able_amount'] = round($withdrawal_able_amount ?? 0, 2);
+        $transection_data['withdrawal_able_amount'] = (float) number_format($withdrawal_able_amount ?? 0, 2, 2, '.', '');
 
         //settlement
         $settlement_total_records = Settlement::where('partner_id', $user->id)->where('status', 1)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charges) as charge_sum')->first();
         $transection_data['total_settlement_count'] = $settlement_total_records->fund_count ?? 0;
-        $transection_data['total_settlement_sum'] = round($settlement_total_records->fund_sum ?? 0, 2);
-        $transection_data['total_settlement_charge'] = round($settlement_total_records->charge_sum ?? 0, 2);
+        $transection_data['total_settlement_sum'] = (float) number_format($settlement_total_records->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_settlement_charge'] = (float) number_format($settlement_total_records->charge_sum ?? 0, 2, 2, '.', '');
 
         $settlement_total_records_daily = Settlement::where('partner_id', $user->id)->where('status', 1)->whereDate('created_at', $currentDate)->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charges) as charge_sum')->first();
         $transection_data['total_settlement_count_daily'] = $settlement_total_records_daily->fund_count ?? 0;
-        $transection_data['total_settlement_sum_daily'] = round($settlement_total_records_daily->fund_sum ?? 0, 2);
-        $transection_data['total_settlement_charge_daily'] = round($settlement_total_records_daily->charge_sum ?? 0, 2);
+        $transection_data['total_settlement_sum_daily'] = (float) number_format($settlement_total_records_daily->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_settlement_charge_daily'] = (float) number_format($settlement_total_records_daily->charge_sum ?? 0, 2, 2, '.', '');
 
         $settlement_total_records_monthly = Settlement::where('partner_id', $user->id)->where('status', 1)->whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum, SUM(charges) as charge_sum')->first();
         $transection_data['total_settlement_count_current_month'] = $settlement_total_records_monthly->fund_count ?? 0;
-        $transection_data['total_settlement_sum_current_month'] = round($settlement_total_records_monthly->fund_sum ?? 0, 2);
-        $transection_data['total_settlement_charge_current_month'] = round($settlement_total_records_monthly->charge_sum ?? 0, 2);
+        $transection_data['total_settlement_sum_current_month'] = (float) number_format($settlement_total_records_monthly->fund_sum ?? 0, 2, 2, '.', '');
+        $transection_data['total_settlement_charge_current_month'] = (float) number_format($settlement_total_records_monthly->charge_sum ?? 0, 2, 2, '.', '');
 
 
         $data['subscriber'] = Subscriber::count();
@@ -210,10 +210,10 @@ class DashboardController extends Controller
         //     )
         //     ->groupBy(DB::raw("DATE(created_at)"))
         //     ->get()->map(function ($item) use ($dailyInvestAmo, $dailyInvest, $dailyReturn, $dailyRefund) {
-        //         $dailyInvestAmo->put($item['date'], round($item['total_Amount'], 2));
-        //         $dailyInvest->put($item['date'], round($item['Invest_Amount'], 2));
-        //         $dailyReturn->put($item['date'], round($item['Return_Amount'], 2));
-        //         $dailyRefund->put($item['date'], round($item['Refund_Amount'], 2));
+        //         $dailyInvestAmo->put($item['date'], (float) number_format($item['total_Amount'], 2, 2, '.', ''));
+        //         $dailyInvest->put($item['date'], (float) number_format($item['Invest_Amount'], 2, 2, '.', ''));
+        //         $dailyReturn->put($item['date'], (float) number_format($item['Return_Amount'], 2, 2, '.', ''));
+        //         $dailyRefund->put($item['date'], (float) number_format($item['Refund_Amount'], 2, 2, '.', ''));
         //     });
 
         // $statistics['investment'] = $dailyInvest;
@@ -232,7 +232,7 @@ class DashboardController extends Controller
             ->get()
             ->each(function ($item) use ($dailyDeposit) {
                 if (!empty($item->totalAmount)) {
-                    $dailyDeposit->put($item->date, round($item->totalAmount, 2));
+                    $dailyDeposit->put($item->date, (float) number_format($item->totalAmount, 2, 2, '.', ''));
                 }
             });
 
@@ -251,7 +251,7 @@ class DashboardController extends Controller
             ->get()
             ->each(function ($item) use ($dailyPayout) {
                 if (!empty($item->totalAmount)) {
-                    $dailyPayout->put($item->date, round($item->totalAmount, 2));
+                    $dailyPayout->put($item->date, (float) number_format($item->totalAmount, 2, 2, '.', ''));
                 }
             });
 

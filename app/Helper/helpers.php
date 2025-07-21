@@ -190,7 +190,7 @@ function getPercent($total, $current)
     } else {
         $percent = 0;
     }
-    return round($percent, 0);
+    return (float) number_format($percent, 0, 2, '.', '');
 }
 
 function flagLanguage($data)
