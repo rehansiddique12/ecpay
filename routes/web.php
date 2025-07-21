@@ -297,7 +297,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Route::get('/get-api-log2/{url?}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
 
         Route::match(['get', 'post'], '/get-api-log/{url?}', [PayoutRecordController::class, 'getApiLog'])->where('url', '.*');
-        Route::match(['get', 'post'], '/get-api-log2/{url?}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
+        Route::match(['get', 'post'], '/get-api-log2/{url?}', [PayoutRecordController::class, 'getUnifiedApiLog'])->where('url', '.*');
 
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
@@ -612,7 +612,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
         Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
 
-        Route::put('/payout-action/{id}', [PartnerPayoutRecordController::class, 'action'])->name('payout-action');
+        Route::put('/payout-action/{id}', [Partne\r::class, 'action'])->name('payout-action');
 
         Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
         Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');

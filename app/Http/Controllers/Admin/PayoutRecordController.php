@@ -7038,42 +7038,52 @@ class PayoutRecordController extends Controller
         return view('admin.payout.apiLogs', compact('data', 'pageTitle'));
     }
 
-    public function getApiLog($url)
-    {
+    public function getApiLog(Request $request)
+{
+    $url = $request->input('url');
 
-        $log = \App\Models\ApiLog::where('request_url',  $url)->orderby('id', 'Desc')->get();
+    $log = \App\Models\ApiLog::where('request_url', $url)
+                ->orderBy('id', 'desc')
+                ->get();
 
-        if ($log) {
-            return response()->json([
-                'success' => true,
-                'data' => $log
-            ]);
-        }
-
+    if ($log->isNotEmpty()) {
         return response()->json([
-            'success' => false,
-            'message' => 'No log found.'
+            'success' => true,
+            'data' => $log
         ]);
     }
-    public function getApiLog2($url)
-    {
 
-        $log = \App\Models\ApiLog::where('request_payload', 'like', '%' . $url . '%')
-            ->orderBy('id', 'DESC')
-            ->get();
+    return response()->json([
+        'success' => false,
+        'message' => 'No log found.'
+    ]);
+}
 
-        if ($log) {
-            return response()->json([
-                'success' => true,
-                'data' => $log
-            ]);
-        }
+public function getUnifiedApiLog(Request $request)
+{
+    $type = $request->input('type'); // 'url' or 'payload'
+    $value = $request->input('id');
 
+    $query = \App\Models\ApiLog::query();
+
+    if ($type === 'url') {
+        $query->where('request_url', $value);
+    } elseif ($type === 'payload') {
+        $query->where('request_payload', 'like', '%' . $value . '%');
+    } else {
         return response()->json([
             'success' => false,
-            'message' => 'No log found.'
+            'message' => 'Invalid log type.'
         ]);
     }
+
+    $logs = $query->orderBy('id', 'desc')->get();
+
+    return response()->json([
+        'success' => $logs->isNotEmpty(),
+        'data' => $logs
+    ]);
+}
 
     public function functionlogs(Request $request)
     {
