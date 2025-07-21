@@ -64,7 +64,7 @@ class PaymentLogController extends Controller
                         ->where('created_at', '<=', $toDate)
                         ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
-        $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
         return view('partner.payment.report', compact('funds', 'pageTitle','domains','gateways','fund_count','fund_sum','from_date','to_date'));
     }
 
@@ -197,7 +197,7 @@ class PaymentLogController extends Controller
 
         if (!empty($aggregates) && isset($aggregates[0]->amount_count)) {
             $fund_count = $aggregates[0]->amount_count;
-            $fund_sum = (float) number_format($aggregates[0]->amount_sum, 2, 2, '.', '');
+            $fund_sum = (float) number_format($aggregates[0]->amount_sum, 2, '.', '');
         }
 
         // Paginated list of payments
@@ -467,7 +467,7 @@ class PaymentLogController extends Controller
         // ->with('gateway')
         // ->first();
         // $fund_count = $funds_t->fund_count;
-        // $fund_sum = (float) number_format($funds_t->fund_sum, 2, 2, '.', '');
+        // $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
 
         return response()->json($funds);
 
