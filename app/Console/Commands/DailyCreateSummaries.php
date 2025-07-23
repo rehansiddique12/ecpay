@@ -6,6 +6,8 @@ use Carbon\Carbon;
 use App\Models\Api;
 use App\Models\Payout;
 use App\Models\Payment;
+use App\Models\Blacklist;
+use App\Models\BlacklistRemoval;
 use App\Models\Settlement;
 use App\Models\ApiTransaction;
 use App\Models\EWalletAccount;
@@ -44,12 +46,48 @@ class DailyCreateSummaries extends Command
 
         Log::info('Successfully Run DailyCreateSummaries Cron');
 
-        
+
         $this->add_daily_partner_summary();
 
         $this->add_daily_summary();
+        $this->delete_missing_transactions_blacklist(); // Add this line
     }
 
+    public function delete_missing_transactions_blacklist()
+    {
+        try {
+            $reason = '7 total missing txns in a day';
+            $now = Carbon::now();
+
+            // Step 1: Get all member_ids from BlackList with the specific reason
+            $blacklistRecords = Blacklist::where('reason', $reason)->get();
+
+            if ($blacklistRecords->isEmpty()) {
+                Log::info("No BlackList records found with reason: '{$reason}'");
+                $this->info("No BlackList records found with reason: '{$reason}'");
+                return 0;
+            }
+
+            $memberIds = $blacklistRecords->pluck('member_id')->toArray();
+
+            // Step 2: Update matching records in BlacklistRemoval
+            $updatedCount = BlacklistRemoval::whereIn('member_id', $memberIds)
+                ->update(['updated_at' => $now]);
+
+            // Step 3: Delete the original BlackList records
+            $deletedCount = BlackList::where('reason', $reason)->delete();
+
+            Log::info("Processed missing transactions blacklist - Updated {$updatedCount} BlacklistRemoval records and deleted {$deletedCount} BlackList records");
+            $this->info("Processed missing transactions blacklist - Updated {$updatedCount} BlacklistRemoval records and deleted {$deletedCount} BlackList records");
+
+            return $deletedCount;
+
+        } catch (\Exception $e) {
+            Log::error("Error processing missing transactions blacklist: " . $e->getMessage());
+            $this->error("Error processing missing transactions blacklist: " . $e->getMessage());
+            return 0;
+        }
+    }
 
 
     public function add_daily_summary()
@@ -90,17 +128,17 @@ class DailyCreateSummaries extends Command
 
             foreach ($EWalletAccounts as $accountId => $account) {
                 $key = $account->e_wallet_name . '_' . $account->account_no;
-            
+
                 $total_deposit = isset($payments[$key]) ? $payments[$key]->sum('amount') : 0.00;
                 $total_withdrawal = isset($payouts[$key]) ? $payouts[$key]->sum('amount') : 0.00;
                 $transfer_in = isset($transfers_in[$key]) ? $transfers_in[$key]->sum('amount') : 0.00;
                 $transfer_out = isset($transfers_out[$key]) ? $transfers_out[$key]->sum('amount') : 0.00;
-            
+
                 $previousSummary = $previousSummaries[$accountId] ?? null;
-            
+
                 if (!$previousSummary) {
                     $closing_balance = $account->balance - $total_deposit + $total_withdrawal - $transfer_in + $transfer_out;
-            
+
                     DailyEWalletSummary::create([
                         'e_wallet_id' => $account->id,
                         'closing_balance' => $closing_balance,
@@ -110,16 +148,16 @@ class DailyCreateSummaries extends Command
                 } else {
                     $closing_balance = $previousSummary->closing_balance;
                 }
-            
+
                 $new_closing_balance = $closing_balance + $total_deposit - $total_withdrawal + $transfer_in - $transfer_out;
-            
+
                 DailyEWalletSummary::create([
                     'e_wallet_id' => $account->id,
                     'closing_balance' => $new_closing_balance,
                     'actual_balance' => $account->balance,
                 ]);
             }
-            
+
     }
 
 
@@ -312,7 +350,7 @@ class DailyCreateSummaries extends Command
 
             $closing_balance_created_at = $this->create_at_balance_calculation($domain,$date,$oneDayBeforeEndOfDay,$oneDayBefore,$key);
             $closing_balance_completion_at = $this->completions_at_balance_calculation($domain,$date,$oneDayBeforeEndOfDay,$oneDayBefore,$key);
-            
+
             $record =  DailyPartnerSummary::where('api_id', $domain->id)->whereDate('created_at', $oneDayBefore)->first();
             if (!$record) {
                 $add_previous_record = new DailyPartnerSummary();
@@ -330,7 +368,7 @@ class DailyCreateSummaries extends Command
                 $closing_balance = $record->closing_balance;
                 $completion_closing_balance = $record->completion_at_balance;
             }
-            
+
             $DailyPartnerSummary = new DailyPartnerSummary();
             $DailyPartnerSummary->api_id = $domain->id;
             $DailyPartnerSummary->closing_balance = $closing_balance + $closing_balance_created_at['closing_balance'];
@@ -361,7 +399,7 @@ class DailyCreateSummaries extends Command
             $Settlement = Settlement::where('partner_id', $domain->id)->where('status', 1)->whereDate('created_at', $date)->selectRaw('COALESCE(SUM(amount), 0) as settlement_amount, COALESCE(SUM(charges), 0) as settlement_charges')->first();
             $adjustment = ApiTransaction::where('partner_id', $domain->id)->whereDate('created_at', $date)->selectRaw('COALESCE(SUM(amount), 0) as adjustment_amount, COALESCE(SUM(charges), 0) as adjustment_charges')->first();
             $PartnerCommission = PartnerCommission::where('from_id', $domain->id)->where('status', 1)->whereDate('created_at', $date)->selectRaw('COALESCE(SUM(profit), 0) as commission_amount')->first();
-            
+
             $data[$key]['deposit_amount'] = $deposit->deposit_amount;
             $data[$key]['deposit_charges'] = $deposit->deposit_charges;
             $data[$key]['withdrawal_amount'] = $withdrawal->withdrawal_amount;
@@ -372,7 +410,7 @@ class DailyCreateSummaries extends Command
             $data[$key]['adjustment_charges'] = $adjustment->adjustment_charges;
             $data[$key]['commission'] = $PartnerCommission->commission_amount;
 
-            $newData['not_found_balance'] = $data[$key]['deposit_amount'] - $data[$key]['adjustment'] + $data[$key]['adjustment_charges'] - $data[$key]['commission'] + $data[$key]['deposit_charges'] + $data[$key]['withdrawal_amount'] + $data[$key]['withdrawal_charges'] + $data[$key]['settlement_amount'] + $data[$key]['settlement_charges'];  
+            $newData['not_found_balance'] = $data[$key]['deposit_amount'] - $data[$key]['adjustment'] + $data[$key]['adjustment_charges'] - $data[$key]['commission'] + $data[$key]['deposit_charges'] + $data[$key]['withdrawal_amount'] + $data[$key]['withdrawal_charges'] + $data[$key]['settlement_amount'] + $data[$key]['settlement_charges'];
             $newData['closing_balance'] = $data[$key]['adjustment'] - $data[$key]['adjustment_charges'] + $data[$key]['commission'] + $data[$key]['deposit_amount'] - $data[$key]['deposit_charges'] - $data[$key]['withdrawal_amount'] - $data[$key]['withdrawal_charges'] - $data[$key]['settlement_amount'] - $data[$key]['settlement_charges'];
             return $newData;
     }
@@ -395,7 +433,7 @@ class DailyCreateSummaries extends Command
             $Settlement = Settlement::where('partner_id', $domain->id)->where('status', 1)->whereDate('updated_at', $date)->selectRaw('COALESCE(SUM(amount), 0) as settlement_amount, COALESCE(SUM(charges), 0) as settlement_charges')->first();
             $adjustment = ApiTransaction::where('partner_id', $domain->id)->whereDate('updated_at', $date)->selectRaw('COALESCE(SUM(amount), 0) as adjustment_amount, COALESCE(SUM(charges), 0) as adjustment_charges')->first();
             $PartnerCommission = PartnerCommission::where('from_id', $domain->id)->where('status', 1)->whereDate('updated_at', $date)->selectRaw('COALESCE(SUM(profit), 0) as commission_amount')->first();
-            
+
             $data[$key]['deposit_amount'] = $deposit->deposit_amount;
             $data[$key]['deposit_charges'] = $deposit->deposit_charges;
             $data[$key]['withdrawal_amount'] = $withdrawal->withdrawal_amount;
@@ -406,7 +444,7 @@ class DailyCreateSummaries extends Command
             $data[$key]['adjustment_charges'] = $adjustment->adjustment_charges;
             $data[$key]['commission'] = $PartnerCommission->commission_amount;
 
-            $newData['not_found_balance'] = $data[$key]['deposit_amount'] - $data[$key]['adjustment'] + $data[$key]['adjustment_charges'] - $data[$key]['commission'] + $data[$key]['deposit_charges'] + $data[$key]['withdrawal_amount'] + $data[$key]['withdrawal_charges'] + $data[$key]['settlement_amount'] + $data[$key]['settlement_charges'];  
+            $newData['not_found_balance'] = $data[$key]['deposit_amount'] - $data[$key]['adjustment'] + $data[$key]['adjustment_charges'] - $data[$key]['commission'] + $data[$key]['deposit_charges'] + $data[$key]['withdrawal_amount'] + $data[$key]['withdrawal_charges'] + $data[$key]['settlement_amount'] + $data[$key]['settlement_charges'];
             $newData['closing_balance'] = $data[$key]['adjustment'] - $data[$key]['adjustment_charges'] + $data[$key]['commission'] + $data[$key]['deposit_amount'] - $data[$key]['deposit_charges'] - $data[$key]['withdrawal_amount'] - $data[$key]['withdrawal_charges'] - $data[$key]['settlement_amount'] - $data[$key]['settlement_charges'];
             return $newData;
 
