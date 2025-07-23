@@ -1201,6 +1201,7 @@ class PaymentLogController extends Controller
                             'created_at' => $payment->created_at,
                             'updated_at' => $payment->updated_at,
                             'sign' => $sign,
+                            'source' => '5Callback'.auth()->id(),
                     ];
 
                     if(!empty($payment->member_id)){
@@ -1430,6 +1431,7 @@ class PaymentLogController extends Controller
                                 'created_at' => $data->created_at,
                                 'updated_at' => $data->updated_at,
                                 'sign' => $sign,
+                                'source' => '6Callback'.auth()->id(),
                     ];
 
                     if(!empty($data->member_id)){
@@ -1667,6 +1669,7 @@ class PaymentLogController extends Controller
                                     'created_at' => $payment->created_at,
                                     'updated_at' => $payment->updated_at,
                                     'sign' => $sign,
+                                    'source' => '7Callback',
                         ];
 
                         if(!empty($payment->member_id)){
@@ -1760,6 +1763,7 @@ class PaymentLogController extends Controller
                                 'created_at' => $payment->created_at,
                                 'updated_at' => $payment->updated_at,
                                 'sign' => $sign,
+                                'source' => '2Callback'.auth()->id(),
                     ];
 
                     if(!empty($payment->member_id)){
@@ -2276,6 +2280,7 @@ class PaymentLogController extends Controller
                                     'created_at' => $order->created_at,
                                     'updated_at' => $order->updated_at,
                                     'sign' => $sign,
+                                    'source' => '8Callback',
                         ];
 
                         if(!empty($order->member_id)){
@@ -2635,6 +2640,7 @@ class PaymentLogController extends Controller
                                     'created_at' => $order->created_at,
                                     'updated_at' => $order->updated_at,
                                     'sign' => $sign,
+                                    'source' => '9Callback',
                         ];
 
                         if(!empty($order->member_id)){
@@ -2813,7 +2819,7 @@ class PaymentLogController extends Controller
                     DB::rollBack();
                     return response()->json(['message' => 'Payment Already Added']);
                 }else{
-                    $payment_record = PendingPayment::where('txn_id', $request->txn_id)->where('status', 0)->orderBy('id', 'DESC')->first();
+                    $payment_record = PendingPayment::where('txn_id', $request->txn_id)->orderBy('id', 'DESC')->first();
                     if ($payment_record) {
                         DB::rollBack();
                         return response()->json(['message' => 'Payment Already Added']);
@@ -3075,6 +3081,7 @@ class PaymentLogController extends Controller
                                             'created_at' => $payment->created_at,
                                             'updated_at' => $payment->updated_at,
                                             'sign' => $sign,
+                                            'source' => '10Callback',
                                 ];
 
                                 if(!empty($payment->member_id)){
@@ -3529,6 +3536,7 @@ class PaymentLogController extends Controller
                             'created_at' => $payment->created_at,
                             'updated_at' => $payment->updated_at,
                             'sign' => $sign,
+                            'source' => '11Callback',
                     ];
 
                     if(!empty($payment->member_id)){
@@ -3685,7 +3693,7 @@ class PaymentLogController extends Controller
                         $e_wallet_log_save->transaction_type = 3;
                         $e_wallet_log_save->transaction_id = $data->id;
                         $e_wallet_log_save->account_id = $account->id;
-                        $e_wallet_log_save->source = "action";
+                        $e_wallet_log_save->source = "updatePayment API";
                         $e_wallet_log_save->save();
                     }
                 }
@@ -3742,6 +3750,7 @@ class PaymentLogController extends Controller
                                 'created_at' => $data->created_at,
                                 'updated_at' => $data->updated_at,
                                 'sign' => $sign,
+                                'source' => '12Callback',
                     ];
 
                     if(!empty($data->member_id)){
