@@ -264,7 +264,7 @@
                                             data-title="{{ $fund->status == 'Pending' ? __('transaction.edit') : __('transaction.details') }}"
                                             data-id="{{ $fund->id }}" data-feedback="{{ $fund->feedback }}"
                                             data-info="{{ json_encode($details) }}"
-                                            data-amount="{{ getAmount($fund->amount) }} {{ $basic->currency }}"
+                                            data-amount="{{ getAmount($fund->amount) }}"
                                             data-username="{{ optional($fund->user)->username }}"
                                             data-route="{{ route('admin.payment.action', $fund->id) }}"
                                             data-status="{{ $fund->status }}" data-sender="{{ $fund->sender }}"
@@ -351,6 +351,10 @@
                             <label>{{ __('transaction.payment_receiving_datetime') }}</label>
                             <input class="form-control" id="e_wallet_phone_number" required
                                 value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
+                            <div id="2fa_div">   
+                            <label>{{ __('transaction.2fa') }}</label>
+                            <input class="form-control" name="twofa" type="text" />
+                            </div> 
                             <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="status"
                                 value="Complete">{{ __('transaction.approve') }}</button>
                         </div>
@@ -523,6 +527,14 @@
                     var sender = jQuery(this).data('sender');
                     var feedback = jQuery(this).data('feedback');
                     var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
+
+                    var amount = jQuery(this).data('amount');
+
+                    if (amount >= 1000) {
+                        jQuery('#2fa_div').show();
+                    } else {
+                        jQuery('#2fa_div').hide();
+                    }
 
                     jQuery(".action_id").val(id);
                     jQuery(".sender").val(sender);

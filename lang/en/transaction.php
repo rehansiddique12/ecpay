@@ -53,6 +53,7 @@ return [
     'e_wallet_no' => 'E-Wallet No.',
     'txn_no' => 'Txn No.',
     'e_wallet_type' => 'E-Wallet Type',
+    '2fa' => '2FA OTP Code',
     'payment_receiving_datetime' => 'Payment Receiving DateTime.',
     'personal' => 'Personal',
     'merchant' => 'Merchant',

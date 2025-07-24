@@ -2,23 +2,27 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Carbon\Carbon;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\TwoStepVerification;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Providers\RouteServiceProvider;
+use App\Services\GoogleAuthenticatorService;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
-{
+{   
+    protected $googleAuthenticatorService;
+
     protected $redirectTo = '/admin/dashboard';
 
-    public function __construct()
+    public function __construct(GoogleAuthenticatorService $googleAuthenticatorService)
     {
-        // Middleware ensures only guests can access the login page, except for logout
-        // $this->middleware('guest:admin')->except('logout');
+        $this->googleAuthenticatorService = $googleAuthenticatorService;
     }
 
     // Show the login form
@@ -31,21 +35,77 @@ class LoginController extends Controller
     // Handle the login logic
     public function login(Request $request)
     {
+
         $input = $request->all();
+        $this->validate($request, [
+            $this->username() => 'required',
+            'password' => 'required',
+        ]);
 
-        // Validate the request
-        $this->validateLogin($request);
+        $data['username'] = $request->username;
+        $data['password'] = $request->password;
 
-        // Determine if the user is logging in with email or username
+
         $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        // Attempt to log the user in
-        if (Auth::guard('admin')->attempt([$fieldType => $input['username'], 'password' => $input['password']])) {
-            return $this->sendLoginResponse($request);
-        } else {
-            return redirect()->route('admin.login')
-                ->with('error', 'Email-Address or Username and Password are wrong.');
+        $partner = Admin::where($fieldType, $input['username'])->first();
+        if ($partner && Hash::check($input['password'], $partner->password)) {
+            
+            $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
+                ->first();
+            if($TwoStepVerification){
+                if($TwoStepVerification->g_auth_status=="Yes"){
+                    if(isset($request->otp)){
+                        $checkResult = $this->googleAuthenticatorService->verifyCode($TwoStepVerification->g_secret_key, $request->otp, 0);
+                        if($checkResult){
+                            if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
+                                
+                                $ipAddress = $_SERVER['REMOTE_ADDR'];
+                                $user = Auth::guard('admin')->user();                               
+            
+            
+                                return redirect()->intended(route('admin.dashboard'));
+                            }else{
+                                return redirect()->route('admin.login')
+                                    ->with('error','Email-Address And Password Are Wrong.');
+                            }
+                        }
+                        $data['wrong'] = 'wrong';
+                        return view('admin.auth.2fa', compact('data'));
+                    }
+                    return view('admin.auth.2fa', compact('data'));
+                }
+            }
+            
         }
+        
+        if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
+            
+                                $ipAddress = $_SERVER['REMOTE_ADDR'];
+                                $user = Auth::guard('admin')->user();
+                                
+            return redirect()->intended(route('admin.dashboard'));
+        }else{
+            return redirect()->route('admin.login')
+                ->with('error','Email-Address And Password Are Wrong.');
+        }
+
+
+        // $input = $request->all();
+
+        // // Validate the request
+        // $this->validateLogin($request);
+
+        // // Determine if the user is logging in with email or username
+        // $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        // // Attempt to log the user in
+        // if (Auth::guard('admin')->attempt([$fieldType => $input['username'], 'password' => $input['password']])) {
+        //     return $this->sendLoginResponse($request);
+        // } else {
+        //     return redirect()->route('admin.login')
+        //         ->with('error', 'Email-Address or Username and Password are wrong.');
+        // }
     }
 
     // Define the username field (either email or username)

@@ -52,19 +52,21 @@ class LoginController extends Controller
         $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         $partner = Api::where($fieldType, $input['username'])->first();
-        // echo '<pre>';
-        // print_r($partner->password);
-        // echo '</pre>';
-        // dd(Hash::check($input['password'], $partner->password ));
+
         if ($partner && Hash::check($input['password'], $partner->password)) {
 
-            $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)
+            $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Partner')
                 ->first();
 
             if($TwoStepVerification){
                 if($TwoStepVerification->g_auth_status=="Yes"){
+
+                    
+
                     if(isset($request->otp)){
+                        
                         $checkResult = $this->googleAuthenticatorService->verifyCode($TwoStepVerification->g_secret_key, $request->otp, 0);
+                        
                         if($checkResult){
                             if(Auth::guard('partner')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
@@ -95,6 +97,7 @@ class LoginController extends Controller
             }
 
         }
+        
         if(Auth::guard('partner')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
             $ipAddress = $_SERVER['REMOTE_ADDR'];

@@ -1,4 +1,4 @@
-<x-partner-layout :title="$pageTitle">
+<x-admin-layout :title="$pageTitle">
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="card">
             <div class="card-body">
@@ -7,14 +7,12 @@
                     @csrf
 
                     @if($status == "No")
-
-                        <style>
-                            svg{
-                                padding: 10px;
-                                background: white;
-                            }
-                        </style>
-                        
+                    <style>
+                        svg{
+                            padding: 10px;
+                            background: white;
+                        }
+                    </style>
                         {{-- <div class="form-group"> --}}
                             <!-- QR Code Display -->
                             <div class="text-center">
@@ -48,4 +46,4 @@
     height: auto;
 }
 </style>
-</x-partner-layout>
+</x-admin-layout>
