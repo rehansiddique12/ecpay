@@ -2,21 +2,28 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Traits\Upload;
 use Illuminate\Http\Request;
+use App\Models\TwoStepVerification;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Stevebauman\Purify\Facades\Purify;
 use \Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
+
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Services\GoogleAuthenticatorService;
 
 class DashboardController extends Controller
 {
+
+    protected $googleAuthenticatorService , $user;
+
     use Upload;
 
-    public function __construct()
+    public function __construct(GoogleAuthenticatorService $googleAuthenticatorService)
     {
-        // dd('hello');
+        $this->googleAuthenticatorService = $googleAuthenticatorService;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::guard('admin')->user();
             return $next($request);
@@ -25,11 +32,75 @@ class DashboardController extends Controller
 
 
     public function profile()
-{
-    $pageTitle = 'Admin Profile';
-    $admin = Auth::guard('admin')->user(); // Ensure admin data is being passed
-    return view('admin.profile', compact('pageTitle', 'admin'));
-}
+    {
+        $pageTitle = 'Admin Profile';
+        $admin = Auth::guard('admin')->user(); // Ensure admin data is being passed
+        return view('admin.profile', compact('pageTitle', 'admin'));
+    }
+
+    public function twoFA()
+    {
+        $partner = $this->user;
+        $status = "No";
+
+        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
+            ->first();
+        if ($TwoStepVerification) {
+            if ($TwoStepVerification->g_auth_status == "No") {
+                // $qrCodeUrl = $this->googleAuthenticatorService->getQRCodeGoogleUrl(env('APP_WEBSITE'), $TwoStepVerification->g_secret_key, $partner->username);
+                $urlencoded = ('otpauth://totp/' . env('APP_WEBSITE') . '?secret=' . $TwoStepVerification->g_secret_key . '');
+                if (isset($partner->username)) {
+                    $urlencoded .= ('&issuer=' . $partner->username);
+                }
+                $qrCodeUrl = QrCode::size(500)->generate($urlencoded);
+                $TwoStepVerification->save();
+            } else {
+                $status = "Yes";
+                $qrCodeUrl = "";
+            }
+        } else {
+            $secret = $this->googleAuthenticatorService->createSecret();
+            // $qrCodeUrl = $this->googleAuthenticatorService->getQRCodeGoogleUrl(env('APP_WEBSITE'), $secret, $partner->username);
+                $urlencoded = ('otpauth://totp/' . env('APP_WEBSITE') . '?secret=' . $secret . '');
+                if (isset($partner->username)) {
+                    $urlencoded .= ('&issuer=' . $partner->username);
+                }
+                $qrCodeUrl = QrCode::size(500)->generate($urlencoded);
+
+            $TwoStepVerification = new TwoStepVerification();
+            $TwoStepVerification->g_secret_key = $secret;
+            $TwoStepVerification->user_id = $partner->id;
+            $TwoStepVerification->g_auth_status = 'No';
+            $TwoStepVerification->type = 'Admin';
+            $TwoStepVerification->save();
+        }
+
+        $pageTitle = "QR Code Authentication";
+
+        return view('admin.2fa', compact('qrCodeUrl', 'status','pageTitle'));
+    }
+
+    public function updateTwoFA(Request $request)
+    {
+        $partner = $this->user;
+        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
+            ->first();
+
+        $secret_key = $TwoStepVerification->g_secret_key;
+        $otp = $request->otp;
+
+        $checkResult = $this->googleAuthenticatorService->verifyCode($secret_key, $otp, 0);
+        if ($checkResult) {
+            $TwoStepVerification->g_auth_status = 'Yes';
+            $TwoStepVerification->save();
+            $log = "Enable Two Step Verification";
+            
+
+            return back()->with('success', 'Enabled Successfully.');
+        }
+
+        return back()->with('error', 'Wrong OTP.');
+    }
 
 public function profileUpdate(Request $request)
 {

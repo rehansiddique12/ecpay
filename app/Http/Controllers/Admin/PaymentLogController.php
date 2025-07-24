@@ -25,6 +25,7 @@ use App\Models\ParentCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
+use App\Models\TwoStepVerification;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
@@ -33,10 +34,19 @@ use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+
+use App\Services\GoogleAuthenticatorService;
 use Illuminate\Support\Facades\Log as LaravelLog;
 
 class PaymentLogController extends Controller
 {
+
+    protected $googleAuthenticatorService;
+
+    public function __construct(GoogleAuthenticatorService $googleAuthenticatorService)
+    {
+        $this->googleAuthenticatorService = $googleAuthenticatorService;
+    }
 
     public function index()
     {
@@ -849,6 +859,32 @@ class PaymentLogController extends Controller
             $commit = 0;
 
             if ($request->status == 'Complete') {
+
+                if($data->amount>=1000){
+                    if ($request->filled('twofa')) {
+                        $otp = $request->twofa;
+                        if(!empty($otp)){
+                            $TwoStepVerification = TwoStepVerification::where('user_id', auth()->id())->where('type', 'Admin')->first();
+                            if($TwoStepVerification){
+                                $secret_key = $TwoStepVerification->g_secret_key;
+                                $checkResult = $this->googleAuthenticatorService->verifyCode($secret_key, $otp, 0);
+                                if (!$checkResult) {
+                                    throw new \Exception("Wrong OTP");
+                                }
+                            }else{
+                                DB::rollBack();
+                                throw new \Exception("2FA Error!");
+                            }
+                                
+                        }else{
+                            DB::rollBack();
+                            throw new \Exception("Enter 2FA OTP Code");
+                        }
+                    }else{
+                        DB::rollBack();
+                        throw new \Exception("Enter 2FA OTP Code");
+                    }
+                }
 
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)

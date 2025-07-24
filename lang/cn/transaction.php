@@ -53,6 +53,7 @@ return [
     'e_wallet_no' => '电子钱包号',
     'txn_no' => '交易编号',
     'e_wallet_type' => '电子钱包类型',
+    '2fa' => '双重验证代码',
     'payment_receiving_datetime' => '付款接收时间',
     'personal' => '个人',
     'merchant' => '商户',

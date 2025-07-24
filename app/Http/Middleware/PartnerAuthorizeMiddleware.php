@@ -13,27 +13,27 @@ class PartnerAuthorizeMiddleware
     {
         // return $next($request);
         $user = Auth::guard('partner')->user();
-        $Adminuser = Auth::guard('admin')->user();
-        if(isset($Adminuser->id)){
-            $can_access_admin = adminAccessRoute(config('role.view_partner_account.access.view'));
-            if ($can_access_admin) {
-                return $next($request);
-            }
-        }
+        // $Adminuser = Auth::guard('admin')->user();
+        // if(isset($Adminuser->id)){
+        //     $can_access_admin = adminAccessRoute(config('role.view_partner_account.access.view'));
+        //     if ($can_access_admin) {
+        //         return $next($request);
+        //     }
+        // }
 
         $list = collect(config('rolep'))->pluck(['access'])->flatten();
         $filtered = $list->intersect($user->admin_access);
 
         if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
 
-            $TwoStepVerification = TwoStepVerification::where('user_id', $user->id)
+            $TwoStepVerification = TwoStepVerification::where('user_id', $user->id)->where('type', 'Partner')
                 ->first();
             if($TwoStepVerification){
                 if($TwoStepVerification->g_auth_status=="Yes"){
                     return $next($request);
                 }
             }
-            if($request->path()=="partner/twoFA"){
+            if($request->path()=="partner/twoFA" || $request->path()=="partner/logout"){
                return $next($request);
             }else{
 
