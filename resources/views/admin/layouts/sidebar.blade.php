@@ -683,15 +683,18 @@ $languages = [
                                     <div data-i18n="Merchant List">{{ __('sidebar.agent_management') }} </div>
                                 </a>
                             </li>
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.blacklist.index' ? 'active' : '' }}">
+
+
+                            @endif
+                            @if (adminAccessRoute(config('role.blacklist.access.view')))
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.blacklist.index' ? 'active' : '' }}">
                                 <a href="{{ route('admin.blacklist.index') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                    <div data-i18n="Blacklist">Blaklist</div>
+                                    <div data-i18n="Blacklist">Blacklist</div>
                                 </a>
                             </li>
-                            
                             @endif
-
                             {{-- <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
@@ -1054,12 +1057,12 @@ $languages = [
                             </a>
                         </li>
                         @if (adminAccessRoute(config('role.sms_logs.access.view')))
-                            <li class="menu-item {{ Route::currentRouteName() == 'admin.sms.logs' ? 'active' : '' }}">
-                                <a href="{{ route('admin.sms.logs') }}" class="menu-link">
-                                    <i class="menu-icon icon-base ti tabler-message"></i>
-                                    <div data-i18n="SMS Logs">{{ __('sidebar.sms_logs') }}</div>
-                                </a>
-                            </li>
+                        <li class="menu-item {{ Route::currentRouteName() == 'admin.sms.logs' ? 'active' : '' }}">
+                            <a href="{{ route('admin.sms.logs') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-message"></i>
+                                <div data-i18n="SMS Logs">{{ __('sidebar.sms_logs') }}</div>
+                            </a>
+                        </li>
                         @endif
 
                         {{-- <li
