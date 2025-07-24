@@ -1947,22 +1947,28 @@ if ($member_id) {
     // $today = now()->toDateString();
 
     $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->first();
+    
     if($blacklist_removal){
-        $startOfDay = $blacklist_removal->update_at;
+        $startOfDay = $blacklist_removal->updated_at;
     }else{
-        $startOfDay = now()->startOfDay()->toDateTimeString();
+        $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
+        
     }
+    
     $payments = \App\Models\Payment::where('member_id', $member_id)
         ->where('created_at','>', $startOfDay)
         ->where('status', 'Pending')
         ->orderBy('created_at')
         ->get();
+        
     \Illuminate\Support\Facades\Log::info('Payments found for blacklist check', ['count' => $payments->count(), 'member_id' => $member_id]);
     $consecutive_missing = 0;
     // $max_consecutive_missing = 0;
     $total_missing = 0;
-    $con_limit = (int) \App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 3;
-    $total_limit = (int) \App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 7;
+
+    $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 3);
+    $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 7);
+    
     foreach ($payments as $payment) {
         $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
         \Illuminate\Support\Facades\Log::info('Checking payment', [
@@ -1992,6 +1998,8 @@ if ($member_id) {
         'total_missing' => $total_missing,
         'member_id' => $member_id
     ]);
+
+    // dd($total_limit);
 
     if ($total_missing >= $total_limit) {
         \App\Models\Blacklist::firstOrCreate([

@@ -683,6 +683,13 @@ $languages = [
                                     <div data-i18n="Merchant List">{{ __('sidebar.agent_management') }} </div>
                                 </a>
                             </li>
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.blacklist.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.blacklist.index') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Blacklist">Blaklist</div>
+                                </a>
+                            </li>
+                            
                             @endif
 
                             {{-- <li
