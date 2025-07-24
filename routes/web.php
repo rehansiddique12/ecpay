@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\AccountManagementController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
 use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
@@ -355,6 +356,13 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/balance/add', [PayoutRecordController::class, 'accountBalanceAdd'])->name('account.balance.add');
         Route::delete('/merchant/delete/{account}', [PayoutRecordController::class, 'merchantDelete'])->name('merchant.delete');
         Route::post('/accounts/balance/edit', [PayoutRecordController::class, 'accountBalanceEdit'])->name('account.balance.edit');
+
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings/store', [SettingController::class, 'store'])->name('settings.store');
+    Route::post('/settings/update/{id}', [SettingController::class, 'update'])->name('settings.update');
+    Route::get('/settings/delete/{id}', [SettingController::class, 'destroy'])->name('settings.delete');
+    Route::get('blacklist', [\App\Http\Controllers\Admin\BlacklistController::class, 'index'])->name('blacklist.index');
+    Route::delete('blacklist/{id}', [\App\Http\Controllers\Admin\BlacklistController::class, 'destroy'])->name('blacklist.destroy');
 
         // Add Accounts
         Route::get('/accounts/add', [PayoutRecordController::class, 'addAccount'])->name('accounts.add');

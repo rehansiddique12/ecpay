@@ -45,6 +45,7 @@ use App\Models\DailyPartnerSummaryLog;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PartnerBalanceExportForPartner;
+use App\Models\BlacklistRemoval;
 use Illuminate\Support\Facades\Log as LaravelLog;
 
 class PayoutRecordController extends Controller
@@ -709,7 +710,7 @@ class PayoutRecordController extends Controller
         }
 
 
-
+        //
 
         $now = Carbon::now();
         $twoHoursAgo = $now->subHours(2);
@@ -1935,6 +1936,75 @@ class PayoutRecordController extends Controller
     public function processTransection4($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
 
+    \Illuminate\Support\Facades\Log::info('Blacklist logic start', ['member_id' => $member_id]);
+if ($member_id) {
+    $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->first();
+    if ($blacklisted) {
+        \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
+        $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+        return response()->view('partner.payout.blacklist_error', compact('error_message'));
+    }
+    // $today = now()->toDateString();
+
+    $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->first();
+    if($blacklist_removal){
+        $startOfDay = $blacklist_removal->update_at;
+    }else{
+        $startOfDay = now()->startOfDay()->toDateTimeString();
+    }
+    $payments = \App\Models\Payment::where('member_id', $member_id)
+        ->where('created_at','>', $startOfDay)
+        ->where('status', 'Pending')
+        ->orderBy('created_at')
+        ->get();
+    \Illuminate\Support\Facades\Log::info('Payments found for blacklist check', ['count' => $payments->count(), 'member_id' => $member_id]);
+    $consecutive_missing = 0;
+    // $max_consecutive_missing = 0;
+    $total_missing = 0;
+    $con_limit = (int) \App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 3;
+    $total_limit = (int) \App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 7;
+    foreach ($payments as $payment) {
+        $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
+        \Illuminate\Support\Facades\Log::info('Checking payment', [
+            'payment_id' => $payment->id,
+            'partner_transection_id' => $payment->partner_transection_id,
+            'txn_exists' => $exists,
+        ]);
+        if (!$exists) {
+            $consecutive_missing++;
+            $total_missing++;
+            if ($consecutive_missing >= $con_limit) {
+                \App\Models\Blacklist::firstOrCreate([
+                    'member_id' => $member_id
+                ], [
+                    'reason' => '3 consecutive missing txns',
+                ]);
+                \Illuminate\Support\Facades\Log::info('Blacklisted for 3 consecutive missing txns', ['member_id' => $member_id]);
+                $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+                return response()->view('partner.payout.blacklist_error', compact('error_message'));
+            }
+        } else {
+            $consecutive_missing = 0;
+        }
+    }
+    \Illuminate\Support\Facades\Log::info('Blacklist check results', [
+        // 'max_consecutive_missing' => $max_consecutive_missing,
+        'total_missing' => $total_missing,
+        'member_id' => $member_id
+    ]);
+
+    if ($total_missing >= $total_limit) {
+        \App\Models\Blacklist::firstOrCreate([
+            'member_id' => $member_id
+        ], [
+            'reason' => '7 total missing txns in a day',
+        ]);
+        \Illuminate\Support\Facades\Log::info('Blacklisted for 7 total missing txns', ['member_id' => $member_id]);
+        $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+        return response()->view('partner.payout.blacklist_error', compact('error_message'));
+    }
+}
+
         LaravelLog::info('fn start processTransection4');
 
         $remainingTime = 600;
@@ -2083,7 +2153,7 @@ class PayoutRecordController extends Controller
 
 
         if ($gate->max_amount < $amount) {
-            $message = "Maximum Deposit Limit is " . (float) number_format($gate->max_amount, 2, '.', '');
+            $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
             return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
@@ -6395,4 +6465,13 @@ class PayoutRecordController extends Controller
             ], 500);
         }
     }
+    public static function resetBlacklistCounters($member_id)
+{
+    $today = now()->toDateString();
+    // Delete all today's payments for this member_id with missing txns
+    $payments = \App\Models\Payment::where('member_id', $member_id)
+    ->where('status','Pending')
+        ->whereDate('created_at', $today)
+        ->get();
+}
 }
