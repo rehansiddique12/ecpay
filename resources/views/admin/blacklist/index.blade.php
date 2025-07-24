@@ -18,6 +18,7 @@
                     <thead>
                         <tr>
                             <th>Member ID</th>
+                            <th>Merchant</th>
                             <th>Reason</th>
                             <th>Blacklisted At</th>
                             <th>Times Blacklisted</th>
@@ -28,6 +29,7 @@
                         @foreach($blacklists as $blacklist)
                             <tr>
                                 <td>{{ $blacklist->member_id }}</td>
+                                <td>{{ optional($blacklist->api)->name }}</td>
                                 <td>{{ $blacklist->reason }}</td>
                                 <td>{{ $blacklist->created_at }}</td>
                                 <td>{{ \App\Models\BlacklistRemoval::where('member_id', $blacklist->member_id)->count() }}</td>
@@ -73,6 +75,7 @@
                     <thead>
                         <tr>
                             <th>Member ID</th>
+                            <th>Merchant </th>
                             <th>Removed At</th>
                             <th>Admin ID</th>
                             <th>Reason</th>
@@ -82,6 +85,7 @@
                         @forelse($removals as $removal)
                             <tr>
                                 <td>{{ $removal->member_id }}</td>
+                                <td>{{ optional($removal->api)->name }}</td>
                                 <td>{{ $removal->removed_at }}</td>
                                 <td>{{ $removal->admin_id ?? '-' }}</td>
                                 <td>{{ $removal->reason ?? '-' }}</td>

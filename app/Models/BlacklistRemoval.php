@@ -12,6 +12,12 @@ class BlacklistRemoval extends Model
         'removed_at',
         'admin_id',
         'reason',
+        'api_id'
     ];
+
+    public function API()
+    {
+        return $this->belongsTo(Api::class, 'api_id');
+    }
     public $timestamps = true;
-} 
+}
