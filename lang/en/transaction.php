@@ -304,7 +304,7 @@ return [
     'description' => 'Description',
     'created_at' => 'Created At',
     'processing' => 'Processing...',
-    
+
 
     // CS Tracking
     'search_action' => 'Search action...',
@@ -320,5 +320,13 @@ return [
     'recorded_at' => 'Recorded At',
     'processing' => 'Processing...',
     'in_progress' => 'In Progress',
+    'blacklist' => 'Blacklist',
+    'member_id' => 'Member ID',
+    'reason' => 'Reason',
+    'blacklisted_at' => 'Blacklisted At',
+    'time_blacklisted' => 'Times Blacklisted',
+    'search_by_member_id' => 'Search by Member ID',
+
+
 
 ];
