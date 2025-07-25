@@ -5,11 +5,11 @@
         }
     </style>
     <div class="container">
-        <h2 class="mb-4">{{ __('transaction.audit_logs') }}</h2>
+        <h2 class="mb-4">{{ __('transaction.blacklist') }}</h2>
          <form method="GET" action="{{ route('admin.blacklist.index') }}" class="mb-3">
                 <div class="input-group" style="max-width: 400px;">
-                    <input type="text" name="member_id" class="form-control" placeholder="Search by Member ID" value="{{ request('member_id') }}">
-                    <button class="btn btn-primary" type="submit">Search</button>
+                    <input type="text" name="member_id" class="form-control" placeholder="{{__('transaction.search_by_member_id')}}" value="{{ request('member_id') }}">
+                    <button class="btn btn-primary" type="submit">{{__('transaction.search')}}</button>
                 </div>
             </form>
 
@@ -17,17 +17,19 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>Member ID</th>
-                            <th>Reason</th>
-                            <th>Blacklisted At</th>
-                            <th>Times Blacklisted</th>
-                            <th>Action</th>
+                            <th>{{__('transaction.member_id')}}</th>
+                            <th>{{__('transaction.merchant')}}</th>
+                            <th>{{__('transaction.reason')}}</th>
+                            <th>{{__('transaction.blacklisted_at')}}</th>
+                            <th>{{__('transaction.time_blacklisted')}}</th>
+                            <th>{{__('transaction.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($blacklists as $blacklist)
                             <tr>
                                 <td>{{ $blacklist->member_id }}</td>
+                                <td>{{ optional($blacklist->api)->name }}</td>
                                 <td>{{ $blacklist->reason }}</td>
                                 <td>{{ $blacklist->created_at }}</td>
                                 <td>{{ \App\Models\BlacklistRemoval::where('member_id', $blacklist->member_id)->count() }}</td>
@@ -73,6 +75,7 @@
                     <thead>
                         <tr>
                             <th>Member ID</th>
+                            <th>Merchant </th>
                             <th>Removed At</th>
                             <th>Admin ID</th>
                             <th>Reason</th>
@@ -82,6 +85,7 @@
                         @forelse($removals as $removal)
                             <tr>
                                 <td>{{ $removal->member_id }}</td>
+                                <td>{{ optional($removal->api)->name }}</td>
                                 <td>{{ $removal->removed_at }}</td>
                                 <td>{{ $removal->admin_id ?? '-' }}</td>
                                 <td>{{ $removal->reason ?? '-' }}</td>

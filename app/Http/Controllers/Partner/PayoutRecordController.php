@@ -1937,8 +1937,10 @@ class PayoutRecordController extends Controller
     {
 
     \Illuminate\Support\Facades\Log::info('Blacklist logic start', ['member_id' => $member_id]);
+    $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
+    $api_id = $api_key->id;
 if ($member_id) {
-    $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->first();
+    $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
     if ($blacklisted) {
         \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
         $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
@@ -1946,21 +1948,22 @@ if ($member_id) {
     }
     // $today = now()->toDateString();
 
-    $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->first();
-    
+    $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->where('api_id',$api_id)->first();
+
     if($blacklist_removal){
         $startOfDay = $blacklist_removal->updated_at;
     }else{
         $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
-        
+
     }
-    
+
     $payments = \App\Models\Payment::where('member_id', $member_id)
+        ->where('api_id',$api_id)
         ->where('created_at','>', $startOfDay)
         ->where('status', 'Pending')
         ->orderBy('created_at')
         ->get();
-        
+
     \Illuminate\Support\Facades\Log::info('Payments found for blacklist check', ['count' => $payments->count(), 'member_id' => $member_id]);
     $consecutive_missing = 0;
     // $max_consecutive_missing = 0;
@@ -1968,7 +1971,7 @@ if ($member_id) {
 
     $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 3);
     $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 7);
-    
+
     foreach ($payments as $payment) {
         $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
         \Illuminate\Support\Facades\Log::info('Checking payment', [
@@ -1980,11 +1983,12 @@ if ($member_id) {
             $consecutive_missing++;
             $total_missing++;
             if ($consecutive_missing >= $con_limit) {
-                \App\Models\Blacklist::firstOrCreate([
-                    'member_id' => $member_id
-                ], [
-                    'reason' => '3 consecutive missing txns',
-                ]);
+                \App\Models\Blacklist::firstOrCreate(
+                    ['member_id' => $member_id,
+                     'api_id' => $api_id
+                    ],
+                    ['reason' => '3 consecutive missing txns']
+                );
                 \Illuminate\Support\Facades\Log::info('Blacklisted for 3 consecutive missing txns', ['member_id' => $member_id]);
                 $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                 return response()->view('partner.payout.blacklist_error', compact('error_message'));
@@ -1994,7 +1998,7 @@ if ($member_id) {
         }
     }
     \Illuminate\Support\Facades\Log::info('Blacklist check results', [
-        // 'max_consecutive_missing' => $max_consecutive_missing,
+        'api_id' => $api_id,
         'total_missing' => $total_missing,
         'member_id' => $member_id
     ]);
@@ -2003,8 +2007,9 @@ if ($member_id) {
 
     if ($total_missing >= $total_limit) {
         \App\Models\Blacklist::firstOrCreate([
-            'member_id' => $member_id
-        ], [
+            'member_id' => $member_id,
+            'api_id' => $api_id
+        ],[
             'reason' => '7 total missing txns in a day',
         ]);
         \Illuminate\Support\Facades\Log::info('Blacklisted for 7 total missing txns', ['member_id' => $member_id]);

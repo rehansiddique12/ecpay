@@ -271,7 +271,7 @@ return [
     'rocket_server_down' => 'Rocket服务器故障',
 
     // Audit Page
-    'audit_page'=> '审计页面',
+    'audit_page' => '审计页面',
     'audit_logs' => '审计日志',
     'select_user' => '选择用户',
     'filter_by_user' => '按用户筛选',
@@ -297,4 +297,11 @@ return [
     'recorded_at' => '记录时间',
     'processing' => '处理中...',
     'in_progress' => '进行中',
+    'member_id' => '会员ID',
+    'reason' => '原因',
+    'blacklisted_at' => '黑名单时间',
+    'time_blacklisted' => '黑名单次数',
+    'blacklist' => '黑名单',
+    'search_by_member_id' => '按会员ID搜索',
+
 ];
