@@ -43,23 +43,26 @@ class DashboardController extends Controller
         $partner = $this->user;
         $status = "No";
 
+        $secret = $this->googleAuthenticatorService->createSecret();
+
         $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
             ->first();
         if ($TwoStepVerification) {
             if ($TwoStepVerification->g_auth_status == "No") {
                 // $qrCodeUrl = $this->googleAuthenticatorService->getQRCodeGoogleUrl(env('APP_WEBSITE'), $TwoStepVerification->g_secret_key, $partner->username);
-                $urlencoded = ('otpauth://totp/' . env('APP_WEBSITE') . '?secret=' . $TwoStepVerification->g_secret_key . '');
+                $urlencoded = ('otpauth://totp/' . env('APP_WEBSITE') . '?secret=' . $secret . '');
                 if (isset($partner->username)) {
                     $urlencoded .= ('&issuer=' . $partner->username);
                 }
                 $qrCodeUrl = QrCode::size(500)->generate($urlencoded);
+                $TwoStepVerification->g_secret_key = $secret;
                 $TwoStepVerification->save();
             } else {
                 $status = "Yes";
                 $qrCodeUrl = "";
             }
         } else {
-            $secret = $this->googleAuthenticatorService->createSecret();
+            
             // $qrCodeUrl = $this->googleAuthenticatorService->getQRCodeGoogleUrl(env('APP_WEBSITE'), $secret, $partner->username);
                 $urlencoded = ('otpauth://totp/' . env('APP_WEBSITE') . '?secret=' . $secret . '');
                 if (isset($partner->username)) {

@@ -5805,7 +5805,7 @@ class PayoutRecordController extends Controller
     public function convertStringToNumber($string)
     {
         if (strpos($string, '.') !== false) {
-            return number_format((float)$string, 2, '.', '');
+            return (float) number_format($string, 2, '.', '');
         } else {
             return (int)$string;
         }

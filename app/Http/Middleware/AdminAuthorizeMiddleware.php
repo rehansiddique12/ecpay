@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use App\Models\TwoStepVerification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class AdminAuthorizeMiddleware
 {
@@ -17,6 +18,14 @@ class AdminAuthorizeMiddleware
         $user = Auth::guard('admin')->user();
         $list = collect(config('role'))->pluck(['access'])->flatten();
         $filtered = $list->intersect($user->admin_access);
+
+
+        $loginTimestamp = Session::get('login_timestamp');
+        if($user->last_session_id!=$loginTimestamp){
+            Auth::guard('admin')->logout();
+            Session::flush();
+            return redirect()->route('admin.login')->with('error', 'You have been logged out because your account was accessed from another location.');
+        }
 
         // if ($user->id == 1) {
         //     return $next($request);

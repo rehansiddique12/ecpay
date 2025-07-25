@@ -124,7 +124,7 @@
                                                 </td>
 
                                                     <td style="color: #fff">{{ number_format($merchant['total_received']) }}</td>
-                                                    <td style="color: #fff">{{ number_format($merchant['total_processed']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['auto_process'] + $merchant['manual_process']) }}</td>
                                                     <td style="color: #fff">{{ number_format($merchant['auto_process']) }}</td>
                                                     <td style="color: #fff">{{ number_format($merchant['manual_process']) }}</td>
                                                 </tr>
@@ -167,7 +167,7 @@
 </td>
 
                                                     <td style="color: #fff">{{ number_format($merchant['total_received']) }}</td>
-                                                    <td style="color: #fff">{{ number_format($merchant['total_processed']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['auto_process'] + $merchant['manual_process']) }}</td>
                                                     <td style="color: #fff">{{ number_format($merchant['auto_process']) }}</td>
                                                     <td style="color: #fff">{{ number_format($merchant['manual_process']) }}</td>
                                                 </tr>
@@ -210,7 +210,7 @@
                                                 </td>
 
                                                     <td style="color: #fff">{{ number_format($merchant['total_received']) }}</td>
-                                                    <td style="color: #fff">{{ number_format($merchant['total_processed']) }}</td>
+                                                    <td style="color: #fff">{{ number_format($merchant['auto_process'] + $merchant['manual_process']) }}</td>
                                                     <td style="color: #fff">{{ number_format($merchant['auto_process']) }}</td>
                                                     <td style="color: #fff">{{ number_format($merchant['manual_process']) }}</td>
                                                 </tr>

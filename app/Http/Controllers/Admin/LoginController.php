@@ -14,6 +14,8 @@ use App\Providers\RouteServiceProvider;
 use App\Services\GoogleAuthenticatorService;
 use Illuminate\Validation\ValidationException;
 
+use Illuminate\Support\Facades\Session;
+
 class LoginController extends Controller
 {   
     protected $googleAuthenticatorService;
@@ -50,6 +52,13 @@ class LoginController extends Controller
 
         $partner = Admin::where($fieldType, $input['username'])->first();
         if ($partner && Hash::check($input['password'], $partner->password)) {
+
+            $timestamp = time();
+            $partner->last_session_id = $timestamp;
+            $partner->save();
+
+
+            Session::put('login_timestamp', $timestamp);
             
             $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
                 ->first();
@@ -59,9 +68,11 @@ class LoginController extends Controller
                         $checkResult = $this->googleAuthenticatorService->verifyCode($TwoStepVerification->g_secret_key, $request->otp, 0);
                         if($checkResult){
                             if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
+
+                                
                                 
                                 $ipAddress = $_SERVER['REMOTE_ADDR'];
-                                $user = Auth::guard('admin')->user();                               
+                                $user = Auth::guard('admin')->user();                             
             
             
                                 return redirect()->intended(route('admin.dashboard'));

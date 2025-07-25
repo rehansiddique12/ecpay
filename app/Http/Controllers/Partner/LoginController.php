@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\GoogleAuthenticatorService;
 use App\Models\Api;
 use App\Models\TwoStepVerification;
+use Illuminate\Support\Facades\Session;
 
 
 class LoginController extends Controller
@@ -54,6 +55,13 @@ class LoginController extends Controller
         $partner = Api::where($fieldType, $input['username'])->first();
 
         if ($partner && Hash::check($input['password'], $partner->password)) {
+
+            $timestamp = time();
+            $partner->last_session_id = $timestamp;
+            $partner->save();
+
+
+            Session::put('login_timestamp_partner', $timestamp);
 
             $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Partner')
                 ->first();
