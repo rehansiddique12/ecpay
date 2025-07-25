@@ -44,6 +44,7 @@ class BlacklistController extends Controller
                 'removed_at' => now(),
                 'admin_id' => Auth::id(),
                 'reason' => 'Removed by admin',
+                'api_id' => $blacklist->api_id,
             ]);
         }
 
