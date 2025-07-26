@@ -133,7 +133,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/twoFA', [AdminDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [AdminDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
-        
+
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
         // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
@@ -362,6 +362,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::post('/settings/update/{id}', [SettingController::class, 'update'])->name('settings.update');
     Route::get('/settings/delete/{id}', [SettingController::class, 'destroy'])->name('settings.delete');
     Route::get('blacklist', [\App\Http\Controllers\Admin\BlacklistController::class, 'index'])->name('blacklist.index');
+    Route::post('blacklist/store', [\App\Http\Controllers\Admin\BlacklistController::class, 'store'])->name('blacklist.store');
     Route::delete('blacklist/{id}', [\App\Http\Controllers\Admin\BlacklistController::class, 'destroy'])->name('blacklist.destroy');
 
         // Add Accounts

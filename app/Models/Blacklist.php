@@ -10,7 +10,10 @@ class Blacklist extends Model
     protected $fillable = [
         'member_id',
         'reason',
-        'api_id'
+        'api_id',
+        'admin_id',
+        'total_count',
+        'consecutive_count'
     ];
 
     public function API()
