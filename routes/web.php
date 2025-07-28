@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\AccountManagementController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
 use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
@@ -128,7 +129,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/create_transaction_log', [DevFunctionsController::class, 'create_transaction_log']);
 
 
-    Route::group(['middleware' => ['auth:admin', 'check.admin.status']], function () {
+    Route::group(['middleware' => ['auth:admin', 'check.admin.status', 'permission']], function () {
+
+        Route::get('/twoFA', [AdminDashboardController::class, 'twoFA'])->name('twoFA');
+        Route::post('/twoFA', [AdminDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
+
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
         // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
@@ -150,46 +155,46 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/manual-process-copy', [PayoutRecordController::class, 'manualProcess'])->name('manual-process');
         Route::get('/audit-logs', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit_logs.index');
         Route::get('/CsTrakcer', [TrackingController::class, 'index'])->name('tracking.index');
-    Route::get('/CsTrakcer/filter', [TrackingController::class, 'filter'])->name('tracking.filter');
+        Route::get('/CsTrakcer/filter', [TrackingController::class, 'filter'])->name('tracking.filter');
 
 
 
-    Route::post('/update-adjusted-by', function (Request $request) {
-        $txnId = $request->txnId;
-        $adjustedBy = $request->adjusted_by;
+        Route::post('/update-adjusted-by', function (Request $request) {
+            $txnId = $request->txnId;
+            $adjustedBy = $request->adjusted_by;
 
-        // Fetch the payout record first
-        $payout = Payout::where('partner_transection_id', $txnId)->first();
+            // Fetch the payout record first
+            $payout = Payout::where('partner_transection_id', $txnId)->first();
 
-        if ($payout) {
-            // Update the fields
-            $payout->update([
-                'adjusted_by' => $adjustedBy,
-                'check_by' => $adjustedBy
-            ]);
+            if ($payout) {
+                // Update the fields
+                $payout->update([
+                    'adjusted_by' => $adjustedBy,
+                    'check_by' => $adjustedBy
+                ]);
 
-            // Log into audit log
-            AuditLog::create([
-                'user_id' => auth()->id(),
-                'module' => 'Workboard WITHDRAWAL PENDING LIST',
-                'module_id' => $payout->id,
-                'description' => "Pending Withdrawl Payout ID {$payout->id} checked by user."
-            ]);
+                // Log into audit log
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'module' => 'Workboard WITHDRAWAL PENDING LIST',
+                    'module_id' => $payout->id,
+                    'description' => "Pending Withdrawl Payout ID {$payout->id} checked by user."
+                ]);
 
-            // Update CsTracker - set 'to' time without changing 'from'
-            CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
-                    ->whereNull('to')
-                    ->update([
-                        'to' => now(),
-                        'user_id' => auth()->id(),
-                        'action' => auth()->user()->name . ' checked the Pending List (Payout ID: ' . $payout->id . ')'
-                    ]);
+                // Update CsTracker - set 'to' time without changing 'from'
+                CsTracker::where('action', 'like', '%Payout ID: ' . $payout->id)
+                        ->whereNull('to')
+                        ->update([
+                            'to' => now(),
+                            'user_id' => auth()->id(),
+                            'action' => auth()->user()->name . ' checked the Pending List (Payout ID: ' . $payout->id . ')'
+                        ]);
 
-            return response()->json(['success' => true]);
-        }
+                return response()->json(['success' => true]);
+            }
 
-        return response()->json(['success' => false, 'message' => 'Payout not found.'], 404);
-    });
+            return response()->json(['success' => false, 'message' => 'Payout not found.'], 404);
+        });
 
 
 
@@ -235,8 +240,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/logs', [ReportsController::class, 'logs'])->name('reports.logs');
         Route::get('reports/cal2', [ReportsController::class, 'cal2'])->name('reports.cal2');
         Route::get('reports/master_report', [ReportsController::class, 'master_report'])->name('reports.master_report');
-        Route::get('reports/commission-breakdown', [ReportsController::class, 'commissionBreakdown'])
-    ->name('reports.commission_breakdown');
+        Route::get('reports/commission-breakdown', [ReportsController::class, 'commissionBreakdown'])->name('reports.commission_breakdown');
         Route::get('reports/revenue_center', [ReportsController::class, 'revenue_center'])->name('reports.revenue_center');
         Route::get('reports/live_ewallet_balance', [ReportsController::class, 'live_ewallet_balance'])->name('reports.live_ewallet_balance');
         Route::get('reports/daily_ewallet_summary', [ReportsController::class, 'daily_ewallet_summary'])->name('reports.daily_ewallet_summary');
@@ -300,7 +304,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         // Route::get('/get-api-log2/{url?}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
 
         Route::match(['get', 'post'], '/get-api-log/{url?}', [PayoutRecordController::class, 'getApiLog'])->where('url', '.*');
-        Route::match(['get', 'post'], '/get-api-log2/{url?}', [PayoutRecordController::class, 'getApiLog2'])->where('url', '.*');
+        Route::match(['get', 'post'], '/get-api-log2/{url?}', [PayoutRecordController::class, 'getUnifiedApiLog'])->where('url', '.*');
 
         Route::get('/apis', [PayoutRecordController::class, 'apis'])->name('apis');
         Route::get('/agent/list', [PayoutRecordController::class, 'agentlist'])->name('agent.list');
@@ -355,6 +359,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/accounts/balance/add', [PayoutRecordController::class, 'accountBalanceAdd'])->name('account.balance.add');
         Route::delete('/merchant/delete/{account}', [PayoutRecordController::class, 'merchantDelete'])->name('merchant.delete');
         Route::post('/accounts/balance/edit', [PayoutRecordController::class, 'accountBalanceEdit'])->name('account.balance.edit');
+
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings/store', [SettingController::class, 'store'])->name('settings.store');
+    Route::post('/settings/update/{id}', [SettingController::class, 'update'])->name('settings.update');
+    Route::get('/settings/delete/{id}', [SettingController::class, 'destroy'])->name('settings.delete');
+    Route::get('blacklist', [\App\Http\Controllers\Admin\BlacklistController::class, 'index'])->name('blacklist.index');
+    Route::post('blacklist/store', [\App\Http\Controllers\Admin\BlacklistController::class, 'store'])->name('blacklist.store');
+    Route::delete('blacklist/{id}', [\App\Http\Controllers\Admin\BlacklistController::class, 'destroy'])->name('blacklist.destroy');
 
         // Add Accounts
         Route::get('/accounts/add', [PayoutRecordController::class, 'addAccount'])->name('accounts.add');
@@ -518,16 +530,16 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::delete('/merchant_accounts/delete/{id}', [MerchantAccountController::class, 'apisDelete'])->name('merchant_accounts.delete');
         Route::put('/merchant_accounts/update/{id}', [MerchantAccountController::class, 'updateApi'])->name('merchant_accounts.update');
 
-        Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
-            Route::get('/', [CCategoryController::class, 'index'])->name('index');
-            Route::post('/', [CCategoryController::class, 'store'])->name('store');
-            Route::put('/', [CCategoryController::class, 'update'])->name('update');
-            Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
+            Route::prefix('commission/categories')->name('commission.categories.')->group(function () {
+                Route::get('/', [CCategoryController::class, 'index'])->name('index');
+                Route::post('/', [CCategoryController::class, 'store'])->name('store');
+                Route::put('/', [CCategoryController::class, 'update'])->name('update');
+                Route::delete('/', [CCategoryController::class, 'destroy'])->name('destroy');
             });
 
 
 
-        });
+    });
 
     // User Location Routes
     // Route::get('users/location', [UsersController::class, 'location'])->name('users.location');
@@ -546,7 +558,9 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('/dashboard', [PartnerDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/twoFA', [PartnerDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [PartnerDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
-        Route::get('/twoFA/disable', [PartnerDashboardController::class, 'disableTwoFA'])->name('twoFA.disable');
+
+        // Route::get('/twoFA/disable', [PartnerDashboardController::class, 'disableTwoFA'])->name('twoFA.disable');
+
         Route::get('/profile', [PartnerDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [PartnerDashboardController::class, 'profileUpdate'])->name('profileUpdate');
         Route::get('/password', [PartnerDashboardController::class, 'password'])->name('password');
@@ -615,7 +629,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
         Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
 
-        Route::put('/payout-action/{id}', [PartnerPayoutRecordController::class, 'action'])->name('payout-action');
+        Route::put('/payout-action/{id}', [Partne\r::class, 'action'])->name('payout-action');
 
         Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
         Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');

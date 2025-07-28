@@ -44,6 +44,10 @@ Route::get('/allPayoutInfo', [PayoutRecordController::class, 'allPayoutInfo']);
 
 
 Route::post('/addPaymentInfo', [PaymentLogController::class, 'addPaymentInfo']);
+Route::post('/updatePayment', [PaymentLogController::class, 'updatePayment']);
+
+Route::post('/payment/callback', [PaymentLogController::class, 'payment_callback']);
+Route::post('/payout/callback', [PayoutRecordController::class, 'payout_callback']);
 
 
 

@@ -131,7 +131,7 @@
 
                                             @php
                                                 $rawAmount = str_replace(',', '', $item['differance']);
-                                                $formattedAmount = number_format((float) $rawAmount, 2, '.', '');
+                                                $formattedAmount = (float) number_format($rawAmount, 2, '.', '');
                                             @endphp
 
                                             <td>

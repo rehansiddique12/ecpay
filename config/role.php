@@ -480,6 +480,16 @@ $arr = [
         ],
     ],
 
+      'blacklist' => [
+        'label' => 'Blacklist',
+        'access' => [
+            'view' => ['admin.blacklist.index'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
 
     'bank_account_log_summary' => [
         'label' => 'Bank Account Log Summary',

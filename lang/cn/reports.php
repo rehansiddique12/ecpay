@@ -196,6 +196,7 @@ return [
     'charge' => '手续费',
     'final_amount' => '最终金额',
     'type' => '类型',
+    'sms_type'=> '短信类型',
     'matched' => '匹配',
     'sent' => '已发送',
     'created_at' => '创建时间',

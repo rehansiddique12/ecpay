@@ -64,7 +64,7 @@ class PaymentLogController extends Controller
                         ->where('created_at', '<=', $toDate)
                         ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
         $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
         return view('partner.payment.report', compact('funds', 'pageTitle','domains','gateways','fund_count','fund_sum','from_date','to_date'));
     }
 
@@ -172,7 +172,8 @@ class PaymentLogController extends Controller
 
             return response()->stream($callback, 200, $headers);
         } else {
-            $aggregates = Payment::where('status', 'like', '%' . $search['status'] . '%')
+
+            $funds_t = Payment::where('status', 'like', '%' . $search['status'] . '%')
         ->where('api_id', $api_id)
         ->when(isset($search['from_date']) && isset($search['to_date']), function ($query) use ($search) {
             $fromDate = Carbon::parse($search['from_date']);
@@ -182,23 +183,26 @@ class PaymentLogController extends Controller
         })
             ->when($search['partner_transection_id'], function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('txn_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                    $subQuery->where('partner_transection_id', 'like', '%' . $search['partner_transection_id'] . '%')
                         ->orWhere('transaction', 'like', '%' . $search['partner_transection_id'] . '%')
-                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%');
+                        ->orWhere('member_id', 'like', '%' . $search['partner_transection_id'] . '%')
+                        ->orWhere('txn_id', 'like', '%' . $search['partner_transection_id'] . '%');
                 });
             })
            
             ->where(function ($query) use ($request) {
-                $query->where('sender', 'LIKE', "%{$request->account_no}%")
-                      ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                $query->where(function ($subQuery) use ($request) {
+                    $subQuery->where('sender', 'LIKE', "%{$request->account_no}%")
+                        ->where('e_wallet_name', 'LIKE', "%{$request->gateway}%");
+                });
             })
-            ->select(DB::raw('COUNT(*) as amount_count, SUM(amount) as amount_sum'))
-            ->first();
+                        ->selectRaw('COUNT(*) as fund_count, SUM(amount) as fund_sum')->first();
+        $fund_count = $funds_t->fund_count;
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
 
-        if (!empty($aggregates) && isset($aggregates[0]->amount_count)) {
-            $fund_count = $aggregates[0]->amount_count;
-            $fund_sum = round($aggregates[0]->amount_sum, 2);
-        }
+
+
+            
 
         // Paginated list of payments
         $funds = Payment::where('status', 'like', '%' . $search['status'] . '%')
@@ -467,7 +471,7 @@ class PaymentLogController extends Controller
         // ->with('gateway')
         // ->first();
         // $fund_count = $funds_t->fund_count;
-        // $fund_sum = round($funds_t->fund_sum, 2);
+        // $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
 
         return response()->json($funds);
 

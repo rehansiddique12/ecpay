@@ -249,7 +249,8 @@ class DevFunctionsController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($data->amount + $data->charge);
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
+                        
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -286,7 +287,8 @@ class DevFunctionsController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($PartnerCommission->profit);
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
+                            
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -390,6 +392,7 @@ class DevFunctionsController extends Controller
                             'updated_at' => $data->updated_at,
                             'sign' => $sign,
                             'remarks' => $request->feedback,
+                            'source' => '3Callback'.auth()->id(),
                         ];
 
                         if (!empty($data->member_id)) {
@@ -468,7 +471,7 @@ class DevFunctionsController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $partner_api_key->id)->whereDate('created_at', '>=', $data->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance - ($data->amount + $data->charge);
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -505,7 +508,7 @@ class DevFunctionsController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -627,6 +630,7 @@ class DevFunctionsController extends Controller
                                 'updated_at' => $data->updated_at,
                                 'sign' => $sign,
                                 'remarks' => $data->feedback,
+                                'source' => '4Callback'.auth()->id(),
                             ];
 
                             if (!empty($data->member_id)) {

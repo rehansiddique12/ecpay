@@ -95,11 +95,33 @@
                                                 {{ __('merchant.deposit') }}:</span>
 
                                             <!-- LOG Button -->
+                                            <!-- Clickable Log Button -->
                                             <a href="javascript:void(0);"
                                                 class="text-white p-1 d-inline-block mb-2 open-log-modal"
                                                 style="margin-left: 50px; border-radius: 8px; padding: 10px;"
-                                                data-id="{{ $item['api_endpoint_deposit'] }}">{{ __('merchant.log') }}
+                                                data-id="{{ $item['api_endpoint_deposit'] }}">
+                                                {{ __('merchant.log') }}
                                             </a>
+
+                                            <!-- Log Modal -->
+                                            <div class="modal fade" id="logModal" tabindex="-1"
+                                                aria-labelledby="logModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-xl " style="weight-[2000px]">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="logModalLabel">
+                                                                {{ __('merchant.log_details') }}</h5>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"
+                                                                aria-label="{{ __('Close') }}"></button>
+                                                        </div>
+                                                        <div class="modal-body" id="log-content">
+                                                            <!-- AJAX content will be loaded here -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
 
                                             <!-- API Endpoint Display -->
                                             {{ $item['api_endpoint_deposit'] }}
@@ -121,10 +143,19 @@
                                         <td style="max-width: 220px;">
                                             <span class="bg-success text-white p-1 d-inline-block mb-2"
                                                 style="border-radius: 6px; padding: 7px;">{{ __('merchant.api_key') }}:</span>
+                                            <!-- Second Log Link -->
+                                            <!-- Log by request_url -->
+
+
+                                            <!-- Log by request_payload LIKE api_key -->
                                             <a href="javascript:void(0);"
-                                                class="text-white p-1 d-inline-block mb-2 open-log-modal2"
+                                                class="text-white p-1 d-inline-block mb-2 open-log-modal"
                                                 style="margin-left: 50px; border-radius: 8px; padding: 10px;"
-                                                data-id="{{ $item['api_key'] }}">{{ __('merchant.log') }}</a>
+                                                data-id="{{ $item['api_key'] }}" data-type="payload">
+                                                {{ __('merchant.log2') }}
+                                            </a>
+
+
                                             <span class="editable" data-id="{{ $item['id'] }}"
                                                 data-field="api_key">{{ $item['api_key'] }}</span>
                                             <br>
@@ -805,10 +836,14 @@
 
 
     @push('js')
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
         <script>
             $(document).ready(function() {
-                $('.open-log-modal').on('click', function() {
+                $(document).on('click', '.open-log-modal', function() {
                     const apiUrl = $(this).data('id');
                     $('#log-content').html('<p>Loading...</p>');
 
@@ -820,47 +855,45 @@
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function(response) {
-                            console.log(response);
+                            console.log('RESPONSE:', response);
+
                             if (response.success && response.data.length > 0) {
                                 let html = `
-                                    <table class="table table-bordered table-striped w-[1000px]">
-                                        <thead>
+                                <table class="table table-bordered table-striped">
+                                   <thead>
                                             <tr>
-                                                <th style="width: 10%">ID</th>
-                                                <th style="width: 30%">Request URL</th>
-                                                <th style="width: 30%">Request Payload</th>
-                                                <th style="width: 10%">Status Code</th>
-                                                <th style="width: 10%">Response</th>
-                                                <th style="width: 20%">Created At</th>
+                                                <th style="width: 10%">{{ __('merchant.id') }}</th>
+                                                <th style="width: 10%">{{ __('merchant.Request_Url') }}</th>
+                                                <th style="width: 40%">{{ __('merchant.request_payload') }}</th>
+                                                <th style="width: 10%">{{ __('merchant.status_code') }}</th>
+                                                <th style="width: 10%">{{ __('merchant.response') }}</th>
+                                                <th style="width: 10%">{{ __('merchant.created_at') }}</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                `;
+                                    <tbody>
+                            `;
 
-                                // Loop through each log entry
                                 response.data.forEach(function(log) {
                                     html += `
-                                        <tr>
-                                            <td>${.id}</td>
-                                            <td title="${log.request_url}" style="width: 30%; max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                ${log.request_url}
-                                            </td>
-                                            <td style="max-width: 300px; overflow: auto;">
+                                   <tr>
+                                            <td>${log.id}</td>
+                                            <td  style="max-width: 300px; overflow: auto;">${log.request_url ?? '-'}</td>
+                                            <td style="max-width: 150px; overflow: auto;">
                                                 <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.request_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
-                                            <td>${log.response_code ?? 'N/A'}</td>
-                                            <td style="max-width: 300px; overflow: auto;">
+                                            <td  style="max-width: 300px; overflow: auto;">${log.response_code ?? 'N/A'}</td>
+                                            <td style="max-width: 200px; overflow: auto;">
                                                 <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
-                                            <td>${log.created_at}</td>
+                                            <td  style="max-width: 150px; overflow: auto;">${log.created_at}</td>
                                         </tr>
-                                    `;
+                                `;
                                 });
 
                                 html += `
-                                        </tbody>
-                                    </table>
-                                `;
+                                    </tbody>
+                                </table>
+                            `;
 
                                 $('#log-content').html(html);
                             } else {
@@ -879,41 +912,44 @@
             });
 
 
+
             $(document).ready(function() {
-                $('.open-log-modal2').on('click', function() {
-                    const apiUrl = $(this).data('id');
-                    $('#logModal2 #log-content').html('<p>Loading...</p>');
+                $(document).on('click', '.open-log-modal', function() {
+                    const id = $(this).data('id');
+                    const type = $(this).data('type'); // 'url' or 'payload'
+                    $('#log-content').html('<p>Loading...</p>');
 
                     $.ajax({
-                        url: 'get-api-log2/',
+                        url: 'get-api-log2',
+
                         method: 'POST',
                         data: {
-                            url: apiUrl,
+                            type: type,
+                            id: id,
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function(response) {
-                            console.log(response);
                             if (response.success && response.data.length > 0) {
                                 let html = `
-                                    <table class="table table-bordered table-striped w-[1000px]">
-                                        <thead>
+                        <table class="table table-bordered table-striped w-100">
+                            <thead>
                                             <tr>
                                                 <th style="width: 10%">{{ __('merchant.id') }}</th>
-                                                <th style="width: 30%">{{ __('merchant.request_payload') }}</th>
+                                                <th style="width: 50%">{{ __('merchant.request_payload') }}</th>
                                                 <th style="width: 10%">{{ __('merchant.status_code') }}</th>
-                                                <th style="width: 30%">{{ __('merchant.response') }}</th>
-                                                <th style="width: 20%">{{ __('merchant.created_at') }}</th>
+                                                <th style="width: 10%">{{ __('merchant.response') }}</th>
+                                                <th style="width: 10%">{{ __('merchant.created_at') }}</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                `;
+                            <tbody>
+                    `;
 
-                                // Loop through each log entry
                                 response.data.forEach(function(log) {
                                     html += `
-                                        <tr>
-                                            <td>${log.id}</td>
-                                            <td style="max-width: 300px; overflow: auto;">
+                            <tr>
+                                <td>${log.id}</td>
+
+                                 <td style="max-width: 300px; overflow: auto;">
                                                 <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.request_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
                                             <td>${log.response_code ?? 'N/A'}</td>
@@ -921,32 +957,24 @@
                                                 <pre style="white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(log.response_payload, null, 2) ?? 'N/A'}</pre>
                                             </td>
                                             <td>${log.created_at}</td>
-                                        </tr>
-                                    `;
+                            </tr>
+                        `;
                                 });
 
-                                html += `
-                                        </tbody>
-                                    </table>
-                                `;
-
-                                $('#logModal2 #log-content').html(html);
+                                html += '</tbody></table>';
+                                $('#log-content').html(html);
                             } else {
-                                $('#logModal2 #log-content').html(
-                                    '<p>{{ __('merchant.no_logs_found') }}</p>');
+                                $('#log-content').html('<p>Loading.....</p>');
                             }
                         },
                         error: function() {
-                            $('#logModal2 #log-content').html(
-                                '<p>{{ __('merchant.error_loading_logs') }}</p>');
+                            $('#log-content').html('<p>Failed to load logs.</p>');
                         }
                     });
 
-                    $('#logModal2').modal('show');
+                    $('#logModal').modal('show');
                 });
             });
-
-
 
 
 

@@ -151,8 +151,8 @@
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
                                         $successRate =
                                             $fundCount > 0
-                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
-                                                : 0;  
+                                                ? (float) number_format(((($autoProcessCount + $manualProcessCount) / $fundCount) * 100), 2, '.', '')
+                                                : 0;
                                     @endphp
 
 
@@ -175,8 +175,10 @@
 
                                         $successRate =
                                             $fundCount > 0
-                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
-                                                : 0;        
+                                                ? (($autoProcessCount + $manualProcessCount) / $fundCount) * 100
+                                                : 0;
+
+
                                     @endphp
 
 
@@ -199,8 +201,8 @@
                                         $abandoned = $fundCount - ($autoProcessCount + $manualProcessCount);
                                         $successRate =
                                             $fundCount > 0
-                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
-                                                : 0;  
+                                                ? (float) number_format(((($autoProcessCount + $manualProcessCount) / $fundCount) * 100), 2, '.', '')
+                                                : 0;
                                     @endphp
 
 
@@ -275,7 +277,7 @@
                                         $time_greater_than_10_minutes = $counts['time_greater_than_10_minutes'] ?? 0;
                                         $successRate =
                                             $fundCount > 0
-                                                ? round((($autoProcessCount + $manualProcessCount) / $fundCount) * 100)
+                                                ? (float) number_format(((($autoProcessCount + $manualProcessCount) / $fundCount) * 100), 2, '.', '')
                                                 : 0;
                                     @endphp
                             <tr>

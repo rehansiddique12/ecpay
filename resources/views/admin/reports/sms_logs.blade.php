@@ -68,6 +68,7 @@
                                 <th>{{ __('reports.comm') }}</th>
                                 <th>{{ __('reports.charge') }}</th>
                                 <th>{{ __('reports.final_amount') }}</th>
+                                <th>{{ __('reports.sms_type') }}</th>
                                 <th>{{ __('reports.type') }}</th>
                                 <th>{{ __('reports.matched') }}</th>
                                 <th>{{ __('reports.sent') }}</th>
@@ -87,6 +88,7 @@
                                     <td>{{ number_format($log->comm, 2) }}</td>
                                     <td>{{ number_format($log->charge, 2) }}</td>
                                     <td>{{ number_format($log->final_amount, 2) }}</td>
+                                    <td>{{ $log->sms_type }}</td>
                                     <td>
                                         @if ($log->type == 1)
                                             <span class="badge bg-success">{{ __('reports.deposit') }}</span>

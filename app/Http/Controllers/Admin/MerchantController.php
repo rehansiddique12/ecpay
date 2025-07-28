@@ -53,7 +53,7 @@ class MerchantController extends Controller
         }
 
         $total_deposit = $totalFundCount > 0
-            ? round(($totalAutoProcess / $totalFundCount) * 100, 2)
+            ? (float) number_format((($totalAutoProcess / $totalFundCount) * 100), 2, '.', '')
             : 0;
 
         return view('admin.merchant.merchant-profile', compact(
@@ -102,7 +102,7 @@ class MerchantController extends Controller
         }
 
         $total_deposit = $totalFundCount > 0
-            ? round(($totalAutoProcess / $totalFundCount) * 100, 2)
+            ? (float) number_format((($totalAutoProcess / $totalFundCount) * 100), 2, '.', '')
             : 0;
 
         return view('admin.merchant.agent-profile', compact(
@@ -251,7 +251,7 @@ class MerchantController extends Controller
         }
 
         $total_deposit = $totalFundCount > 0
-            ? round(($totalAutoProcess / $totalFundCount) * 100, 2)
+            ? (float) number_format((($totalAutoProcess / $totalFundCount) * 100), 2, '.', '')
             : 0;
 
         return view('admin.merchant.merchant-log', compact(
@@ -398,7 +398,7 @@ class MerchantController extends Controller
         }
 
         $total_deposit = $totalFundCount > 0
-            ? round(($totalAutoProcess / $totalFundCount) * 100, 2)
+            ? (float) number_format((($totalAutoProcess / $totalFundCount) * 100), 2, '.', '')
             : 0;
 
         return view('admin.merchant.agent-logs', compact(

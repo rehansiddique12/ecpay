@@ -45,6 +45,7 @@ use App\Models\DailyPartnerSummaryLog;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PartnerBalanceExportForPartner;
+use App\Models\BlacklistRemoval;
 use Illuminate\Support\Facades\Log as LaravelLog;
 
 class PayoutRecordController extends Controller
@@ -415,7 +416,7 @@ class PayoutRecordController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -453,7 +454,7 @@ class PayoutRecordController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -493,6 +494,7 @@ class PayoutRecordController extends Controller
                             'created_at' => $order->created_at,
                             'updated_at' => $order->updated_at,
                             'sign' => $order->sign,
+                            'source' => '28Callback',
                         ];
 
                         if (!empty($order->member_id)) {
@@ -703,12 +705,12 @@ class PayoutRecordController extends Controller
 
 
         if ($gate->max_amount < $amount) {
-            $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
+            $message = "Maximum Deposit Limit is " . (float) number_format($gate->max_amount, 2, '.', '');
             return view('partner.payout.process_transection', compact('data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
-
+        //
 
         $now = Carbon::now();
         $twoHoursAgo = $now->subHours(2);
@@ -1193,7 +1195,7 @@ class PayoutRecordController extends Controller
 
                             $charge = str_replace(',', '', $charge);
                             $charge = (float)$charge;
-                            $charge = round($charge, 2);
+                            $charge = (float) number_format($charge, 2, '.', '');
 
                             $net_amount = $payment_record->amount - $charge;
                             $partner_api_key->balance += $net_amount;
@@ -1263,7 +1265,7 @@ class PayoutRecordController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -1301,7 +1303,7 @@ class PayoutRecordController extends Controller
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                    $amount_to_update = round($amount_to_update, 2);
+                                    $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                     $DailyPartnerSummary_record->save();
@@ -1359,6 +1361,7 @@ class PayoutRecordController extends Controller
                                 'created_at' => $order->created_at,
                                 'updated_at' => $order->updated_at,
                                 'sign' => $sign,
+                                'source' => '29Callback',
                             ];
 
                             if (!empty($order->member_id)) {
@@ -1613,7 +1616,7 @@ class PayoutRecordController extends Controller
             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                $amount_to_update = round($amount_to_update, 2);
+                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                 $DailyPartnerSummary_record->save();
@@ -1651,7 +1654,7 @@ class PayoutRecordController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -1709,6 +1712,7 @@ class PayoutRecordController extends Controller
                     'created_at' => $order->created_at,
                     'updated_at' => $order->updated_at,
                     'sign' => $sign,
+                    'source' => '30Callback',
                 ];
 
                 if (!empty($order->member_id)) {
@@ -1915,7 +1919,7 @@ class PayoutRecordController extends Controller
 
 
         if ($gate->max_amount < $amount) {
-            $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
+            $message = "Maximum Deposit Limit is " . (float) number_format($gate->max_amount, 2, '.', '');
             return view('partner.payout.process_transection2', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
@@ -1931,6 +1935,114 @@ class PayoutRecordController extends Controller
 
     public function processTransection4($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
+
+    \Illuminate\Support\Facades\Log::info('Blacklist logic start', ['member_id' => $member_id]);
+    $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
+    $api_id = $api_key->id;
+if ($member_id) {
+    $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
+    if ($blacklisted) {
+        if($blacklisted->status==1){
+            \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
+            $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+            return response()->view('partner.payout.blacklist_error', compact('error_message'));
+        }
+            
+    }
+    // $today = now()->toDateString();
+
+    // $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->where('api_id',$api_id)->first();
+
+    if($blacklisted){
+        $startOfDay = $blacklisted->updated_at;
+    }else{
+        $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
+
+    }
+
+    $payments = \App\Models\Payment::where('member_id', $member_id)
+        ->where('api_id',$api_id)
+        ->where('created_at','>', $startOfDay)
+        ->where('status', 'Pending')
+        ->orderBy('created_at')
+        ->get();
+
+    \Illuminate\Support\Facades\Log::info('Payments found for blacklist check', ['count' => $payments->count(), 'member_id' => $member_id]);
+    $consecutive_missing = 0;
+    // $max_consecutive_missing = 0;
+    $total_missing = 0;
+
+    $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 3);
+    $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 7);
+
+    foreach ($payments as $payment) {
+        $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
+        \Illuminate\Support\Facades\Log::info('Checking payment', [
+            'payment_id' => $payment->id,
+            'partner_transection_id' => $payment->partner_transection_id,
+            'txn_exists' => $exists,
+        ]);
+        if (!$exists) {
+            $consecutive_missing++;
+            $total_missing++;
+            if ($consecutive_missing >= $con_limit) {
+                $blacklist = \App\Models\Blacklist::firstOrNew(
+                    ['member_id' => $member_id, 'api_id' => $api_id]
+                );
+
+                // Increment consecutive_count if already exists, otherwise initialize it
+                if ($blacklist->exists) {
+                    $blacklist->consecutive_count = ($blacklist->consecutive_count ?? 0) + 1;
+                } else {
+                    $blacklist->consecutive_count = 1;
+                }
+
+                $blacklist->reason = '3 consecutive missing txns';
+                $blacklist->status = 1;
+
+                $blacklist->save();
+
+                \Illuminate\Support\Facades\Log::info('Blacklisted for 3 consecutive missing txns', ['member_id' => $member_id]);
+                $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+                return response()->view('partner.payout.blacklist_error', compact('error_message'));
+            }
+
+        } else {
+            $consecutive_missing = 0;
+        }
+    }
+    \Illuminate\Support\Facades\Log::info('Blacklist check results', [
+        'api_id' => $api_id,
+        'total_missing' => $total_missing,
+        'member_id' => $member_id
+    ]);
+
+    // dd($total_limit);
+
+    if ($total_missing >= $total_limit) {
+        $blacklist = \App\Models\Blacklist::firstOrNew(
+            ['member_id' => $member_id, 'api_id' => $api_id]
+        );
+
+        // Increment total_count if exists, otherwise set to 1
+        if ($blacklist->exists) {
+            $blacklist->total_count = ($blacklist->total_count ?? 0) + 1;
+        } else {
+            $blacklist->total_count = 1;
+        }
+
+        $blacklist->reason = '7 total missing txns in a day';
+        $blacklist->status = 1;
+        
+
+        $blacklist->save();
+
+        \Illuminate\Support\Facades\Log::info('Blacklisted for 7 total missing txns', ['member_id' => $member_id]);
+        $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+        return response()->view('partner.payout.blacklist_error', compact('error_message'));
+    }
+
+}
 
         LaravelLog::info('fn start processTransection4');
 
@@ -2124,7 +2236,7 @@ class PayoutRecordController extends Controller
 
                 return $single_account->max_transaction_per_minute > 0 &&
                         $single_account->max_amount_per_minute >= $amount;
-                
+
 
             })
             ->sortBy('d_last_used')
@@ -2137,7 +2249,7 @@ class PayoutRecordController extends Controller
                 return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
             }
 
-            
+
 
 
             $e_wallet_phone_number = $account->account_no;
@@ -2151,28 +2263,28 @@ class PayoutRecordController extends Controller
             ->selectRaw('COUNT(*) as count, SUM(amount) as sum')
             ->first();
 
-            
 
-               
-            $one_minute_data_count = 1;  
+
+
+            $one_minute_data_count = 1;
             $one_minute_data_sum = $amount;
 
             if ($one_minute_data && ($one_minute_data->count > 0 || $one_minute_data->sum > 0)) {
-                
 
-                $one_minute_data_count = $one_minute_data->count + 1;  
+
+                $one_minute_data_count = $one_minute_data->count + 1;
                 $one_minute_data_sum = $one_minute_data->sum + $amount;
-                
 
-                
-            }   
+
+
+            }
 
 
         $account->d_one_min_count = $one_minute_data_count;
         $account->d_one_min_sum = $one_minute_data_sum;
         $account->d_last_used = $current_time;
-        $account->save();        
-        
+        $account->save();
+
 
 
         $data['gate_id'] = $gate->id;
@@ -2416,7 +2528,7 @@ class PayoutRecordController extends Controller
 
                             $charge = str_replace(',', '', $charge);
                             $charge = (float)$charge;
-                            $charge = round($charge, 2);
+                            $charge = (float) number_format($charge, 2, '.', '');
 
                             $net_amount = $payment_record->amount - $charge;
                             $partner_api_key->balance += $net_amount;
@@ -2472,7 +2584,7 @@ class PayoutRecordController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -2510,7 +2622,7 @@ class PayoutRecordController extends Controller
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                    $amount_to_update = round($amount_to_update, 2);
+                                    $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                     $DailyPartnerSummary_record->save();
@@ -2568,6 +2680,7 @@ class PayoutRecordController extends Controller
                                 'created_at' => $order->created_at,
                                 'updated_at' => $order->updated_at,
                                 'sign' => $sign,
+                                'source' => '31Callback',
                             ];
 
                             if (!empty($order->member_id)) {
@@ -2644,7 +2757,7 @@ class PayoutRecordController extends Controller
 
 
     public function processNextPayment4(Request $request)
-    {   
+    {
 
         LaravelLog::info('fn start processNextPayment4');
 
@@ -2882,7 +2995,7 @@ class PayoutRecordController extends Controller
 
                             $charge = str_replace(',', '', $charge);
                             $charge = (float)$charge;
-                            $charge = round($charge, 2);
+                            $charge = (float) number_format($charge, 2, '.', '');
 
                             $net_amount = $payment_record->amount - $charge;
                             $partner_api_key->balance += $net_amount;
@@ -2938,7 +3051,7 @@ class PayoutRecordController extends Controller
                         $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                         foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                             $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                            $amount_to_update = round($amount_to_update, 2);
+                            $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                             // $amount_to_update = floor($amount_to_update * 100) / 100;
                             $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                             $DailyPartnerSummary_record->save();
@@ -2976,7 +3089,7 @@ class PayoutRecordController extends Controller
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                    $amount_to_update = round($amount_to_update, 2);
+                                    $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                     $DailyPartnerSummary_record->save();
@@ -3034,6 +3147,7 @@ class PayoutRecordController extends Controller
                                 'created_at' => $order->created_at,
                                 'updated_at' => $order->updated_at,
                                 'sign' => $sign,
+                                'source' => '32Callback',
                             ];
 
                             if (!empty($order->member_id)) {
@@ -3137,20 +3251,20 @@ class PayoutRecordController extends Controller
         //     ->where('e_wallet_phone_number', $e_wallet_phone_number)
         //     ->selectRaw('COUNT(*) as count, SUM(amount) as sum')
         //     ->first();
-        
-        //     $one_minute_data_count = 1;  
+
+        //     $one_minute_data_count = 1;
         //     $one_minute_data_sum = $amount;
 
         // if ($one_minute_data && ($one_minute_data->count > 0 || $one_minute_data->sum > 0)) {
-            
 
-        //     $one_minute_data_count = $one_minute_data->count + 1;  
+
+        //     $one_minute_data_count = $one_minute_data->count + 1;
         //     $one_minute_data_sum = $one_minute_data->sum + $amount;
-            
 
-            
-        // }   
-        
+
+
+        // }
+
         // $currentTime = Carbon::now('Asia/Dhaka');
         // EWalletAccount::where('e_wallet_name', $ewallet)
         //     ->where('account_no', $e_wallet_phone_number)
@@ -3163,7 +3277,7 @@ class PayoutRecordController extends Controller
 
 
         //     LaravelLog::info("createpayment $e_wallet_phone_number $one_minute_data->count $one_minute_data->sum");
-        
+
         $gate = Gateway::where('id', $gate_id)->first();
 
         $api_key = API::where('username', $username)->where('status', 1)->where('type', 'Admin')->first();
@@ -3196,9 +3310,9 @@ class PayoutRecordController extends Controller
         }
 
 
-        $reqAmount = $amount;
-        $payable = getAmount($reqAmount - $charge);
-        $final_amo = getAmount($payable * $gate->convention_rate);
+        // $reqAmount = $amount;
+        // $payable = getAmount($reqAmount - $charge);
+        // $final_amo = getAmount($payable * $gate->convention_rate);
 
 
         $now = Carbon::now();
@@ -3215,12 +3329,12 @@ class PayoutRecordController extends Controller
             $fund = Payment::where('gateway_id', $gate->id)->where('amount', $amount)->where('status', 'Pending')->where('sender', $acc)->where('api_id', $api_key->id)->where('created_at', '>=', $twoHoursAgo)->latest()->first();
         }
 
-        
+
 
         if (!$fund) {
-            
 
-                    
+
+
 
             $fund = new Payment();
             $fund->user_id = 0;
@@ -3242,11 +3356,11 @@ class PayoutRecordController extends Controller
             $fund->e_wallet_name = $gate->name;
             $fund->save();
 
-            
-            
+
+
         }
 
-        
+
         return response()->json(['status' => 'success', 'fund_id' => $fund->id]);
     }
 
@@ -3258,7 +3372,7 @@ class PayoutRecordController extends Controller
         // $this->updateEWallets();
 
 
-        
+
         $ewallet = $request->ewallet;
         $amount = $request->amount;
 
@@ -3301,7 +3415,7 @@ class PayoutRecordController extends Controller
 
                 return $single_account->max_transaction_per_minute > 0 &&
                         $single_account->max_amount_per_minute >= $amount;
-                
+
 
             })
             ->sortBy('d_last_used')
@@ -3317,7 +3431,7 @@ class PayoutRecordController extends Controller
         LaravelLog::info('fn  getaccount round robin applied');
 
         return response()->json(['status' => 'success', 'phone_number' => $account->account_no, 'account_type' => $account->type]);
-        
+
     }
 
 
@@ -3611,7 +3725,7 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'Wrong Username OR Username Not Exist.'], 404);
         }
 
-        
+
 
 
         if ($api_key->min_deposit > $amount) {
@@ -3621,7 +3735,7 @@ class PayoutRecordController extends Controller
 
 
         if ($gate->max_amount < $amount) {
-            $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
+            $message = "Maximum Deposit Limit is " . (float) number_format($gate->max_amount, 2, '.', '');
             return response()->json(['message' => $message], 404);
         }
 
@@ -3634,10 +3748,10 @@ class PayoutRecordController extends Controller
             ->where('status', 'Complete')
             ->sum('amount');
 
-        
-       
 
-           
+
+
+
 
         $charge = 0;
 
@@ -3662,7 +3776,7 @@ class PayoutRecordController extends Controller
         $charge = $commissions ? $commissions->deposit_percentage * $amount / 100 : 0;
 
 
-        
+
 
         $reqAmount = $amount;
         $payable = getAmount($reqAmount - $charge);
@@ -3670,12 +3784,12 @@ class PayoutRecordController extends Controller
 
         $fund = Payment::where('partner_transection_id', $transection_id)
         ->where('api_id', $api_key->id)
-        ->exists();    
+        ->exists();
         if ($fund) {
             $message = "This partner transaction ID has already been created!";
             return response()->json(['status' => 'fail', 'message' => $message]);
         }
-        
+
 
         if (!empty($transection_id) || $transection_id != "0") {
 
@@ -3685,7 +3799,7 @@ class PayoutRecordController extends Controller
             $merchantinvoice = "Invoice" . time();
         }
 
-        
+
 
         $Setting = Setting::where('name', 'last_merchant_account_active')->first();
 
@@ -3698,7 +3812,7 @@ class PayoutRecordController extends Controller
             ->pluck('total', 'e_wallet_phone_number')
             ->toArray();
 
-            
+
         $accounts = MerchantAccount::where('status', 1)
         ->get()
         ->sortBy(fn($acc) => $recordcounts[$acc->e_wallet_phone_number] ?? 0)
@@ -3714,9 +3828,9 @@ class PayoutRecordController extends Controller
         $account_get = 0;
 
         foreach($accounts as $account){
-            
+
             $accessToken = $this->getBkashToken($account);
-            
+
             if(isset($accessToken)){
                 $createBkashPayment = $this->createBkashPayment($accessToken, $amount, $merchantinvoice, $account);
                 if(isset($createBkashPayment['paymentID'])){
@@ -3729,7 +3843,7 @@ class PayoutRecordController extends Controller
             LaravelLog::info('Account Deactivated:' . $account->e_wallet_phone_number);
             $account->status = 0;
             $account->save();
-            
+
         }
 
 
@@ -3738,7 +3852,7 @@ class PayoutRecordController extends Controller
         }
 
 
-        
+
         $e_wallet_phone_number = $account->e_wallet_phone_number;
 
 
@@ -3761,9 +3875,9 @@ class PayoutRecordController extends Controller
         $fund->e_wallet_name = $gate->name;
         $fund->sender = '';
 
-        
+
         // dd($account);
-        
+
 
         // dd($createBkashPayment);
         if (isset($createBkashPayment['paymentID'])) {
@@ -3900,7 +4014,7 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'Wrong Username OR Username Not Exist.'], 404);
         }
 
-        
+
 
 
         if ($api_key->min_deposit > $amount) {
@@ -3910,18 +4024,18 @@ class PayoutRecordController extends Controller
 
 
         if ($gate->max_amount < $amount) {
-            $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
+            $message = "Maximum Deposit Limit is " . (float) number_format($gate->max_amount, 2, '.', '');
             return response()->json(['message' => $message], 404);
         }
 
-        
+
         $sum = Payment::whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->where('api_id', $api_id)
             ->where('status', 'Complete')
             ->sum('amount');
 
-           
+
 
         $charge = 0;
 
@@ -3949,7 +4063,7 @@ class PayoutRecordController extends Controller
             return response()->json(['status' => 'fail', 'message' => $message]);
         }
 
-        
+
 
         if (!empty($transection_id) || $transection_id != "0") {
 
@@ -3959,7 +4073,7 @@ class PayoutRecordController extends Controller
             $merchantinvoice = "Invoice" . time();
         }
 
-        
+
 
         $Setting = Setting::where('name', 'last_merchant_account_active')->first();
 
@@ -3972,7 +4086,7 @@ class PayoutRecordController extends Controller
             ->pluck('total', 'e_wallet_phone_number')
             ->toArray();
 
-            
+
         $account = MerchantAccount::where('status', 1)
             ->get()
             ->sortBy(function ($single_account) use ($recordcounts) {
@@ -4011,11 +4125,11 @@ class PayoutRecordController extends Controller
         $fund->e_wallet_name = $gate->name;
         $fund->sender = '';
 
-        
+
         // dd($account);
         $accessToken = $this->getBkashToken($account);
 
-        
+
 
         $createBkashPayment = $this->createBkashPayment($accessToken, $amount, $merchantinvoice, $account);
 
@@ -4235,7 +4349,7 @@ class PayoutRecordController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $fund->api_id)->whereDate('created_at', '>=', $fund->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -4272,7 +4386,7 @@ class PayoutRecordController extends Controller
                                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                     $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                    $amount_to_update = round($amount_to_update, 2);
+                                    $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                     // $amount_to_update = floor($amount_to_update * 100) / 100;
                                     $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                     $DailyPartnerSummary_record->save();
@@ -4329,6 +4443,7 @@ class PayoutRecordController extends Controller
                                             'created_at' => $payment->created_at,
                                             'updated_at' => $payment->updated_at,
                                             'sign' => $sign,
+                                            'source' => '33Callback',
                                 ];
 
                                 if(!empty($payment->member_id)){
@@ -4483,7 +4598,7 @@ class PayoutRecordController extends Controller
         }
 
         $withdrawal_able_amount = $api_key->balance - $charge;
-        $withdrawal_able_amount = round($withdrawal_able_amount ?? 0, 2);
+        $withdrawal_able_amount = (float) number_format($withdrawal_able_amount ?? 0, 2, '.', '');
 
         $pageTitle = __('partner_basic.payout_request_page_title');
         $domains = Api::where('type', 'Admin')->where('status', 1)->get();
@@ -4520,10 +4635,10 @@ class PayoutRecordController extends Controller
 
         if ($previous_pending > $partner->balance) {
             if ($previous_pending > 0) {
-                session()->flash('error', 'You have already requested a withdrawal of ' . round($previous_pending, 2) . ', which is still in process. Your remaining balance is ' . round($partner->balance - $previous_pending, 2) . '.');
+                session()->flash('error', 'You have already requested a withdrawal of ' . (float) number_format($previous_pending, 2, '.', '') . ', which is still in process. Your remaining balance is ' . (float) number_format($partner->balance - $previous_pending, 2, '.', '') . '.');
                 return back();
             } else {
-                session()->flash('error', 'Insufficient balance' . snake2Title(round($partner->balance, 2)) . ' For Withdraw.');
+                session()->flash('error', 'Insufficient balance' . snake2Title((float) number_format($partner->balance, 2, '.', '')) . ' For Withdraw.');
                 return back();
             }
         }
@@ -4841,7 +4956,7 @@ class PayoutRecordController extends Controller
             }
         }
         $withdrawal_able_amount = $api_key->balance - $charge;
-        $withdrawal_able_amount = round($withdrawal_able_amount ?? 0, 2);
+        $withdrawal_able_amount = (float) number_format($withdrawal_able_amount ?? 0, 2, '.', '');
 
         $pageTitle = "Search Payout Logs";
         return view('partner.payout.logs', compact('records', 'pageTitle', 'domains', 'withdrawal_able_amount'));
@@ -4894,7 +5009,7 @@ class PayoutRecordController extends Controller
             })
             ->first();
         $fund_count = $funds_t->fund_count;
-        $fund_sum = round($funds_t->fund_sum, 2);
+        $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
         return view('partner.payout.report', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'from_date', 'to_date'));
     }
 
@@ -5050,7 +5165,7 @@ class PayoutRecordController extends Controller
 
             if (!empty($funds_t) && isset($funds_t[0]->amount_count)) {
                 $fund_count = $funds_t[0]->amount_count;
-                $fund_sum = round($funds_t[0]->amount_sum, 2);
+                $fund_sum = (float) number_format($funds_t[0]->amount_sum, 2, '.', '');
             }
 
 
@@ -5264,7 +5379,7 @@ class PayoutRecordController extends Controller
         //     ->where('e_wallet_name', 'like', '%' . $gateway . '%')
         //     ->first();
         //     $fund_count = $funds_t->fund_count;
-        //     $fund_sum = round($funds_t->fund_sum, 2);
+        //     $fund_sum = (float) number_format($funds_t->fund_sum, 2, '.', '');
 
         return response()->json($records);
     }
@@ -5301,11 +5416,11 @@ class PayoutRecordController extends Controller
         $finalAmo = $request->amount + $charge;
 
         if ($request->amount < $min_withdrawal) {
-            session()->flash('error', 'Minimum payout Amount ' . round($min_withdrawal, 2) . ' ' . $basic->currency);
+            session()->flash('error', 'Minimum payout Amount ' . (float) number_format($min_withdrawal, 2, '.', '') . ' ' . $basic->currency);
             return back();
         }
         if ($request->amount > $method->max_amount) {
-            session()->flash('error', 'Maximum payout Amount ' . round($method->max_amount, 2) . ' ' . $basic->currency);
+            session()->flash('error', 'Maximum payout Amount ' . (float) number_format($method->max_amount, 2, '.', '') . ' ' . $basic->currency);
             return back();
         }
 
@@ -5327,10 +5442,10 @@ class PayoutRecordController extends Controller
 
         if ($finalAmo + $previous_pending > $authWallet['balance']) {
             if ($previous_pending > 0) {
-                session()->flash('error', 'You have already requested a withdrawal of ' . round($previous_pending, 2) . ', which is still in process. Your remaining balance is ' . round($authWallet['balance'] - $previous_pending, 2) . '.');
+                session()->flash('error', 'You have already requested a withdrawal of ' . (float) number_format($previous_pending, 2, '.', '') . ', which is still in process. Your remaining balance is ' . (float) number_format($authWallet['balance'] - $previous_pending, 2, '.', '') . '.');
                 return back();
             } else {
-                session()->flash('error', 'Insufficient balance' . snake2Title(round($authWallet['balance'], 2)) . ' For Withdraw.');
+                session()->flash('error', 'Insufficient balance' . snake2Title((float) number_format($authWallet['balance'], 2, '.', '')) . ' For Withdraw.');
                 return back();
             }
         } else {
@@ -5902,7 +6017,7 @@ class PayoutRecordController extends Controller
 
                         $charge = str_replace(',', '', $charge);
                         $charge = (float)$charge;
-                        $charge = round($charge, 2);
+                        $charge = (float) number_format($charge, 2, '.', '');
 
                         $net_amount = $payment_record->amount - $charge;
                         $partner_api_key->balance += $net_amount;
@@ -5959,7 +6074,7 @@ class PayoutRecordController extends Controller
                     $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $order->api_id)->whereDate('created_at', '>=', $order->created_at)->get();
                     foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                         $amount_to_update = $DailyPartnerSummary_record->closing_balance + $net_amount;
-                        $amount_to_update = round($amount_to_update, 2);
+                        $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                         // $amount_to_update = floor($amount_to_update * 100) / 100;
                         $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                         $DailyPartnerSummary_record->save();
@@ -5997,7 +6112,7 @@ class PayoutRecordController extends Controller
                             $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $parent_api_key->id)->whereDate('created_at', '>=', $PartnerCommission->created_at)->get();
                             foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
                                 $amount_to_update = $DailyPartnerSummary_record->closing_balance + ($PartnerCommission->profit);
-                                $amount_to_update = round($amount_to_update, 2);
+                                $amount_to_update = (float) number_format($amount_to_update, 2, '.', '');
                                 // $amount_to_update = floor($amount_to_update * 100) / 100;
                                 $DailyPartnerSummary_record->closing_balance = $amount_to_update;
                                 $DailyPartnerSummary_record->save();
@@ -6054,6 +6169,7 @@ class PayoutRecordController extends Controller
                             'created_at' => $order->created_at,
                             'updated_at' => $order->updated_at,
                             'sign' => $sign,
+                            'source' => '34Callback',
                         ];
 
                         if (!empty($order->member_id)) {
@@ -6190,10 +6306,10 @@ class PayoutRecordController extends Controller
 
         if ($previous_pending > $user->balance) {
             if ($previous_pending > 0) {
-                session()->flash('error', 'You have already requested a withdrawal of ' . round($previous_pending, 2) . ', which is still in process. Your remaining balance is ' . round($user->balance - $previous_pending, 2) . '.');
+                session()->flash('error', 'You have already requested a withdrawal of ' . (float) number_format($previous_pending, 2, '.', '') . ', which is still in process. Your remaining balance is ' . (float) number_format($user->balance - $previous_pending, 2, '.', '') . '.');
                 return back();
             } else {
-                session()->flash('error', 'Insufficient balance' . snake2Title(round($user->balance, 2)) . ' For Withdraw.');
+                session()->flash('error', 'Insufficient balance' . snake2Title((float) number_format($user->balance, 2, '.', '')) . ' For Withdraw.');
                 return back();
             }
         } else {
@@ -6388,4 +6504,13 @@ class PayoutRecordController extends Controller
             ], 500);
         }
     }
+    public static function resetBlacklistCounters($member_id)
+{
+    $today = now()->toDateString();
+    // Delete all today's payments for this member_id with missing txns
+    $payments = \App\Models\Payment::where('member_id', $member_id)
+    ->where('status','Pending')
+        ->whereDate('created_at', $today)
+        ->get();
+}
 }

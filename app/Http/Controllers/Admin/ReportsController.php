@@ -1075,7 +1075,7 @@ class ReportsController extends Controller
                         'withdrawal_charges' => $withdrawal->withdrawal_charges,
                         'total_charges' => $total_charges,
                         'daily_balance' => $daily_balance,
-                        'success_rate' => round($success_rate, 2),
+                        'success_rate' => (float) number_format($success_rate, 2, '.', ''),
                     ];
                 }
 

@@ -196,6 +196,7 @@ return [
     'charge' => 'Charge',
     'final_amount' => 'Final Amount',
     'type' => 'Type',
+    'sms_type' => 'SMS Type',
     'matched' => 'Matched',
     'sent' => 'Sent',
     'created_at' => 'Created At',
