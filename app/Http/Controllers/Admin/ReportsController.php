@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\DailyEWalletSummary;
 use App\Models\DailyPartnerSummary;
 use App\Http\Controllers\Controller;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportsController extends Controller
 {
@@ -657,6 +658,169 @@ class ReportsController extends Controller
             ->withQueryString();
 
         return view('admin.reports.sms_logs', compact('pageTitle', 'logs', 'distinctWalletNames'));
+    }
+
+    public function bank_account_log_summary(Request $request)
+    {
+        $search_date_column = 'created_at';
+        $from_date = $request->filled('from_date') ? $request->from_date : now()->toDateString();
+        $to_date = $request->filled('to_date') ? $request->to_date : now()->toDateString();
+
+        // Banks = EWalletAccount
+        $EwalletNames = EWalletAccount::distinct()->pluck('e_wallet_name')->toArray();
+
+        // Bank accounts list filtered by selected EWalletAccount
+        $bankAccountList = [];
+        if ($request->filled('bank_name')) {
+            $bankAccountList = EWalletAccount::where('e_wallet_name', $request->bank_name)
+                ->pluck('name', 'gateway_code')->toArray();
+        }
+
+        $apisList = Api::pluck('name', 'id')->toArray();
+
+        // Filter parameters
+        $bank_name = $request->input('bank_name');
+        $account_number = $request->input('account_number');
+        $filter_status = $request->input('filter_status');
+        $filter_type = $request->input('filter_type');
+        $merchant = $request->input('merchants'); 
+
+        // ----------------- Fetch Payments (Deposits) -----------------
+        $payments = Payment::query()
+            ->whereDate($search_date_column, '>=', $from_date)
+            ->whereDate($search_date_column, '<=', $to_date);
+
+        if ($bank_name) {
+            $payments->where('e_wallet_name', $bank_name);
+        }
+
+        if ($account_number) {
+            $payments->where('gateway_code', $account_number);
+        }
+
+        if ($filter_status) {
+            $payments->where('status', $filter_status);
+        }
+
+        // ----------------- Fetch Payouts (Withdrawals) -----------------
+        $payouts = Payout::query()
+            ->whereDate($search_date_column, '>=', $from_date)
+            ->whereDate($search_date_column, '<=', $to_date);
+
+        if ($bank_name) {
+            $payouts->where('e_wallet_name', $bank_name);
+        }
+
+        if ($account_number) {
+            $payouts->where('gateway_code', $account_number);
+        }
+
+        if ($filter_status) {
+            $payouts->where('status', $filter_status);
+        }
+
+        // ----------------- Fetch EWallet Transfers -----------------
+        $ewalletTransfers = EWalletTransfer::query()
+            ->whereDate('created_at', '>=', $from_date)
+            ->whereDate('created_at', '<=', $to_date);
+
+        if ($bank_name) {
+            $ewalletTransfers->where('domain', $bank_name);
+        }
+
+        if ($account_number) {
+            $ewalletTransfers->where('e_wallet_account_no', $account_number);
+        }
+
+        if ($filter_status) {
+            $ewalletTransfers->where('status', $filter_status);
+        }
+
+        if ($filter_type) {
+            $ewalletTransfers->where('transaction_type', $filter_type);
+        }
+
+        // ----------------- Get all data -----------------
+        $deposits = $payments->get();
+        $withdrawals = $payouts->get();
+        $transfers = $ewalletTransfers->get();
+
+        // ----------------- Merge & Process -----------------
+        $merged = collect();
+
+        $merged = $merged->merge($deposits->map(function ($item) {
+            return (object)[
+                'type' => 'deposit',
+                'amount' => $item->amount,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'gateway_alias' => $item->gateway_alias
+            ];
+        }));
+
+        $merged = $merged->merge($withdrawals->map(function ($item) {
+            return (object)[
+                'type' => 'withdrawal',
+                'amount' => $item->amount,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'gateway_alias' => $item->gateway_alias
+            ];
+        }));
+
+        $merged = $merged->merge($transfers->map(function ($item) {
+            return (object)[
+                'type' => $item->transaction_type == 3 ? 'transfer_in' : 'transfer_out',
+                'amount' => $item->amount,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'gateway_alias' => $item->domain
+            ];
+        }));
+
+        // ----------------- Summary Calculations -----------------
+        $summary = [
+            'total_transactions' => $merged->count(),
+            'total_deposit_count' => $merged->where('type', 'deposit')->count(),
+            'total_withdrawal_count' => $merged->where('type', 'withdrawal')->count(),
+            'total_deposit_amount' => $merged->where('type', 'deposit')->sum('amount'),
+            'total_withdrawal_amount' => $merged->where('type', 'withdrawal')->sum('amount'),
+            'total_completed_deposit' => $merged->where('type', 'deposit')->where('status', 1)->count(),
+            'total_rejected_deposit' => $merged->where('type', 'deposit')->where('status', 3)->count(),
+            'total_completed_withdrawal' => $merged->where('type', 'withdrawal')->where('status', 1)->count(),
+            'total_rejected_withdrawal' => $merged->where('type', 'withdrawal')->where('status', 3)->count(),
+            'total_transfer_transactions' => $merged->filter(fn($t) => in_array($t->type, ['transfer_in', 'transfer_out']))->count(),
+            'transfer_in' => $merged->where('type', 'transfer_in')->sum('amount'),
+            'transfer_out' => $merged->where('type', 'transfer_out')->sum('amount'),
+        ];
+
+        // ----------------- Pagination -----------------
+        $page = $request->get('page', 1);
+        $perPage = 50;
+        $transactions = new LengthAwarePaginator(
+            $merged->sortByDesc('created_at')->forPage($page, $perPage),
+            $merged->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $pageTitle = "Bank Account Log Summary";
+        return view('admin.reports.bank_account_log_summary', compact(
+            'pageTitle',
+            'from_date',
+            'to_date',
+            'EwalletNames',
+            'transactions',
+            'summary',
+            'bank_name',
+            'account_number',
+            'filter_status',
+            'filter_type',
+            'bankAccountList',
+            'apisList',
+            'merchant',
+        ));
     }
 
 

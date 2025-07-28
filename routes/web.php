@@ -257,6 +257,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class, 'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
         Route::post('/apis/inline-update', [PayoutRecordController::class, 'inlineUpdate'])->name('apis.inlineUpdate');
 
+        Route::match(['get', 'post'], 'bank_account_log_summary', [ReportsController::class, 'bank_account_log_summary'])
+        ->name('reports.bank_account_log_summary');
+
         /* ===== AdminMerchant Ticket ==== */
         Route::get('merchant/report_by_date', [MerchantController::class, 'report_by_date'])->name('merchant_reports.by_date');
         Route::get('/admin/merchant-reports/export/{from_date?}', [MerchantController::class, 'export_by_date'])->name('merchant_reports.export_by_date');

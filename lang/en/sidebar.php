@@ -84,4 +84,5 @@ return [
     'audit_log' => 'Audit Log',
     'cs_tracker' =>'CS Tracker',
     'sms_logs' => 'SMS Logs',
+    'bank_account_log_summary' => 'Bank Account Log Summary',
 ];
