@@ -31,7 +31,7 @@ class BlacklistController extends Controller
     public function destroy($id)
     {
         $blacklist = Blacklist::findOrFail($id);
-        $blacklist->satus = 0;
+        $blacklist->status = 0;
         $blacklist->removed_at = now();
         $blacklist->save();
         // $member_id = $blacklist->member_id;
@@ -86,6 +86,7 @@ class BlacklistController extends Controller
                 $blacklist->reason = $request->reason;
             }
 
+            $blacklist->status = 1;
             $blacklist->save();
         } else {
             // Create new blacklist record

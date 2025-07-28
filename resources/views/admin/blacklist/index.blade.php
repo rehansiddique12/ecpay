@@ -23,14 +23,7 @@
                 </div>
                 <div class="col-md-3">
                     <label>{{ __('transaction.select_merchant') }}</label>
-                    <select name="member_id" class="form-control select2">
-                        <option value="">{{ __('transaction.select_merchant') }}</option>
-                        @foreach($members as $member)
-                        <option value="{{ $member }}" {{ request('api_id') == $merchant->id ? 'selected' : '' }}>
-                            {{ $member }}
-                        </option>
-                        @endforeach
-                    </select>
+                     <input type="text" name="member_id" class="form-control">
                 </div>
                 <div class="col-md-3">
                     <label>{{ __('transaction.select_merchant') }}</label>

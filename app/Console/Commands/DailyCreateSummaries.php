@@ -60,7 +60,7 @@ class DailyCreateSummaries extends Command
             $now = Carbon::now();
 
             // Step 1: Get all member_ids from BlackList with the specific reason
-            $blacklistRecords = Blacklist::where('reason', $reason)->get();
+            $blacklistRecords = Blacklist::where('reason', $reason)->where('status',1)->get();
 
             if ($blacklistRecords->isEmpty()) {
                 Log::info("No BlackList records found with reason: '{$reason}'");

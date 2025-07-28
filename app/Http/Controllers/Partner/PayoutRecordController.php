@@ -1942,9 +1942,12 @@ class PayoutRecordController extends Controller
 if ($member_id) {
     $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
     if ($blacklisted) {
-        \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
-        $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
-        return response()->view('partner.payout.blacklist_error', compact('error_message'));
+        if($blacklisted->status==1){
+            \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
+            $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+            return response()->view('partner.payout.blacklist_error', compact('error_message'));
+        }
+            
     }
     // $today = now()->toDateString();
 
@@ -1984,8 +1987,7 @@ if ($member_id) {
             $total_missing++;
             if ($consecutive_missing >= $con_limit) {
                 $blacklist = \App\Models\Blacklist::firstOrNew(
-                    ['member_id' => $member_id, 'api_id' => $api_id],
-                    ['reason' => '3 consecutive missing txns', 'status' => 1]
+                    ['member_id' => $member_id, 'api_id' => $api_id]
                 );
 
                 // Increment consecutive_count if already exists, otherwise initialize it
@@ -1994,6 +1996,9 @@ if ($member_id) {
                 } else {
                     $blacklist->consecutive_count = 1;
                 }
+
+                $blacklist->reason = '3 consecutive missing txns';
+                $blacklist->status = 1;
 
                 $blacklist->save();
 
@@ -2016,8 +2021,7 @@ if ($member_id) {
 
     if ($total_missing >= $total_limit) {
         $blacklist = \App\Models\Blacklist::firstOrNew(
-            ['member_id' => $member_id, 'api_id' => $api_id],
-            ['reason' => '7 total missing txns in a day', 'status' => 1]
+            ['member_id' => $member_id, 'api_id' => $api_id]
         );
 
         // Increment total_count if exists, otherwise set to 1
@@ -2026,6 +2030,10 @@ if ($member_id) {
         } else {
             $blacklist->total_count = 1;
         }
+
+        $blacklist->reason = '7 total missing txns in a day';
+        $blacklist->status = 1;
+        
 
         $blacklist->save();
 
