@@ -1927,7 +1927,7 @@ class PayoutRecordController extends Controller
     {
         $api = Api::findOrFail($id);
         $website = $api->website;
-        $TwoStepVerification = TwoStepVerification::where('user_id', $id)
+        $TwoStepVerification = TwoStepVerification::where('user_id', $id)->where('type', 'Partner')
             ->first();
         if ($TwoStepVerification) {
             $TwoStepVerification->g_auth_status = 'No';

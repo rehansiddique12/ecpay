@@ -279,7 +279,7 @@ class DashboardController extends Controller
         $status = "No";
         $secret = $this->googleAuthenticatorService->createSecret();
 
-        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)
+        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Partner')
             ->first();
         if ($TwoStepVerification) {
             if ($TwoStepVerification->g_auth_status == "No") {
@@ -319,7 +319,7 @@ class DashboardController extends Controller
     public function updateTwoFA(Request $request)
     {
         $partner = $this->user;
-        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)
+        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Partner')
             ->first();
 
         $secret_key = $TwoStepVerification->g_secret_key;
@@ -341,7 +341,7 @@ class DashboardController extends Controller
     public function disableTwoFA()
     {
         $partner = $this->user;
-        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)
+        $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Partner')
             ->first();
         if ($TwoStepVerification) {
             $TwoStepVerification->delete();
