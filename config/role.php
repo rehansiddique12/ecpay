@@ -491,6 +491,16 @@ $arr = [
     ],
 
 
+    'bank_account_log_summary' => [
+        'label' => 'Bank Account Log Summary',
+        'access' => [
+            'view' => ['admin.reports.bank_account_log_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
     'ocrimages' => [
         'label' => 'OCR Image',
         'access' => [

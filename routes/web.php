@@ -127,7 +127,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     });
 
     //Route::get('/approve-payout-transaction/{id}/{status}', [DevFunctionsController::class, 'payoutAction']);
-    Route::get('/create_transaction_log', [DevFunctionsController::class, 'create_transaction_log']);
+    //Route::get('/create_transaction_log', [DevFunctionsController::class, 'create_transaction_log']);
 
 
     Route::group(['middleware' => ['auth:admin', 'check.admin.status', 'permission']], function () {
@@ -261,6 +261,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('reports/partner_account_balance_summaryv2', [ReportsController::class, 'partner_account_balance_summaryv2'])->name('reports.partner_account_balance_summaryv2');
         Route::get('reports/partner_account_balance_summary_completions', [ReportsController::class, 'partner_account_balance_summary_completions'])->name('reports.partner_account_balance_summary_completions');
         Route::post('/apis/inline-update', [PayoutRecordController::class, 'inlineUpdate'])->name('apis.inlineUpdate');
+
+        Route::match(['get', 'post'], 'bank_account_log_summary', [ReportsController::class, 'bank_account_log_summary'])
+        ->name('reports.bank_account_log_summary');
 
         /* ===== AdminMerchant Ticket ==== */
         Route::get('merchant/report_by_date', [MerchantController::class, 'report_by_date'])->name('merchant_reports.by_date');

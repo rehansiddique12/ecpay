@@ -1077,6 +1077,14 @@ $languages = [
                             </a>
                         </li>
                         @endif
+                        @if (adminAccessRoute(config('role.bank_account_log_summary.access.view')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.bank_account_log_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.bank_account_log_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-report-analytics"></i>
+                                    <div data-i18n="Bank Account Log Summary">{{ __('sidebar.bank_account_log_summary') }}</div>
+                                </a>
+                            </li>
+                        @endif
 
                         {{-- <li
                             class="menu-item {{ in_array(Route::currentRouteName(), ['admin.payout.report.daily', 'admin.payout.report.daily.search']) ? 'active' : '' }}">
