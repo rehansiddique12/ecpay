@@ -1,22 +1,28 @@
 <?php
 
+use App\Models\Payout;
+use App\Models\AuditLog;
+use App\Models\CsTracker;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Webhook\WebhookController;
 use App\Http\Controllers\CCategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\LoginController;
+use App\Http\Controllers\Admin\TrackController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Admin\TrackingController;
+use App\Http\Controllers\Webhook\WebhookController;
 use App\Http\Controllers\Admin\PaymentLogController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PaymentTypeController;
-use App\Http\Controllers\Admin\TrackingController;
 use App\Http\Controllers\Admin\DevFunctionsController;
 use App\Http\Controllers\Admin\PayoutRecordController;
 use App\Http\Controllers\Admin\ManualGatewayController;
@@ -26,20 +32,15 @@ use App\Http\Controllers\Admin\MerchantAccountController;
 use App\Http\Controllers\Admin\AccountManagementController;
 use App\Http\Controllers\Admin\ManageRolePermissionController;
 use App\Http\Controllers\Partner\LoginController as PartnerLoginController;
+// rehan
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Partner\ReportsController as PartnerReportsController;
 use App\Http\Controllers\Partner\MerchantController as PartnerMerchantController;
 use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
 use App\Http\Controllers\Partner\PaymentLogController as PartnerPaymentLogController;
-// rehan
 use App\Http\Controllers\Partner\PayoutRecordController as PartnerPayoutRecordController;
 use App\Http\Controllers\Partner\SummaryReportController as PartnerSummaryReportController;
 use App\Http\Controllers\Partner\ManageRolePermissionController as PartnerManageRolePermissionController;
-use Illuminate\Http\Request;
-use App\Models\Payout;
-use App\Models\AuditLog;
-use App\Models\CsTracker;
 
 /*```php
 // No code was selected, so I'll provide a general improvement suggestion.
@@ -446,6 +447,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('payment/search', [PaymentLogController::class, 'search'])->name('payment.search');
         Route::put('payment/update_e_wallet', [PaymentLogController::class, 'update_e_wallet'])->name('payment.update_e_wallet');
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
+
+        Route::get('track/ocrimages', [TrackController::class, 'ocrimages'])->name('track.ocrimages');
 
         Route::get('/user/edit/{id}', [UsersController::class, 'userEdit'])->name('user-edit');
         Route::post('/user/update/{id}', [UsersController::class, 'userUpdate'])->name('user-update');

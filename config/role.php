@@ -491,6 +491,17 @@ $arr = [
     ],
 
 
+    'ocrimages' => [
+        'label' => 'OCR Image',
+        'access' => [
+            'view' => ['admin.track.ocrimages'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
 
 
 

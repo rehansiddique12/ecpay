@@ -1379,6 +1379,34 @@ class TelegramGroupController extends Controller
                             if (strpos($orderNumber, ' ') !== false) {
                                 return response()->json(['status' => 'success'], 200);
                             }
+
+                            if (strlen($orderNumber) < 6) {
+                                return response()->json(['status' => 'success'], 200);
+                            }
+
+                            $userResponses = [
+                                                'thanks',
+                                                'thankyou',
+                                                'sure',
+                                                'noted!',
+                                                'received',
+                                                'confirmed',
+                                                'understood',
+                                                'submitted',
+                                                'alright',
+                                                'perfect',
+                                                'awesome',
+                                                'approved',
+                                                'welcome',
+                                                'okeydokey',
+                                                'yessir',
+                                                'copythat'
+                                            ];
+
+                            $orderNumberwithoutspace = str_replace(' ', '', $orderNumber);                
+                            if (in_array(strtolower($orderNumberwithoutspace), array_map('strtolower', $userResponses))) {
+                                return response()->json(['status' => 'success'], 200);
+                            }
                         
                         
                             $this->processTransecton($orderNumber, $api, $url, $sender_chat, $TG_message, $api_key, $sender_message);

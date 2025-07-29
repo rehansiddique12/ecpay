@@ -22,9 +22,8 @@ class BlacklistController extends Controller
         $blacklists = $query->where('status',1)->orderBy('created_at', 'desc')->paginate(20);
         $pageTitle = 'Black List';
         $merchants = Api::get();
-        $members = Payment::distinct()->pluck('member_id')->take('10');
         // dd($members);
-        return view('admin.blacklist.index', compact('blacklists','pageTitle','merchants','members'));
+        return view('admin.blacklist.index', compact('blacklists','pageTitle','merchants'));
     }
 
     // Remove a member_id from blacklist
