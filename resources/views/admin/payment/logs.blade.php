@@ -156,7 +156,11 @@
                                 </td>
 
                                 <td data-label="{{ __('transaction.status') }}" class="text-lg-center text-right">
-                                    @if ($fund->status == 'Pending')
+                                    @if ($fund->status == 'Confirm')
+                                        <span class="badge bg-info"><i
+                                                class="fa fa-circle text-white font-12"></i>
+                                            Confirmed</span>
+                                    @elseif ($fund->status == 'Pending')
                                         @php
                                             // Get the time difference between now and the created_at timestamp
                                             $createdAt = \Carbon\Carbon::parse($fund->created_at);
@@ -268,13 +272,18 @@
                                             data-username="{{ optional($fund->user)->username }}"
                                             data-route="{{ route('admin.payment.action', $fund->id) }}"
                                             data-status="{{ $fund->status }}" data-sender="{{ $fund->sender }}"
+
+                                            data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view'))?1:0 }}"
+                                            data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view'))?1:0 }}"
+
                                             data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
 
-                                            @if ($fund->status == 'Pending')
+                                            <i class="icon-base ti tabler-pencil me-1"></i>
+                                            {{-- @if ($fund->status == 'Pending')
                                                 <i class="icon-base ti tabler-pencil me-1"></i>
                                             @else
                                                 <i class="icon-base ti tabler-eye me-1"></i>
-                                            @endif
+                                            @endif --}}
 
                                         </button>
                                         {{-- @else --}}
@@ -326,6 +335,8 @@
 
                 ?>
                 {{-- <form role="form" class="actionRoute" action=""> --}}
+                   {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
+                   <div id="form_div">
                 <form role="form" method="POST" class="actionRoute" action=""
                     enctype="multipart/form-data" onsubmit="submitForm(this)">
                     @csrf
@@ -347,7 +358,7 @@
                                 <option value="Personal">{{ __('transaction.personal') }}</option>
                                 <option value="Merchant">{{ __('transaction.merchant') }}</option>
                             </select>
-                            <input type="hidden" name="status" value="Complete">
+                            
                             <label>{{ __('transaction.payment_receiving_datetime') }}</label>
                             <input class="form-control" id="e_wallet_phone_number" required
                                 value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
@@ -355,13 +366,26 @@
                             <label>{{ __('transaction.2fa') }}</label>
                             <input class="form-control" name="twofa" type="text" />
                             </div> 
-                            <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="status"
+
+                            <input type="hidden" name="status" id="setstatus">
+
+                            <div id="confirm_div">
+                            
+                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
+                                value="Confirm">{{ __('transaction.confirm') }}</button>
+                            </div>
+                               <div id="approve_div">
+                            
+                            <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
                                 value="Complete">{{ __('transaction.approve') }}</button>
+                               </div>
                         </div>
 
                         <input type="hidden" class="action_id" name="id">
                     </div>
                 </form>
+                </div>
+                {{-- @endif --}}
                 <form role="form" method="POST" class="actionRoute" action=""
                     enctype="multipart/form-data">
                     @csrf
@@ -527,6 +551,40 @@
                     var sender = jQuery(this).data('sender');
                     var feedback = jQuery(this).data('feedback');
                     var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
+                    var t_status = jQuery(this).data('status');
+                    var u_confirm = jQuery(this).data('confirm');
+                    var t_approved = jQuery(this).data('approved');
+
+
+                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject')) || (t_approved == 1 && t_status === 'Confirm')) && t_status != 'Complete') {
+                        // Show the form
+                        jQuery("#form_div").show();
+
+                        // Hide both action sections first
+                        jQuery("#confirm_div").hide();
+                        jQuery("#approve_div").hide();
+
+                        // If (status is Pending or Reject) AND u_confirm == 1 → show confirm_div
+                        if ((t_status === 'Pending' || t_status === 'Reject') && u_confirm == 1) {
+                            jQuery("#confirm_div").show();
+                            jQuery("#setstatus").val('Confirm');
+                        }
+
+                        // If status is Confirm AND t_approved == 1 → show approve_div
+                        else if (t_status === 'Confirm' && t_approved == 1) {
+                            jQuery("#approve_div").show();
+                            jQuery("#setstatus").val('Complete');
+                        }
+
+                        // Populate form values (optional)
+                        jQuery(".action_id").val(id);
+                        jQuery(".sender").val(sender);
+                        jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
+                        // Add other fields as necessary...
+                    } else {
+                        // Hide form if condition doesn't meet
+                        jQuery("#form_div").hide();
+                    }
 
                     var amount = jQuery(this).data('amount');
 
@@ -672,95 +730,6 @@
     @endpush
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
-    @endpush
-
-    @push('js')
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-        <script>
-            jQuery(document).ready(function() {
-
-                jQuery(document).on("click", '.edit_button', function(e) {
-                    var id = jQuery(this).data('id');
-                    var feedback = jQuery(this).data('feedback');
-                    var status = jQuery(this).data('status');
-                    $('#payment_status').val(status);
-                    // if(status == "Pending")
-                    // {
-                    //     $('#showBtns').show();
-                    // }
-                    // else
-                    // {
-                    //     $('#showBtns').hide();
-                    // }
-
-                    jQuery(".action_id").val(id);
-                    jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
-                    if (details != null) {
-                        var details = Object.entries(jQuery(this).data('info'));
-                        var list = [];
-                        details.map(function(item, i) {
-                            if (item[1].type == 'file') {
-                                var singleInfo =
-                                    `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
-                            } else {
-                                var singleInfo =
-                                    `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
-                            }
-                            list[i] =
-                                `<li class="list-group-item"><span class="font-weight-bold "> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`
-                        });
-                    }
-                    jQuery('.withdraw-detail').html(list);
-
-                    if (feedback == '') {
-                        // var res = `<div class="form-group"><br>
-                //             <label class="font-weight-bold">{{ __('transaction.send_feedback') }}</label>
-                //             <textarea name="feedback" class="form-control" row="3" required>{{ old('feedback') }}</textarea>
-                //         </div>`;
-                        var res = "";
-                    } else {
-                        var res = `<h5>{{ __('transaction.feedback') }}</h5>
-                    <p>${feedback}</p>`;
-                    }
-
-                    jQuery('.get-feedback').html(res);
-                });
-            });
-        </script>
-
-        <script>
-            $(document).ready(function() {
-                $('form').on('submit', function() {
-                    const $form = $(this);
-                    const $submitButton = $form.find('button[type="submit"]');
-
-                    // Disable button and change text (optional)
-                    $submitButton.prop('disabled', true);
-                    $submitButton.html(
-                        "<i class='fa fa-spinner fa-spin me-1'></i> {{ __('transaction.processing') }} ");
-
-                    // Allow form to proceed
-                    return true;
-                });
-                let $select = $('.select2').select2({
-                    // placeholder: "Select Partner",
-                    allowClear: true,
-                    selectOnClose: true,
-                });
-
-                // Prevent dropdown from opening on clear
-                $select.on('select2:unselecting', function(e) {
-                    $(this).data('unselecting', true);
-                });
-
-                $select.on('select2:opening', function(e) {
-                    if ($(this).data('unselecting')) {
-                        $(this).removeData('unselecting');
-                        e.preventDefault();
-                    }
-                });
-            });
-        </script>
     @endpush
 
 </x-admin-layout>

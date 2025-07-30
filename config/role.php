@@ -1001,6 +1001,26 @@ $arr = [
         ],
     ],
 
+    'depositconfirm' => [
+        'label' => 'Deposit Confirm',
+        'access' => [
+            'view' => ['admin.deposit.depositconfirm'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'depositapporve' => [
+        'label' => 'Deposit Approve',
+        'access' => [
+            'view' => ['admin.deposit.depositapporve'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
 ];
 
 return $arr;

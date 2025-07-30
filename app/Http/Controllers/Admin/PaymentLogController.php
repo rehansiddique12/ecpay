@@ -829,7 +829,7 @@ class PaymentLogController extends Controller
     {
         $this->validate($request, [
             'id' => 'required',
-            'status' => ['required', Rule::in(['Complete', 'Reject'])],
+            'status' => ['required', Rule::in(['Complete', 'Reject', 'Confirm'])],
         ]);
         // dd($request->all());
         DB::beginTransaction();
@@ -857,8 +857,11 @@ class PaymentLogController extends Controller
             $basic = (object)config('basic');
             $req = Purify::clean($request->all());
             $commit = 0;
-
-            if ($request->status == 'Complete') {
+            if ($request->status == 'Confirm'){
+                if(!(adminAccessRoute(config('role.depositconfirm.access.view')))){
+                    DB::rollBack();
+                    throw new \Exception("You have no access to this.");
+                }
 
                 if($data->amount>=1000){
                     if ($request->filled('twofa')) {
@@ -885,6 +888,75 @@ class PaymentLogController extends Controller
                         throw new \Exception("Enter 2FA OTP Code");
                     }
                 }
+
+                if ($request->filled('txn_id')) {
+                    $check_payment = Payment::where('txn_id', $request->txn_id)
+                        ->where('id', '!=', $data->id)
+                        ->first();
+                    if ($check_payment) {
+                        DB::rollBack();
+                        throw new \Exception("By This Txn no, Payment Already Exist.");
+                    }
+                    $data->txn_id = $request->txn_id;
+                }
+                    
+
+                    
+                $data->status = 'Confirm';
+                $data->confirmed_by = auth()->id();
+                $data->confirmed_at = Carbon::now();
+                $data->update();
+                $commit = 1;
+                DB::commit();
+
+                AuditLog::create([
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Confirmed',
+                    'module_id'   => $data->id,
+                    'description' => "Payment ID {$data->id} was successfully Confirmed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
+                ]);
+
+                session()->flash('success', 'Confirmed Successfully');
+
+            }elseif ($request->status == 'Complete') {
+
+                if(!(adminAccessRoute(config('role.depositapporve.access.view')))){
+                    DB::rollBack();
+                    throw new \Exception("You have no access to this.");
+                }
+
+                if($data->amount>=1000){
+                    if ($request->filled('twofa')) {
+                        $otp = $request->twofa;
+                        if(!empty($otp)){
+                            $TwoStepVerification = TwoStepVerification::where('user_id', auth()->id())->where('type', 'Admin')->first();
+                            if($TwoStepVerification){
+                                $secret_key = $TwoStepVerification->g_secret_key;
+                                $checkResult = $this->googleAuthenticatorService->verifyCode($secret_key, $otp, 0);
+                                if (!$checkResult) {
+                                    throw new \Exception("Wrong OTP");
+                                }
+                            }else{
+                                DB::rollBack();
+                                throw new \Exception("2FA Error!");
+                            }
+                                
+                        }else{
+                            DB::rollBack();
+                            throw new \Exception("Enter 2FA OTP Code");
+                        }
+                    }else{
+                        DB::rollBack();
+                        throw new \Exception("Enter 2FA OTP Code");
+                    }
+                }
+
+                if($data->status!="Confirm"){
+                    DB::rollBack();
+                    throw new \Exception("You Can only approve Confirmed Deposit.");
+                }
+
+
 
                 $account = EWalletAccount::where('e_wallet_name', $data->gateway->code)
                     ->where('account_no', $request->e_wallet_phone_number)
