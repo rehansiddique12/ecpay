@@ -2431,8 +2431,19 @@ class TelegramGroupController extends Controller
         $text = str_replace('Date', ' Date', $text);
         $text = preg_replace('/\s+/', ' ', $text); // normalize
         $text = str_replace(["\n", "\r"], ' ', $text);
+        $text = preg_replace('/\b\d{1,2}:\d{2}(am|pm)?\b/i', '', $text);
+        $text = preg_replace('/\b\d{2}\/\d{2}\/\d{2}\b/', '', $text);
+        $text = preg_replace('/\s+/', ' ', trim($text));
     
         $text = preg_replace('/(Date|Time|Txnid|Transaction)(\d)/i', '$1 $2', $text);
+        $text = preg_replace('/\b(TkK?|Tk)(?=\d)/i', '$1 ', $text);
+        
+
+        $keywordd = "Transaction Information";
+        $poss = strpos($text, $keywordd);
+        if ($poss !== false) {
+            $text = substr($text, $poss);
+        }
     
     
         $ewallet = "";
@@ -2461,28 +2472,127 @@ class TelegramGroupController extends Controller
             if (preg_match('/([0-9\-]{6,20})\s*$/', trim($beforeText), $m3)) {
                 $ewallet = str_replace('-', '', $m3[1]);
             }
+
+
+
         }elseif (stripos($text, 'কাস্টমার') !== false) {
+
+
+
             $txn     = $this->extractValueByStartPattern($text, $txnStarts, '/([A-Z0-9]{6,15})/i'); 
             $ewallet = $this->extractValueByStartPattern($text, $ewalletStarts, '/([0-9xX\-\*]{6,20})/');
-        
-    
+
             if (preg_match('/[%৳]\s*([0-9,]+(?:\.\d{1,2})?)/u', $text, $m2)) {
                 $amount = str_replace(',', '', $m2[1]);
             }
+
+
     
         
         }
         else{
-            $amount  = $this->extractValueByStartPattern($text, $amountStarts, '/([\d]{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/');
+
+            // echo $text;
+            // exit;
+            
+            $text = str_replace('-', '', $text);
+            $amount  = $this->extractValueByStartPattern($text, $amountStarts, '/\b((?:\d{1,3}(?:,\d{3})?|\d{1,6})(?:\.\d{1,2})?)\b/');
             $txn     = $this->extractValueByStartPattern($text, $txnStarts, '/([A-Z0-9]{6,15})/i'); 
-            $ewallet = $this->extractValueByStartPattern($text, $ewalletStarts, '/([0-9xX\-\*]{6,20})/');   
+            $ewallet = $this->extractValueByStartPattern($text, $ewalletStarts, '/([0-9xX\-\*]{6,20})/'); 
+
+             
         }
     
     
-        
+
+
+        if(!empty($amount)){
+            if($amount==0){
+                $amount = "";
+            }elseif($amount<10){
+                $amount = "";
+            }
+        }
         
         $amount = str_replace(',', '', $amount);
         $ewallet = str_replace('-', '', $ewallet);
+
+
+        //////////////////////////
+
+        if (empty($ewallet)){
+            $textforewallet = preg_replace('/[^\d\-]/', ' ', $text);
+            $textforewallet = str_replace('-', '', $textforewallet);
+            $pattern = '/\b(01\d{2}-?\d{6,8})\b/';
+            if (preg_match($pattern, $textforewallet, $matches)) {
+                $ewallet = $matches[1];
+            }
+        }
+
+        if (empty($ewallet)){
+            if (preg_match('/\*{3}\d+/', $text, $match)) {
+                $ewallet = $match[0];
+            }
+        }
+
+
+        if (empty($txn)){
+            $text = str_replace('_', ' ', $text);
+            if (preg_match('/\b(?=\S*[A-Za-z])(?=\S*\d)\S{7,}\b/', $text, $match)) {
+                $txn = $match[0];
+            }
+
+        }
+
+
+
+
+        
+
+        if (empty($amount)){
+            $text = str_replace('-', '', $text);
+            $text = str_replace(',', '', $text);
+           if(preg_match_all('/\d+\.\d+/', $text, $matches)){
+            foreach ($matches[0] as $amounttoget) {
+                $divided = $amounttoget / 1.0185;
+                $formatted = number_format($divided, 2);
+                $amounttogetstring = $amounttoget;
+                $amounttogetstring = (string)$amounttogetstring;
+                if ($amounttogetstring[0] === '6') {
+                    $amounttogetstring = substr($amounttogetstring, 1);
+                }
+
+                if (substr($formatted, -2) === '00') {
+                    $amount = $formatted;
+                    break;
+                }elseif (substr($amounttoget, -2) === '00') {
+                    $amount = $amounttoget;
+                    break;
+                }elseif($amounttogetstring!=$amounttoget){
+                    $divided = $amounttogetstring / 1.0185;
+                    $formatted = number_format($divided, 2);
+                    if (substr($formatted, -2) === '00') {
+                        $amount = $formatted;
+                        break;
+                    }elseif (substr($amounttogetstring, -2) === '00') {
+                        $amount = $amounttogetstring;
+                        break;
+                    }
+                }
+            }
+           }
+
+        }
+
+
+        if (empty($amount)){
+            $text = str_replace('-', '', $text);
+            $text = str_replace(',', '', $text);
+           if (preg_match('/\b0\d{9,}\D+(\d{1,5})\b/', $text, $match)) {
+                $amount = $match[1];
+            }
+
+        }
     
     
     
