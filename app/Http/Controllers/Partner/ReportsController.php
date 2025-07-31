@@ -118,12 +118,12 @@ class ReportsController extends Controller
             $to_date_to_search = date('Y-m-d H:i:s', strtotime($currentDateFormatted . ' 23:59:59'));
 
 
+
             $partnerTimezone = $main_user->timezone;
             $originalTimezone = $partnerTimezone;
             $targetTimezone = env('APP_TIMEZONE', 'Asia/Dhaka');
-            $from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-            $to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
-
+            //$from_date_to_search = Carbon::parse($from_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
+            //$to_date_to_search = Carbon::parse($to_date_to_search, $originalTimezone)->setTimezone($targetTimezone);
 
             $carbonDate = Carbon::createFromFormat('Y-m-d', $currentDateFormatted);
             $oneDayBefore = $carbonDate->subDay();
@@ -146,7 +146,7 @@ class ReportsController extends Controller
             $adjustment = ApiTransaction::where('partner_id', $api_id)->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)->selectRaw('COALESCE(SUM(amount), 0) as adjustment_amount, COALESCE(SUM(charges), 0) as adjustment_charges')->first();
             $PartnerCommission = PartnerCommission::where('from_id', $api_id)->where('status', 1)->where('created_at', '>=', $from_date_to_search)->where('created_at', '<=', $to_date_to_search)->selectRaw('COALESCE(SUM(profit), 0) as commission_amount')->first();
 
-            if ($deposit->deposit_amount > 0 || $withdrawal->withdrawal_amount > 0 || $Settlement->settlement_amount > 0 || $adjustment->adjustment_amount > 0 || $PartnerCommission->commission_amount > 0) {
+            if($deposit->deposit_amount > 0 || $withdrawal->withdrawal_amount > 0 || $Settlement->settlement_amount > 0 || $adjustment->adjustment_amount > 0 || $PartnerCommission->commission_amount > 0) {
                 $data[$count]['partner'] = $api_id;
                 $data[$count]['date'] = $currentDateFormatted;
                 $data[$count]['opening_balance'] = DailyPartnerSummary::where('api_id', $api_id)->whereDate('created_at', $oneDayBefore)->first()->closing_balance ?? 0.00;
@@ -165,6 +165,7 @@ class ReportsController extends Controller
             }
 
             $currentDate = strtotime('+1 day', $currentDate);
+
         }
 
         $pageTitle = "Partner Account Balance Summary";
@@ -339,7 +340,7 @@ class ReportsController extends Controller
 
             $filter_data[] = $entry;
         }
-        
+
         return view('partner.reports.logs', [
             'pageTitle' => $pageTitle,
             'filter_data' => $filter_data,
