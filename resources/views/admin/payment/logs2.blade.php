@@ -276,6 +276,9 @@
 
                                             data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view'))?1:0 }}"
                                             data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view'))?1:0 }}"
+                                            data-txn_id="{{ $fund->txn_id }}"
+                                            data-e_wallet_type="{{ $fund->e_wallet_type }}"
+                                            data-date_time="{{ $fund->date_time }}"
 
                                             data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
 
@@ -350,15 +353,15 @@
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
                             <label>{{ __('transaction.txn_no') }}</label>
-                            <input class="form-control" name="txn_id" type="text" />
+                            <input class="form-control txn_id" name="txn_id" type="text" />
                             <label>{{ __('transaction.e_wallet_type') }}</label>
-                            <select class="form-select" name="e_wallet_type">
+                            <select class="form-select e_wallet_type" name="e_wallet_type">
                                 <option value="Personal">{{ __('transaction.personal') }}</option>
                                 <option value="Merchant">{{ __('transaction.merchant') }}</option>
                             </select>
                             
                             <label>{{ __('transaction.payment_receiving_datetime') }}</label>
-                            <input class="form-control" id="e_wallet_phone_number" required
+                            <input class="form-control date_time" id="e_wallet_phone_number" required
                                 value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
                             <div id="2fa_div">   
                             <label>{{ __('transaction.2fa') }}</label>
@@ -377,6 +380,13 @@
                             <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
                                 value="Complete">{{ __('transaction.approve') }}</button>
                                </div>
+
+                               <div id="update_div">
+                            
+                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
+                                value="Update">Edit</button>
+                            </div>
+
                         </div>
 
                         <input type="hidden" class="action_id" name="id">
@@ -550,15 +560,21 @@
                     var t_status = jQuery(this).data('status');
                     var u_confirm = jQuery(this).data('confirm');
                     var t_approved = jQuery(this).data('approved');
+                    var txn_id = jQuery(this).data('txn_id');
+                    var date_time = jQuery(this).data('date_time');
+                    var e_wallet_type = jQuery(this).data('e_wallet_type');
 
 
-                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject')) || (t_approved == 1 && t_status === 'Confirm')) && t_status != 'Complete') {
+                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject' || t_status === 'Complete')) || (t_approved == 1 && (t_status === 'Confirm' || t_status === 'Complete')))) {
                         // Show the form
                         jQuery("#form_div").show();
 
                         // Hide both action sections first
                         jQuery("#confirm_div").hide();
                         jQuery("#approve_div").hide();
+                        jQuery("#update_div").hide();
+
+                        
 
                         // If (status is Pending or Reject) AND u_confirm == 1 → show confirm_div
                         if ((t_status === 'Pending' || t_status === 'Reject') && u_confirm == 1) {
@@ -570,6 +586,11 @@
                         else if (t_status === 'Confirm' && t_approved == 1) {
                             jQuery("#approve_div").show();
                             jQuery("#setstatus").val('Complete');
+                        }
+
+                        else if (t_status === 'Complete' && (t_approved == 1 || u_confirm == 1)) {
+                            jQuery("#update_div").show();
+                            jQuery("#setstatus").val('Update');
                         }
 
                         // Populate form values (optional)
@@ -594,6 +615,14 @@
                     jQuery(".sender").val(sender);
                     jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
                     jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
+
+                    jQuery(".txn_id").val(txn_id);
+                    if (date_time) {
+                        jQuery(".date_time").val(date_time);
+                    }
+                    if (e_wallet_type) {
+                        jQuery('.e_wallet_type').val(e_wallet_type);
+                    }
 
                     var details = Object.entries(jQuery(this).data('info'));
                     var list = [];

@@ -829,7 +829,7 @@ class PaymentLogController extends Controller
     {
         $this->validate($request, [
             'id' => 'required',
-            'status' => ['required', Rule::in(['Complete', 'Reject', 'Confirm'])],
+            'status' => ['required', Rule::in(['Complete', 'Reject', 'Confirm', 'Update'])],
         ]);
         // dd($request->all());
         DB::beginTransaction();
@@ -857,7 +857,51 @@ class PaymentLogController extends Controller
             $basic = (object)config('basic');
             $req = Purify::clean($request->all());
             $commit = 0;
-            if ($request->status == 'Confirm'){
+            if ($request->status == 'Update'){
+                $changes = [];
+
+                if ($data->sender !== $request->sender) {
+                    $changes[] = "Sender changed from '{$data->sender}' to '{$request->sender}'";
+                    $data->sender = $request->sender;
+                }
+
+                if ($data->e_wallet_phone_number !== $request->e_wallet_phone_number) {
+                    $changes[] = "E-Wallet Phone Number changed from '{$data->e_wallet_phone_number}' to '{$request->e_wallet_phone_number}'";
+                    $data->e_wallet_phone_number = $request->e_wallet_phone_number;
+                }
+
+                if ($data->txn_id !== $request->txn_id) {
+                    $changes[] = "Transaction ID changed from '{$data->txn_id}' to '{$request->txn_id}'";
+                    $data->txn_id = $request->txn_id;
+                }
+
+                if ($data->date_time !== $request->date_time) {
+                    $changes[] = "Date Time changed from '{$data->date_time}' to '{$request->date_time}'";
+                    $data->date_time = $request->date_time;
+                }
+
+                if ($data->e_wallet_type !== $request->e_wallet_type) {
+                    $changes[] = "E-Wallet Type changed from '{$data->e_wallet_type}' to '{$request->e_wallet_type}'";
+                    $data->e_wallet_type = $request->e_wallet_type;
+                }
+
+                $data->update();
+                $commit = 1;
+                DB::commit();
+
+                $changeDescription = !empty($changes) ? implode(', ', $changes) : 'No field changes detected';
+
+                AuditLog::create([
+                    'user_id'     => auth()->id(),
+                    'module'      => 'Payment Updated',
+                    'module_id'   => $data->id,
+                    'description' => "Payment ID {$data->id} was successfully updated by user " . auth()->user()->name .
+                                    ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A') .
+                                    ". Changes: {$changeDescription}",
+                ]);
+
+                session()->flash('success', 'Updated Successfully');
+            }elseif ($request->status == 'Confirm'){
                 if(!(adminAccessRoute(config('role.depositconfirm.access.view')))){
                     DB::rollBack();
                     throw new \Exception("You have no access to this.");
@@ -889,6 +933,29 @@ class PaymentLogController extends Controller
                     }
                 }
 
+
+                $changes = [];
+
+                if ($data->sender !== $request->sender) {
+                    $changes[] = "Sender changed from '{$data->sender}' to '{$request->sender}'";
+                }
+
+                if ($data->e_wallet_phone_number !== $request->e_wallet_phone_number) {
+                    $changes[] = "E-Wallet Phone Number changed from '{$data->e_wallet_phone_number}' to '{$request->e_wallet_phone_number}'";
+                }
+
+                if ($data->txn_id !== $request->txn_id) {
+                    $changes[] = "Transaction ID changed from '{$data->txn_id}' to '{$request->txn_id}'";
+                }
+
+                if ($data->date_time !== $request->date_time) {
+                    $changes[] = "Date Time changed from '{$data->date_time}' to '{$request->date_time}'";
+                }
+
+                if ($data->e_wallet_type !== $request->e_wallet_type) {
+                    $changes[] = "E-Wallet Type changed from '{$data->e_wallet_type}' to '{$request->e_wallet_type}'";
+                }
+
                 if ($request->filled('txn_id')) {
                     $check_payment = Payment::where('txn_id', $request->txn_id)
                         ->where('id', '!=', $data->id)
@@ -899,21 +966,30 @@ class PaymentLogController extends Controller
                     }
                     $data->txn_id = $request->txn_id;
                 }
-                    
+                
 
-                    
+                $changeDescription = !empty($changes) ? implode(', ', $changes) : 'No field changes detected';
+
+
                 $data->status = 'Confirm';
                 $data->confirmed_by = auth()->id();
                 $data->confirmed_at = Carbon::now();
+                $data->date_time = $request->date_time;
+                $data->e_wallet_type = $request->e_wallet_type;
+                $data->sender = $request->sender;
+                $data->e_wallet_phone_number = $request->e_wallet_phone_number;
                 $data->update();
                 $commit = 1;
                 DB::commit();
+
 
                 AuditLog::create([
                     'user_id'     => auth()->id(),
                     'module'      => 'Payment Confirmed',
                     'module_id'   => $data->id,
-                    'description' => "Payment ID {$data->id} was successfully Confirmed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
+                    'description' => "Payment ID {$data->id} was successfully Confirmed by user " . auth()->user()->name .
+                                    ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A') .
+                                    ". Changes: {$changeDescription}",
                 ]);
 
                 session()->flash('success', 'Confirmed Successfully');
@@ -955,6 +1031,32 @@ class PaymentLogController extends Controller
                     DB::rollBack();
                     throw new \Exception("You Can only approve Confirmed Deposit.");
                 }
+
+
+                $changes = [];
+
+                if ($data->sender !== $request->sender) {
+                    $changes[] = "Sender changed from '{$data->sender}' to '{$request->sender}'";
+                    $data->sender = $request->sender;
+                }
+
+                if ($data->e_wallet_phone_number !== $request->e_wallet_phone_number) {
+                    $changes[] = "E-Wallet Phone Number changed from '{$data->e_wallet_phone_number}' to '{$request->e_wallet_phone_number}'";
+                }
+
+                if ($data->txn_id !== $request->txn_id) {
+                    $changes[] = "Transaction ID changed from '{$data->txn_id}' to '{$request->txn_id}'";
+                }
+
+                if ($data->date_time !== $request->date_time) {
+                    $changes[] = "Date Time changed from '{$data->date_time}' to '{$request->date_time}'";
+                }
+
+                if ($data->e_wallet_type !== $request->e_wallet_type) {
+                    $changes[] = "E-Wallet Type changed from '{$data->e_wallet_type}' to '{$request->e_wallet_type}'";
+                }
+
+                $changeDescription = !empty($changes) ? implode(', ', $changes) : 'No field changes detected';
 
 
 
@@ -1004,7 +1106,7 @@ class PaymentLogController extends Controller
 
 
                 if($payment){
-                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->where('id', '!=', $data->id)->first();
                     if ($check_payment_txn) {
                         DB::rollBack();
                         throw new \Exception("By This Txn no, Payment Already Completed.");
@@ -1038,12 +1140,7 @@ class PaymentLogController extends Controller
                     $payment->save();
                     $payment=null;
 
-                    AuditLog::create([
-                        'user_id'     => auth()->id(),
-                        'module'      => 'Payment Completed',
-                        'module_id'   => $data->id,
-                        'description' => "Payment ID {$data->id} was successfully completed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
-                    ]);
+                    
 
 
 
@@ -1124,6 +1221,16 @@ class PaymentLogController extends Controller
                 //$payment->partner_transection_id = $data->partner_transection_id;
                 //$payment->member_id = $data->member_id;
                 $data->save();
+
+
+                AuditLog::create([
+                        'user_id'     => auth()->id(),
+                        'module'      => 'Payment Completed',
+                        'module_id'   => $data->id,
+                        'description' => "Payment ID {$data->id} was successfully Completed by user " . auth()->user()->name .
+                                        ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A') .
+                                        ". Changes: {$changeDescription}",
+                    ]);
 
                 $DailyPartnerSummary_records =  DailyPartnerSummary::where('api_id', $data->api_id)->whereDate('created_at', '>=', $data->created_at)->get();
                 foreach ($DailyPartnerSummary_records as $DailyPartnerSummary_record) {
