@@ -1106,7 +1106,7 @@ class PaymentLogController extends Controller
 
 
                 if($payment){
-                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
+                    $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->where('id', '!=', $data->id)->first();
                     if ($check_payment_txn) {
                         DB::rollBack();
                         throw new \Exception("By This Txn no, Payment Already Completed.");
