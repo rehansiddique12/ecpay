@@ -324,6 +324,23 @@ class TelegramGroupController extends Controller
                                     'status' => 0, // Pending
                                 ]);
 
+
+                                if(!empty($phone_number)){
+                                    $account = EWalletAccount::where('account_no', $phone_number)
+                                                ->first();
+                                    if (!$account) {
+                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                            'chat_id' => $TG_message['chat']['id'],
+                                            'text' => 'Account (Insert extracted ewallet number) does not belong to us. Please attach image with correct information.',
+                                            'parse_mode' => 'Markdown',
+                                            'reply_to_message_id' => $TG_message['message_id']
+                                        ]);
+
+                                        $image_processed=1;
+                                        return response()->json(['status' => 'success'], 200);
+                                    }
+                                }
+
                                 $message = "Please Enter the partner transaction number for this image";
                                 $sendMessage([
                                     'chat_id' => $sender_chat['id'],
@@ -331,6 +348,9 @@ class TelegramGroupController extends Controller
                                     'reply_to_message_id' => $TG_message['message_id'],
                                     'parse_mode' => 'Markdown',
                                 ]);
+
+
+
                                 
                                 
                                 
@@ -2514,8 +2534,7 @@ class TelegramGroupController extends Controller
             }
         }
         
-        $amount = str_replace(',', '', $amount);
-        $ewallet = str_replace('-', '', $ewallet);
+        
 
 
         //////////////////////////
@@ -2594,8 +2613,8 @@ class TelegramGroupController extends Controller
 
         }
     
-    
-    
+        $amount = str_replace(',', '', $amount);
+        $ewallet = str_replace('-', '', $ewallet);
     
     
         return [
