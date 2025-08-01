@@ -329,9 +329,11 @@ class TelegramGroupController extends Controller
                                     $account = EWalletAccount::where('account_no', $phone_number)
                                                 ->first();
                                     if (!$account) {
+                                        LaravelLog::info('Account not found:'.$phone_number);
+                                        $phone_number = str_replace('*', '✱', $phone_number);
                                         Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                                             'chat_id' => $TG_message['chat']['id'],
-                                            'text' => 'Account (Insert extracted ewallet number) does not belong to us. Please attach image with correct information.',
+                                            'text' => 'Account '.$phone_number.' does not belong to us. Please attach image with correct information.',
                                             'parse_mode' => 'Markdown',
                                             'reply_to_message_id' => $TG_message['message_id']
                                         ]);
@@ -1071,7 +1073,7 @@ class TelegramGroupController extends Controller
                                                                 $gateway_name = $deposit->gateway->name ?? '';
                                                                 
                                                                 $extracted_text_values = $this->extractTransactionDetails($extractedText);
-                                                                
+                                                                $extracted_text_values['ewallet'] = str_replace('*', '✱', $extracted_text_values['ewallet']);
                                                                 $message = "";
                                                                 $message .= "\n*E-Wallet:* " . $extracted_text_values['ewallet'] . "\n";
                                                                 $message .= "\n*TXN:* " . $extracted_text_values['txn'] . "\n";
