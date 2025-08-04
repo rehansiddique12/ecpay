@@ -673,7 +673,7 @@ class ReportsController extends Controller
         $bankAccountList = [];
         if ($request->filled('bank_name')) {
             $bankAccountList = EWalletAccount::where('e_wallet_name', $request->bank_name)
-                ->pluck('name', 'gateway_code')->toArray();
+                ->pluck('e_wallet_name', 'account_no')->toArray();
         }
 
         $apisList = Api::pluck('name', 'id')->toArray();
@@ -686,7 +686,23 @@ class ReportsController extends Controller
         $merchant = $request->input('merchants'); 
 
         // ----------------- Fetch Payments (Deposits) -----------------
-        $payments = Payment::query()
+        $payments = Payment::with('eWalletLog')->select(
+            'id',
+            DB::raw('e_wallet_name as bank'),
+            DB::raw('sender as account_number'),
+            DB::raw('created_at as creation_date_time'),
+            DB::raw('trans_complete_date as completion_date_time'),
+            'amount',
+            DB::raw('NULL as previous_balance'),
+            DB::raw('NULL as balance'),
+            DB::raw('NULL as diff'),
+            DB::raw('partner_transection_id as partner_name'),
+            DB::raw('partner_transection_id as transaction_number'),
+            DB::raw('transaction_type as type'),
+            'status',
+            'feedback',
+            'updated_at'
+        )
             ->whereDate($search_date_column, '>=', $from_date)
             ->whereDate($search_date_column, '<=', $to_date);
 
@@ -695,15 +711,39 @@ class ReportsController extends Controller
         }
 
         if ($account_number) {
-            $payments->where('gateway_code', $account_number);
+            $payments->where('sender', $account_number);
         }
 
         if ($filter_status) {
-            $payments->where('status', $filter_status);
+            if($filter_status == '2'){
+                $payment_status = 'Complete';
+            }elseif($filter_status == '3'){
+                $payment_status = 'Reject';
+            }
+            
+            $payments->where('status', $payment_status);
+        } else {
+            $payments->where('status', '!=', 'Pending');
         }
 
         // ----------------- Fetch Payouts (Withdrawals) -----------------
-        $payouts = Payout::query()
+        $payouts = Payout::with('eWalletLog')->select(
+            'id',
+            DB::raw('e_wallet_name as bank'),
+            DB::raw('user_account_no as account_number'),
+            DB::raw('created_at as creation_date_time'),
+            DB::raw('completions_at as completion_date_time'),
+            'amount',
+            DB::raw('NULL as previous_balance'),
+            DB::raw('NULL as balance'),
+            DB::raw('NULL as diff'),
+            DB::raw('partner_transection_id as partner_name'),
+            DB::raw('txn_id as transaction_number'),
+            DB::raw('transaction_type as type'),
+            'status',
+            'feedback',
+            'updated_at'
+        )
             ->whereDate($search_date_column, '>=', $from_date)
             ->whereDate($search_date_column, '<=', $to_date);
 
@@ -712,11 +752,18 @@ class ReportsController extends Controller
         }
 
         if ($account_number) {
-            $payouts->where('gateway_code', $account_number);
+            $payouts->where('user_account_no', $account_number);
         }
 
         if ($filter_status) {
-            $payouts->where('status', $filter_status);
+            if($filter_status == '2'){
+                $payment_status = 'Complete';
+            }elseif($filter_status == '3'){
+                $payment_status = 'Reject';
+            }
+            $payouts->where('status', $payment_status);
+        } else {
+            $payouts->where('status', '!=', 'Pending');
         }
 
         // ----------------- Fetch EWallet Transfers -----------------
@@ -732,9 +779,9 @@ class ReportsController extends Controller
             $ewalletTransfers->where('e_wallet_account_no', $account_number);
         }
 
-        if ($filter_status) {
-            $ewalletTransfers->where('status', $filter_status);
-        }
+        // if ($filter_status) {
+        //     $ewalletTransfers->where('status', $filter_status);
+        // }
 
         if ($filter_type) {
             $ewalletTransfers->where('transaction_type', $filter_type);
@@ -743,28 +790,58 @@ class ReportsController extends Controller
         // ----------------- Get all data -----------------
         $deposits = $payments->get();
         $withdrawals = $payouts->get();
+
+        // dd($deposits->first());
         $transfers = $ewalletTransfers->get();
 
         // ----------------- Merge & Process -----------------
         $merged = collect();
 
         $merged = $merged->merge($deposits->map(function ($item) {
+            $eWalletLog = $item->eWalletLog;
+            $previous = $eWalletLog->previous_balance ?? null;
+            $balance = $eWalletLog->balance ?? null;
             return (object)[
                 'type' => 'deposit',
+                'bank' => $item->bank, 
                 'amount' => $item->amount,
                 'status' => $item->status,
                 'created_at' => $item->created_at,
-                'gateway_alias' => $item->gateway_alias
+                'completion_date_time' => $item->completion_date_time,
+                'gateway_alias' => $item->gateway_alias ?? null,
+                'transaction_type' => $item->type ?? null,
+                'account_number' => $item->account_number ?? null,
+                'eWalletLog' => $item->eWalletLog ?? null,
+                'previous_balance' => $item->eWalletLog->previous_balance ?? null,
+                'balance' => $balance,
+                'diff' => ($previous !== null && $balance !== null) ? ($balance - $previous) : null,
+                'partner_name' => $item->partner_name ?? null,
+                'transaction_number' => $item->transaction_number ?? null,
+                'remarks' => $item->feedback ?? null,
             ];
         }));
 
         $merged = $merged->merge($withdrawals->map(function ($item) {
+            $eWalletLog = $item->eWalletLog;
+            $previous = $eWalletLog->previous_balance ?? null;
+            $balance = $eWalletLog->balance ?? null;
             return (object)[
                 'type' => 'withdrawal',
+                'bank' => $item->bank,
                 'amount' => $item->amount,
                 'status' => $item->status,
                 'created_at' => $item->created_at,
-                'gateway_alias' => $item->gateway_alias
+                'completion_date_time' => $item->completion_date_time,
+                'gateway_alias' => $item->gateway_alias ?? null,
+                'transaction_type' => $item->type ?? null,
+                'account_number' => $item->account_number ?? null,
+                'eWalletLog' => $item->eWalletLog ?? null,
+                'previous_balance' => $item->eWalletLog->previous_balance ?? null,
+                'balance' => $balance,
+                'diff' => ($previous !== null && $balance !== null) ? ($balance - $previous) : null,
+                'partner_name' => $item->partner_name ?? null,
+                'transaction_number' => $item->transaction_number ?? null,
+                'remarks' => $item->feedback ?? null,
             ];
         }));
 
@@ -774,7 +851,12 @@ class ReportsController extends Controller
                 'amount' => $item->amount,
                 'status' => $item->status,
                 'created_at' => $item->created_at,
-                'gateway_alias' => $item->domain
+                'gateway_alias' => $item->domain,
+                'diff' => null, 
+                'balance' => null,
+                'previous_balance' => null,
+                'partner_name' => null,
+                'transaction_number' => null,
             ];
         }));
 
