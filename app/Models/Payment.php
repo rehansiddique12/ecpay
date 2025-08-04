@@ -50,4 +50,10 @@ class Payment extends Model
     {
         return $this->hasOne(EWalletAccount::class, 'account_no', 'e_wallet_phone_number');
     }
+
+    public function eWalletLog()
+    {
+        return $this->hasOne(EWalletLog::class, 'transaction_id', 'id')
+                    ->where('transaction_type', 1);
+    }
 }

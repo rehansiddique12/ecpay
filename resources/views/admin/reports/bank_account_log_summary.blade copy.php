@@ -141,90 +141,102 @@
 </div>
 
                     <div class="table-responsive">
-<table class="table table-bordered">
-    <thead class="table-light">
-        <tr>
-            <th>Bank</th>
-            <th>Account Number</th>
-            <th>Creation Date Time</th>
-            <th>Completion Date Time</th>
-            <th>Previous Balance</th>
-            <th>Amount</th>
-            <th>Balance</th>
-            <th>Diff</th>
-            <th>Partner Name</th>
-            <th>Transaction Number</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Remarks</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($transactions as $transaction)
-       
+    <table class="table table-bordered">
+        <thead class="table-light">
             <tr>
-                {{-- Bank --}}
-                <td>{{ $transaction->bank ?? 'N/A' }}</td>
-
-                {{-- Account Number --}}
-                <td>{{ $transaction->account_number ?? 'N/A' }}</td>
-
-                {{-- Creation Date Time --}}
-                <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d M Y H:i') }}</td>
-
-                {{-- Completion Date Time --}}
-                <td>
-                    {{ isset($transaction->completion_date_time)
-                        ? \Carbon\Carbon::parse($transaction->completion_date_time)->format('d M Y H:i')
-                        : '' }}
-                </td>
-
-                {{-- Previous Balance --}}
-                <td>{{ $transaction->previous_balance ?? '-' }}</td>
-
-                {{-- Amount --}}
-                <td>{{ number_format($transaction->amount ?? 0, 2) }}</td>
-
-                {{-- Final Balance --}}
-                <td>{{ $transaction->balance !== null ? number_format($transaction->balance, 2) : '-' }}</td>
-
-                {{-- Diff --}}
-                <td>{{ $transaction->diff !== null ? number_format($transaction->diff, 2) : '-' }}</td>
-
-                {{-- Partner Name --}}
-                <td>{{ $transaction->partner_name ?? '-' }}</td>
-
-                {{-- Transaction Number --}}
-                <td>{{ $transaction->transaction_number ?? '-' }}</td>
-
-                {{-- Type --}}
-                <td>
-                    @switch($transaction->type)
-                        @case('deposit') Deposit @break
-                        @case('withdrawal') Withdrawal @break
-                        @case('transfer_in') Transfer In @break
-                        @case('transfer_out') Transfer Out @break
-                        @default {{ ucfirst($transaction->type) }}
-                    @endswitch
-                </td>
-
-                {{-- Status --}}
-                <td>
-                    @switch($transaction->status)
-                        @case(1) Completed @break
-                        @case(3) Rejected @break
-                        @default Pending
-                    @endswitch
-                </td>
-
-                {{-- Remarks --}}
-                <td>{{ $transaction->remarks ?? '-' }}</td>
+                <th>Bank</th>
+                <th>Account Number</th>
+                {{-- <th>Account Name</th> --}}
+                <th>Creation Date Time</th>
+                <th>Completion Date Time</th>
+                <th>Previous Balance</th>
+                <th>Amount</th>
+                <th>Balance</th>
+                <th>Diff</th>
+                <th>Partner Name</th>
+                <th>Transaction Number</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Remarks</th>
             </tr>
-        @endforeach
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @php $printedDomains = []; @endphp
+            @foreach ($transactions as $transaction)
+                <tr>
+                    <!-- <td>
+                        @if (!in_array($transaction->e_wallet_name, $printedDomains))
+                            {{ strtoupper($transaction->e_wallet_name ?? '') }}
+                            @php $printedDomains[] = $transaction->e_wallet_name; @endphp
+                        @endif
+                    </td> -->
 
+                    <td>
+                        @if ($transaction->transaction_type != 2)
+                            {{ $transaction->acc_no ?? '' }} &nbsp;
+                            ({{ $bankAccountList[$transaction->acc_no] ?? $transaction->acc_no }})
+                        @else
+                            {{ $transaction->withdrawal_acc_no ?? '' }} &nbsp;
+                            ({{ $bankAccountList[$transaction->withdrawal_acc_no] ?? $transaction->withdrawal_acc_no }})
+                        @endif
+                    </td>
 
+                    <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d M Y H:i') ?? '' }}</td>
+
+                    <td>
+                        {{ isset($transaction->bankAccountLog->updated_at) ? \Carbon\Carbon::parse($transaction->bankAccountLog->updated_at)->format('d M Y H:i') : '' }}
+                    </td>
+
+                    <td>{{ $transaction->bankAccountLog->previous_balance ?? '' }}</td>
+
+                    <td>{{ number_format($transaction->amount, 2) }}</td>
+
+                    <td>{{ $transaction->bankAccountLog->final_balance ?? '' }}</td>
+
+                    <td>
+                        @php
+                            $prev = $transaction->bankAccountLog->previous_balance ?? null;
+                            $amt = $transaction->amount ?? null;
+                            $final = $transaction->bankAccountLog->final_balance ?? null;
+                            $type = $transaction->transaction_type ?? null;
+                        @endphp
+                        @if (!is_null($prev) && !is_null($amt) && !is_null($final) && !is_null($type))
+                            @php
+                                $expected = in_array($type, [2, 4]) ? $prev - $amt : $prev + $amt;
+                                $difference = $expected != $final ? number_format($final - $expected, 2) : null;
+                            @endphp
+
+                            @if (!is_null($difference) && $difference > 0)
+                                <br><small class="text-danger">Diff: {{ $difference }}</small>
+                            @endif
+                        @endif
+                    </td>
+
+                    <td>{{ $apisList[$transaction->api_id] ?? '' }}</td>
+                    <td>{{ $transaction->partner_transection_id }}</td>
+
+                    <td>
+                        @switch($transaction->transaction_type)
+                            @case(1) Deposit @break
+                            @case(2) Withdrawal @break
+                            @case(3) Transfer In @break
+                            @case(4) Transfer Out @break
+                            @default Unknown
+                        @endswitch
+                    </td>
+
+                    <td>
+                        @switch($transaction->status)
+                            @case(2) Complete @break
+                            @case(3) Rejected @break
+                            @default Pending
+                        @endswitch
+                    </td>
+                    <td>{{ $transaction->remarks }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 </div>
 
                 </div>

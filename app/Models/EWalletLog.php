@@ -21,4 +21,16 @@ class EWalletLog extends Model
         'source'
     ];
 
+    // public function eWalletLog()
+    // {
+    //     return $this->hasOne(EWalletLog::class, 'transaction_id', 'id')
+    //                 ->where('transaction_type', 1);
+    // }
+
+    // public function eWalletLog()
+    // {
+    //     return $this->hasOne(EWalletLog::class, 'transaction_id', 'id')
+    //                 ->where('transaction_type', 2);
+    // }
+
 }
