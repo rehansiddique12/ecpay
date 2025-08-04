@@ -501,6 +501,17 @@ $arr = [
         ],
     ],
 
+    'ocrimages' => [
+        'label' => 'OCR Image',
+        'access' => [
+            'view' => ['admin.track.ocrimages'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
 
 
 
@@ -984,6 +995,26 @@ $arr = [
             'view' => [
                 'can_view_partner_account',
             ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'depositconfirm' => [
+        'label' => 'Deposit Confirm',
+        'access' => [
+            'view' => ['admin.deposit.depositconfirm'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'depositapporve' => [
+        'label' => 'Deposit Approve',
+        'access' => [
+            'view' => ['admin.deposit.depositapporve'],
             'add' => [],
             'edit' => [],
             'delete' => [],

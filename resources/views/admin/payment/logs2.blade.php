@@ -111,7 +111,11 @@
                             </td>
 
                             <td>
-                                @if($fund->status=="Pending")
+                                @if ($fund->status == 'Confirm')
+                                        <span class="badge bg-info"><i
+                                                class="fa fa-circle text-white font-12"></i>
+                                            Confirmed</span>
+                                    @elseif ($fund->status == 'Pending')
                                 @if($fund->sms_received==1)
                                     <span class="badge bg-success">SMS Received</span><br>
                                 @endif
@@ -229,49 +233,63 @@
                             @if(adminAccessRoute(config('role.payment_log.access.edit')))
                             <td data-label="@lang('Action')">
                                 @php
-                                if($fund->detail){
-                                    $details =[];
-                                    foreach($fund->detail as $k => $v){
-                                    if($v->type == "file"){
-                                    $details[kebab2Title($k)] = [
-                                    'type' => $v->type,
-                                    'field_name' =>
-                                    getFile(config('location.deposit.path').date('Y',strtotime($fund->created_at)).'/'.date('m',strtotime($fund->created_at)).'/'.date('d',strtotime($fund->created_at))
-                                    .'/'.$v->field_name)
-                                    ];
-                                }
-                                else{
-                                    $details[kebab2Title($k)] =[
-                                    'type' => $v->type,
-                                    'field_name' => $v->field_name
-                                    ];
-                                    }
-                                }
-                                }else{
-                                $details = null;
-                                }
-                                @endphp
+                                            if ($fund->detail) {
+                                                $details = [];
+                                                foreach ($fund->detail as $k => $v) {
+                                                    if ($v->type == 'file') {
+                                                        $details[kebab2Title($k)] = [
+                                                            'type' => $v->type,
+                                                            'field_name' => getFile(
+                                                                config('location.deposit.path') .
+                                                                    date('Y', strtotime($fund->created_at)) .
+                                                                    '/' .
+                                                                    date('m', strtotime($fund->created_at)) .
+                                                                    '/' .
+                                                                    date('d', strtotime($fund->created_at)) .
+                                                                    '/' .
+                                                                    $v->field_name,
+                                                            ),
+                                                        ];
+                                                    } else {
+                                                        $details[kebab2Title($k)] = [
+                                                            'type' => $v->type,
+                                                            'field_name' => $v->field_name,
+                                                        ];
+                                                    }
+                                                }
+                                            } else {
+                                                $details = null;
+                                            }
+                                        @endphp
 
-                                {{-- @if($fund->gateway_id > 999) --}}
-                                <button
-                                    class="edit_button  btn  {{($fund->status == "Pending") ?  'btn-primary' : 'btn-success'}} text-white  btn-sm "
-                                    data-bs-toggle="modal" data-bs-target="#myModal"
-                                    data-title="{{($fund->status == "Pending") ?  trans('Edit') : trans('Details')}}"
-                                    data-id="{{ $fund->id }}" data-feedback="{{ $fund->feedback }}"
-                                    data-info="{{json_encode($details)}}"
-                                    data-amount="{{ getAmount($fund->amount)}} {{ $basic->currency }}"
-                                    data-username="{{ optional($fund->user)->username }}"
-                                    data-route="{{route('admin.payment.action',$fund->id)}}"
-                                    data-status="{{$fund->status}}" data-sender="{{$fund->sender}}"
-                                    data-e_wallet_phone_number="{{$fund->e_wallet_phone_number}}">
+                                        {{-- @if ($fund->gateway_id > 999) --}}
+                                        <button
+                                            class="edit_button  btn  {{ $fund->status == 'Pending' ? 'btn-primary' : 'btn-success' }} text-white  btn-sm "
+                                            data-bs-toggle="modal" data-bs-target="#myModal"
+                                            data-title="{{ $fund->status == 'Pending' ? __('transaction.edit') : __('transaction.details') }}"
+                                            data-id="{{ $fund->id }}" data-feedback="{{ $fund->feedback }}"
+                                            data-info="{{ json_encode($details) }}"
+                                            data-amount="{{ getAmount($fund->amount) }}"
+                                            data-username="{{ optional($fund->user)->username }}"
+                                            data-route="{{ route('admin.payment.action', $fund->id) }}"
+                                            data-status="{{ $fund->status }}" data-sender="{{ $fund->sender }}"
 
-                                    @if(($fund->status == "Pending"))
-                                    <i class="icon-base ti tabler-pencil me-1"></i>
-                                    @else
-                                    <i class="icon-base ti tabler-eye me-1"></i>
-                                    @endif
+                                            data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view'))?1:0 }}"
+                                            data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view'))?1:0 }}"
+                                            data-txn_id="{{ $fund->txn_id }}"
+                                            data-e_wallet_type="{{ $fund->e_wallet_type }}"
+                                            data-date_time="{{ $fund->date_time }}"
 
-                                </button>
+                                            data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
+
+                                            <i class="icon-base ti tabler-pencil me-1"></i>
+                                            {{-- @if ($fund->status == 'Pending')
+                                                <i class="icon-base ti tabler-pencil me-1"></i>
+                                            @else
+                                                <i class="icon-base ti tabler-eye me-1"></i>
+                                            @endif --}}
+
+                                        </button>
                                 {{-- @else --}}
                                 {{-- - --}}
                                 {{-- @endif --}}
@@ -310,63 +328,89 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTopTitle">@lang('Deposit Information')</h5>
+                    <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.deposit_information') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                    <?php
-                        date_default_timezone_set('Asia/Kuala_Lumpur');
+                <?php
+                date_default_timezone_set('Asia/Kuala_Lumpur');
 
-                    ?>
+                ?>
                 {{-- <form role="form" class="actionRoute" action=""> --}}
-                    <form role="form" method="POST" class="actionRoute" action="" enctype="multipart/form-data"
-                        onsubmit="submitForm(this)">
-                        @csrf
-                        @method('put')
-                        <div class="modal-body">
-                            <ul class="list-group withdraw-detail">
-                            </ul>
+                   {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
+                   <div id="form_div">
+                <form role="form" method="POST" class="actionRoute" action=""
+                    enctype="multipart/form-data" onsubmit="submitForm(this)">
+                    @csrf
+                    @method('put')
+                    <div class="modal-body">
+                        <ul class="list-group withdraw-detail">
+                        </ul>
 
-                            <div class="get-feedback">
-                                <label>Sender Acc. No.</label>
-                                <input class="form-control sender" name="sender" type="text" />
-                                <label>E-Wallet No.</label>
-                                <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
-                                    type="text" />
-                                <label>Txn No.</label>
-                                <input class="form-control" name="txn_id" type="text" />
-                                <label>E-Wallet Type</label>
-                                <select class="form-select" name="e_wallet_type">
-                                    <option value="Personal">Personal</option>
-                                    <option value="Merchant">Merchant</option>
-                                </select>
-                                <input type="hidden" name="status" value="Complete">
-                                <label>Payment Receiving DateTime.</label>
-                               <input class="form-control" id="e_wallet_phone_number" required
-                                    value="<?php echo date('Y-m-d\TH:i'); ?>"
-                                    name="date_time" type="datetime-local" />
-                                <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="status"
-                                    value="Complete">@lang('Approve')</button>
+                        <div class="get-feedback">
+                            <label>{{ __('transaction.sender_acc_no') }}</label>
+                            <input class="form-control sender" name="sender" type="text" />
+                            <label>{{ __('transaction.e_wallet_no') }}</label>
+                            <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
+                                type="text" />
+                            <label>{{ __('transaction.txn_no') }}</label>
+                            <input class="form-control txn_id" name="txn_id" type="text" />
+                            <label>{{ __('transaction.e_wallet_type') }}</label>
+                            <select class="form-select e_wallet_type" name="e_wallet_type">
+                                <option value="Personal">{{ __('transaction.personal') }}</option>
+                                <option value="Merchant">{{ __('transaction.merchant') }}</option>
+                            </select>
+                            
+                            <label>{{ __('transaction.payment_receiving_datetime') }}</label>
+                            <input class="form-control date_time" id="e_wallet_phone_number" required
+                                value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
+                            <div id="2fa_div">   
+                            <label>{{ __('transaction.2fa') }}</label>
+                            <input class="form-control" name="twofa" type="text" />
+                            </div> 
+
+                            <input type="hidden" name="status" id="setstatus">
+
+                            <div id="confirm_div">
+                            
+                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
+                                value="Confirm">{{ __('transaction.confirm') }}</button>
+                            </div>
+                               <div id="approve_div">
+                            
+                            <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
+                                value="Complete">{{ __('transaction.approve') }}</button>
+                               </div>
+
+                               <div id="update_div">
+                            
+                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
+                                value="Update">Edit</button>
                             </div>
 
-                            <input type="hidden" class="action_id" name="id">
                         </div>
-                    </form>
-                    <form role="form" method="POST" class="actionRoute" action="" enctype="multipart/form-data">
-                        @csrf
-                        @method('put')
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary"
-                                data-bs-dismiss="modal">@lang('Close')</button>
-                            @if(Request::routeIs('admin.payment.pending'))
-                            <!-- // -->
-                            @endif
-                            <input type="hidden" class="action_id" name="id">
-                            <input type="hidden" name="status" value="Reject">
-                            <button type="submit" class="btn btn-danger" name="status"
-                                value="Reject">@lang('Reject')</button>
 
-                        </div>
-                    </form>
+                        <input type="hidden" class="action_id" name="id">
+                    </div>
+                </form>
+                </div>
+                {{-- @endif --}}
+                <form role="form" method="POST" class="actionRoute" action=""
+                    enctype="multipart/form-data">
+                    @csrf
+                    @method('put')
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{{ __('transaction.close') }}</button>
+                        @if (Request::routeIs('admin.payment.pending'))
+                            <!-- // -->
+                        @endif
+                        <input type="hidden" class="action_id" name="id">
+                        <input type="hidden" name="status" value="Reject">
+                        <button type="submit" class="btn btn-danger" name="status"
+                            value="Reject">{{ __('transaction.reject') }}</button>
+
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -513,36 +557,100 @@
                     var sender = jQuery(this).data('sender');
                     var feedback = jQuery(this).data('feedback');
                     var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
+                    var t_status = jQuery(this).data('status');
+                    var u_confirm = jQuery(this).data('confirm');
+                    var t_approved = jQuery(this).data('approved');
+                    var txn_id = jQuery(this).data('txn_id');
+                    var date_time = jQuery(this).data('date_time');
+                    var e_wallet_type = jQuery(this).data('e_wallet_type');
+
+
+                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject' || t_status === 'Complete')) || (t_approved == 1 && (t_status === 'Confirm' || t_status === 'Complete')))) {
+                        // Show the form
+                        jQuery("#form_div").show();
+
+                        // Hide both action sections first
+                        jQuery("#confirm_div").hide();
+                        jQuery("#approve_div").hide();
+                        jQuery("#update_div").hide();
+
+                        
+
+                        // If (status is Pending or Reject) AND u_confirm == 1 → show confirm_div
+                        if ((t_status === 'Pending' || t_status === 'Reject') && u_confirm == 1) {
+                            jQuery("#confirm_div").show();
+                            jQuery("#setstatus").val('Confirm');
+                        }
+
+                        // If status is Confirm AND t_approved == 1 → show approve_div
+                        else if (t_status === 'Confirm' && t_approved == 1) {
+                            jQuery("#approve_div").show();
+                            jQuery("#setstatus").val('Complete');
+                        }
+
+                        else if (t_status === 'Complete' && (t_approved == 1 || u_confirm == 1)) {
+                            jQuery("#update_div").show();
+                            jQuery("#setstatus").val('Update');
+                        }
+
+                        // Populate form values (optional)
+                        jQuery(".action_id").val(id);
+                        jQuery(".sender").val(sender);
+                        jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
+                        // Add other fields as necessary...
+                    } else {
+                        // Hide form if condition doesn't meet
+                        jQuery("#form_div").hide();
+                    }
+
+                    var amount = jQuery(this).data('amount');
+
+                    if (amount >= 1000) {
+                        jQuery('#2fa_div').show();
+                    } else {
+                        jQuery('#2fa_div').hide();
+                    }
 
                     jQuery(".action_id").val(id);
                     jQuery(".sender").val(sender);
                     jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
                     jQuery(".actionRoute").attr('action', jQuery(this).data('route'));
 
+                    jQuery(".txn_id").val(txn_id);
+                    if (date_time) {
+                        jQuery(".date_time").val(date_time);
+                    }
+                    if (e_wallet_type) {
+                        jQuery('.e_wallet_type').val(e_wallet_type);
+                    }
+
                     var details = Object.entries(jQuery(this).data('info'));
                     var list = [];
                     details.map(function(item, i) {
                         if (item[1].type == 'file') {
-                            var singleInfo = `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
+                            var singleInfo =
+                                `<br><img src="${item[1].field_name}" alt="..." class="w-100">`;
                         } else {
-                            var singleInfo = `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
+                            var singleInfo =
+                                `<span class="font-weight-bold ml-3">${item[1].field_name}</span>`;
                         }
-                        list[i] = ` <li class="list-group-item"><span class="font-weight-bold"> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`;
+                        list[i] =
+                            ` <li class="list-group-item"><span class="font-weight-bold"> ${item[0].replace('_', " ")} </span> : ${singleInfo}</li>`;
                     });
                     jQuery('.withdraw-detail').html(list);
 
                     if (feedback == '') {
                         var res = `<div class="form-group"><br>
-                                        <label class="font-weight-bold">{{trans('Send You Feedback')}}</label>
-                                        <textarea name="feedback" class="form-control" row="3" required>{{old('feedback')}}</textarea>
+                                        <label class="font-weight-bold">{{ __('transaction.send_you_feedback') }}</label>
+                                        <textarea name="feedback" class="form-control" row="3" required>{{ old('feedback') }}</textarea>
                                 </div>`;
                     } else {
-                        var res = `<h5>{{trans('Feedback')}}</h5>
+                        var res = `<h5>{{ __('transaction.feedback') }}</h5>
                                     <p>${feedback}</p>`;
                     }
 
                     jQuery('.get-feedback').html(res);
-            });
+                });
 
         });
         jQuery(document).on("click", ".edit_buttonc", function (e) {

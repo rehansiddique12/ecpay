@@ -46,6 +46,7 @@ return [
     'Personal' => 'Personal',
     'Merchant' => 'Merchant',
     'Approve' => 'Approve',
+    'confirm' => 'Confirm',
     'Reject' => 'Reject',
     'Close' => 'Close',
     'deposit_information' => 'Deposit Information',
