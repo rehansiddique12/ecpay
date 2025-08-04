@@ -715,7 +715,13 @@ class ReportsController extends Controller
         }
 
         if ($filter_status) {
-            $payments->where('status', $filter_status);
+            if($filter_status == '2'){
+                $payment_status = 'Complete';
+            }elseif($filter_status == '3'){
+                $payment_status = 'Reject';
+            }
+            
+            $payments->where('status', $payment_status);
         } else {
             $payments->where('status', '!=', 'Pending');
         }
@@ -750,7 +756,12 @@ class ReportsController extends Controller
         }
 
         if ($filter_status) {
-            $payouts->where('status', $filter_status);
+            if($filter_status == '2'){
+                $payment_status = 'Complete';
+            }elseif($filter_status == '3'){
+                $payment_status = 'Reject';
+            }
+            $payouts->where('status', $payment_status);
         } else {
             $payouts->where('status', '!=', 'Pending');
         }
@@ -768,9 +779,9 @@ class ReportsController extends Controller
             $ewalletTransfers->where('e_wallet_account_no', $account_number);
         }
 
-        if ($filter_status) {
-            $ewalletTransfers->where('status', $filter_status);
-        }
+        // if ($filter_status) {
+        //     $ewalletTransfers->where('status', $filter_status);
+        // }
 
         if ($filter_type) {
             $ewalletTransfers->where('transaction_type', $filter_type);
