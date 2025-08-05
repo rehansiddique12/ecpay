@@ -26,6 +26,7 @@ class EWalletAccount extends Model
         'deposit_monthly_limit_percentage',
         'withdrawal_monthly_limit_percentage',
         'max_transaction_per_minute',
+        'max_transaction_per_minute_withdrawal',
         'max_amount_per_minute',
         'low_balance_amount',
         'apply_time_limit',
@@ -77,14 +78,4 @@ class EWalletAccount extends Model
     {
         return $this->hasMany(Payment::class, 'sender', 'account_no');
     }
-
-
-
-
 }
-
-
-
-
-
-

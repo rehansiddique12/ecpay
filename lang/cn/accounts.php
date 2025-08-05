@@ -112,6 +112,7 @@ return [
     'monthly_deposit_transaction_limit' => '每月存款交易次数限制',
     'monthly_withdrawal_transaction_limit' => '每月提现交易次数限制',
     'max_transaction_per_minute' => '每分钟最大交易次数',
+    'max_transaction_per_minute_withdrawal' => '每分钟最大提现交易次数',
     'max_amount_per_minute' => '每分钟最大金额',
     'time_configuration' => '时间配置',
     'check_all' => '全选',

@@ -1947,7 +1947,7 @@ if ($member_id) {
             $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
             return response()->view('partner.payout.blacklist_error', compact('error_message'));
         }
-            
+
     }
     // $today = now()->toDateString();
 
@@ -2033,7 +2033,7 @@ if ($member_id) {
 
         $blacklist->reason = '7 total missing txns in a day';
         $blacklist->status = 1;
-        
+
 
         $blacklist->save();
 
@@ -4717,7 +4717,7 @@ if ($member_id) {
                         $validTransactionLimits = !isset($all_accounts[$phone]) || (
                             $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                             $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
-                            $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                            $single_account->max_transaction_per_minute_withdrawal > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
                             $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
                         );
 

@@ -845,7 +845,7 @@ class PayoutRecordController extends Controller
                             $validTransactionLimits = !isset($all_accounts[$phone]) || (
                                 $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                                 $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
-                                $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                                $single_account->max_transaction_per_minute_withdrawal > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
                                 $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
                             );
 
@@ -1157,7 +1157,7 @@ class PayoutRecordController extends Controller
                             'updated_at' => $data->updated_at,
                             'sign' => $sign,
                             'remarks' => $request->feedback,
-                            'source' => '13Callback'.auth()->id(),
+                            'source' => '13Callback' . auth()->id(),
                         ];
 
                         if (!empty($data->member_id)) {
@@ -1414,7 +1414,7 @@ class PayoutRecordController extends Controller
                                 'updated_at' => $data->updated_at,
                                 'sign' => $sign,
                                 'remarks' => $request->feedback,
-                                'source' => '14Callback'.auth()->id(),
+                                'source' => '14Callback' . auth()->id(),
                             ];
 
                             if (!empty($data->member_id)) {
@@ -1647,117 +1647,118 @@ class PayoutRecordController extends Controller
         }
     }
 
-    public function payout_callback(Request $request){
-            $validator = Validator::make($request->all(), [
-                'api_key' => 'required|string',
-                'partner_transaction_id' => 'required|string',
-            ]);
+    public function payout_callback(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+            'partner_transaction_id' => 'required|string',
+        ]);
 
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 400);
-            }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
 
-            $admin_api = Api::where('api_key', $request->api_key)->where('status', 1)->where('website', env('APP_WEBSITE'))->first();
-            if (!$admin_api) {
-                return response()->json(['message' => 'Wrong API key'], 404);
-            }
+        $admin_api = Api::where('api_key', $request->api_key)->where('status', 1)->where('website', env('APP_WEBSITE'))->first();
+        if (!$admin_api) {
+            return response()->json(['message' => 'Wrong API key'], 404);
+        }
 
-            $payout = Payout::where('partner_transection_id', $request->partner_transaction_id)->first();
-            if ($payout) {
-                $api_key = Api::where('id', $payout->api_id)->first();
-                if ($api_key) {
-                    if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
+        $payout = Payout::where('partner_transection_id', $request->partner_transaction_id)->first();
+        if ($payout) {
+            $api_key = Api::where('id', $payout->api_id)->first();
+            if ($api_key) {
+                if (!empty($api_key->api_endpoint_withdrawal) && $api_key->website != env('APP_WEBSITE')) {
 
-                        $string_to_hash = json_encode(array(
-                            "amount" => strval($this->convertStringToNumber($payout->amount)),
-                            "api_key" => $api_key->api_key,
-                            "e_wallet_name" => $payout->e_wallet_name,
-                            "id" => strval($payout->id),
-                            'transaction_type' => 'Withdrawal',
-                            "user_account_no" => strval($payout->user_account_no),
-                        ));
-                        $secretKey = $api_key->secret_key;
-                        $hash = hash("sha256", $string_to_hash);
-                        $hmac = hash_hmac('sha256', $hash, $secretKey);
-                        $timestamp = time();
-                        $combined = $hmac . $timestamp;
-                        $sign = base64_encode($combined);
+                    $string_to_hash = json_encode(array(
+                        "amount" => strval($this->convertStringToNumber($payout->amount)),
+                        "api_key" => $api_key->api_key,
+                        "e_wallet_name" => $payout->e_wallet_name,
+                        "id" => strval($payout->id),
+                        'transaction_type' => 'Withdrawal',
+                        "user_account_no" => strval($payout->user_account_no),
+                    ));
+                    $secretKey = $api_key->secret_key;
+                    $hash = hash("sha256", $string_to_hash);
+                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+                    $timestamp = time();
+                    $combined = $hmac . $timestamp;
+                    $sign = base64_encode($combined);
 
-                        $datetime = Carbon::parse($payout->date_time);
+                    $datetime = Carbon::parse($payout->date_time);
 
-                        $api_date = $datetime->toDateString();   // '2025-05-19'
-                        $api_time = $datetime->toTimeString();   // '15:43:00'
+                    $api_date = $datetime->toDateString();   // '2025-05-19'
+                    $api_time = $datetime->toTimeString();   // '15:43:00'
 
-                        $array_data = [
-                            'id' => $payout->id,
-                            'partner_transection_id' => $payout->partner_transection_id,
-                            'transaction_type' => 'Withdrawal',
-                            'e_wallet_name' => $payout->e_wallet_name,
-                            'amount' => $this->convertStringToNumber($payout->amount),
-                            'user_account_no' => $payout->user_account_no,
-                            'txn_id' => $payout->txn_id,
-                            'e_wallet_phone_number' => $payout->e_wallet_phone_number,
-                            'e_wallet_type' => $payout->e_wallet_type,
-                            'charges' => $this->convertStringToNumber($payout->charge),
-                            'status' => $payout->status,
-                            'completion_date' => $api_date,
-                            'completion_time' => $api_time,
-                            'created_at' => $payout->created_at,
-                            'updated_at' => $payout->updated_at,
-                            'sign' => $sign,
-                            'source' => '15Callback',
-                            // 'remarks' => $payout_log->feedback,
+                    $array_data = [
+                        'id' => $payout->id,
+                        'partner_transection_id' => $payout->partner_transection_id,
+                        'transaction_type' => 'Withdrawal',
+                        'e_wallet_name' => $payout->e_wallet_name,
+                        'amount' => $this->convertStringToNumber($payout->amount),
+                        'user_account_no' => $payout->user_account_no,
+                        'txn_id' => $payout->txn_id,
+                        'e_wallet_phone_number' => $payout->e_wallet_phone_number,
+                        'e_wallet_type' => $payout->e_wallet_type,
+                        'charges' => $this->convertStringToNumber($payout->charge),
+                        'status' => $payout->status,
+                        'completion_date' => $api_date,
+                        'completion_time' => $api_time,
+                        'created_at' => $payout->created_at,
+                        'updated_at' => $payout->updated_at,
+                        'sign' => $sign,
+                        'source' => '15Callback',
+                        // 'remarks' => $payout_log->feedback,
 
+                    ];
+
+                    if (!empty($payout->member_id)) {
+                        $array_data['member_id'] = $payout->member_id;
+                    }
+
+
+                    $requestData = [
+                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                        'request_url' => $api_key->api_endpoint_withdrawal,
+                        'request_payload' => json_encode($array_data),
+                        'request_headers' => json_encode([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
+                        ]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                    $csrfToken = csrf_token();
+                    $responseData = [];
+                    try {
+
+                        $response = Http::withHeaders([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                        ])
+                            ->post($api_key->api_endpoint_withdrawal, $array_data);
+
+                        $responseData = [
+                            'response_code' => $response->status(),
+                            'response_payload' => $response->body(),
+                            'response_headers' => json_encode($response->headers()),
                         ];
 
-                        if (!empty($payout->member_id)) {
-                            $array_data['member_id'] = $payout->member_id;
-                        }
+                        DB::table('api_logs')->where('id', $logId)->update($responseData);
 
-
-                        $requestData = [
-                            'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
-                            'request_url' => $api_key->api_endpoint_withdrawal,
-                            'request_payload' => json_encode($array_data),
-                            'request_headers' => json_encode([
-                                'Content-Type' => 'application/json',
-                                'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
-                            ]),
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-
-                        $logId = DB::table('api_logs')->insertGetId($requestData);
-
-                        $csrfToken = csrf_token();
-                        $responseData = [];
-                        try {
-
-                            $response = Http::withHeaders([
-                                'Content-Type' => 'application/json',
-                                'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
-                            ])
-                                ->post($api_key->api_endpoint_withdrawal, $array_data);
-
-                            $responseData = [
-                                'response_code' => $response->status(),
-                                'response_payload' => $response->body(),
-                                'response_headers' => json_encode($response->headers()),
-                            ];
-
-                            DB::table('api_logs')->where('id', $logId)->update($responseData);
-
-                            return response()->json(['status' => 'success', 'message' => 'Callback successfully sent.', 'code' => $responseData['response_code'], 'response_payload' => $responseData['response_payload']], 201);
-                        } catch (\Exception $e) {
-                            return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
-                        }
+                        return response()->json(['status' => 'success', 'message' => 'Callback successfully sent.', 'code' => $responseData['response_code'], 'response_payload' => $responseData['response_payload']], 201);
+                    } catch (\Exception $e) {
+                        return response()->json(['status' => 'error', 'message' => $e->getMessage(), 'code' => '', 'response_payload' => ''], 200);
                     }
                 }
-            }else{
-                return response()->json(['message' => 'Withdrawal not found'], 404);
             }
+        } else {
+            return response()->json(['message' => 'Withdrawal not found'], 404);
+        }
 
-            return response()->json(['status' => 'error', 'message' => 'Unknown Error', 'code' => '', 'response_payload' => ''], 200);
+        return response()->json(['status' => 'error', 'message' => 'Unknown Error', 'code' => '', 'response_payload' => ''], 200);
     }
 
     public function runCallback(Request $request)
@@ -1807,7 +1808,7 @@ class PayoutRecordController extends Controller
                 'created_at' => $payout->created_at,
                 'updated_at' => $payout->updated_at,
                 'sign' => $sign,
-                'source' => '16Callback'.auth()->id(),
+                'source' => '16Callback' . auth()->id(),
                 // 'remarks' => $payout_log->feedback,
 
             ];
@@ -2686,6 +2687,7 @@ class PayoutRecordController extends Controller
             'monthly_limit_transaction' => 'required|integer|min:0',
             'monthly_limit_withdrawal_transaction' => 'required|integer|min:0',
             'max_transaction_per_minute' => 'required|integer|min:0',
+            'max_transaction_per_minute_withdrawal' => 'required|integer|min:0',
             'max_amount_per_minute' => 'required|integer|min:0',
 
             // Threshold alerts
@@ -2778,6 +2780,7 @@ class PayoutRecordController extends Controller
                     'deposit_monthly_limit_percentage' => $request->deposit_monthly_limit_percentage,
                     'withdrawal_monthly_limit_percentage' => $request->withdrawal_monthly_limit_percentage,
                     'max_transaction_per_minute' => $request->max_transaction_per_minute,
+                    'max_transaction_per_minute_withdrawal' => $request->max_transaction_per_minute_withdrawal,
                     'max_amount_per_minute' => $request->max_amount_per_minute,
                     'low_balance_amount' => $request->low_balance_amount,
                     'apply_time_limit' => $applyTimeLimit,
@@ -3761,7 +3764,9 @@ class PayoutRecordController extends Controller
             'monthly_limit_transaction' => 'required|integer|min:0',
             'monthly_limit_withdrawal_transaction' => 'required|integer|min:0',
             'max_transaction_per_minute' => 'required|integer|min:0',
+            'max_transaction_per_minute_withdrawal' => 'required|integer|min:0',
             'max_amount_per_minute' => 'required|integer|min:0',
+
 
             // Threshold alerts
             'deposit_daily_limit_percentage' => 'required|integer|min:1|max:100',
@@ -3865,6 +3870,7 @@ class PayoutRecordController extends Controller
                     'deposit_monthly_limit_percentage' => $request->deposit_monthly_limit_percentage,
                     'withdrawal_monthly_limit_percentage' => $request->withdrawal_monthly_limit_percentage,
                     'max_transaction_per_minute' => $request->max_transaction_per_minute,
+                    'max_transaction_per_minute_withdrawal' => $request->max_transaction_per_minute_withdrawal,
                     'max_amount_per_minute' => $request->max_amount_per_minute,
                     'low_balance_amount' => $request->low_balance_amount,
                     'apply_time_limit' => $applyTimeLimit,
@@ -4363,7 +4369,6 @@ class PayoutRecordController extends Controller
                     'module_id' => $from_e_wallet_accounts->id,
                     'description' => 'Deducted balance from sender. Old Balance: ' . $old_balance . ', New Balance: ' . $from_e_wallet_accounts->balance,
                 ]);
-
             }
         }
 
@@ -4639,7 +4644,7 @@ class PayoutRecordController extends Controller
                         $validTransactionLimits = !isset($all_accounts[$phone]) || (
                             $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                             $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
-                            $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                            $single_account->max_transaction_per_minute_withdrawal > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
                             $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
                         );
 
@@ -7051,51 +7056,51 @@ class PayoutRecordController extends Controller
     }
 
     public function getApiLog(Request $request)
-{
-    $url = $request->input('url');
+    {
+        $url = $request->input('url');
 
-    $log = \App\Models\ApiLog::where('request_url', $url)
-                ->orderBy('id', 'desc')
-                ->get();
+        $log = \App\Models\ApiLog::where('request_url', $url)
+            ->orderBy('id', 'desc')
+            ->get();
 
-    if ($log->isNotEmpty()) {
-        return response()->json([
-            'success' => true,
-            'data' => $log
-        ]);
-    }
+        if ($log->isNotEmpty()) {
+            return response()->json([
+                'success' => true,
+                'data' => $log
+            ]);
+        }
 
-    return response()->json([
-        'success' => false,
-        'message' => 'No log found.'
-    ]);
-}
-
-public function getUnifiedApiLog(Request $request)
-{
-    $type = $request->input('type'); // 'url' or 'payload'
-    $value = $request->input('id');
-
-    $query = \App\Models\ApiLog::query();
-
-    if ($type === 'url') {
-        $query->where('request_url', $value);
-    } elseif ($type === 'payload') {
-        $query->where('request_payload', 'like', '%' . $value . '%');
-    } else {
         return response()->json([
             'success' => false,
-            'message' => 'Invalid log type.'
+            'message' => 'No log found.'
         ]);
     }
 
-    $logs = $query->orderBy('id', 'desc')->get();
+    public function getUnifiedApiLog(Request $request)
+    {
+        $type = $request->input('type'); // 'url' or 'payload'
+        $value = $request->input('id');
 
-    return response()->json([
-        'success' => $logs->isNotEmpty(),
-        'data' => $logs
-    ]);
-}
+        $query = \App\Models\ApiLog::query();
+
+        if ($type === 'url') {
+            $query->where('request_url', $value);
+        } elseif ($type === 'payload') {
+            $query->where('request_payload', 'like', '%' . $value . '%');
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid log type.'
+            ]);
+        }
+
+        $logs = $query->orderBy('id', 'desc')->get();
+
+        return response()->json([
+            'success' => $logs->isNotEmpty(),
+            'data' => $logs
+        ]);
+    }
 
     public function functionlogs(Request $request)
     {
