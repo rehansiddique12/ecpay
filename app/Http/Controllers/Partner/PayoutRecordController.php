@@ -1942,16 +1942,19 @@ class PayoutRecordController extends Controller
 if ($member_id) {
     $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
     if ($blacklisted) {
-        \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
-        $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
-        return response()->view('partner.payout.blacklist_error', compact('error_message'));
+        if($blacklisted->status==1){
+            \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
+            $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+            return response()->view('partner.payout.blacklist_error', compact('error_message'));
+        }
+
     }
     // $today = now()->toDateString();
 
-    $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->where('api_id',$api_id)->first();
+    // $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->where('api_id',$api_id)->first();
 
-    if($blacklist_removal){
-        $startOfDay = $blacklist_removal->updated_at;
+    if($blacklisted){
+        $startOfDay = $blacklisted->updated_at;
     }else{
         $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
 
@@ -1983,16 +1986,27 @@ if ($member_id) {
             $consecutive_missing++;
             $total_missing++;
             if ($consecutive_missing >= $con_limit) {
-                \App\Models\Blacklist::firstOrCreate(
-                    ['member_id' => $member_id,
-                     'api_id' => $api_id
-                    ],
-                    ['reason' => '3 consecutive missing txns']
+                $blacklist = \App\Models\Blacklist::firstOrNew(
+                    ['member_id' => $member_id, 'api_id' => $api_id]
                 );
+
+                // Increment consecutive_count if already exists, otherwise initialize it
+                if ($blacklist->exists) {
+                    $blacklist->consecutive_count = ($blacklist->consecutive_count ?? 0) + 1;
+                } else {
+                    $blacklist->consecutive_count = 1;
+                }
+
+                $blacklist->reason = '3 consecutive missing txns';
+                $blacklist->status = 1;
+
+                $blacklist->save();
+
                 \Illuminate\Support\Facades\Log::info('Blacklisted for 3 consecutive missing txns', ['member_id' => $member_id]);
                 $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                 return response()->view('partner.payout.blacklist_error', compact('error_message'));
             }
+
         } else {
             $consecutive_missing = 0;
         }
@@ -2006,16 +2020,28 @@ if ($member_id) {
     // dd($total_limit);
 
     if ($total_missing >= $total_limit) {
-        \App\Models\Blacklist::firstOrCreate([
-            'member_id' => $member_id,
-            'api_id' => $api_id
-        ],[
-            'reason' => '7 total missing txns in a day',
-        ]);
+        $blacklist = \App\Models\Blacklist::firstOrNew(
+            ['member_id' => $member_id, 'api_id' => $api_id]
+        );
+
+        // Increment total_count if exists, otherwise set to 1
+        if ($blacklist->exists) {
+            $blacklist->total_count = ($blacklist->total_count ?? 0) + 1;
+        } else {
+            $blacklist->total_count = 1;
+        }
+
+        $blacklist->reason = '7 total missing txns in a day';
+        $blacklist->status = 1;
+
+
+        $blacklist->save();
+
         \Illuminate\Support\Facades\Log::info('Blacklisted for 7 total missing txns', ['member_id' => $member_id]);
         $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
         return response()->view('partner.payout.blacklist_error', compact('error_message'));
     }
+
 }
 
         LaravelLog::info('fn start processTransection4');
@@ -4691,7 +4717,7 @@ if ($member_id) {
                         $validTransactionLimits = !isset($all_accounts[$phone]) || (
                             $single_account->daily_limit_transaction > ($all_accounts[$phone]['today_count'] ?? 0) &&
                             $single_account->monthly_limit_transaction > ($all_accounts[$phone]['month_count'] ?? 0) &&
-                            $single_account->max_transaction_per_minute > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
+                            $single_account->max_transaction_per_minute_withdrawal > ($all_accounts[$phone]['one_min_count'] ?? 0) &&
                             $single_account->max_amount_per_minute > ($all_accounts[$phone]['one_min_sum'] ?? 0)
                         );
 

@@ -207,7 +207,7 @@ class ManageRolePermissionController extends Controller
 
         $log = "QR Code Reset of " . $api->name;
         $this->addLogs($log);
-        $TwoStepVerification = TwoStepVerification::where('user_id', $id)
+        $TwoStepVerification = TwoStepVerification::where('user_id', $id)->where('type', 'Partner')
             ->first();
         if ($TwoStepVerification) {
             $TwoStepVerification->g_auth_status = 'No';

@@ -694,7 +694,20 @@ $languages = [
                                     <div data-i18n="Blacklist">Blacklist</div>
                                 </a>
                             </li>
+                            
                             @endif
+
+                            @if (adminAccessRoute(config('role.ocrimages.access.view')))
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.track.ocrimages' ? 'active' : '' }}">
+                                <a href="{{ route('admin.track.ocrimages') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="OCR Images">OCR Images</div>
+                                </a>
+                            </li>
+                            @endif
+
+
                             {{-- <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
                                 <a href="{{ route('admin.dashboard') }}" class="menu-link">
@@ -1063,6 +1076,14 @@ $languages = [
                                 <div data-i18n="SMS Logs">{{ __('sidebar.sms_logs') }}</div>
                             </a>
                         </li>
+                        @endif
+                        @if (adminAccessRoute(config('role.bank_account_log_summary.access.view')))
+                            <li class="menu-item {{ Route::currentRouteName() == 'admin.reports.bank_account_log_summary' ? 'active' : '' }}">
+                                <a href="{{ route('admin.reports.bank_account_log_summary') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-report-analytics"></i>
+                                    <div data-i18n="Bank Account Log Summary">{{ __('sidebar.bank_account_log_summary') }}</div>
+                                </a>
+                            </li>
                         @endif
 
                         {{-- <li

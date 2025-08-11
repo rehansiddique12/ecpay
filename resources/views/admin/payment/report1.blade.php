@@ -323,25 +323,7 @@
 
 
                                         {{-- @if ($fund->gateway_id > 999) --}}
-                                        <button
-                                            class="edit_button  btn  {{ $fund->status == 'Pending' ? 'btn-primary' : 'btn-success' }} text-white  btn-sm "
-                                            data-bs-toggle="modal" data-bs-target="#myModal"
-                                            data-title="{{ $fund->status == 'Pending' ? trans('Edit') : trans('Details') }}"
-                                            data-id="{{ $fund->id }}" data-feedback="{{ $fund->feedback }}"
-                                            data-info=""
-                                            data-amount="{{ getAmount($fund->amount) }} {{ $basic->currency }}"
-                                            data-username="{{ optional($fund->user)->username }}"
-                                            data-route="{{ route('admin.payment.action', $fund->id) }}"
-                                            data-status="{{ $fund->status }}" data-sender="{{ $fund->sender }}"
-                                            data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
-
-                                            @if ($fund->status == 'Pending')
-                                                <i class="icon-base ti tabler-pencil me-1"></i>
-                                            @else
-                                                <i class="icon-base ti tabler-eye me-1"></i>
-                                            @endif
-
-                                        </button>
+                                        
                                         {{-- @else --}}
                                         {{-- - --}}
                                         {{-- @endif --}}

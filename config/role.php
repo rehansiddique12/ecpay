@@ -491,6 +491,27 @@ $arr = [
     ],
 
 
+    'bank_account_log_summary' => [
+        'label' => 'Bank Account Log Summary',
+        'access' => [
+            'view' => ['admin.reports.bank_account_log_summary'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'ocrimages' => [
+        'label' => 'OCR Image',
+        'access' => [
+            'view' => ['admin.track.ocrimages'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+
 
 
 
@@ -974,6 +995,26 @@ $arr = [
             'view' => [
                 'can_view_partner_account',
             ],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'depositconfirm' => [
+        'label' => 'Deposit Confirm',
+        'access' => [
+            'view' => ['admin.deposit.depositconfirm'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
+    'depositapporve' => [
+        'label' => 'Deposit Approve',
+        'access' => [
+            'view' => ['admin.deposit.depositapporve'],
             'add' => [],
             'edit' => [],
             'delete' => [],

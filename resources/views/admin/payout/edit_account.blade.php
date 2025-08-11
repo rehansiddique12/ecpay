@@ -210,7 +210,20 @@
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
+                        <div class="form-group col-md-6 col-6">
+                            <label>{{ __('accounts.max_transaction_per_minute_withdrawal') }}</label>
+                            <input type="number" class="form-control" name="max_transaction_per_minute_withdrawal"
+                                 value="{{ old('max_transaction_per_minute_withdrawal', $e_wallet_account->max_transaction_per_minute_withdrawal ?? '') }}" required>
+                            @error('max_transaction_per_minute_withdrawal')
+                            <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
 
+
+                    </div>
+
+                    {{-- New --}}
+                    <div class="row">
                         <div class="form-group col-md-6 col-6">
                             <label>{{ __('accounts.max_amount_per_minute') }}</label>
                             <input type="number" class="form-control" name="max_amount_per_minute"
@@ -221,8 +234,7 @@
                             @enderror
                         </div>
                     </div>
-
-
+                    {{-- New --}}
                     <hr style="border-top: 1px solid white;">
                     <div class="row">
                         <div class="form-group col-md-12 col-12">

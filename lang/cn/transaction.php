@@ -58,6 +58,7 @@ return [
     'personal' => '个人',
     'merchant' => '商户',
     'approve' => '批准',
+    'confirm' => '确认',
     'reject' => '拒绝',
     'close' => '关闭',
     'change_e_wallet_no' => '更改电子钱包号',
