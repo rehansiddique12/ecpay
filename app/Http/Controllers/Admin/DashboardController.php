@@ -42,7 +42,7 @@ class DashboardController extends Controller
     {
         $partner = $this->user;
         $status = "No";
-
+ 
         $secret = $this->googleAuthenticatorService->createSecret();
 
         $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
@@ -62,7 +62,7 @@ class DashboardController extends Controller
                 $qrCodeUrl = "";
             }
         } else {
-            
+
             // $qrCodeUrl = $this->googleAuthenticatorService->getQRCodeGoogleUrl(env('APP_WEBSITE'), $secret, $partner->username);
                 $urlencoded = ('otpauth://totp/' . env('APP_WEBSITE') . '?secret=' . $secret . '');
                 if (isset($partner->username)) {
@@ -97,7 +97,7 @@ class DashboardController extends Controller
             $TwoStepVerification->g_auth_status = 'Yes';
             $TwoStepVerification->save();
             $log = "Enable Two Step Verification";
-            
+
 
             return back()->with('success', 'Enabled Successfully.');
         }

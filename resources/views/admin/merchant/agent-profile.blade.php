@@ -29,24 +29,26 @@
                                             <div
                                                 class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4">
                                                 <div class="user-profile-info">
-                                                    <h4 class="mb-2 mt-lg-6">{{$data->name}} </h4>
+                                                    <h4 class="mb-2 mt-lg-6">{{ $data->name }} </h4>
 
                                                 </div>
                                                 @php
-                                                $depositColor = 'text-danger';
+                                                    $depositColor = 'text-danger';
                                                 @endphp
 
                                                 @if ($total_deposit > 60)
-                                                @php $depositColor = 'text-success'; @endphp
-                                                @elseif ($total_deposit >= 40 && $total_deposit <= 60) @php
-                                                    $depositColor='text-warning' ; @endphp @endif <span>
+                                                    @php $depositColor = 'text-success'; @endphp
+                                                @elseif ($total_deposit >= 40 && $total_deposit <= 60)
+                                                    @php
+                                                    $depositColor = 'text-warning'; @endphp
+                                                @endif <span>
                                                     <h4 class="mb-n3">Gateway performance</h4>
                                                     <br>
                                                     Deposit: <span
                                                         class="{{ $depositColor }}">{{ $total_deposit }}%</span>
                                                     <br>
                                                     Withdrawal: <span class="text-danger">##%</span>
-                                                    </span>
+                                                </span>
 
 
                                             </div>
@@ -68,7 +70,7 @@
                                                 Profile</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('admin.agent.logs',$data->id)}}"><i
+                                            <a class="nav-link" href="{{ route('admin.agent.logs', $data->id) }}"><i
                                                     class="icon-base ti tabler-list icon-sm me-1_5"></i> Logs</a>
                                         </li>
 
@@ -136,7 +138,7 @@
 
                                         {{-- Bottom Right Copy Button --}}
                                         <a class="btn btn-sm position-absolute end-0 bottom-0 m-2 edit_button"
-                                        data-copy="Username: {{ $data['username'] }}&#10;Password: {{ $data['password_string'] }}&#10;Api Key: {{ $data['api_key'] }}&#10;Secret Key: {{ $data['secret_key'] }}"
+                                            data-copy="Username: {{ $data['username'] }}&#10;Password: {{ $data['password_string'] }}&#10;Api Key: {{ $data['api_key'] }}&#10;Secret Key: {{ $data['secret_key'] }}"
                                             onclick="copyToClipboard(this)">
                                             <i class="ti tabler-copy-check me-1 fs-4"></i>
                                         </a>
@@ -146,97 +148,105 @@
                                 <!--/ About User -->
                                 <!-- Profile Overview -->
 
-                                @if(isset($data->category_id))
-                                <div class="card mb-6">
-                                    <div class="card-body position-relative">
-                                        <p
-                                            class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
-                                            Parent Commissions
-                                            <!-- Plus Button -->
-                                            <a href="{{ route('admin.partner.commision.form', ['id' => $id]) }}"
-                                                class="btn btn-sm btn-primary" title="Add New">
-                                                <i class="fa fa-plus"></i>
-                                            </a>
+                                @if (isset($data->category_id))
+                                    <div class="card mb-6">
+                                        <div class="card-body position-relative">
+                                            <p
+                                                class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
+                                                Parent Commissions
+                                                <!-- Plus Button -->
+                                                <a href="{{ route('admin.partner.commision.form', ['id' => $id]) }}"
+                                                    class="btn btn-sm btn-primary" title="Add New">
+                                                    <i class="fa fa-plus"></i>
+                                                </a>
 
-                                        </p>
+                                            </p>
 
-                                                @forelse ($PartnerCommission as $index => $pcom)
-                                                    <div class="row">
+                                            @forelse ($PartnerCommission as $index => $pcom)
+                                                <div class="row">
 
-                                                        <div class="col-3">{{ $pcom->partner->name ?? '-' }}</div>
-                                                        <div class="col-3 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
-                                                        <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
-                                                        <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%</div>
-                                                        <div class="col-2 d-flex align-items-center gap-2">
-                                                            <!-- Edit Button -->
-                                                            <a href="{{ route('admin.partner.commisionedit.form', ['id' => $pcom->id]) }}">
-                                                                <i class="fa fa-edit text-warning"></i>
-                                                            </a>
-
-                                                            <!-- Delete Form -->
-                                                            <form action="{{ route('admin.partner.commission.delete', $pcom->id) }}"
-                                                                method="POST"
-                                                                class="delete-form"
-                                                                data-id="{{ $pcom->id }}">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-icon edit_button p-0 m-0">
-                                                                    <i class="fa fa-trash text-danger"></i>
-                                                                </button>
-                                                            </form>
-                                                        </div>
-
+                                                    <div class="col-3">{{ $pcom->partner->name ?? '-' }}</div>
+                                                    <div class="col-3 text-danger">{{ $pcom->from_amount }} -
+                                                        {{ $pcom->to_amount }}</div>
+                                                    <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%
                                                     </div>
-                                                    @empty
-                                                    <div class="row">
-                                                        <div class="col-12">No partner commissions found.</div>
+                                                    <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%
                                                     </div>
-                                                @endforelse
+                                                    <div class="col-2 d-flex align-items-center gap-2">
+                                                        <!-- Edit Button -->
+                                                        <a
+                                                            href="{{ route('admin.partner.commisionedit.form', ['id' => $pcom->id]) }}">
+                                                            <i class="fa fa-edit text-warning"></i>
+                                                        </a>
+
+                                                        <!-- Delete Form -->
+                                                        <form
+                                                            action="{{ route('admin.partner.commission.delete', $pcom->id) }}"
+                                                            method="POST" class="delete-form"
+                                                            data-id="{{ $pcom->id }}">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                class="btn btn-sm btn-icon edit_button p-0 m-0">
+                                                                <i class="fa fa-trash text-danger"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+
+                                                </div>
+                                            @empty
+                                                <div class="row">
+                                                    <div class="col-12">No partner commissions found.</div>
+                                                </div>
+                                            @endforelse
                                             <div class="col-4">
 
                                             </div>
-
-
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="card mb-6">
-                                    <div class="card-body position-relative">
-                                        <p
-                                            class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
-                                            Merchant Commissions
-                                            <!-- Plus Button -->
+                                    <div class="card mb-6">
+                                        <div class="card-body position-relative">
+                                            <p
+                                                class="card-text text-uppercase text-body-secondary small d-flex justify-content-between align-items-center">
+                                                Merchant Commissions
+                                                <!-- Plus Button -->
 
 
-                                        </p>
+                                            </p>
 
-                                                @forelse ($MCommissions as $index => $pcom)
-                                                @if($index>0)
-                                                <hr>
+                                            @forelse ($MCommissions as $index => $pcom)
+                                                @if ($index > 0)
+                                                    <hr>
                                                 @endif
-                                                    <div class="row">
+                                                <div class="row">
 
-                                                        <div class="col-3">{{ implode(', ', json_decode($pcom->type, true)) }}</div>
-                                                        <div class="col-3">{{ implode(', ', json_decode($pcom->gateway_id, true)) }}</div>
-                                                        <div class="col-2 text-danger">{{ $pcom->from_amount }} - {{ $pcom->to_amount }}</div>
-                                                        <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%</div>
-                                                        <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%</div>
-
-
+                                                    <div class="col-3">
+                                                        {{ implode(', ', json_decode($pcom->type, true)) }}</div>
+                                                    <div class="col-3">
+                                                        {{ implode(', ', json_decode($pcom->gateway_id, true)) }}</div>
+                                                    <div class="col-2 text-danger">{{ $pcom->from_amount }} -
+                                                        {{ $pcom->to_amount }}</div>
+                                                    <div class="col-2 text-success">{{ $pcom->deposit_percentage }}%
+                                                    </div>
+                                                    <div class="col-2 text-warning">{{ $pcom->withdrawal_percentage }}%
                                                     </div>
 
-                                                    @empty
-                                                    <div class="row">
-                                                        <div class="col-12">No commissions found.</div>
-                                                    </div>
-                                                @endforelse
+
+                                                </div>
+
+                                            @empty
+                                                <div class="row">
+                                                    <div class="col-12">No commissions found.</div>
+                                                </div>
+                                            @endforelse
                                             <div class="col-4">
 
                                             </div>
 
 
+                                        </div>
                                     </div>
-                                </div>
                                 @endif
 
                                 <!--/ Profile Overview -->
@@ -257,20 +267,21 @@
                                             </h5>
                                             <div class="row">
                                                 @php
-                                                $fields = [
-                                                 'username',
-                                                //  'api_key',
-                                                // 'min_deposit',
-                                                // 'min_withdrawal',  'secret_key', 'redirect_url', 'timezone'
-                                                ];
+                                                    $fields = [
+                                                        'username',
+                                                        //  'api_key',
+                                                        // 'min_deposit',
+                                                        // 'min_withdrawal',  'secret_key', 'redirect_url', 'timezone'
+                                                    ];
                                                 @endphp
 
                                                 @foreach ($fields as $field)
-                                                <div class="col-md-6 mb-3">
-                                                    <label>{{ ucwords(str_replace('_', ' ', $field)) }}</label>
-                                                    <input type="text" name="{{ $field }}"
-                                                        value="{{ old($field, $data->$field) }}" class="form-control">
-                                                </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>{{ ucwords(str_replace('_', ' ', $field)) }}</label>
+                                                        <input type="text" name="{{ $field }}"
+                                                            value="{{ old($field, $data->$field) }}"
+                                                            class="form-control">
+                                                    </div>
                                                 @endforeach
 
 
@@ -287,6 +298,35 @@
                                             </div>
                                         </form>
 
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>id</th>
+                                                    <th>Name</th>
+                                                    <th>Login</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse ($staff as $index => $user)
+                                                    <tr>
+                                                        <td>{{ $index + 1 }}</td>
+                                                        <td>{{ $user->name }}</td>
+                                                        <td> <a class="btn btn-sm edit_button"
+                                                                href="{{ route('admin.apis.login', $user->id) }}"
+                                                                target="_blank" data-bs-toggle="tooltip"
+                                                                data-bs-placement="right"
+                                                                title="{{ __('merchant.partner') }}">
+                                                                <i class="icon-base ti tabler-login me-1"></i>
+                                                            </a></td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="4" class="text-center">No staff found.</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+
 
                                     </div>
 
@@ -297,10 +337,6 @@
                         <!--/ User Profile Content -->
                     </div>
                     <!--/ Content -->
-
-
-
-
                 </div>
                 <!--/ Content wrapper -->
             </div>
@@ -310,47 +346,47 @@
     </div>
 
     @push('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const deleteForms = document.querySelectorAll('.delete-form');
-        deleteForms.forEach(form => {
-            form.addEventListener('submit', function (e) {
-                e.preventDefault(); // stop form
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const deleteForms = document.querySelectorAll('.delete-form');
+                deleteForms.forEach(form => {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault(); // stop form
 
-                const itemId = form.getAttribute('data-id');
+                        const itemId = form.getAttribute('data-id');
 
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: `This will permanently delete item ID: ${itemId}`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, delete it!',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit(); // proceed to submit
-                    }
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: `This will permanently delete item ID: ${itemId}`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Yes, delete it!',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit(); // proceed to submit
+                            }
+                        });
+                    });
                 });
             });
-        });
-        });
 
 
-    function copyToClipboard(element) {
-        const text = element.getAttribute('data-copy');
-        navigator.clipboard.writeText(text).then(function() {
-            alert('Copied to clipboard!');
-        }, function(err) {
-            alert('Failed to copy text: ', err);
-        });
+            function copyToClipboard(element) {
+                const text = element.getAttribute('data-copy');
+                navigator.clipboard.writeText(text).then(function() {
+                    alert('Copied to clipboard!');
+                }, function(err) {
+                    alert('Failed to copy text: ', err);
+                });
 
 
 
-    }
-    </script>
+            }
+        </script>
     @endpush
 
 </x-admin-layout>

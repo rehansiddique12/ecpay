@@ -233,7 +233,6 @@
                                                     data-bs-placement="right" title="{{ __('merchant.partner') }}">
                                                     <i class="icon-base ti tabler-login me-1"></i>
                                                 </a>
-
                                                 <br>
                                             @endif
                                             @if (adminAccessRoute(config('role.partners.access.delete')))

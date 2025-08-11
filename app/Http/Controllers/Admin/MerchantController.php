@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MerchantReportExport;
+use App\Models\User;
+use App\Models\Admin;
+use Illuminate\Support\Facades\Auth;
 
 class MerchantController extends Controller
 {
@@ -56,6 +59,14 @@ class MerchantController extends Controller
             ? (float) number_format((($totalAutoProcess / $totalFundCount) * 100), 2, '.', '')
             : 0;
 
+        // Fetch staff related to this merchant (assuming api_id is the link)
+        $staff = Admin::all();
+    $partner_staff = Api::where('type', 'Staff')
+    ->where('api_key', $data->api_key)
+    ->get();
+    // dd($partner_staff);
+
+
         return view('admin.merchant.merchant-profile', compact(
             'data',
             'pageTitle',
@@ -64,9 +75,23 @@ class MerchantController extends Controller
             'categories',
             'id',
             'PartnerCommission',
-            'MCommissions'
+            'MCommissions',
+            'staff',
+            'partner_staff',
         ));
     }
+
+//     public function showStaff()
+// {
+//     $admin = Auth::user();
+
+//     $staff = Api::where('type', 'staff')
+//                  ->where('api_key', $admin->api_key)
+//                  ->get();
+
+//                  $pageTitle = "Merchants Profile";
+//     return view('admin.merchant.merchant-profile', compact('staff', 'pageTitle'));
+// }
     public function agent_profile($id)
     {
         $pageTitle = "Merchants Profile";
@@ -104,6 +129,12 @@ class MerchantController extends Controller
         $total_deposit = $totalFundCount > 0
             ? (float) number_format((($totalAutoProcess / $totalFundCount) * 100), 2, '.', '')
             : 0;
+
+            $admin = Auth::user(); // logged-in admin
+
+    $staff = User::where('type', 'staff')
+                 ->where('api_key', $admin->api_key)
+                 ->get();
 
         return view('admin.merchant.agent-profile', compact(
             'data',

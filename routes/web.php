@@ -133,7 +133,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/twoFA', [AdminDashboardController::class, 'twoFA'])->name('twoFA');
         Route::post('/twoFA', [AdminDashboardController::class, 'updateTwoFA'])->name('twoFA.update');
-        
+
         // Route::resource('roles',RoleController::class);
         // Route::resource('permissions', PermissionController::class);
         // Route::post('roles/{role}/permissions', [PermissionController::class, 'assignPermissionsToRole'])->name('roles.permissions.assign');
@@ -441,6 +441,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('roles/list', [UsersController::class, 'getRoles'])->name('roles.list');
 
         Route::get('payment/log', [PaymentLogController::class, 'index'])->name('payment.log');
+        Route::get('/admin/payment/export', [PaymentLogController::class, 'export_payment_logs'])->name('payment_log_export');
         Route::get('payment/log2', [PaymentLogController::class, 'log2'])->name('payment.log2');
         Route::get('payment/search', [PaymentLogController::class, 'search'])->name('payment.search');
         Route::put('payment/update_e_wallet', [PaymentLogController::class, 'update_e_wallet'])->name('payment.update_e_wallet');
@@ -511,6 +512,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('agent-profile/{id}', [MerchantController::class, 'agent_profile'])->name('agent.profile');
         Route::get('merchant-profile/{id}', [MerchantController::class, 'profile'])->name('merchant.profile');
+        // Route::get('merchant-profile/{id}', [MerchantController::class, 'showStaff'])->name('staff1');
         Route::get('agent-logs/{id}', [MerchantController::class, 'agent_logs'])->name('agent.logs');
         Route::get('merchant-logs/{id}', [MerchantController::class, 'mechantlogs'])->name('merchant.logs');
         Route::post('/activity-logs', [MerchantController::class, 'fetchActivityLogs'])->name('fetchActivityLogs');
