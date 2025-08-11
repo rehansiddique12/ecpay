@@ -226,7 +226,7 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div>
+                    </div>z
 
 
                     <hr style="border-top: 1px solid white;">

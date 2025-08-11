@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
+use App\Models\Deposit;
+use App\Models\Domain;
 use App\Models\Api;
 use App\Models\Log;
 use App\Models\Txn;
@@ -34,6 +36,7 @@ use App\Models\DailyPartnerSummaryLog;
 use Stevebauman\Purify\Facades\Purify;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use App\Exports\PaymentLogExport;
 
 use App\Services\GoogleAuthenticatorService;
 use Illuminate\Support\Facades\Log as LaravelLog;
@@ -54,6 +57,60 @@ class PaymentLogController extends Controller
         $domains = Api::where('type', 'Admin')->get();
         $funds = Payment::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway','txn_record')->paginate(config('basic.paginate'));
         return view('admin.payment.logs', compact('funds', 'pageTitle', 'domains'));
+    }
+
+    public function export_payment_logs(Request $request)
+    {
+        // Validate the request parameters
+        $request->validate([
+            'name' => 'nullable|string',
+            'partner_transection_id' => 'nullable|string',
+            'status' => 'nullable|string',
+            'date_time' => 'nullable|date',
+            'website' => 'nullable|integer',
+        ]);
+
+        // Retrieve the search parameters
+        $name = $request->input('name');
+        $partnerTransactionId = $request->input('partner_transection_id');
+        $status = $request->input('status');
+        $dateTime = $request->input('date_time');
+        $website = $request->input('website');
+
+        // Build the query based on the search parameters
+        $query = Payment::query()->with(['user', 'gateway', 'api', 'txn_record']);
+
+        if ($name) {
+            $query->whereHas('user', function ($q) use ($name) {
+                $q->where('username', 'like', "%{$name}%")
+                ->orWhere('email', 'like', "%{$name}%");
+            });
+        }
+        if ($partnerTransactionId) {
+            $query->where('partner_transection_id', $partnerTransactionId);
+        }
+        if ($status && $status !== 'All') {
+            $query->where('status', $status);
+        }
+        if ($dateTime) {
+            $query->whereDate('created_at', Carbon::parse($dateTime));
+        }
+        if ($website) {
+            $query->where('api_id', $website);
+        }
+
+        // Get the results
+        $transactions = $query->orderBy('id', 'DESC')->get();
+
+        // Export the data
+        return Excel::download(new PaymentLogExport($transactions), 'payment_transactions_export.csv');
+    }
+
+    protected function exportData($funds)
+    {
+        $fileName = 'payment_logs_' . date('Y_m_d_H_i_s') . '.xlsx';
+
+        return Excel::download(new PaymentLogExport($funds), $fileName);
     }
 
 
@@ -922,7 +979,7 @@ class PaymentLogController extends Controller
                                 DB::rollBack();
                                 throw new \Exception("2FA Error!");
                             }
-                                
+
                         }else{
                             DB::rollBack();
                             throw new \Exception("Enter 2FA OTP Code");
@@ -1834,7 +1891,7 @@ class PaymentLogController extends Controller
                 'api_key' => 'required|string',
                 'partner_transaction_id' => 'required|string',
             ]);
-            
+
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
@@ -3406,7 +3463,7 @@ class PaymentLogController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        
+
 
         $api_key = Api::where('api_key', $request->api_key)->where('status', 1)->first();
         if ($api_key && $api_key->website == env('APP_WEBSITE')) {
@@ -3415,7 +3472,7 @@ class PaymentLogController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Wrong API key'], 404);
         }
-        
+
         DB::beginTransaction();
         try {
             $data = Payment::where('partner_transection_id', $request->partner_transaction_id)->lockForUpdate()->with('user', 'gateway')->first();
@@ -3423,7 +3480,7 @@ class PaymentLogController extends Controller
                 DB::rollBack();
                 return response()->json(['error' => 'Wrong Partner Txn No.'], 500);
             }
-            
+
             $commit = 0;
 
             if ($request->status == 'Complete') {
@@ -3512,7 +3569,7 @@ class PaymentLogController extends Controller
                     //     'module_id'   => $data->id,
                     //     'description' => "Payment ID {$data->id} was successfully completed by user " . auth()->user()->name . ". Partner Transaction ID: " . ($data->partner_transection_id ?? 'N/A'),
                     // ]);
-                    
+
                 }
                 $payment=$data;
 
@@ -3667,7 +3724,7 @@ class PaymentLogController extends Controller
                     $e_wallet_log_save->source = 'updatePayment API';
                     $e_wallet_log_save->save();
                 }
-                
+
                 $data->save();
 
                 $PartnerCommissions = PartnerCommission::where('transaction_id', $data->id)->where('type', 1)->where('status', 0)->get();
@@ -3792,7 +3849,7 @@ class PaymentLogController extends Controller
                         // Ignore the error and do nothing
                     }
                 }
-                
+
                 return response()->json(['message' => 'Payment Approved Successfully.']);
             } elseif ($request->status == 'Reject') {
 
@@ -4006,7 +4063,7 @@ class PaymentLogController extends Controller
                     }
                 }
 
-                
+
                 return response()->json(['message' => 'Payment Rejected Successfully']);
 
             }

@@ -21,6 +21,12 @@ yarn-error.log
 /assets/
 /storage/framework/views/*
 /storage/logs/*
+/app/Http/Controllers/Admin/MerchantController.php
+/app/Http/Middleware/AdminAuthorizeMiddleware.php
+/app/Http/Controllers/Admin/DashboardController.php
+app/Http/Controllers/Admin/LoginController.php
 
 
 ecpay.sql
+app/Http/Middleware/AdminAuthorizeMiddleware.php
+app/Http/Controllers/Admin/DashboardController.php

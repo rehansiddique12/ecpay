@@ -1,14 +1,14 @@
 <x-admin-layout :title="$pageTitle">
     @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
-        <style>
-            #currency-wrapper {
-                white-space: nowrap;
-            }
-        </style>
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
+    <style>
+        #currency-wrapper {
+            white-space: nowrap;
+        }
+    </style>
     @endpush
     @php
-        $currentRoute = Route::currentRouteName();
+    $currentRoute = Route::currentRouteName();
     @endphp
 
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
@@ -17,64 +17,64 @@
                 <div class="row ">
                     <div class="col-md-5 gap-6 d-flex justify-content-between">
                         @if (adminAccessRoute(config('role.account_management.access.view')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
-                                        <div data-i18n="Accounts List">{{ __('accounts.accounts_list') }}</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.ewallet.accounts.details' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts.details') }}" class="menu-link">
+                                    <div data-i18n="Accounts List">{{ __('accounts.accounts_list') }}</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if (adminAccessRoute(config('role.account_management.access.add')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.add_account') }}" class="menu-link">
-                                        <div data-i18n="Add Accounts">{{ __('accounts.add_account') }}</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.add_account' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.add_account') }}" class="menu-link">
+                                    <div data-i18n="Add Accounts">{{ __('accounts.add_account') }}</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if (adminAccessRoute(config('role.e_wallet_accounts.access.edit')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.on_off_account') }}" class="menu-link">
-                                        <div data-i18n="Add Accounts">{{ __('accounts.on_off_account') }}</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.on_off_account' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.on_off_account') }}" class="menu-link">
+                                    <div data-i18n="Add Accounts">{{ __('accounts.on_off_account') }}</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if (adminAccessRoute(config('role.account_group.access.view')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.account_group') }}" class="menu-link">
-                                        <div data-i18n="Account Group">{{ __('accounts.account_group') }}</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.account_group' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.account_group') }}" class="menu-link">
+                                    <div data-i18n="Account Group">{{ __('accounts.account_group') }}</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if (adminAccessRoute(config('role.gateways.access.view')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
-                                        <div data-i18n="Gateway">{{ __('accounts.gateway') }}</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.gateway' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.gateway') }}" class="menu-link">
+                                    <div data-i18n="Gateway">{{ __('accounts.gateway') }}</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
                         @if (adminAccessRoute(config('role.categories.access.view')))
-                            <div>
-                                <button
-                                    class="btn {{ $currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : '' }}">
-                                    <a href="{{ route('admin.account_management.add_category') }}" class="menu-link">
-                                        <div data-i18n="Add Category">{{ __('accounts.categories') }}</div>
-                                    </a>
-                                </button>
-                            </div>
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.account_management.add_category' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.account_management.add_category') }}" class="menu-link">
+                                    <div data-i18n="Add Category">{{ __('accounts.categories') }}</div>
+                                </a>
+                            </button>
+                        </div>
                         @endif
 
 
@@ -99,11 +99,11 @@
                             <select class="form-select" name="category_id" id="category-select">
                                 <option value="">{{ __('accounts.select_category') }}</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id ?? '' }}">{{ $category->name ?? '' }}</option>
+                                <option value="{{ $category->id ?? '' }}">{{ $category->name ?? '' }}</option>
                                 @endforeach
                             </select>
                             @error('category_id')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -120,7 +120,7 @@
                             </div>
 
                             @error('account_id')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -135,7 +135,7 @@
                                 value="{{ old('daily_limit') }}">
 
                             @error('daily_limit')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                         <div class="form-group col-md-6 col-6">
@@ -144,7 +144,7 @@
                                 value="{{ old('daily_limit_withdrawal') }}">
 
                             @error('daily_limit_withdrawal')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -156,7 +156,7 @@
                                 value="{{ old('monthly_limit') }}">
 
                             @error('monthly_limit')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -166,7 +166,7 @@
                                 value="{{ old('monthly_limit_withdrawal') }}">
 
                             @error('monthly_limit_withdrawal')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -176,7 +176,7 @@
                             <input type="number" class="form-control" name="daily_limit_transaction"
                                 value="{{ old('daily_limit_transaction') }}" required>
                             @error('daily_limit_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -185,7 +185,7 @@
                             <input type="number" class="form-control" name="daily_limit_withdrawal_transaction"
                                 value="{{ old('daily_limit_withdrawal_transaction') }}" required>
                             @error('daily_limit_withdrawal_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -196,7 +196,7 @@
                             <input type="number" class="form-control" name="monthly_limit_transaction"
                                 value="{{ old('monthly_limit_transaction') }}" required>
                             @error('monthly_limit_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -205,7 +205,7 @@
                             <input type="number" class="form-control" name="monthly_limit_withdrawal_transaction"
                                 value="{{ old('monthly_limit_withdrawal_transaction') }}" required>
                             @error('monthly_limit_withdrawal_transaction')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -216,21 +216,35 @@
                             <input type="number" class="form-control" name="max_transaction_per_minute"
                                 value="{{ old('max_transaction_per_minute') }}" required>
                             @error('max_transaction_per_minute')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
 
+                        <div class="form-group col-md-6 col-6">
+                            <label>{{ __('accounts.max_transaction_per_minute_withdrawal') }}</label>
+                            <input type="number" class="form-control" name="max_transaction_per_minute_withdrawal"
+                                value="{{ old('max_transaction_per_minute_withdrawal') }}" required>
+                            @error('max_transaction_per_minute_withdrawal')
+                            <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+
+                    </div>
+
+                    {{--New Add --}}
+                    <div class="row">
                         <div class="form-group col-md-6 col-6">
                             <label>{{ __('accounts.max_amount_per_minute') }}</label>
                             <input type="number" class="form-control" name="max_amount_per_minute"
                                 value="{{ old('max_amount_per_minute') }}" required>
                             @error('max_amount_per_minute')
-                                <span class="text-danger">{{ $message }}</span>
+                            <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
 
-
+                    {{-- New Add --}}
                     <hr style="border-top: 1px solid white;">
                     <div class="row">
                         <div class="form-group col-md-12 col-12">
@@ -238,140 +252,130 @@
                                 <h6 class="mb-0">{{ __('accounts.time_configuration') }}</h6>
                                 <div>
                                     <input type="checkbox" id="check_all_slots" class="form-check-input">
-                                    <label for="check_all_slots"
-                                        class="form-check-label text-white">{{ __('accounts.check_all') }}</label>
+                                    <label for="check_all_slots" class="form-check-label text-white">{{
+                                        __('accounts.check_all') }}</label>
                                 </div>
                             </div>
 
                             @php
-                                $start = strtotime('00:00');
-                                $end = strtotime('24:00');
-                                $i = 0;
-                                $slots = [];
+                            $start = strtotime('00:00');
+                            $end = strtotime('24:00');
+                            $i = 0;
+                            $slots = [];
 
-                                for ($time = $start; $time < $end; $time += 1800) {
-                                    $from = date('H:i', $time);
-                                    $to = date('H:i', $time + 1800);
-                                    $label = "$from - $to";
-                                    $slots[] = $label;
-                                }
-                            $chunks = array_chunk($slots, ceil(count($slots) / 6)); // 6 columns @endphp <div class="row">
+                            for ($time = $start; $time < $end; $time +=1800) { $from=date('H:i', $time); $to=date('H:i',
+                                $time + 1800); $label="$from - $to" ; $slots[]=$label; } $chunks=array_chunk($slots,
+                                ceil(count($slots) / 6)); // 6 columns @endphp <div class="row">
                                 @foreach ($chunks as $column)
-                                    <div class="col-md-2 col-sm-4 col-6">
-                                        @foreach ($column as $slot)
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="time_slots[]"
-                                                    value="{{ $slot }}" id="slot_{{ $i }}">
-                                                <label class="form-check-label text-white"
-                                                    for="slot_{{ $i }}">
-                                                    {{ $slot }}
-                                                </label>
-                                            </div>
-                                            @php $i++; @endphp
-                                        @endforeach
+                                <div class="col-md-2 col-sm-4 col-6">
+                                    @foreach ($column as $slot)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="time_slots[]"
+                                            value="{{ $slot }}" id="slot_{{ $i }}">
+                                        <label class="form-check-label text-white" for="slot_{{ $i }}">
+                                            {{ $slot }}
+                                        </label>
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr style="border-top: 1px solid white;">
-                    <div class="row">
-                        <h6>{{ __('accounts.threshold_alert') }}</h6>
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.daily_deposit_limit') }}</label>
-                            <input type="number" class="form-control" min="1" max="100"
-                                name="deposit_daily_limit_percentage"
-                                value="{{ old('deposit_daily_limit_percentage', 100) }}" required>
-
-                            @error('deposit_daily_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.daily_withdrawal_limit') }}</label>
-                            <input type="number" class="form-control" min="1" max="100"
-                                name="withdrawal_daily_limit_percentage"
-                                value="{{ old('withdrawal_daily_limit_percentage', 100) }}" required>
-
-                            @error('withdrawal_daily_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.monthly_deposit_limit') }}</label>
-                            <input type="number" class="form-control" name="deposit_monthly_limit_percentage"
-                                min="1" max="100"
-                                value="{{ old('deposit_monthly_limit_percentage', 100) }}" required>
-
-                            @error('deposit_monthly_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.monthly_withdrawal_limit') }}</label>
-                            <input type="number" class="form-control" min="1" max="100"
-                                name="withdrawal_monthly_limit_percentage"
-                                value="{{ old('withdrawal_monthly_limit_percentage', 100) }}" required>
-
-                            @error('withdrawal_monthly_limit_percentage')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group col-md-3 col-3">
-                            <label>{{ __('accounts.low_balance_alert') }}</label>
-                            <input type="number" class="form-control" name="low_balance_amount" min="1"
-                                value="{{ old('low_balance_amount', 100) }}" Waalaikum salam>
-
-                            @error('low_balance_amount')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-
-
-                    <hr>
-                    <div class="col-12 mb-3">
-                        <h6>{{ __('accounts.add_account') }}</h6>
-                    </div>
-                    <div id="inputGroupContainer">
-
-                    </div>
-
-
-
-                    <!-- More Button -->
-                    <div class="mt-3">
-                        <button type="button" id="addMoreBtn"
-                            class="btn btn-primary">{{ __('accounts.more') }}</button>
-                    </div>
-
-                    <div class="row mt-3 justify-content-between">
-                        <div class="col-lg-3 col-md-6">
-                            <div class="form-group">
-                                <label>{{ __('accounts.status') }}</label>
-                                <div class="form-check form-switch d-flex align-items-center">
-                                    <span id="disableText" class="me-12 text-primary">{{ __('accounts.no') }}</span>
-                                    <input class="form-check-input" type="checkbox" id="statusSwitch" name="status"
-                                        value="1">
-                                    <span id="enableText" class="ms-2 text-secondary">{{ __('accounts.yes') }}</span>
+                                    @php $i++; @endphp
+                                    @endforeach
                                 </div>
-                            </div>
-                            <button type="submit"
-                                class="btn  btn-primary btn-block mt-3">{{ __('accounts.save_changes') }}</button>
-
+                                @endforeach
                         </div>
                     </div>
-
-
-                </form>
             </div>
 
+            <hr style="border-top: 1px solid white;">
+            <div class="row">
+                <h6>{{ __('accounts.threshold_alert') }}</h6>
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.daily_deposit_limit') }}</label>
+                    <input type="number" class="form-control" min="1" max="100" name="deposit_daily_limit_percentage"
+                        value="{{ old('deposit_daily_limit_percentage', 100) }}" required>
+
+                    @error('deposit_daily_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.daily_withdrawal_limit') }}</label>
+                    <input type="number" class="form-control" min="1" max="100" name="withdrawal_daily_limit_percentage"
+                        value="{{ old('withdrawal_daily_limit_percentage', 100) }}" required>
+
+                    @error('withdrawal_daily_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.monthly_deposit_limit') }}</label>
+                    <input type="number" class="form-control" name="deposit_monthly_limit_percentage" min="1" max="100"
+                        value="{{ old('deposit_monthly_limit_percentage', 100) }}" required>
+
+                    @error('deposit_monthly_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.monthly_withdrawal_limit') }}</label>
+                    <input type="number" class="form-control" min="1" max="100"
+                        name="withdrawal_monthly_limit_percentage"
+                        value="{{ old('withdrawal_monthly_limit_percentage', 100) }}" required>
+
+                    @error('withdrawal_monthly_limit_percentage')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-3 col-3">
+                    <label>{{ __('accounts.low_balance_alert') }}</label>
+                    <input type="number" class="form-control" name="low_balance_amount" min="1"
+                        value="{{ old('low_balance_amount', 100) }}" Waalaikum salam>
+
+                    @error('low_balance_amount')
+                    <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+
+
+            <hr>
+            <div class="col-12 mb-3">
+                <h6>{{ __('accounts.add_account') }}</h6>
+            </div>
+            <div id="inputGroupContainer">
+
+            </div>
+
+
+
+            <!-- More Button -->
+            <div class="mt-3">
+                <button type="button" id="addMoreBtn" class="btn btn-primary">{{ __('accounts.more') }}</button>
+            </div>
+
+            <div class="row mt-3 justify-content-between">
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-group">
+                        <label>{{ __('accounts.status') }}</label>
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <span id="disableText" class="me-12 text-primary">{{ __('accounts.no') }}</span>
+                            <input class="form-check-input" type="checkbox" id="statusSwitch" name="status" value="1">
+                            <span id="enableText" class="ms-2 text-secondary">{{ __('accounts.yes') }}</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn  btn-primary btn-block mt-3">{{ __('accounts.save_changes')
+                        }}</button>
+
+                </div>
+            </div>
+
+
+            </form>
         </div>
+
+    </div>
     </div>
 
     <!-- Hidden template for cloning -->
@@ -394,10 +398,10 @@
 
             <div class="form-group col-md-2 col-12">
                 <label>{{ __('accounts.account_group') }}</label>
-                <select class="form-select select2" name="account_group[__INDEX__][]" multiple
-                    data-placeholder={{ __('accounts.select_groups') }} data-allow-clear="true">
+                <select class="form-select select2" name="account_group[__INDEX__][]" multiple data-placeholder={{
+                    __('accounts.select_groups') }} data-allow-clear="true">
                     @foreach ($groups as $group)
-                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                    <option value="{{ $group->id }}">{{ $group->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -424,12 +428,12 @@
 
             <div class="form-group col-md-2 col-12">
                 <label>{{ __('accounts.location') }}</label>
-                <select name="location[]" class="form-select select2"
-                    data-placeholder={{ __('accounts.select_location') }} data-allow-clear="true">
+                <select name="location[]" class="form-select select2" data-placeholder={{ __('accounts.select_location')
+                    }} data-allow-clear="true">
                     <option></option>
                     <option value="">{{ __('accounts.select_location') }}</option>
                     @foreach ($users_locations as $location)
-                        <option value="{{ $location->id }}">{{ $location->location }}</option>
+                    <option value="{{ $location->id }}">{{ $location->location }}</option>
                     @endforeach
                 </select>
             </div>
@@ -446,9 +450,9 @@
     </div>
 
     @push('js')
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-        <script>
-            $(document).ready(function() {
+    <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script>
+        $(document).ready(function() {
                 let rowIndex = 0;
 
                 // Add first row on page load
@@ -689,6 +693,6 @@
                 const checkboxes = document.querySelectorAll('input[name="time_slots[]"]');
                 checkboxes.forEach(cb => cb.checked = isChecked);
             });
-        </script>
+    </script>
     @endpush
 </x-admin-layout>
