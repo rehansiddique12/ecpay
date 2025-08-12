@@ -6,13 +6,14 @@ use Carbon\Carbon;
 use App\Models\Api;
 use App\Models\Log;
 use App\Models\Payout;
+use App\Models\SmsLog;
 use App\Models\Payment;
 use App\Models\Commission;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+
+
 use App\Models\TelegramGroup;
-
-
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use App\Models\ParentCommission;
@@ -20,10 +21,10 @@ use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
 use App\Models\DailyPartnerSummary;
 use App\Http\Controllers\Controller;
+use App\Models\TelegramImageSession;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use App\Models\DailyPartnerSummaryLog;
-use App\Models\TelegramImageSession;
 use Illuminate\Support\Facades\Log as LaravelLog;
 
 class TelegramGroupController extends Controller
@@ -342,6 +343,25 @@ class TelegramGroupController extends Controller
                                         return response()->json(['status' => 'success'], 200);
                                     }
                                 }
+
+                                if(!empty($txnId)){
+                                    $check_payment_txn = Payment::where('txn_id', $txnId)->first();
+                                    if ($check_payment_txn) {
+
+                                        $message = "By This Txn no, Payment Already Completed.";
+
+                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                            'chat_id' => $TG_message['chat']['id'],
+                                            'text' => $message,
+                                            'parse_mode' => 'Markdown',
+                                            'reply_to_message_id' => $TG_message['message_id']
+                                        ]);
+
+                                        $image_processed=1;
+                                        return response()->json(['status' => 'success'], 200);
+                                    }
+                                }
+                                    
 
                                 $message = "Please Enter the partner transaction number for this image";
                                 $sendMessage([
@@ -1226,7 +1246,7 @@ class TelegramGroupController extends Controller
                                                     'amount' => $this->convertStringToNumber($payment->amount),
                                                     'user_account_no' => $payment->sender,
                                                     'txn_id' => $payment->txn_id,
-                                                    'e_wallet_phone_number' => $payment->e_wallet_phone_number,
+                                                    'e_wallet_phone_number' => $payment_e_wallet_phone_number,
                                                     'e_wallet_type' => $payment->e_wallet_type,
                                                     'charges' => $this->convertStringToNumber($payment->charge),
                                                     'status' => $payment->status,
@@ -1617,32 +1637,82 @@ class TelegramGroupController extends Controller
                                 }else{
                                 
                                     LaravelLog::info("if if: ".$txnId);
+
+
+                                    $check_payment_txn = Payment::where('txn_id', $txnId)->first();
+                                    if ($check_payment_txn) {
+
+                                        $message = "By This Txn no, Payment Already Completed.";
+
+                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                            'chat_id' => $TG_message['chat']['id'],
+                                            'text' => $message,
+                                            'parse_mode' => 'Markdown',
+                                            'reply_to_message_id' => $TG_message['message_id']
+                                        ]);
+
+                                        $image_processed=1;
+                                        return response()->json(['status' => 'success'], 200);
+                                    }
+
                             
                                     DB::beginTransaction();
                                     $payment = PendingPayment::where('txn_id', $txnId)->where('status', 0)->lockForUpdate()->first();
+
+                                    if(!$payment){
+                                        $payment = SmsLog::where('txn', $txnId)->where('matched', '!=', 1)->lockForUpdate()->first();
+                                        if($payment){
+                                            $payment_e_wallet_phone_number = $payment->e_wallet_no;
+                                            $payment_sender = $payment->customer_acc_no;
+                                            $payment_txn_id = $payment->txn;
+                                            $payment_date_time = $payment->created_at;
+                                            $payment_transaction_type = "Payment IN";
+                                            $payment_ip_address = "";
+                                            $payment_e_wallet_type = "";
+                                            $payment_mac_address = "111.111.11.111";
+                                            $payment_fee = $payment->charge;
+                                            $payment_commission = $payment->comm;
+                                            $payment_e_wallet_charges = 0;
+                                        }
+                                            
+
+                                        $payment_query = 2;
+                                    }else{
+                                        $payment_e_wallet_phone_number = $payment->e_wallet_phone_number;
+                                        $payment_sender = $payment->sender;
+                                        $payment_txn_id = $payment->txn_id;
+                                        $payment_date_time = $payment->date_time;
+                                        $payment_transaction_type = $payment->transaction_type;
+                                        $payment_ip_address = $payment->ip_address;
+                                        $payment_e_wallet_type = $payment->e_wallet_type;
+                                        $payment_mac_address = $payment->mac_address;
+                                        $payment_fee = $payment->fee;
+                                        $payment_commission = $payment->commission;
+                                        $payment_e_wallet_charges = $payment->e_wallet_charges;
+
+                                        $payment_query = 1;
+                                    }
+
+
+
+                                    
+
+
+
+                                        
+
+
+
+
+
                                     if($payment){
                                         LaravelLog::info("if if: ");
                                         if($payment){
 
-                                            $check_payment_txn = Payment::where('txn_id', $payment->txn_id)->first();
-                                            if ($check_payment_txn) {
-                                                DB::rollBack();
-
-                                                $message = "By This Txn no, Payment Already Completed.";
-
-                                                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                                    'chat_id' => $TG_message['chat']['id'],
-                                                    'text' => $message,
-                                                    'parse_mode' => 'Markdown',
-                                                    'reply_to_message_id' => $TG_message['message_id']
-                                                ]);
-
-                                                $image_processed=1;
-                                                return response()->json(['status' => 'success'], 200);
-                                            }
+                                            
 
                                             if(isset($phone_number)) {
-                                                $another_phone_number = $payment->e_wallet_phone_number;
+                                                $another_phone_number = $payment_e_wallet_phone_number;
                                                 $cleaned = str_replace(['-', ' '], '', $phone_number);
                                                 $matched = "no";
                                                 if (ctype_digit($cleaned)) {
@@ -1737,7 +1807,7 @@ class TelegramGroupController extends Controller
                                                 // Check if amounts don't match
                                                 if(abs($extractedAmount - $expectedAmount) > 0.01) {
                                                     // Save the new TRX ID to the deposit/order
-                                                    $deposit->txn_id = $txnId; // Save the new TRX ID
+                                                    // $deposit->txn_id = $txnId;
                                                     $deposit->save();
 
                                                     $message = "⚠️ *Amount Mismatch* ⚠️\n\n";
@@ -1795,11 +1865,11 @@ class TelegramGroupController extends Controller
 
                                             $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                                             if ($commissions) {
-                                                $charge = $commissions->deposit_percentage * $deposit->amount / 100;
+                                                $charge = $commissions->deposit_percentage * $amount / 100;
                                             } else {
                                                 $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                                                 if ($commissions) {
-                                                    $charge = $commissions->deposit_percentage * $deposit->amount / 100;
+                                                    $charge = $commissions->deposit_percentage * $amount / 100;
                                                 }
                                             }
                     
@@ -1814,7 +1884,7 @@ class TelegramGroupController extends Controller
                                             if($amount>0){
                                                 $final_amo = getAmount($amount - $charge);
                                                     
-                                                if($amount==$payment->amount){
+                                                if($amount==$deposit->amount){
                                                     $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
                                                     
                                                     $message_to_show = "*Transection Completed*";
@@ -1822,12 +1892,16 @@ class TelegramGroupController extends Controller
                                                 else
                                                 {   
                                                         $message_to_show = "*Transection of Differant Amount Completed*";
-                                                        $partner_transection_id = "createdByAdmin_" . time();
+                                                        $partner_transection_id = "createdByAdmin_" . $deposit->partner_transection_id;
                                                         
                                                         $order = new Payment();
                                                         $order->user_id = 0;
                                                         $order->gateway_id = $deposit->gateway_id;
-                                                        $order->amount = $payment->amount;
+
+                                                        $order->e_wallet_name = $account->e_wallet_name;
+                                                        $order->e_wallet_type = $account->type;
+
+                                                        $order->amount = $amount;
                                                         $order->partner_transection_id = $partner_transection_id;
                                                         $order->member_id = $deposit->member_id;
                                                         $order->charge = $charge;
@@ -1851,11 +1925,11 @@ class TelegramGroupController extends Controller
 
                                                             $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                                                             if ($parent_commission) {
-                                                                $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
+                                                                $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                                                             } else {
                                                                 $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
                                                                 if ($parent_commission) {
-                                                                    $parent_charge = $parent_commission->deposit_percentage * $deposit->amount / 100;
+                                                                    $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                                                                 }
                                                             }
 
@@ -1864,12 +1938,12 @@ class TelegramGroupController extends Controller
                                                                 $PartnerCommission->api_id = $partner_api_key->id;
                                                                 $PartnerCommission->from_id = $parentId;
                                                                 $PartnerCommission->type = 1;
-                                                                $PartnerCommission->amount = $deposit->amount;
+                                                                $PartnerCommission->amount = $amount;
                                                                 $PartnerCommission->charges = $charge;
-                                                                $PartnerCommission->total_amount = $deposit->amount - $charge;
+                                                                $PartnerCommission->total_amount = $amount - $charge;
                                                                 $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
                                                                 $profit_p = $parent_commission->deposit_percentage;
-                                                                $profit = $profit_p * $deposit->amount / 100;
+                                                                $profit = $profit_p * $amount / 100;
                                                                 $PartnerCommission->profit = $profit;
                                                                 $PartnerCommission->profit_p = $profit_p;
                                                                 $PartnerCommission->transaction_id = $deposit->id;
@@ -1892,7 +1966,7 @@ class TelegramGroupController extends Controller
 
 
                                                 if($order){
-                                                    $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                    $order = Payment::where('id', $order->id)->with(['gateway', 'user'])->lockForUpdate()->first();
                                                     $commit = 0;
                                                     
                                                     
@@ -1900,7 +1974,7 @@ class TelegramGroupController extends Controller
                                                     
                                                     if ($source != env('APP_WEBSITE')) {
                                                         $api_balance_row = Api::where('id', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
-                                                        $net_amount = $payment->amount - $charge;
+                                                        $net_amount = $amount - $charge;
                                                         
                                                         if ($api_balance_row) {
                                                             $api_balance_row->balance += $net_amount;
@@ -1920,7 +1994,7 @@ class TelegramGroupController extends Controller
                                                             // Continue processing but log the error
                                                         }
                                                     } else {
-                                                        $net_amount = $payment->amount - $charge; // Define net_amount for other cases too
+                                                        $net_amount = $amount - $charge; // Define net_amount for other cases too
                                                     }
                                 
                                                     $order->status = 'Complete';
@@ -1929,25 +2003,45 @@ class TelegramGroupController extends Controller
                                                     $order->charge = $charge;
 
                                                     if(empty($order->sender) || $order->sender==0){
-                                                        $order->sender = $payment->sender;
+                                                        $order->sender = $payment_sender;
                                                     }
                                                     
-                                                    $order->txn_id = $payment->txn_id;
-                                                    $order->date_time = $payment->date_time;
-                                                    $order->transaction_type = $payment->transaction_type;
-                                                    $order->ip_address = $payment->ip_address;
-                                                    $order->e_wallet_type = $payment->e_wallet_type;
-                                                    $order->mac_address = $payment->mac_address;
-                                                    $order->fee = $payment->fee;
-                                                    $order->commission = $payment->commission;
-                                                    $order->e_wallet_charges = $payment->e_wallet_charges;
+                                                    $order->txn_id = $payment_txn_id;
+                                                    $order->date_time = $payment_date_time;
+                                                    $order->transaction_type = $payment_transaction_type;
+                                                    $order->ip_address = $payment_ip_address;
+                                                    $order->mac_address = $payment_mac_address;
+                                                    $order->fee = $payment_fee;
+                                                    $order->commission = $payment_commission;
+                                                    $order->e_wallet_charges = $payment_e_wallet_charges;
                                                     $order->payment_received_at = $payment->created_at;
+
+                                                    // if(empty($order->sender) || $order->sender==0){
+                                                    //     $order->sender = $payment->sender;
+                                                    // }
+                                                    
+                                                    // $order->txn_id = $payment->txn_id;
+                                                    // $order->date_time = $payment->date_time;
+                                                    // $order->transaction_type = $payment->transaction_type;
+                                                    // $order->ip_address = $payment->ip_address;
+                                                    // $order->e_wallet_type = $payment->e_wallet_type;
+                                                    // $order->mac_address = $payment->mac_address;
+                                                    // $order->fee = $payment->fee;
+                                                    // $order->commission = $payment->commission;
+                                                    // $order->e_wallet_charges = $payment->e_wallet_charges;
+                                                    // $order->payment_received_at = $payment->created_at;
 
 
 
                                                     $order->save();
 
-                                                    $payment->status = 1;
+                                                    if($payment_query == 1){
+                                                        $payment->status = 1;
+                                                    }else{
+                                                        $payment->matched = 1;
+                                                    }
+
+                                                    
                                                     $payment->save();
                                                     $payment=null;
                                                     // $payment->delete();
@@ -2114,8 +2208,8 @@ class TelegramGroupController extends Controller
                                                 $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
                                                 $message_support = "";
                                                 $message_support .= "?? ".$message_to_show." ??\n\n";
-                                                $message_support .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                $message_support .= "*Order Id:* `".$deposit->id."`\n";
+                                                $message_support .= "*Merchant Order:* `".$order->partner_transection_id."`\n";
+                                                $message_support .= "*Order Id:* `".$order->id."`\n";
                                                 $message_support .= "*Transaction ID:* `".$txnId."`\n";
                                                 $message_support .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                 $message_support .= "*Remark:* Transaction processed and callback sent.\n";
@@ -2130,8 +2224,8 @@ class TelegramGroupController extends Controller
                                                 
                                                     $message = "";
                                                     $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
-                                                    $message .= "*Merchant Order:* `".$deposit->partner_transection_id."`\n";
-                                                    $message .= "*Order Id:* `".$deposit->id."`\n";
+                                                    $message .= "*Merchant Order:* `".$order->partner_transection_id."`\n";
+                                                    $message .= "*Order Id:* `".$order->id."`\n";
                                                     $message .= "*Transaction ID:* `".$txnId."`\n";
                                                     $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                     $message .= "*Status:* `Complete`\n";
@@ -2535,6 +2629,10 @@ class TelegramGroupController extends Controller
                 $amount = "";
             }
         }
+
+        if (strpos($ewallet, '*') === false && strlen($ewallet) < 10) {
+            $ewallet = "";
+        }
         
         
 
@@ -2563,6 +2661,14 @@ class TelegramGroupController extends Controller
                 $txn = $match[0];
             }
 
+        }
+
+
+        if (!empty($amount) && strpos((string)$amount, '6') === 0) {
+            $pattern = '/\b' . preg_quote($amount, '/') . '\s*\+/';
+            if (preg_match($pattern, $text)) {
+                $amount = "";
+            }
         }
 
 
