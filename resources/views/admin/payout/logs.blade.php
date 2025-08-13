@@ -49,13 +49,20 @@
                     </div>
                 </div>
 
+
                 <div class="col-md-4 d-flex gap-5">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i>
-                            {{ __('transaction.search') }}</button>
-                        <button type="submit" name="export" value="export" class="btn btn-success"><i
-                                class="icon-base ti tabler-download me-1"></i>
-                            {{ __('transaction.export_data') }}</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="icon-base ti tabler-search me-1"></i>
+                            {{ __('transaction.search') }}
+                        </button>
+
+                        <a href="{{ route('admin.payout-log-export', request()->query()) }}" class="btn btn-success">
+                            <i class="icon-base ti tabler-download me-1"></i>
+                            {{ __('transaction.export_data') }}
+                        </a>
+
+
                     </div>
                 </div>
 
@@ -416,6 +423,7 @@
     </div>
 
     @push('js')
+        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
         <script>
             document.addEventListener("DOMContentLoaded", function() {
                 // Get references to all buttons
@@ -475,17 +483,12 @@
                     handleButtonClick(5);
                 });
             });
-        </script>
 
-
-        <script>
             $(document).ready(function() {
                 var intervalId; // To store the interval id
                 var orderid = document.getElementById("orderid");
                 var wid = document.getElementById("wid");
                 var acc_no = document.getElementById("acc_no");
-
-
 
                 $('#runWithdrawalTest').click(function() {
                     if (acc_no.value === "") {
@@ -494,10 +497,7 @@
                     }
 
                 });
-
                 // Function to perform the AJAX call
-
-
                 $('.modal-header .close').click(function() {
                     $('#runWithdrawalTest').prop('disabled', false);
                     $('#spinner2').hide();
@@ -511,9 +511,7 @@
 
                 jQuery('#spinner2').show();
                 jQuery('#runWithdrawalTest').prop('disabled', true);
-
                 var formData = new FormData(jQuery('#addBalanceForm')[0]); // Get form data
-
                 jQuery.ajax({
                     type: "POST",
                     url: "{{ route('admin.run.callback') }}",
@@ -551,11 +549,8 @@
                     }
                 });
             }
-        </script>
 
-        <script>
             $(document).ready(function() {
-
                 function fetchNotification() {
                     var letest_record = document.getElementById("letest_record").value;
                     $.ajax({
@@ -582,24 +577,18 @@
                         }
                     });
                 }
-
                 // Run fetchNotification every 5 seconds (5000 milliseconds)
                 setInterval(fetchNotification, 5000);
             });
-        </script>
-        <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
-        <script>
+
             $(document).ready(function() {
                 $('form').on('submit', function() {
                     const $form = $(this);
                     const $submitButton = $form.find('button[type="submit"]');
-
                     // Disable button and change text (optional)
                     $submitButton.prop('disabled', true);
                     $submitButton.html(
                         "<i class='fa fa-spinner fa-spin me-1'></i> {{ __('transaction.processing') }}");
-
-
                     // Allow form to proceed
                     return true;
                 });
@@ -608,12 +597,10 @@
                     allowClear: true,
                     selectOnClose: true,
                 });
-
                 // Prevent dropdown from opening on clear
                 $select.on('select2:unselecting', function(e) {
                     $(this).data('unselecting', true);
                 });
-
                 $select.on('select2:opening', function(e) {
                     if ($(this).data('unselecting')) {
                         $(this).removeData('unselecting');
@@ -621,9 +608,7 @@
                     }
                 });
             });
-        </script>
 
-        <script>
             $(document).on("click", '.edit_button', function(e) {
                 var id = $(this).data('id');
                 $(".action_id").val(id);
@@ -631,9 +616,7 @@
 
                 var list = [];
                 var ImgPath = "{{ asset(config('location.withdrawLog.path')) }}";
-
                 console.log($(this).data('status'));
-
                 if ($(this).data('status') == '2') {
                     $('#submit1').hide();
                     $('#submit2').show();
@@ -680,6 +663,60 @@
 
                 $(".action_id").val(id);
                 $(".e_wallet_phone_number").val(e_wallet_phone_number);
+            });
+            document.addEventListener("DOMContentLoaded", function() {
+                const exportButton = document.querySelector('a[href*="admin.payout-log-export"]');
+
+                if (exportButton) {
+                    exportButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const originalText = exportButton.innerHTML;
+                        exportButton.innerHTML =
+                            '<i class="icon-base ti tabler-download me-1"></i> Exporting...';
+                        exportButton.classList.add('disabled');
+
+                        const form = document.querySelector('form[action*="admin.payout-log.search"]');
+                        const formData = new FormData(form);
+                        const queryParams = new URLSearchParams(formData).toString();
+                        const exportUrl = exportButton.getAttribute('href');
+
+                        fetch(`${exportUrl}?${queryParams}`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                        .getAttribute('content'),
+                                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.blob();
+                            })
+                            .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download =
+                                    `payout_logs_${new Date().toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(/[,]/g, '').replace(/ /g, '_')}.xlsx`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+
+                                exportButton.innerHTML = originalText;
+                                exportButton.classList.remove('disabled');
+                            })
+                            .catch(error => {
+                                console.error('Error exporting Excel:', error);
+                                alert('Failed to export data. Please try again.');
+                                exportButton.innerHTML = originalText;
+                                exportButton.classList.remove('disabled');
+                            });
+                    });
+                }
             });
         </script>
     @endpush

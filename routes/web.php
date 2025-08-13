@@ -459,7 +459,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::put('payment/action/{id}', [PaymentLogController::class, 'action'])->name('payment.action');
 
         Route::get('/payout-log', [PayoutRecordController::class, 'index'])->name('payout-log');
-        Route::get('/payout-log/search', [PayoutRecordController::class, 'search'])->name('payout-log.search');
+       Route::get('payout-log/search', [PayoutRecordController::class, 'search'])->name('payout-log.search');
+
+        Route::get('payout-log/export', [PayoutRecordController::class, 'exportToExcel'])->name('payout-log-export');
         Route::put('payout/update_e_wallet', [PayoutRecordController::class, 'update_e_wallet'])->name('payout.update_e_wallet');
         Route::post('/accounts/run/callback', [PayoutRecordController::class, 'runCallback'])->name('run.callback');
         Route::get('/payout-report/get-notification', [PayoutRecordController::class, 'getNotification'])->name('payout-report.getnotification');
