@@ -355,12 +355,9 @@
                 <?php
                 date_default_timezone_set('Asia/Kuala_Lumpur');
                 ?>
-<<<<<<< HEAD
-=======
                 {{-- <form role="form" class="actionRoute" action=""> --}}
                    {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
                    <div id="form_div">
->>>>>>> 2ee44e37a7af6c05c1294ff2125f19fe51930e99
                 <form role="form" method="POST" class="actionRoute" action=""
                     enctype="multipart/form-data" onsubmit="submitForm(this)">
                     @csrf
@@ -382,38 +379,30 @@
                                 <option value="Personal">{{ __('transaction.personal') }}</option>
                                 <option value="Merchant">{{ __('transaction.merchant') }}</option>
                             </select>
-                            
+
                             <label>{{ __('transaction.payment_receiving_datetime') }}</label>
                             <input class="form-control date_time" id="e_wallet_phone_number" required
                                 value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
-<<<<<<< HEAD
                             <div id="2fa_div">
-                                <label>{{ __('transaction.2fa') }}</label>
-                                <input class="form-control" name="twofa" type="text" />
-                            </div>
-                            <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="status"
-=======
-                            <div id="2fa_div">   
                             <label>{{ __('transaction.2fa') }}</label>
                             <input class="form-control" name="twofa" type="text" />
-                            </div> 
+                            </div>
 
                             <input type="hidden" name="status" id="setstatus">
 
                             <div id="confirm_div">
-                            
+
                             <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
                                 value="Confirm">{{ __('transaction.confirm') }}</button>
                             </div>
                                <div id="approve_div">
-                            
+
                             <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
->>>>>>> 2ee44e37a7af6c05c1294ff2125f19fe51930e99
                                 value="Complete">{{ __('transaction.approve') }}</button>
                                </div>
 
                                <div id="update_div">
-                            
+
                             <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
                                 value="Update">Edit</button>
                             </div>
@@ -592,8 +581,6 @@
                     var sender = jQuery(this).data('sender');
                     var feedback = jQuery(this).data('feedback');
                     var e_wallet_phone_number = jQuery(this).data('e_wallet_phone_number');
-<<<<<<< HEAD
-=======
                     var t_status = jQuery(this).data('status');
                     var u_confirm = jQuery(this).data('confirm');
                     var t_approved = jQuery(this).data('approved');
@@ -611,7 +598,7 @@
                         jQuery("#approve_div").hide();
                         jQuery("#update_div").hide();
 
-                        
+
 
                         // If (status is Pending or Reject) AND u_confirm == 1 → show confirm_div
                         if ((t_status === 'Pending' || t_status === 'Reject') && u_confirm == 1) {
@@ -640,7 +627,6 @@
                         jQuery("#form_div").hide();
                     }
 
->>>>>>> 2ee44e37a7af6c05c1294ff2125f19fe51930e99
                     var amount = jQuery(this).data('amount');
 
                     if (amount >= 1000) {
@@ -787,8 +773,4 @@
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
-<<<<<<< HEAD
-=======
-
->>>>>>> 2ee44e37a7af6c05c1294ff2125f19fe51930e99
 </x-admin-layout>
