@@ -125,8 +125,8 @@
         <p>Total Completed Deposit: {{ $summary['total_completed_deposit'] }}</p>
         <p>Total Rejected Deposit: {{ $summary['total_rejected_deposit'] }}</p>
         @php
-            $successRate = $summary['total_deposit_count'] > 0 
-                ? ($summary['total_completed_deposit'] / $summary['total_deposit_count']) * 100 
+            $successRate = $summary['total_deposit_count'] > 0
+                ? ($summary['total_completed_deposit'] / $summary['total_deposit_count']) * 100
                 : 0;
         @endphp
         <p>Deposit Success Rate: {{ number_format($successRate , 2) }}%</p>
@@ -161,7 +161,7 @@
     </thead>
     <tbody>
         @foreach ($transactions as $transaction)
-       
+
             <tr>
                 {{-- Bank --}}
                 <td>{{ $transaction->bank ?? 'N/A' }}</td>
@@ -221,10 +221,14 @@
                 <td>{{ $transaction->remarks ?? '-' }}</td>
             </tr>
         @endforeach
+
     </tbody>
 </table>
 
+<div class="mt-3">
 
+    {{ $transactions->appends($_GET)->links('partials.pagination') }}
+</div>
 </div>
 
                 </div>
