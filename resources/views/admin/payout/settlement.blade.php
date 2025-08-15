@@ -146,7 +146,7 @@
                                                     {{ __('partner.pending') }}</span>
                                             @endif
                                         </td>
-                                        <td>{{ $item->api->website ?? '' }}</td>
+                                        <td>{{ $item->api->website ?? $item->api->name ?? '' }}</td>
                                         <td>{{ $item->created_at }}</td>
                                         <td data-label="{{ __('partner.action') }}">
                                             <div class="dropdown show ">
