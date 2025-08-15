@@ -36,7 +36,9 @@
                             <option value="">{{ __('partner.all') }}</option>
                             @foreach ($partners as $partner)
                                 <option value="{{ $partner->id }}" @if (@request()->partner == $partner->id) selected @endif>
-                                    {{ $partner->website }}</option>
+                                    {{
+                                    $partner->website ?? $partner->name ?? ''
+                                    }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -146,7 +148,7 @@
                                                     {{ __('partner.pending') }}</span>
                                             @endif
                                         </td>
-                                        <td>{{ $item->api->website ?? $item->api->name ?? '' }}</td>
+                                       <td>{{ $item->api->website ?? $item->api->name ?? '' }}</td>
                                         <td>{{ $item->created_at }}</td>
                                         <td data-label="{{ __('partner.action') }}">
                                             <div class="dropdown show ">
@@ -220,7 +222,9 @@
                                         @foreach ($partners as $partner)
                                             <option value="{{ $partner->id }}"
                                                 @if (@request()->partner == $partner->id) selected @endif>
-                                                {{ $partner->website }}</option>
+                                                {{ $partner->website ?? $partner->name ?? "" }}
+
+                                                </option>
                                         @endforeach
                                     </select>
                                     <div class="text-danger error-partner"></div>
