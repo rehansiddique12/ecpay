@@ -41,6 +41,7 @@ use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
 use App\Models\EWalletTransfer;
 use Illuminate\Validation\Rule;
+use App\Exports\PayoutLogExport;
 use App\Models\ParentCommission;
 use App\Models\PartnerCommission;
 use Illuminate\Support\Facades\DB;
@@ -430,8 +431,6 @@ class PayoutRecordController extends Controller
         return view('admin.payout.report_detail', compact('records', 'pageTitle', 'domains', 'gateways', 'fund_count', 'fund_sum', 'heading'));
     }
 
-
-
     public function reportSearch(Request $request)
     {
 
@@ -703,6 +702,59 @@ class PayoutRecordController extends Controller
         $letest_record = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->first()->id;
         $records = Payout::where('status', '!=', 'initiate')->orderBy('id', 'DESC')->with('user', 'gateway', 'api')->paginate(config('basic.paginate'));
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
+    }
+   public function exportToExcel(Request $request)
+    {
+        try {
+            // Build the query with filters from the search form
+            $query = Payout::where('status', '!=', 'Initiate')
+                ->with(['user', 'gateway', 'api'])
+                ->orderBy('id', 'DESC');
+
+            // Apply search filters
+            if ($request->filled('name')) {
+                $query->whereHas('user', function ($q) use ($request) {
+                    $q->where('email', 'like', '%' . $request->name . '%')
+                      ->orWhere('username', 'like', '%' . $request->name . '%');
+                });
+            }
+
+            if ($request->filled('partner_transection_id')) {
+                $query->where('partner_transection_id', 'like', '%' . $request->partner_transection_id . '%');
+            }
+
+            if ($request->filled('date_time')) {
+                $query->whereDate('created_at', $request->date_time);
+            }
+
+            if ($request->filled('status') && $request->status != 4) {
+                $statusMap = [
+                    1 => 'Pending',
+                    2 => 'Complete',
+                    3 => 'Reject'
+                ];
+                $query->where('transfer_status', $request->status);
+            }
+
+            if ($request->filled('domain')) {
+                $query->whereHas('api', function ($q) use ($request) {
+                    $q->where('id', $request->domain);
+                });
+            }
+
+            // Fetch the filtered records
+            $records = $query->get();
+
+            // Generate a timestamped filename
+            $currentDateTime = now()->format('d_F_Y_h_i_A');
+            $fileName = "payout_logs_{$currentDateTime}.xlsx";
+
+            // Return the Excel file for download
+            return Excel::download(new PayoutLogExport($records), $fileName);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Export failed: ' . $e->getMessage());
+        }
     }
 
     public function report()
