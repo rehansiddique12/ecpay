@@ -120,7 +120,7 @@
                                 </td>
 
                                 <td>
-                                    {{ !empty($fund->txn_record) && $fund->partner_transection_id != 0 ? $fund->txn_record->txn_no : '' }}
+                                    {{ !empty($fund->txn_record) && $fund->partner_transection_id != 0	 ? $fund->txn_record->txn_no : '' }}
                                 </td>
 
                                 <td data-label="{{ __('transaction.username') }}">
@@ -349,46 +349,46 @@
                             <ul class="list-group withdraw-detail">
                             </ul>
 
-                            <div class="get-feedback">
-                                <label>{{ __('transaction.sender_acc_no') }}</label>
-                                <input class="form-control sender" name="sender" type="text" />
-                                <label>{{ __('transaction.e_wallet_no') }}</label>
-                                <input class="form-control e_wallet_phone_number" required
-                                    name="e_wallet_phone_number" type="text" />
-                                <label>{{ __('transaction.txn_no') }}</label>
-                                <input class="form-control txn_id" name="txn_id" type="text" />
-                                <label>{{ __('transaction.e_wallet_type') }}</label>
-                                <select class="form-select e_wallet_type" name="e_wallet_type">
-                                    <option value="Personal">{{ __('transaction.personal') }}</option>
-                                    <option value="Merchant">{{ __('transaction.merchant') }}</option>
-                                </select>
+                        <div class="get-feedback">
+                            <label>{{ __('transaction.sender_acc_no') }}</label>
+                            <input class="form-control sender" name="sender" type="text" />
+                            <label>{{ __('transaction.e_wallet_no') }}</label>
+                            <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
+                                type="text" />
+                            <label>{{ __('transaction.txn_no') }}</label>
+                            <input class="form-control txn_id" name="txn_id" type="text" />
+                            <label>{{ __('transaction.e_wallet_type') }}</label>
+                            <select class="form-select e_wallet_type" name="e_wallet_type">
+                                <option value="Personal">{{ __('transaction.personal') }}</option>
+                                <option value="Merchant">{{ __('transaction.merchant') }}</option>
+                            </select>
 
-                                <label>{{ __('transaction.payment_receiving_datetime') }}</label>
-                                <input class="form-control date_time" id="e_wallet_phone_number" required
-                                    value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
-                                <div id="2fa_div">
-                                    <label>{{ __('transaction.2fa') }}</label>
-                                    <input class="form-control" name="twofa" type="text" />
-                                </div>
+                            <label>{{ __('transaction.payment_receiving_datetime') }}</label>
+                            <input class="form-control date_time" id="e_wallet_phone_number" required
+                                value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
+                            <div id="2fa_div">
+                            <label>{{ __('transaction.2fa') }}</label>
+                            <input class="form-control" name="twofa" type="text" />
+                            </div>
 
                                 <input type="hidden" name="status" id="setstatus">
 
-                                <div id="confirm_div">
+                            <div id="confirm_div">
 
-                                    <button type="submit" class="btn btn-success mt-2" id="approvebtn"
-                                        name="submit" value="Confirm">{{ __('transaction.confirm') }}</button>
-                                </div>
-                                <div id="approve_div">
+                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
+                                value="Confirm">{{ __('transaction.confirm') }}</button>
+                            </div>
+                               <div id="approve_div">
 
-                                    <button type="submit" class="btn btn-primary mt-2" id="approvebtn"
-                                        name="submit" value="Complete">{{ __('transaction.approve') }}</button>
-                                </div>
+                            <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
+                                value="Complete">{{ __('transaction.approve') }}</button>
+                               </div>
 
-                                <div id="update_div">
+                               <div id="update_div">
 
-                                    <button type="submit" class="btn btn-success mt-2" id="approvebtn"
-                                        name="submit" value="Update">Edit</button>
-                                </div>
+                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
+                                value="Update">Edit</button>
+                            </div>
 
                             </div>
 

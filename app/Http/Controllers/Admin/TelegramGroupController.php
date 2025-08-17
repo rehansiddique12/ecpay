@@ -11,8 +11,6 @@ use App\Models\Payment;
 use App\Models\Commission;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-
-
 use App\Models\TelegramGroup;
 use App\Models\EWalletAccount;
 use App\Models\PendingPayment;
@@ -2661,16 +2659,12 @@ class TelegramGroupController extends Controller
 
 
         if (!empty($amount) && strpos((string)$amount, '6') === 0) {
-            $pattern = '/\b' . preg_quote($amount, '/') . '\s*\+/';
-            if (preg_match($pattern, $text)) {
+            $text = str_replace(',', '', $text);
+            preg_match_all('/\d+\.\d{2}/', $text, $matches);
+            if (count($matches[0]) > 1) {
                 $amount = "";
             }
         }
-
-
-
-
-
 
         if (empty($amount)){
             $text = str_replace('-', '', $text);
@@ -2685,10 +2679,39 @@ class TelegramGroupController extends Controller
                     $amounttogetstring = substr($amounttogetstring, 1);
                 }
 
+
+
                 if (substr($formatted, -2) === '00') {
                     $amount = $formatted;
                     break;
                 }elseif (substr($amounttoget, -2) === '00') {
+                    $smallest = min($matches[0]);
+                    $amounttofind = $smallest / 1.0185;
+                    $amounttofind1 = $smallest / 0.0185;
+                    $amounttofind = round($amounttofind);
+                    $amounttofind1 = round($amounttofind1);
+                    if($amounttofind==$amounttogetstring){
+                        $amount = $amounttofind;
+                        break;
+                    }elseif($amounttofind1==$amounttogetstring){
+                        $amount = $amounttofind1;
+                        break;
+                    }
+                    $smallest = (string)$smallest;
+                    if ($smallest[0] === '6') {
+                        $smallest = substr($smallest, 1);
+                    }
+                    $amounttofind = $smallest / 1.0185;
+                    $amounttofind1 = $smallest / 0.0185;
+                    $amounttofind = round($amounttofind);
+                    $amounttofind1 = round($amounttofind1);
+                    if($amounttofind==$amounttogetstring){
+                        $amount = $amounttofind;
+                        break;
+                    }elseif($amounttofind1==$amounttogetstring){
+                        $amount = $amounttofind1;
+                        break;
+                    }
                     $amount = $amounttoget;
                     break;
                 }elseif($amounttogetstring!=$amounttoget){

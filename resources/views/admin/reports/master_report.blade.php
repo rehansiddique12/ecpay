@@ -48,7 +48,7 @@
                                     <th rowspan="2">{{ __('reports.transfer_fees') }}</th>
                                     <th colspan="2">{{ __('reports.settlement') }}</th>
                                     <th rowspan="2">{{ __('reports.revenue') }}</th>
-                                    <th rowspan="2">{{ __('reports.total_balance') }}</th>
+                                    {{-- <th rowspan="2">{{ __('reports.total_balance') }}</th> --}}
                                 </tr>
                                 <tr>
                                     <th>{{ __('reports.qty') }}</th>
@@ -80,7 +80,7 @@
                                             <td>{{ number_format($item['deposit_amount'], 2) }}</td>
                                             <td>{{ number_format($item['deposit_charges'], 2) }}</td>
                                             <td>{{ number_format($item['deposit_e_wallet_charges'], 2) }}</td>
-                                            <!-- <td>{{ number_format($item['deposit_commission'], 2) }}</td> -->                                 
+                                            <!-- <td>{{ number_format($item['deposit_commission'], 2) }}</td> -->
                                             <td>
                                                 <a href="#" class="show-commission" data-date="{{ $item['date'] }}" data-type="deposit">
                                                     {{ number_format($item['deposit_commission'], 2) }}
@@ -105,7 +105,7 @@
                                             <td>{{ number_format($item['settlement_amount'], 2) }}</td>
                                             <td>{{ number_format($item['settlement_charges'], 2) }}</td>
                                             <td>{{ number_format($item['revenue'], 2) }}</td>
-                                            <td>{{ number_format($item['total'], 2) }}</td>
+                                            {{-- <td>{{ number_format($item['total'], 2) }}</td> --}}
 
                                             {{-- <td>0.00</td> --}}
 
@@ -139,7 +139,7 @@
                                     <td style=" color:white;">{{ isset($total_settlement_amount) ? number_format($total_settlement_amount, 2) : '' }}</td>
                                     <td style=" color:white;">{{ number_format($item['settlement_charges'], 2) }}</td>
                                     <td style=" color:white;">{{ isset($total_revenue) ? number_format($total_revenue, 2) : '' }}</td>
-                                    <td style=" color:white;">{{ number_format($item['total'], 2) }}</td>
+                                    {{-- <td style=" color:white;">{{ number_format($item['total'], 2) }}</td> --}}
 
 
 
