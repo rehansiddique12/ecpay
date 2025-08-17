@@ -75,6 +75,7 @@ return [
     'payment_type' => 'Payment Type',
     'account_balance' => 'Account Balance',
     'account_summary' => 'Account Summary',
+    'ewallet_commission_summary' => 'Ewallet_Commission_Summary',
 
 
     'merchant_reports' => 'Merchant Reports',

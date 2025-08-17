@@ -1,7 +1,6 @@
 <x-admin-layout :title="$pageTitle">
     <div class="page-header card card-primary m-0 m-md-4 my-4 m-md-0 p-5 shadow">
-        <!-- Search Form -->
-        <form id="searchForm" action="{{ route('admin.payment.search') }}" method="get">
+        <form action="{{ route('admin.payment.search') }}" method="get">
             <div class="row justify-content-between align-items-center">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
                 <div class="col-md-4">
@@ -31,9 +30,11 @@
                                 {{ __('transaction.cancel_payment') }}</option>
                             <option value="99" @if (@request()->status == '99') selected @endif>
                                 {{ __('transaction.member_not_completed') }}</option>
+
                         </select>
                     </div>
                 </div>
+
 
                 <div class="col-md-4 mt-3">
                     <div class="form-group">
@@ -44,6 +45,7 @@
 
                 <div class="col-md-4 mt-3">
                     <div class="form-group">
+                        <!--<label>Partner</label>-->
                         <select name="website" class="form-select select2" data-allow-clear="true"
                             data-placeholder="{{ __('transaction.select_partner') }}">
                             <option></option>
@@ -58,55 +60,23 @@
 
                 <div class="col-md-4 mt-5">
                     <div class="form-group d-flex gap-5">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="icon-base ti tabler-search"></i> {{ __('transaction.search') }}
+                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search"></i>
+                            {{ __('transaction.search') }}</button>&nbsp;
+                        <button class="btn btn-success">
+                            <a href="{{ route('admin.payment_log_export', ['name' => request()->name, 'partner_transection_id' => request()->partner_transection_id, 'status' => request()->status, 'date_time' => request()->date_time, 'website' => request()->website]) }}"
+                                class="btn waves-effect waves-light btn-success">
+                                <i class="icon-base ti tabler-download me-1"></i>{{ __('merchant_reports.export') }}
+                            </a>
                         </button>
-
-                        <!-- Export Button (will be handled by JavaScript) -->
-                        {{-- <button type="button" id="exportBtn" class="btn btn-success">
-                            <i class="icon-base ti tabler-download"></i> {{ __('transaction.export_data') }}
-                        </button> --}}
-                        <a href="{{ route('admin.payment_log_export', [
-                            'name' => request()->name,
-                            'partner_transection_id' => request()->partner_transection_id,
-                            'status' => request()->status,
-                            'date_time' => request()->date_time,
-                            'website' => request()->website,
-                        ]) }}"
-                            class="btn waves-effect waves-light btn-success">
-                            <i class="icon-base ti tabler-download me-1"></i> {{ __('merchant_reports.export') }}
-                        </a>
-
-
                     </div>
                 </div>
             </div>
         </form>
     </div>
 
-    <!-- Hidden Export Form -->
-    <form id="exportForm" action="{{ route('admin.payment_log_export') }}" method="get" style="display: none;">
-        @if (request()->has('name'))
-            <input type="hidden" name="name" value="{{ request()->name }}">
-        @endif
-        @if (request()->has('partner_transection_id'))
-            <input type="hidden" name="partner_transection_id" value="{{ request()->partner_transection_id }}">
-        @endif
-        @if (request()->has('status'))
-            <input type="hidden" name="status" value="{{ request()->status }}">
-        @endif
-        @if (request()->has('date_time'))
-            <input type="hidden" name="date_time" value="{{ request()->date_time }}">
-        @endif
-        @if (request()->has('website'))
-            <input type="hidden" name="website" value="{{ request()->website }}">
-        @endif
-    </form>
-
-    <!-- Fancybox CSS/JS -->
+    <!-- Add these lines to your HTML header section -->
     <link rel="stylesheet" href="{{ asset('node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.css') }}">
     <script src="{{ asset('node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.js') }}"></script>
-
     <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow">
         <div class="card-body">
             <div class="table-responsive">
@@ -142,6 +112,7 @@
                                     class="font-weight-bold text-uppercase">
                                     {{ $fund->transaction }}<br>
                                     <span class="text text-success">{{ $fund->txn_id }}</span>
+
                                 </td>
                                 <td>{{ !empty($fund->partner_transection_id) ? $fund->partner_transection_id : '' }}
                                     <br>
@@ -190,11 +161,11 @@
 
                                 <td data-label="{{ __('transaction.status') }}" class="text-lg-center text-right">
                                     @if ($fund->status == 'Confirm')
-                                        <span class="badge bg-info"><i
-                                                class="fa fa-circle text-white font-12"></i>
+                                        <span class="badge bg-info"><i class="fa fa-circle text-white font-12"></i>
                                             Confirmed</span>
                                     @elseif ($fund->status == 'Pending')
                                         @php
+                                            // Get the time difference between now and the created_at timestamp
                                             $createdAt = \Carbon\Carbon::parse($fund->created_at);
                                             $currentTime = \Carbon\Carbon::now();
                                             $diffInMinutes = $createdAt->diffInMinutes($currentTime);
@@ -215,12 +186,19 @@
                                         <span class="text text-primary">{{ $fund->e_wallet_phone_number }}</span>
                                     @elseif($fund->status == 'Complete')
                                         @php
+                                            // Check if the fund has a payment and if completed_source is set
                                             if ($fund->completed_source != 'AdminPanel') {
+                                                // Dynamically assign the class based on completed_source
+                                                // if ($fund->payment->completed_source != "AdminPanel") {
                                                 $classColor = 'bg-success';
+                                                // } else {
+                                                // $classColor = "text-purple purple ";
+                                                // }
                                             } else {
                                                 $classColor = 'bg-primary';
                                             }
                                         @endphp
+
 
                                         <span class="badge {{ $classColor }}"><i
                                                 class="fa fa-circle text-white font-12"></i>
@@ -286,6 +264,7 @@
                                             }
                                         @endphp
 
+                                        {{-- @if ($fund->gateway_id > 999) --}}
                                         <button
                                             class="edit_button  btn  {{ $fund->status == 'Pending' ? 'btn-primary' : 'btn-success' }} text-white  btn-sm "
                                             data-bs-toggle="modal" data-bs-target="#myModal"
@@ -296,13 +275,11 @@
                                             data-username="{{ optional($fund->user)->username }}"
                                             data-route="{{ route('admin.payment.action', $fund->id) }}"
                                             data-status="{{ $fund->status }}" data-sender="{{ $fund->sender }}"
-
-                                            data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view'))?1:0 }}"
-                                            data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view'))?1:0 }}"
+                                            data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view')) ? 1 : 0 }}"
+                                            data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view')) ? 1 : 0 }}"
                                             data-txn_id="{{ $fund->txn_id }}"
                                             data-e_wallet_type="{{ $fund->e_wallet_type }}"
                                             data-date_time="{{ $fund->date_time }}"
-
                                             data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
 
                                             <i class="icon-base ti tabler-pencil me-1"></i>
@@ -313,6 +290,9 @@
                                             @endif --}}
 
                                         </button>
+                                        {{-- @else --}}
+                                        {{-- - --}}
+                                        {{-- @endif --}}
                                         <button class="edit_buttonc  btn btn-danger text-white  btn-sm"
                                             data-bs-toggle="modal" data-bs-target="#myModalc"
                                             data-bs-title="{{ __('transaction.edit') }}"
@@ -325,6 +305,7 @@
                                             onclick="setBalanceItem({{ $fund->id }})">
                                             <i class="icon-base ti tabler-direction-sign me-1"></i>
                                         </button>
+
                                     </td>
                                 @endif
                             </tr>
@@ -334,6 +315,7 @@
                                     <p class="text-dark">{{ __('transaction.no_data_found') }}</p>
                                 </td>
                             </tr>
+
                         @endforelse
                     </tbody>
                 </table>
@@ -354,64 +336,65 @@
                 </div>
                 <?php
                 date_default_timezone_set('Asia/Kuala_Lumpur');
+
                 ?>
                 {{-- <form role="form" class="actionRoute" action=""> --}}
-                   {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
-                   <div id="form_div">
-                <form role="form" method="POST" class="actionRoute" action=""
-                    enctype="multipart/form-data" onsubmit="submitForm(this)">
-                    @csrf
-                    @method('put')
-                    <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
+                {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
+                <div id="form_div">
+                    <form role="form" method="POST" class="actionRoute" action=""
+                        enctype="multipart/form-data" onsubmit="submitForm(this)">
+                        @csrf
+                        @method('put')
+                        <div class="modal-body">
+                            <ul class="list-group withdraw-detail">
+                            </ul>
 
-                        <div class="get-feedback">
-                            <label>{{ __('transaction.sender_acc_no') }}</label>
-                            <input class="form-control sender" name="sender" type="text" />
-                            <label>{{ __('transaction.e_wallet_no') }}</label>
-                            <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
-                                type="text" />
-                            <label>{{ __('transaction.txn_no') }}</label>
-                            <input class="form-control txn_id" name="txn_id" type="text" />
-                            <label>{{ __('transaction.e_wallet_type') }}</label>
-                            <select class="form-select e_wallet_type" name="e_wallet_type">
-                                <option value="Personal">{{ __('transaction.personal') }}</option>
-                                <option value="Merchant">{{ __('transaction.merchant') }}</option>
-                            </select>
+                            <div class="get-feedback">
+                                <label>{{ __('transaction.sender_acc_no') }}</label>
+                                <input class="form-control sender" name="sender" type="text" />
+                                <label>{{ __('transaction.e_wallet_no') }}</label>
+                                <input class="form-control e_wallet_phone_number" required
+                                    name="e_wallet_phone_number" type="text" />
+                                <label>{{ __('transaction.txn_no') }}</label>
+                                <input class="form-control txn_id" name="txn_id" type="text" />
+                                <label>{{ __('transaction.e_wallet_type') }}</label>
+                                <select class="form-select e_wallet_type" name="e_wallet_type">
+                                    <option value="Personal">{{ __('transaction.personal') }}</option>
+                                    <option value="Merchant">{{ __('transaction.merchant') }}</option>
+                                </select>
 
-                            <label>{{ __('transaction.payment_receiving_datetime') }}</label>
-                            <input class="form-control date_time" id="e_wallet_phone_number" required
-                                value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
-                            <div id="2fa_div">
-                            <label>{{ __('transaction.2fa') }}</label>
-                            <input class="form-control" name="twofa" type="text" />
+                                <label>{{ __('transaction.payment_receiving_datetime') }}</label>
+                                <input class="form-control date_time" id="e_wallet_phone_number" required
+                                    value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
+                                <div id="2fa_div">
+                                    <label>{{ __('transaction.2fa') }}</label>
+                                    <input class="form-control" name="twofa" type="text" />
+                                </div>
+
+                                <input type="hidden" name="status" id="setstatus">
+
+                                <div id="confirm_div">
+
+                                    <button type="submit" class="btn btn-success mt-2" id="approvebtn"
+                                        name="submit" value="Confirm">{{ __('transaction.confirm') }}</button>
+                                </div>
+                                <div id="approve_div">
+
+                                    <button type="submit" class="btn btn-primary mt-2" id="approvebtn"
+                                        name="submit" value="Complete">{{ __('transaction.approve') }}</button>
+                                </div>
+
+                                <div id="update_div">
+
+                                    <button type="submit" class="btn btn-success mt-2" id="approvebtn"
+                                        name="submit" value="Update">Edit</button>
+                                </div>
+
                             </div>
 
-                            <input type="hidden" name="status" id="setstatus">
-
-                            <div id="confirm_div">
-
-                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
-                                value="Confirm">{{ __('transaction.confirm') }}</button>
-                            </div>
-                               <div id="approve_div">
-
-                            <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
-                                value="Complete">{{ __('transaction.approve') }}</button>
-                               </div>
-
-                               <div id="update_div">
-
-                            <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
-                                value="Update">Edit</button>
-                            </div>
-
+                            <input type="hidden" class="action_id" name="id">
                         </div>
-
-                        <input type="hidden" class="action_id" name="id">
-                    </div>
-                </form>
+                    </form>
                 </div>
                 {{-- @endif --}}
                 <form role="form" method="POST" class="actionRoute" action=""
@@ -428,6 +411,7 @@
                         <input type="hidden" name="status" value="Reject">
                         <button type="submit" class="btn btn-danger" name="status"
                             value="Reject">{{ __('transaction.reject') }}</button>
+
                     </div>
                 </form>
             </div>
@@ -437,12 +421,14 @@
     <div class="modal modal-top fade" id="myModalc" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
+
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.change_e_wallet_no') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <?php
                 date_default_timezone_set('Asia/Kuala_Lumpur');
+
                 ?>
                 <form role="form" method="POST" action="{{ route('admin.payment.update_e_wallet') }}">
                     @csrf
@@ -452,6 +438,7 @@
                         </ul>
 
                         <div class="get-feedback">
+
                             <label>{{ __('transaction.e_wallet_no') }}</label>
                             <input class="form-control e_wallet_phone_number" required name="e_wallet_phone_number"
                                 type="text" />
@@ -477,6 +464,7 @@
     <div class="modal modal-top fade" id="newModalb" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
+
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTopTitle">{{ __('transaction.send_callback') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -510,43 +498,32 @@
                                     <div style="background-color: black;color:white;padding:10px"><span
                                             id="text3"></span></div>
                                 </div>
+
                             </div>
+
+                            <!-- <br>
+                        <br> -->
+
+                            <!-- <div class="col-md-12">
+                            <button type="button" disabled id="runWithdrawalTest" class="btn btn-primary">Run Withdrawal Test</button>
+
+                        </div> -->
                         </div>
+
                     </div>
-                </form>
             </div>
+            </form>
         </div>
     </div>
 
     @push('js')
         <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
         <script>
-            // Handle export button click
-            document.getElementById('exportBtn').addEventListener('click', function() {
-                // Get all form inputs from search form
-                const formInputs = document.getElementById('searchForm').elements;
-
-                // Add them to the export form
-                for (let i = 0; i < formInputs.length; i++) {
-                    const input = formInputs[i];
-                    if (input.name && input.type !== 'button' && input.type !== 'submit') {
-                        let existingInput = document.querySelector(`#exportForm input[name="${input.name}"]`);
-                        if (!existingInput) {
-                            let newInput = document.createElement('input');
-                            newInput.type = 'hidden';
-                            newInput.name = input.name;
-                            newInput.value = input.value;
-                            document.getElementById('exportForm').appendChild(newInput);
-                        }
-                    }
-                }
-
-                // Submit the export form
-                document.getElementById('exportForm').submit();
-            });
-
             function submitForm(form) {
+                // Disable the submit button to prevent multiple submissions
                 document.getElementById('approvebtn').disabled = true;
+
+                // Submit the form
                 form.submit();
             }
 
@@ -563,12 +540,16 @@
                 var day = date.getDate().toString().padStart(2, '0');
                 var hours = date.getHours().toString().padStart(2, '0');
                 var minutes = date.getMinutes().toString().padStart(2, '0');
+                // var seconds = date.getSeconds().toString().padStart(2, '0');
 
                 var formattedDateTimeKL = `${year}-${month}-${day} ${hours}:${minutes}`;
+
+                // console.log('ok');
 
                 var currentDateTime = new Date(currentDateTimeKL).getTime();
                 var twoMinutesAgoTimestamp = currentDateTime - (2 * 60 * 1000);
                 if (inputDateTime > twoMinutesAgoTimestamp) {
+                    // console.log('ok');
                     document.getElementById("e_wallet_phone_number").value = formattedDateTimeKL;
                 }
             }
@@ -589,7 +570,9 @@
                     var e_wallet_type = jQuery(this).data('e_wallet_type');
 
 
-                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject' || t_status === 'Complete')) || (t_approved == 1 && (t_status === 'Confirm' || t_status === 'Complete')))) {
+                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject' || t_status ===
+                            'Complete')) || (t_approved == 1 && (t_status === 'Confirm' || t_status ===
+                            'Complete')))) {
                         // Show the form
                         jQuery("#form_div").show();
 
@@ -610,9 +593,7 @@
                         else if (t_status === 'Confirm' && t_approved == 1) {
                             jQuery("#approve_div").show();
                             jQuery("#setstatus").val('Complete');
-                        }
-
-                        else if (t_status === 'Complete' && (t_approved == 1 || u_confirm == 1)) {
+                        } else if (t_status === 'Complete' && (t_approved == 1 || u_confirm == 1)) {
                             jQuery("#update_div").show();
                             jQuery("#setstatus").val('Update');
                         }
@@ -677,11 +658,14 @@
                 });
 
             });
-
             jQuery(document).on("click", ".edit_buttonc", function(e) {
                 e.preventDefault();
+
                 var id = jQuery(this).data("bs-id");
                 var e_wallet_phone_number = jQuery(this).data("bs-e_wallet_phone_number");
+
+                console.log("Edit clicked:", id, e_wallet_phone_number);
+
                 jQuery(".action_id").val(id);
                 jQuery(".e_wallet_phone_number").val(e_wallet_phone_number);
             });
@@ -693,7 +677,7 @@
                 jQuery('#spinner2').show();
                 jQuery('#runWithdrawalTest').prop('disabled', true);
 
-                var formData = new FormData(jQuery('#addBalanceForm')[0]);
+                var formData = new FormData(jQuery('#addBalanceForm')[0]); // Get form data
 
                 jQuery.ajax({
                     type: "POST",
@@ -701,9 +685,9 @@
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    data: formData,
-                    processData: false,
-                    contentType: false,
+                    data: formData, // Use FormData object
+                    processData: false, // Don't process the data
+                    contentType: false, // Don't set contentType
                     success: function(response) {
                         if (response.status === "success") {
                             jQuery('#spinner2').hide();
@@ -739,23 +723,28 @@
                 });
             });
 
+
+
             $(document).ready(function() {
                 $('form').on('submit', function() {
                     const $form = $(this);
                     const $submitButton = $form.find('button[type="submit"]');
 
+                    // Disable button and change text (optional)
                     $submitButton.prop('disabled', true);
                     $submitButton.html(
                         "<i class='fa fa-spinner fa-spin me-1'></i> {{ __('transaction.processing') }}");
 
+                    // Allow form to proceed
                     return true;
                 });
-
                 let $select = $('.select2').select2({
+                    // placeholder: "Select Partner",
                     allowClear: true,
                     selectOnClose: true,
                 });
 
+                // Prevent dropdown from opening on clear
                 $select.on('select2:unselecting', function(e) {
                     $(this).data('unselecting', true);
                 });
@@ -769,8 +758,8 @@
             });
         </script>
     @endpush
-
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}">
     @endpush
+
 </x-admin-layout>
