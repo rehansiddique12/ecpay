@@ -446,7 +446,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('roles/list', [UsersController::class, 'getRoles'])->name('roles.list');
 
         // Ewallet Commission Summary Route::
-        Route::get('ewalletcommissionsummary/repoet', [PaymentLogController::class, 'ewallet_commission_summary'])->name('ewallet_commission_summary');
+        Route::get('ewalletcommissionsummary/report', [PaymentLogController::class, 'ewallet_commission_summary'])->name('ewallet_commission_summary');
+        Route::get('ewallet-commission-by-wallet', [PaymentLogController::class, 'ewallet_commission_by_wallet'])->name('ewallet_commission_by_wallet');
+        Route::get('ewallet-commission-by-wallet_type', [PaymentLogController::class, 'ewallet_commission_by_wallet_type'])->name('ewallet_commission_by_wallet_type');
+
 
 
 

@@ -36,7 +36,6 @@ $isReportsActive = in_array(Route::currentRouteName(), [
 'admin.reports.cal2',
 'admin.reports.master_report',
 'admin.payment_gateway_performance_report',
-'admin.ewallet_commission_summary',
 'admin.type',
 ]);
 // $isMerchantReportsActive = in_array(Route::currentRouteName(), [
@@ -50,6 +49,11 @@ $isMerchantReportsActive = in_array(Route::currentRouteName(), [
 'admin.merchant_reports.by_date',
 'admin.merchant_reports.by_name',
 'admin.merchant_reports.by_month',
+]);
+$isEwalletReportsActive = in_array(Route::currentRouteName(), [
+'admin.ewallet_commission_summary',
+'admin.ewallet_commission_by_wallet',
+'admin.ewallet_commission_by_wallet_type',
 ]);
 
 $isTransactionActive = in_array(Route::currentRouteName(), [
@@ -1239,12 +1243,15 @@ $languages = [
                         </li>
                         @endif
                         {{-- @if (adminAccessRoute(config('role.ewallet_commission_summary.access.view'))) --}}
-                        <li class="menu-item {{ Route::currentRouteName() == 'admin.type' ? 'active' : '' }}">
-                            <a href="{{ route('admin.ewallet_commission_summary') }}" class="menu-link">
-                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
-                                <div data-i18n="Ewallet_Commission_Summary">{{ __('sidebar.ewallet_commission_summary') }}</div>
-                            </a>
-                        </li>
+
+                        {{-- @endif --}}
+
+                        {{-- @if (adminAccessRoute(config('role.ewallet_commission_summary.access.view'))) --}}
+
+                        {{-- @endif --}}
+
+                        {{-- @if (adminAccessRoute(config('role.ewallet_commission_summary.access.view'))) --}}
+
                         {{-- @endif --}}
                     </ul>
                 </li>
@@ -1279,7 +1286,34 @@ $languages = [
 
                     </ul>
                 </li>
+
                 @endif
+                     <li class="menu-item {{ $isEwalletReportsActive ? 'active open' : '' }}">
+                    <a href="javascript:void(0)" class="menu-link menu-toggle">
+                        <i class="menu-icon icon-base ti tabler-users"></i>
+                        <div data-i18n="Ewallet Reports">Ewallet Reports</div>
+                    </a>
+                    <ul class="menu-sub">
+                       <li class="menu-item {{ Route::currentRouteName() == 'admin.ewallet_commission_summary' ? 'active' : '' }}">
+                            <a href="{{ route('admin.ewallet_commission_summary') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Ewallet_Comm_Summary">Ewallet_comm_summary</div>
+                            </a>
+                        </li>
+                       <li class="menu-item {{ Route::currentRouteName() == 'admin.ewallet_commission_by_wallet' ? 'active' : '' }}">
+                            <a href="{{ route('admin.ewallet_commission_by_wallet') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Commission_By_E_Wallet">Ewallet_Comm_by_Ewallet</div>
+                            </a>
+                        </li>
+                       <li class="menu-item {{ Route::currentRouteName() == 'admin.ewallet_commission_by_wallet_type' ? 'active' : '' }}">
+                            <a href="{{ route('admin.ewallet_commission_by_wallet_type') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Commission_Summary_By_EWallet_Type">Comm_by_wallet_type</div>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 </ul>
             </div>
         </aside>

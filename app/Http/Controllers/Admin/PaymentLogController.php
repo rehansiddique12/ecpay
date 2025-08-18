@@ -104,89 +104,113 @@ class PaymentLogController extends Controller
         return Excel::download(new PaymentLogExport($transactions), 'payment_transactions_export.csv');
     }
 
-public function ewallet_commission_summary(Request $request)
+    public function ewallet_commission_summary(Request $request)
+    {
+        $query = DB::table('payments')
+            ->select(
+                DB::raw('DATE(created_at) as payment_date'),
+                'e_wallet_phone_number',
+                'e_wallet_name',
+                'e_wallet_type',
+                DB::raw('SUM(commission) as total_commission')
+            )
+            ->when($request->from_date && $request->to_date, function ($q) use ($request) {
+                $q->whereBetween(DB::raw('DATE(created_at)'), [
+                    $request->from_date,
+                    $request->to_date
+                ]);
+            }, function ($q) {
+                $q->whereDate('created_at', today());
+            })
+            ->when($request->e_wallet_name, fn($q) => $q->where('e_wallet_name', $request->e_wallet_name))
+            ->when($request->e_wallet_type, fn($q) => $q->where('e_wallet_type', $request->e_wallet_type))
+            ->when($request->e_wallet_phone_number, fn($q) => $q->where('e_wallet_phone_number', $request->e_wallet_phone_number))
+            ->groupBy(
+                DB::raw('DATE(created_at)'),
+                'e_wallet_phone_number',
+                'e_wallet_name',
+                'e_wallet_type'
+            )
+            ->orderByDesc('payment_date');
+
+        $totalCommission = (clone $query)->get()->sum('total_commission');
+        $records = $query->paginate(50);
+
+        $pageTitle = 'E-Wallet Commission Summary';
+        $title = 'Commission Summary';
+        $partners = [];
+
+        return view('admin.reports.ewallet_commission_summary', compact(
+            'records', 'pageTitle', 'title', 'partners', 'totalCommission'
+        ));
+    }
+
+
+    public function ewallet_commission_by_wallet(Request $request)
 {
-    // Payments query
-    $paymentsQuery = DB::table('payments')
+    $query = DB::table('payments')
         ->select(
-            'e_Wallet_phone_number',
             'e_wallet_name',
-            'e_wallet_type',
-            DB::raw('MAX(date_time) as last_date_time'),
-            DB::raw('SUM(amount * (commission / 100)) as total_commission')
+            DB::raw('SUM(commission) as total_commission')
         )
         ->when($request->from_date && $request->to_date, function ($q) use ($request) {
-            $q->whereBetween('date_time', [
-                $request->from_date . ' 00:00:00',
-                $request->to_date . ' 23:59:59'
+            $q->whereBetween(DB::raw('DATE(created_at)'), [
+                $request->from_date,
+                $request->to_date
             ]);
+        }, function ($q) {
+            $q->whereDate('created_at', today());
         })
-        ->when($request->e_wallet_name, function ($q) use ($request) {
-            $q->where('e_wallet_name', $request->e_wallet_name);
-        })
-        ->when($request->e_wallet_type, function ($q) use ($request) {
-            $q->where('e_wallet_type', $request->e_wallet_type);
-        })
-        ->groupBy('e_Wallet_phone_number', 'e_wallet_name', 'e_wallet_type');
+        ->groupBy('e_wallet_name')
+        ->orderByDesc('total_commission');
 
-    // Payouts query
-    $payoutsQuery = DB::table('payouts')
-        ->select(
-            'e_Wallet_phone_number',
-            'e_wallet_name',
-            'e_wallet_type',
-            DB::raw('MAX(date_time) as last_date_time'),
-            DB::raw('SUM(amount * (commission / 100)) as total_commission')
-        )
-        ->when($request->from_date && $request->to_date, function ($q) use ($request) {
-            $q->whereBetween('date_time', [
-                $request->from_date . ' 00:00:00',
-                $request->to_date . ' 23:59:59'
-            ]);
-        })
-        ->when($request->e_wallet_name, function ($q) use ($request) {
-            $q->where('e_wallet_name', $request->e_wallet_name);
-        })
-        ->when($request->e_wallet_type, function ($q) use ($request) {
-            $q->where('e_wallet_type', $request->e_wallet_type);
-        })
-        ->groupBy('e_Wallet_phone_number', 'e_wallet_name', 'e_wallet_type');
+    $totalCommission = (clone $query)->get()->sum('total_commission');
+    $records = $query->paginate(50);
 
-    // Combine both
-    $unionSql = $paymentsQuery->toSql() . ' UNION ALL ' . $payoutsQuery->toSql();
-
-    // Full (unpaginated) query for total
-    $baseQuery = DB::table(DB::raw("({$unionSql}) as combined"))
-        ->mergeBindings($paymentsQuery)
-        ->mergeBindings($payoutsQuery)
-        ->select(
-            'e_Wallet_phone_number',
-            'e_wallet_name',
-            'e_wallet_type',
-            DB::raw('MAX(last_date_time) as last_date_time'),
-            DB::raw('SUM(total_commission) as total_commission')
-        )
-        ->groupBy('e_Wallet_phone_number', 'e_wallet_name', 'e_wallet_type');
-
-    // Clone the full query before pagination
-    $totalCommission = (clone $baseQuery)->get()->sum('total_commission');
-
-    // Paginate final results
-    $records = $baseQuery->paginate(50);
-
-    // View data
-    $pageTitle = 'E-Wallet Commission Summary';
-    $title = 'Commission Summary';
+    $pageTitle = 'E-Wallet Commission by Wallet Name';
+    $title = 'Commission by Wallet';
     $partners = [];
 
-    return view('admin.reports.ewallet_commission_summary', compact(
-        'records',
-        'pageTitle',
-        'title',
-        'partners',
-        'totalCommission'
+    return view('admin.reports.ewallet_commission_by_wallet', compact(
+        'records', 'pageTitle', 'title', 'partners', 'totalCommission'
     ));
 }
+
+
+public function ewallet_commission_by_wallet_type(Request $request)
+{
+    $query = DB::table('payments')
+        ->select(
+            'e_wallet_type',
+            'e_wallet_name',
+            DB::raw('SUM(commission) as total_commission')
+        )
+        ->when($request->from_date && $request->to_date, function ($q) use ($request) {
+            $q->whereBetween(DB::raw('DATE(created_at)'), [
+                $request->from_date,
+                $request->to_date
+            ]);
+        }, function ($q) {
+            $q->whereDate('created_at', today());
+        })
+        ->groupBy('e_wallet_type',
+        'e_wallet_name',
+        )
+        ->orderByDesc('total_commission');
+
+    $totalCommission = (clone $query)->get()->sum('total_commission');
+    $records = $query->paginate(50);
+
+    $pageTitle = 'E-Wallet Commission by Wallet Type';
+    $title = 'Commission by Wallet';
+    $partners = [];
+
+    return view('admin.reports.ewallet_commission_by_wallet_type', compact(
+        'records', 'pageTitle', 'title', 'partners', 'totalCommission'
+    ));
+}
+
+
 
 
     protected function exportData($funds)
@@ -4220,7 +4244,7 @@ public function ewallet_commission_summary(Request $request)
             $format = 2;
         }
 
-        
+
 
             $result=[];
 
@@ -4247,7 +4271,7 @@ public function ewallet_commission_summary(Request $request)
 
                 $result = [];
 
-                
+
 
                 $sms_type = "";
                 if(strpos(strtolower($text), "b2b") !== false){
@@ -4391,7 +4415,7 @@ public function ewallet_commission_summary(Request $request)
                         //     $result['Customer'] = $matches[1];
                         // }
 
-                       
+
                         if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
                             $result['Customer'] = $matches[1];
                         }
@@ -4818,7 +4842,7 @@ public function ewallet_commission_summary(Request $request)
                     }
                 }
 
-                
+
 
                 if(isset($result['Comment']) && isset($result['Amount']) && isset($result['Customer']) && isset($result['TxnID']) && isset($result['Comm']) && isset($result['Balance']) && isset($result['DateTime'])){
                     $result['Amount'] = preg_replace('/[^0-9.]/', '', $result['Amount']);
@@ -4835,7 +4859,7 @@ public function ewallet_commission_summary(Request $request)
 
                 }
 
-                
+
 
             }
 
