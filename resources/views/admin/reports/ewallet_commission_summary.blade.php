@@ -1,8 +1,5 @@
 <x-admin-layout :title="$pageTitle">
-    @push('styles')
-    @endpush
-
-    <div class="row">
+       <div class="row">
         <div class="col-md-12">
 
             {{-- Filter Form --}}
@@ -12,19 +9,19 @@
                     <div class="row g-2">
 
                         {{-- From Date --}}
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <input type="date" name="from_date"
                                    value="{{ request('from_date', now()->format('Y-m-d')) }}" class="form-control">
                         </div>
 
                         {{-- To Date --}}
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <input type="date" name="to_date"
                                    value="{{ request('to_date', now()->format('Y-m-d')) }}" class="form-control">
                         </div>
 
                         {{-- Ewallet Name --}}
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <select name="e_wallet_name" class="form-control">
                                 <option value="">All Wallets</option>
                                 @foreach (['Bkash', 'Rocket', 'Nagad'] as $wallet)
@@ -36,7 +33,7 @@
                         </div>
 
                         {{-- Ewallet Type (added) --}}
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <select name="e_wallet_type" class="form-control">
                                 <option value="">All Types</option>
                                 @foreach (['Agent', 'Personal', 'Merchant'] as $type)
@@ -48,7 +45,7 @@
                         </div>
 
                         {{-- Ewallet Number (optional filter) --}}
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <input type="text" name="e_wallet_phone_number"
                                    value="{{ request('e_wallet_phone_number') }}" class="form-control"
                                    placeholder="Wallet Number">
@@ -57,9 +54,6 @@
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">Filter</button>
                         </div>
-                    </div>
-                    <div class="mt-2 small text-muted">
-                        Sorted by <strong>Date (DESC)</strong>.
                     </div>
                 </form>
             </div>
@@ -106,7 +100,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="4" class="text-end">Total Commission:</th>
+                                    <th colspan="4">Total Commission:</th>
                                     <th>${{ number_format($totalCommission, 2) }}</th>
                                 </tr>
                             </tfoot>

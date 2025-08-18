@@ -57,8 +57,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th class="text-end colspan-2">Total Commission:</th>
-                                    <th></th>
+                                    <th colspan="2">Total Commission:</th>
                                     <th>${{ number_format($totalCommission, 2) }}</th>
                                 </tr>
                             </tfoot>

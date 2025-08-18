@@ -62,19 +62,19 @@ class LoginController extends Controller
 
 
 
-            if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
+            // if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
 
 
-                $ipAddress = $_SERVER['REMOTE_ADDR'];
-                $user = Auth::guard('admin')->user();
+            //     $ipAddress = $_SERVER['REMOTE_ADDR'];
+            //     $user = Auth::guard('admin')->user();
 
 
-                return redirect()->intended(route('admin.dashboard'));
-            }else{
-                return redirect()->route('admin.login')
-                    ->with('error','Email-Address And Password Are Wrong.');
-            }
+            //     return redirect()->intended(route('admin.dashboard'));
+            // }else{
+            //     return redirect()->route('admin.login')
+            //         ->with('error','Email-Address And Password Are Wrong.');
+            // }
 
             $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
                 ->first();
