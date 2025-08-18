@@ -342,7 +342,7 @@ class ReportsController extends Controller
                 return $item->e_wallet . '|' . $item->from_account_no . '|' . $item->date;
             });
 
-            
+
 
         // === Prepare Data ===
         $data = [];
@@ -364,7 +364,7 @@ class ReportsController extends Controller
                     $balance = $balance + $total_pre;
                 }
 
-                
+
 
                 $deposit = $deposits[$key][0]->total ?? 0.00;
                 $withdrawal = $withdrawals[$key][0]->total ?? 0.00;
@@ -413,9 +413,9 @@ class ReportsController extends Controller
         if ($request->filled('from_date')) {
             $from_date = $request->from_date;  //2025-06-27T00:00
         }
-        
 
-        
+
+
         if ($request->filled('to_date')) {
             $to_date = $request->to_date; ////2025-06-28T00:00
         }
@@ -495,7 +495,7 @@ class ReportsController extends Controller
 
             if($totalDeposit>0 || $totalWithdrawal>0 || $transferIn>0 || $transferOut>0){
 
-                
+
 
                 $data[$key] = [
                     'e_wallet_name' => $account->e_wallet_name,
@@ -602,7 +602,7 @@ class ReportsController extends Controller
 
             if($totalDeposit>0 || $totalWithdrawal>0 || $transferIn>0 || $transferOut>0){
 
-            
+
 
                 $data[$key] = [
                     'e_wallet_name' => $account->e_wallet_name,
@@ -683,7 +683,7 @@ class ReportsController extends Controller
         $account_number = $request->input('account_number');
         $filter_status = $request->input('filter_status');
         $filter_type = $request->input('filter_type');
-        $merchant = $request->input('merchants'); 
+        $merchant = $request->input('merchants');
 
         // ----------------- Fetch Payments (Deposits) -----------------
         $payments = Payment::with('eWalletLog')->select(
@@ -711,16 +711,22 @@ class ReportsController extends Controller
         }
 
         if ($account_number) {
-            $payments->where('sender', $account_number);
+            // Check for matching account_number in both the 'sender' column and 'e_Wallet_name' in EWalletAccount
+            $payments->where(function ($query) use ($account_number) {
+                $query->where('sender', $account_number)
+                      ->orWhereHas('eWalletLog', function ($q) use ($account_number) {
+                          $q->where('e_Wallet_name', $account_number);
+                      });
+            });
         }
 
         if ($filter_status) {
-            if($filter_status == '2'){
+            if ($filter_status == '2') {
                 $payment_status = 'Complete';
-            }elseif($filter_status == '3'){
+            } elseif ($filter_status == '3') {
                 $payment_status = 'Reject';
             }
-            
+
             $payments->where('status', $payment_status);
         } else {
             $payments->where('status', '!=', 'Pending');
@@ -752,13 +758,19 @@ class ReportsController extends Controller
         }
 
         if ($account_number) {
-            $payouts->where('user_account_no', $account_number);
+            // Check for matching account_number in both 'user_account_no' and 'e_Wallet_name' in EWalletAccount
+            $payouts->where(function ($query) use ($account_number) {
+                $query->where('user_account_no', $account_number)
+                      ->orWhereHas('eWalletLog', function ($q) use ($account_number) {
+                          $q->where('e_Wallet_name', $account_number);
+                      });
+            });
         }
 
         if ($filter_status) {
-            if($filter_status == '2'){
+            if ($filter_status == '2') {
                 $payment_status = 'Complete';
-            }elseif($filter_status == '3'){
+            } elseif ($filter_status == '3') {
                 $payment_status = 'Reject';
             }
             $payouts->where('status', $payment_status);
@@ -775,12 +787,8 @@ class ReportsController extends Controller
             $ewalletTransfers->where('domain', $bank_name);
         }
 
-        if ($account_number) {
-            $ewalletTransfers->where('e_wallet_account_no', $account_number);
-        }
-
-        // if ($filter_status) {
-        //     $ewalletTransfers->where('status', $filter_status);
+        // if ($account_number) {
+        //     $ewalletTransfers->where('e_wallet_account_no', $account_number);
         // }
 
         if ($filter_type) {
@@ -791,7 +799,6 @@ class ReportsController extends Controller
         $deposits = $payments->get();
         $withdrawals = $payouts->get();
 
-        // dd($deposits->first());
         $transfers = $ewalletTransfers->get();
 
         // ----------------- Merge & Process -----------------
@@ -803,7 +810,7 @@ class ReportsController extends Controller
             $balance = $eWalletLog->balance ?? null;
             return (object)[
                 'type' => 'deposit',
-                'bank' => $item->bank, 
+                'bank' => $item->bank,
                 'amount' => $item->amount,
                 'status' => $item->status == 'Complete' ? 1 : ($item->status == 'Reject' ? 3 : 2),
                 'created_at' => $item->created_at,
@@ -852,7 +859,7 @@ class ReportsController extends Controller
                 'status' => 1,
                 'created_at' => $item->created_at,
                 'gateway_alias' => $item->domain,
-                'diff' => null, 
+                'diff' => null,
                 'balance' => null,
                 'previous_balance' => null,
                 'partner_name' => null,
@@ -887,7 +894,7 @@ class ReportsController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        $pageTitle = "Bank Account Log Summary";
+        $pageTitle = "E-wallet Log Summary";
         return view('admin.reports.bank_account_log_summary', compact(
             'pageTitle',
             'from_date',
@@ -904,6 +911,8 @@ class ReportsController extends Controller
             'merchant',
         ));
     }
+
+
 
 
     public function daily_transection_summary(Request $request)
