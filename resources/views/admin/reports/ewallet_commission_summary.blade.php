@@ -4,7 +4,6 @@
 
     <div class="row">
         <div class="col-md-12">
-            {{-- Page Title --}}
 
             {{-- Filter Form --}}
             <div class="card card-primary m-0 m-md-4 my-4 m-md-0 shadow p-6">
@@ -24,7 +23,7 @@
                         </div>
 
                         {{-- Ewallet Name --}}
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <select name="e_wallet_name" class="form-control">
                                 <option value="">All Wallets</option>
                                 @foreach (['Bkash', 'Rocket', 'Nagad'] as $wallet)
@@ -36,20 +35,14 @@
                             </select>
                         </div>
 
-                        {{-- Ewallet Type --}}
+                        {{-- Ewallet Number --}}
                         <div class="col-md-3">
-                            <select name="e_wallet_type" class="form-control">
-                                <option value="">All Types</option>
-                                @foreach (['Agent', 'Personal', 'Merchant'] as $type)
-                                    <option value="{{ $type }}"
-                                        {{ request('e_wallet_type') == $type ? 'selected' : '' }}>
-                                        {{ $type }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <input type="text" name="e_wallet_phone_number"
+                                value="{{ request('e_wallet_phone_number') }}" class="form-control"
+                                placeholder="Wallet Number">
                         </div>
 
-                        <div class="col-md-1">
+                        <div class="col-md-12 col-lg-1">
                             <button type="submit" class="btn btn-primary w-100">Filter</button>
                         </div>
                     </div>
@@ -66,7 +59,6 @@
                                 <tr>
                                     <th scope="col">Date</th>
                                     <th scope="col">Ewallet Name</th>
-                                    <th scope="col">Ewallet Type</th>
                                     <th scope="col">Ewallet Number</th>
                                     <th scope="col">Total Commission</th>
                                 </tr>
@@ -75,25 +67,20 @@
                                 @forelse($records as $item)
                                     <tr>
                                         {{-- Date --}}
-                                        <td>{{ \Carbon\Carbon::parse($item->last_date_time)->format('Y-m-d H:i') }}
-                                        </td>
+                                        <td>{{ \Carbon\Carbon::parse($item->payment_date)->format('Y-m-d') }}</td>
 
                                         {{-- Ewallet Name --}}
                                         <td>{{ $item->e_wallet_name ?? 'N/A' }}</td>
 
-                                        {{-- Ewallet Type --}}
-                                        <td>{{ $item->e_wallet_type ?? 'N/A' }}</td>
-
                                         {{-- Ewallet Number --}}
-                                        <td>{{ $item->e_Wallet_phone_number ?? 'N/A' }}</td>
+                                        <td>{{ $item->e_wallet_phone_number ?? 'N/A' }}</td>
 
                                         {{-- Total Commission --}}
-                                        {{-- <td>${{ number_format($item->total_comission, 2) }}</td> --}}
                                         <td>${{ number_format($item->total_commission, 2) }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="4">
                                             <p class="text-dark">@lang('No Data Found')</p>
                                         </td>
                                     </tr>
@@ -101,9 +88,8 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="4 " class="">Total Commission:</th>
-                                   <th>${{ number_format($totalCommission, 2) }}</th>
-
+                                    <th colspan="3" class="text-end">Total Commission:</th>
+                                    <th>${{ number_format($totalCommission, 2) }}</th>
                                 </tr>
                             </tfoot>
                         </table>
