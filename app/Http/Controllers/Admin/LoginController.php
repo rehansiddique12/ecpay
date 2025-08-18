@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
-{   
+{
     protected $googleAuthenticatorService;
 
     protected $redirectTo = '/admin/dashboard';
@@ -59,7 +59,23 @@ class LoginController extends Controller
 
 
             Session::put('login_timestamp', $timestamp);
-            
+
+
+
+            // if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
+
+
+
+            //     $ipAddress = $_SERVER['REMOTE_ADDR'];
+            //     $user = Auth::guard('admin')->user();
+
+
+            //     return redirect()->intended(route('admin.dashboard'));
+            // }else{
+            //     return redirect()->route('admin.login')
+            //         ->with('error','Email-Address And Password Are Wrong.');
+            // }
+
             $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
                 ->first();
             if($TwoStepVerification){
@@ -69,12 +85,12 @@ class LoginController extends Controller
                         if($checkResult){
                             if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
-                                
-                                
+
+
                                 $ipAddress = $_SERVER['REMOTE_ADDR'];
-                                $user = Auth::guard('admin')->user();                             
-            
-            
+                                $user = Auth::guard('admin')->user();
+
+
                                 return redirect()->intended(route('admin.dashboard'));
                             }else{
                                 return redirect()->route('admin.login')
@@ -87,14 +103,14 @@ class LoginController extends Controller
                     return view('admin.auth.2fa', compact('data'));
                 }
             }
-            
+
         }
-        
+
         if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
-            
+
                                 $ipAddress = $_SERVER['REMOTE_ADDR'];
                                 $user = Auth::guard('admin')->user();
-                                
+
             return redirect()->intended(route('admin.dashboard'));
         }else{
             return redirect()->route('admin.login')
