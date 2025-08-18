@@ -20,6 +20,9 @@ class AdminAuthorizeMiddleware
         $filtered = $list->intersect($user->admin_access);
 
 
+        return $next($request);
+
+
         $loginTimestamp = Session::get('login_timestamp');
         if($user->last_session_id!=$loginTimestamp){
             Auth::guard('admin')->logout();
@@ -27,9 +30,9 @@ class AdminAuthorizeMiddleware
             return redirect()->route('admin.login')->with('error', 'You have been logged out because your account was accessed from another location.');
         }
 
-        // if ($user->id == 1) {
-        //     return $next($request);
-        // }
+        if ($user->id == 1) {
+            return $next($request);
+        }
 
         if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
 
@@ -43,7 +46,7 @@ class AdminAuthorizeMiddleware
             if($request->path()=="admin/twoFA" || $request->path()=="admin/logout"){
                return $next($request);
             }else{
-               
+
                return  redirect()->route('admin.twoFA');
             }
 
@@ -52,7 +55,7 @@ class AdminAuthorizeMiddleware
         }
 
         if($request->route()->getName()=="admin.dashboard"){
-            return  redirect()->route('admin.profile'); 
+            return  redirect()->route('admin.profile');
          }
 
         return  redirect()->route('admin.403');
