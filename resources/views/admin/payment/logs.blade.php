@@ -161,8 +161,7 @@
 
                                 <td data-label="{{ __('transaction.status') }}" class="text-lg-center text-right">
                                     @if ($fund->status == 'Confirm')
-                                        <span class="badge bg-info"><i
-                                                class="fa fa-circle text-white font-12"></i>
+                                        <span class="badge bg-info"><i class="fa fa-circle text-white font-12"></i>
                                             Confirmed</span>
                                     @elseif ($fund->status == 'Pending')
                                         @php
@@ -276,13 +275,11 @@
                                             data-username="{{ optional($fund->user)->username }}"
                                             data-route="{{ route('admin.payment.action', $fund->id) }}"
                                             data-status="{{ $fund->status }}" data-sender="{{ $fund->sender }}"
-
-                                            data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view'))?1:0 }}"
-                                            data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view'))?1:0 }}"
+                                            data-confirm="{{ adminAccessRoute(config('role.depositconfirm.access.view')) ? 1 : 0 }}"
+                                            data-approved="{{ adminAccessRoute(config('role.depositapporve.access.view')) ? 1 : 0 }}"
                                             data-txn_id="{{ $fund->txn_id }}"
                                             data-e_wallet_type="{{ $fund->e_wallet_type }}"
                                             data-date_time="{{ $fund->date_time }}"
-
                                             data-e_wallet_phone_number="{{ $fund->e_wallet_phone_number }}">
 
                                             <i class="icon-base ti tabler-pencil me-1"></i>
@@ -342,15 +339,15 @@
 
                 ?>
                 {{-- <form role="form" class="actionRoute" action=""> --}}
-                   {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
-                   <div id="form_div">
-                <form role="form" method="POST" class="actionRoute" action=""
-                    enctype="multipart/form-data" onsubmit="submitForm(this)">
-                    @csrf
-                    @method('put')
-                    <div class="modal-body">
-                        <ul class="list-group withdraw-detail">
-                        </ul>
+                {{-- @if (adminAccessRoute(config('role.depositconfirm.access.view')) || adminAccessRoute(config('role.depositapporve.access.view'))) --}}
+                <div id="form_div">
+                    <form role="form" method="POST" class="actionRoute" action=""
+                        enctype="multipart/form-data" onsubmit="submitForm(this)">
+                        @csrf
+                        @method('put')
+                        <div class="modal-body">
+                            <ul class="list-group withdraw-detail">
+                            </ul>
 
                         <div class="get-feedback">
                             <label>{{ __('transaction.sender_acc_no') }}</label>
@@ -365,39 +362,39 @@
                                 <option value="Personal">{{ __('transaction.personal') }}</option>
                                 <option value="Merchant">{{ __('transaction.merchant') }}</option>
                             </select>
-                            
+
                             <label>{{ __('transaction.payment_receiving_datetime') }}</label>
                             <input class="form-control date_time" id="e_wallet_phone_number" required
                                 value="<?php echo date('Y-m-d\TH:i'); ?>" name="date_time" type="datetime-local" />
-                            <div id="2fa_div">   
+                            <div id="2fa_div">
                             <label>{{ __('transaction.2fa') }}</label>
                             <input class="form-control" name="twofa" type="text" />
-                            </div> 
+                            </div>
 
-                            <input type="hidden" name="status" id="setstatus">
+                                <input type="hidden" name="status" id="setstatus">
 
                             <div id="confirm_div">
-                            
+
                             <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
                                 value="Confirm">{{ __('transaction.confirm') }}</button>
                             </div>
                                <div id="approve_div">
-                            
+
                             <button type="submit" class="btn btn-primary mt-2" id="approvebtn" name="submit"
                                 value="Complete">{{ __('transaction.approve') }}</button>
                                </div>
 
                                <div id="update_div">
-                            
+
                             <button type="submit" class="btn btn-success mt-2" id="approvebtn" name="submit"
                                 value="Update">Edit</button>
                             </div>
 
-                        </div>
+                            </div>
 
-                        <input type="hidden" class="action_id" name="id">
-                    </div>
-                </form>
+                            <input type="hidden" class="action_id" name="id">
+                        </div>
+                    </form>
                 </div>
                 {{-- @endif --}}
                 <form role="form" method="POST" class="actionRoute" action=""
@@ -573,7 +570,9 @@
                     var e_wallet_type = jQuery(this).data('e_wallet_type');
 
 
-                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject' || t_status === 'Complete')) || (t_approved == 1 && (t_status === 'Confirm' || t_status === 'Complete')))) {
+                    if (((u_confirm == 1 && (t_status === 'Pending' || t_status === 'Reject' || t_status ===
+                            'Complete')) || (t_approved == 1 && (t_status === 'Confirm' || t_status ===
+                            'Complete')))) {
                         // Show the form
                         jQuery("#form_div").show();
 
@@ -582,7 +581,7 @@
                         jQuery("#approve_div").hide();
                         jQuery("#update_div").hide();
 
-                        
+
 
                         // If (status is Pending or Reject) AND u_confirm == 1 → show confirm_div
                         if ((t_status === 'Pending' || t_status === 'Reject') && u_confirm == 1) {
@@ -594,9 +593,7 @@
                         else if (t_status === 'Confirm' && t_approved == 1) {
                             jQuery("#approve_div").show();
                             jQuery("#setstatus").val('Complete');
-                        }
-
-                        else if (t_status === 'Complete' && (t_approved == 1 || u_confirm == 1)) {
+                        } else if (t_status === 'Complete' && (t_approved == 1 || u_confirm == 1)) {
                             jQuery("#update_div").show();
                             jQuery("#setstatus").val('Update');
                         }

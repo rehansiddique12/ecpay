@@ -21,9 +21,9 @@ $isPartnerActive = in_array(Route::currentRouteName(), [
 'admin.commission.categories.index',
 ]);
 $isReportsActive = in_array(Route::currentRouteName(), [
-'admin.reports.live_ewallet_balance',
-'admin.reports.daily_ewallet_summary',
-'admin.reports.daily_transection_summary',
+    'admin.reports.live_ewallet_balance',
+    'admin.reports.daily_ewallet_summary',
+    'admin.reports.daily_transection_summary',
 'admin.reports.merchant_charges_summary',
 'admin.reports.merchant_charges_summary.search',
 'admin.reports.partner_account_summary',
@@ -36,7 +36,7 @@ $isReportsActive = in_array(Route::currentRouteName(), [
 'admin.reports.cal2',
 'admin.reports.master_report',
 'admin.payment_gateway_performance_report',
-
+'admin.ewallet_commission_summary',
 'admin.type',
 ]);
 // $isMerchantReportsActive = in_array(Route::currentRouteName(), [
@@ -694,7 +694,7 @@ $languages = [
                                     <div data-i18n="Blacklist">Blacklist</div>
                                 </a>
                             </li>
-                            
+
                             @endif
 
                             @if (adminAccessRoute(config('role.ocrimages.access.view')))
@@ -1238,6 +1238,14 @@ $languages = [
                             </a>
                         </li>
                         @endif
+                        {{-- @if (adminAccessRoute(config('role.ewallet_commission_summary.access.view'))) --}}
+                        <li class="menu-item {{ Route::currentRouteName() == 'admin.type' ? 'active' : '' }}">
+                            <a href="{{ route('admin.ewallet_commission_summary') }}" class="menu-link">
+                                <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                <div data-i18n="Ewallet_Commission_Summary">{{ __('sidebar.ewallet_commission_summary') }}</div>
+                            </a>
+                        </li>
+                        {{-- @endif --}}
                     </ul>
                 </li>
                 @if (adminAccessRoute(config('role.merchant_reports.access.view')))

@@ -445,9 +445,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/rolescategory', [UsersController::class, 'addRole'])->name('roles.add');
         Route::get('roles/list', [UsersController::class, 'getRoles'])->name('roles.list');
 
+        // Ewallet Commission Summary Route::
+        Route::get('ewalletcommissionsummary/repoet', [PaymentLogController::class, 'ewallet_commission_summary'])->name('ewallet_commission_summary');
+
+
+
         Route::get('payment/log', [PaymentLogController::class, 'index'])->name('payment.log');
-        Route::get('/admin/payment/export', [PaymentLogController::class, 'export_payment_logs'])->name('payment_log_export');
         Route::get('payment/log2', [PaymentLogController::class, 'log2'])->name('payment.log2');
+        Route::get('payment/export', [PaymentLogController::class, 'export_payment_logs'])->name('payment_log_export');
         Route::get('payment/search', [PaymentLogController::class, 'search'])->name('payment.search');
         Route::put('payment/update_e_wallet', [PaymentLogController::class, 'update_e_wallet'])->name('payment.update_e_wallet');
         Route::post('/accounts/run/callback/deposit', [PaymentLogController::class, 'runCallback'])->name('run.deposit.callback');
