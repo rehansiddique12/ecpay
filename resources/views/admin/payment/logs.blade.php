@@ -62,8 +62,12 @@
                     <div class="form-group d-flex gap-5">
                         <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search"></i>
                             {{ __('transaction.search') }}</button>&nbsp;
-                        <button type="submit" name="export" value="export" class="btn btn-success mt-1"><i
-                                class="icon-base ti tabler-download"></i> {{ __('transaction.export_data') }}</button>
+                        <button class="btn btn-success">
+                            <a href="{{ route('admin.payment_log_export', ['name' => request()->name, 'partner_transection_id' => request()->partner_transection_id, 'status' => request()->status, 'date_time' => request()->date_time, 'website' => request()->website]) }}"
+                                class="btn waves-effect waves-light btn-success">
+                                <i class="icon-base ti tabler-download me-1"></i>{{ __('merchant_reports.export') }}
+                            </a>
+                        </button>
                     </div>
                 </div>
             </div>

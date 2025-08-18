@@ -1673,6 +1673,7 @@ class TelegramGroupController extends Controller
                                             $payment_fee = $payment->charge;
                                             $payment_commission = $payment->comm;
                                             $payment_e_wallet_charges = 0;
+                                            $payment_amount = $payment->amount;
                                         }
                                             
 
@@ -1689,6 +1690,7 @@ class TelegramGroupController extends Controller
                                         $payment_fee = $payment->fee;
                                         $payment_commission = $payment->commission;
                                         $payment_e_wallet_charges = $payment->e_wallet_charges;
+                                        $payment_amount = $payment->amount;
 
                                         $payment_query = 1;
                                     }
@@ -1708,6 +1710,73 @@ class TelegramGroupController extends Controller
                                     if($payment){
                                         LaravelLog::info("if if: ");
                                         if($payment){
+
+                                            if($amount!=$payment_amount){
+                                                $preamount = $amount;
+                                                $amounttogetstring = (string)$preamount;
+                                                if ($amounttogetstring[0] === '6') {
+                                                    $amount = substr($amounttogetstring, 1);
+                                                    if($amount!=$payment_amount){
+                                                        $amounttofind = $amount / 1.0185;
+                                                        $amounttofind1 = $amount / 0.0185;
+                                                        $amounttofind = round($amounttofind);
+                                                        $amounttofind1 = round($amounttofind1);
+                                                        if($amounttofind==$payment_amount){
+                                                            $amount = $amounttofind;
+                                                        }elseif($amounttofind1==$payment_amount){
+                                                            $amount = $amounttofind1;
+                                                        }
+                                                    }
+                                                }else{
+                                                    if($amount!=$payment_amount){
+                                                        $amounttofind = $amount / 1.0185;
+                                                        $amounttofind1 = $amount / 0.0185;
+                                                        $amounttofind = round($amounttofind);
+                                                        $amounttofind1 = round($amounttofind1);
+                                                        if($amounttofind==$payment_amount){
+                                                            $amount = $amounttofind;
+                                                        }elseif($amounttofind1==$payment_amount){
+                                                            $amount = $amounttofind1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+
+                                            if($amount!=$payment_amount){
+                                                $support_chat_id = "-4786890063";
+                                                $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
+                                                $url_support = "https://api.telegram.org/bot{$botToken_supprot}/sendMessage";
+                                                $message_support = "";
+                                                $message_support .= "?? *Transaction Not Found* ??\n\n";
+                                                $message_support .= " *Merchant Order:* `".$deposit->partner_transection_id."`\n";
+                                                $message_support .= " *Transaction ID:* `".$txnId."`\n";
+                                                $message_support .= " *Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
+                                                $message_support .= " *Remark:* Transaction ID not found in system.\n";
+                                                $message_support .= " *Status:* `Pending`\n";
+                                                $message_support .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
+                                                
+                                                $response = Http::post($url_support, [
+                                                    'chat_id' => $support_chat_id,
+                                                    'text' => $message_support,
+                                                    'parse_mode' => 'Markdown',
+                                                ]);
+                                                
+                                                $message = sprintf($this->messages[$api->lang]['transaction_pending'], 
+                                                    $deposit->partner_transection_id,
+                                                    $deposit->id,
+                                                    $txnId,
+                                                    (isset($amount) ? $amount : "Not found")
+                                                );
+                                                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                    'chat_id' => $TG_message['chat']['id'],
+                                                    'text' => $message,
+                                                    'parse_mode' => 'Markdown',
+                                                    'reply_to_message_id' => $TG_message['message_id']
+                                                ]);
+                                                
+                                                $image_processed=1;
+                                            }
 
                                             
 
