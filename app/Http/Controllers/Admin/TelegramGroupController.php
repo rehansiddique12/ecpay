@@ -1944,6 +1944,9 @@ class TelegramGroupController extends Controller
                                             $amount = (float)$amount;
                                             $amount = (float) number_format($amount, 2, '.', '');
 
+
+                                            $new_order = 0;
+
                                             if($amount>0){
                                                 $final_amo = getAmount($amount - $charge);
 
@@ -1976,6 +1979,9 @@ class TelegramGroupController extends Controller
                                                         $order->e_wallet_phone_number = $deposit->e_wallet_phone_number;
                                                         $order->request_source = "Telegram";
                                                         $order->save();
+
+
+                                                        $new_order = 1;
 
 
                                                         $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
@@ -2284,14 +2290,27 @@ class TelegramGroupController extends Controller
                                                     'parse_mode' => 'Markdown',
                                                 ]);
 
-
                                                     $message = "";
-                                                    $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
-                                                    $message .= "*Merchant Order:* `".$order->partner_transection_id."`\n";
+                                                    if($new_order==1){
+                                                        $message .= "Order amount is not same as payment receipt. New Merchant Order has been created and sent.\n\n";
+                                                        $message .= "*Original Order:* `".$orderNumber."`\n";
+                                                        $message .= "*New Merchant Order:* `".$order->partner_transection_id."`\n";
+                                                    }else{
+                                                        $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
+                                                        $message .= "*Merchant Order:* `".$order->partner_transection_id."`\n";
+                                                    }
+
+                                                    
+                                                    
+                                                    
                                                     $message .= "*Order Id:* `".$order->id."`\n";
                                                     $message .= "*Transaction ID:* `".$txnId."`\n";
                                                     $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                     $message .= "*Status:* `Complete`\n";
+
+                                                    if($new_order==1){
+                                                        $message .= "\nYour transaction has been marked as completed, and the callback has also been sent.";
+                                                    }
 
                                                     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                                                         'chat_id' => $TG_message['chat']['id'],

@@ -5926,18 +5926,17 @@ if ($member_id) {
         $attempt = 0;
         $success = 0;
 
+
+        
+
         $txn_id = "";
         if ($request->filled('txn')) {
             $txn_id = $request->txn;
         }
 
-        while ($attempt < $maxAttempts && $success == 0) {
-            LaravelLog::info('verifytxn-PartnerController try(' . $attempt + 1 . ') txn_id: ' . $txn_id);
 
-            DB::beginTransaction();
-            try {
                 $track = session()->get('track');
-                $order = Payment::where('transaction', $track)->where('status', 'Pending')->orderBy('id', 'DESC')->lockForUpdate()->first();
+                
 
                 $username = session()->get('username');
                 $api_key = API::where('username', $username)->where('status', 1)->lockForUpdate()->first();
@@ -5964,14 +5963,30 @@ if ($member_id) {
                 $now = Carbon::now();
                 $twoHoursAgo = $now->subHours(2);
 
+
+                $orderrr = Payment::where('transaction', $track)->orderBy('id', 'DESC')->first();
+
                 $Txn = Txn::where('txn_no', $request->txn)->where('api_id', $api_id)->orderBy('id', 'DESC')->first();
                 if (!$Txn) {
                     $Txn = new Txn();
                     $Txn->txn_no = $request->txn;
                     $Txn->api_id = $api_id;
-                    $Txn->partner_transection_id = $order->partner_transection_id;
+                    $Txn->partner_transection_id = $orderrr->partner_transection_id;
                     $Txn->save();
                 }
+
+
+        
+
+        while ($attempt < $maxAttempts && $success == 0) {
+            LaravelLog::info('verifytxn-PartnerController try(' . $attempt + 1 . ') txn_id: ' . $txn_id);
+
+            DB::beginTransaction();
+            try {
+                
+
+
+                $order = Payment::where('transaction', $track)->where('status', 'Pending')->orderBy('id', 'DESC')->lockForUpdate()->first();
 
                 $payment_record = PendingPayment::where('txn_id', $request->txn)->where('status', 0)->where('created_at', '>=', $twoHoursAgo)->orderBy('id', 'DESC')->lockForUpdate()->first();
                 if (!$payment_record) {
