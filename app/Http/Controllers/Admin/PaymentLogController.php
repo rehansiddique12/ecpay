@@ -111,6 +111,7 @@ class PaymentLogController extends Controller
                 DB::raw('DATE(created_at) as payment_date'),
                 'e_wallet_phone_number',
                 'e_wallet_name',
+                'e_wallet_type',
                 DB::raw('SUM(commission) as total_commission')
             )
             ->when($request->from_date && $request->to_date, function ($q) use ($request) {
@@ -118,39 +119,97 @@ class PaymentLogController extends Controller
                     $request->from_date,
                     $request->to_date
                 ]);
+            }, function ($q) {
+                $q->whereDate('created_at', today());
             })
-            ->when($request->e_wallet_name, function ($q) use ($request) {
-                $q->where('e_wallet_name', $request->e_wallet_name);
-            })
-            ->when($request->e_wallet_phone_number, function ($q) use ($request) {
-                $q->where('e_wallet_phone_number', $request->e_wallet_phone_number);
-            })
+            ->when($request->e_wallet_name, fn($q) => $q->where('e_wallet_name', $request->e_wallet_name))
+            ->when($request->e_wallet_type, fn($q) => $q->where('e_wallet_type', $request->e_wallet_type))
+            ->when($request->e_wallet_phone_number, fn($q) => $q->where('e_wallet_phone_number', $request->e_wallet_phone_number))
             ->groupBy(
                 DB::raw('DATE(created_at)'),
                 'e_wallet_phone_number',
-                'e_wallet_name'
+                'e_wallet_name',
+                'e_wallet_type'
             )
             ->orderByDesc('payment_date');
 
-        // Clone for total commission
         $totalCommission = (clone $query)->get()->sum('total_commission');
-
-        // Paginate results
         $records = $query->paginate(50);
 
-        // View data
         $pageTitle = 'E-Wallet Commission Summary';
         $title = 'Commission Summary';
         $partners = [];
 
         return view('admin.reports.ewallet_commission_summary', compact(
-            'records',
-            'pageTitle',
-            'title',
-            'partners',
-            'totalCommission'
+            'records', 'pageTitle', 'title', 'partners', 'totalCommission'
         ));
     }
+
+
+    public function ewallet_commission_by_wallet(Request $request)
+{
+    $query = DB::table('payments')
+        ->select(
+            'e_wallet_name',
+            DB::raw('SUM(commission) as total_commission')
+        )
+        ->when($request->from_date && $request->to_date, function ($q) use ($request) {
+            $q->whereBetween(DB::raw('DATE(created_at)'), [
+                $request->from_date,
+                $request->to_date
+            ]);
+        }, function ($q) {
+            $q->whereDate('created_at', today());
+        })
+        ->groupBy('e_wallet_name')
+        ->orderByDesc('total_commission');
+
+    $totalCommission = (clone $query)->get()->sum('total_commission');
+    $records = $query->paginate(50);
+
+    $pageTitle = 'E-Wallet Commission by Wallet Name';
+    $title = 'Commission by Wallet';
+    $partners = [];
+
+    return view('admin.reports.ewallet_commission_by_wallet', compact(
+        'records', 'pageTitle', 'title', 'partners', 'totalCommission'
+    ));
+}
+
+
+public function ewallet_commission_by_wallet_type(Request $request)
+{
+    $query = DB::table('payments')
+        ->select(
+            'e_wallet_type',
+            'e_wallet_name',
+            DB::raw('SUM(commission) as total_commission')
+        )
+        ->when($request->from_date && $request->to_date, function ($q) use ($request) {
+            $q->whereBetween(DB::raw('DATE(created_at)'), [
+                $request->from_date,
+                $request->to_date
+            ]);
+        }, function ($q) {
+            $q->whereDate('created_at', today());
+        })
+        ->groupBy('e_wallet_type',
+        'e_wallet_name',
+        )
+        ->orderByDesc('total_commission');
+
+    $totalCommission = (clone $query)->get()->sum('total_commission');
+    $records = $query->paginate(50);
+
+    $pageTitle = 'E-Wallet Commission by Wallet Type';
+    $title = 'Commission by Wallet';
+    $partners = [];
+
+    return view('admin.reports.ewallet_commission_by_wallet_type', compact(
+        'records', 'pageTitle', 'title', 'partners', 'totalCommission'
+    ));
+}
+
 
 
 

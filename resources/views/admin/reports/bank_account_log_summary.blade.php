@@ -36,7 +36,10 @@
                 <div class="form-group">
                     <label>Select Account</label>
                     <select name="account_number" class="form-control" id="account-number-select">
-                        <option value="">All Account</option>
+                    <option value="">All Account</option>
+                        @foreach ($EwalletNames as $EwalletName)
+                        <option value="{{ $EwalletName }}"  {{ isset($account_number) && $account_number == $EwalletName ? 'selected' : '' }}>{{ $EwalletName }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
