@@ -20,14 +20,10 @@
 
             <div class="col-md-3">
                 <div class="form-group">
-                    <label>Banks</label>
+                    <label>Gateways</label>
                     <select name="bank_name" class="form-control" id="bank-name-select">
-                        <option value="">Select Bank</option>
-                        @foreach ($EwalletNames as  $bank)
-                        <option value="{{ $bank }}" {{ isset($bank_name) && $bank_name == $bank ? 'selected' : '' }}>
-                            {{strtoupper($bank)}}
-                        </option>
-                        @endforeach
+                        <option value="">Select Gateway</option>
+
                     </select>
                 </div>
             </div>
@@ -37,26 +33,11 @@
                     <label>Select Account</label>
                     <select name="account_number" class="form-control" id="account-number-select">
                     <option value="">All Account</option>
-                        @foreach ($EwalletNames as $EwalletName)
-                        <option value="{{ $EwalletName }}"  {{ isset($account_number) && $account_number == $EwalletName ? 'selected' : '' }}>{{ $EwalletName }}</option>
-                        @endforeach
                     </select>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label>Filter By Type</label>
-                    <select name="filter_type" class="form-control">
-                        <option value="">All</option>
-                        <option value="1" {{ isset($filter_type) && $filter_type == 1 ? 'selected' : '' }}>Deposit</option>
-                        <option value="2" {{ isset($filter_type) && $filter_type == 2 ? 'selected' : '' }}>Withdrawal</option>
-                        <option value="3" {{ isset($filter_type) && $filter_type == 3 ? 'selected' : '' }}>Transfer In</option>
-                        <option value="4" {{ isset($filter_type) && $filter_type == 4 ? 'selected' : '' }}>Transfer Out</option>
 
-                    </select>
-                </div>
-            </div>
 
             <div class="col-md-3">
                 <div class="form-group">
@@ -164,7 +145,7 @@
     </thead>
     <tbody>
         @foreach ($transactions as $transaction)
-
+{{-- @dd($transaction) --}}
             <tr>
                 {{-- Bank --}}
                 <td>{{ $transaction->bank ?? 'N/A' }}</td>
@@ -240,5 +221,60 @@
 
     </div>
     @push('js')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function loadGateways() {
+                let from_date = $('#from_date').val();
+                let to_date = $('#to_date').val();
+
+                $.ajax({
+                    url: "{{ route('admin.bank_account.gateways') }}",
+                    type: "GET",
+                    data: { from_date, to_date },
+                    success: function(data) {
+                        let gatewaySelect = $('#bank-name-select');
+                        gatewaySelect.empty();
+                        gatewaySelect.append('<option value="">Select Gateway</option>');
+
+                        $.each(data, function(index, item) {
+                            gatewaySelect.append('<option value="'+ item +'">'+ item +'</option>');
+                        });
+                    }
+                });
+            }
+
+            // Load gateways when date changes
+            $('#from_date, #to_date').on('change', function() {
+                loadGateways();
+            });
+
+            // When gateway is selected, load accounts
+            $('#bank-name-select').on('change', function() {
+                let bank_name = $(this).val();
+                let from_date = $('#from_date').val();
+                let to_date = $('#to_date').val();
+
+                $.ajax({
+                    url: "{{ route('admin.bank_account.accounts') }}",
+                    type: "GET",
+                    data: { bank_name, from_date, to_date },
+                    success: function(data) {
+                        let accountSelect = $('#account-number-select');
+                        accountSelect.empty();
+                        accountSelect.append('<option value="">All Accounts</option>');
+
+                        $.each(data, function(index, item) {
+                            accountSelect.append('<option value="'+ item +'">'+ item +'</option>');
+                        });
+                    }
+                });
+            });
+
+            // Load gateways initially
+            loadGateways();
+        });
+        </script>
+
     @endpush
 </x-admin-layout>

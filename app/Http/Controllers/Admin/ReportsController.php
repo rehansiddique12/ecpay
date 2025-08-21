@@ -662,6 +662,7 @@ class ReportsController extends Controller
 
     public function bank_account_log_summary(Request $request)
     {
+
         $search_date_column = 'created_at';
         $from_date = $request->filled('from_date') ? $request->from_date : now()->toDateString();
         $to_date = $request->filled('to_date') ? $request->to_date : now()->toDateString();
@@ -711,11 +712,12 @@ class ReportsController extends Controller
         }
 
         if ($account_number) {
+            // dd($account_number);
             // Check for matching account_number in both the 'sender' column and 'e_Wallet_name' in EWalletAccount
             $payments->where(function ($query) use ($account_number) {
                 $query->where('sender', $account_number)
                       ->orWhereHas('eWalletLog', function ($q) use ($account_number) {
-                          $q->where('e_Wallet_name', $account_number);
+                          $q->where('e_wallet_phone_number', $account_number);
                       });
             });
         }
@@ -784,7 +786,7 @@ class ReportsController extends Controller
             ->whereDate('created_at', '<=', $to_date);
 
         if ($bank_name) {
-            $ewalletTransfers->where('domain', $bank_name);
+            $ewalletTransfers->where('e_wallet', $bank_name);
         }
 
         // if ($account_number) {
@@ -854,16 +856,43 @@ class ReportsController extends Controller
 
         $merged = $merged->merge($transfers->map(function ($item) {
             return (object)[
-                'type' => $item->transaction_type == 3 ? 'transfer_in' : 'transfer_out',
+                'type' => 'transfer_out',
+                'bank' => $item->e_wallet,
                 'amount' => $item->amount,
                 'status' => 1,
                 'created_at' => $item->created_at,
-                'gateway_alias' => $item->domain,
+                'completion_date_time' => $item->updated_at,
+                'gateway_alias' => $item->e_wallet,
+                'transaction_type' => null,
+                'account_number' => $item->from_account_no ?? null,
+                'eWalletLog' => null,
                 'diff' => null,
                 'balance' => null,
                 'previous_balance' => null,
                 'partner_name' => null,
                 'transaction_number' => null,
+                'remarks' => null,
+            ];
+        }));
+
+        $merged = $merged->merge($transfers->map(function ($item) {
+            return (object)[
+                'type' => 'transfer_in',
+                'bank' => $item->e_wallet,
+                'amount' => $item->amount,
+                'status' => 1,
+                'created_at' => $item->created_at,
+                'completion_date_time' => $item->updated_at,
+                'gateway_alias' => $item->e_wallet,
+                'transaction_type' => null,
+                'account_number' => $item->to_account_no ?? null,
+                'eWalletLog' => null,
+                'diff' => null,
+                'balance' => null,
+                'previous_balance' => null,
+                'partner_name' => null,
+                'transaction_number' => null,
+                'remarks' => null,
             ];
         }));
 
@@ -893,7 +922,6 @@ class ReportsController extends Controller
             $page,
             ['path' => $request->url(), 'query' => $request->query()]
         );
-
         $pageTitle = "E-wallet Log Summary";
         return view('admin.reports.bank_account_log_summary', compact(
             'pageTitle',
@@ -910,6 +938,81 @@ class ReportsController extends Controller
             'apisList',
             'merchant',
         ));
+    }
+
+
+    public function getGateways(Request $request)
+    {
+        $from_date = $request->filled('from_date') ? $request->from_date : now()->toDateString();
+        $to_date   = $request->filled('to_date') ? $request->to_date : now()->toDateString();
+
+        // Get from payments
+        $payments = Payment::select('e_wallet_name as gateway')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('gateway')
+            ->toArray();
+
+        // Get from payouts
+        $payouts = Payout::select('e_wallet_name as gateway')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('gateway')
+            ->toArray();
+
+        // Get from EWalletTransfer
+        $transfers = EWalletTransfer::select('e_wallet as gateway')
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('gateway')
+            ->toArray();
+
+        // Merge all + make distinct (case-insensitive)
+        $gateways = collect(array_merge($payments, $payouts, $transfers))
+            ->map(fn($item) => strtolower($item)) // normalize for uniqueness
+            ->unique()
+            ->map(fn($item) => ucfirst($item))    // optional: format back
+            ->values();
+
+        return response()->json($gateways);
+    }
+
+
+
+    public function getAccounts(Request $request)
+    {
+        $from_date = $request->filled('from_date') ? $request->from_date : now()->toDateString();
+        $to_date   = $request->filled('to_date') ? $request->to_date : now()->toDateString();
+        $wallet    = $request->bank_name;
+
+        // Fetch accounts from payments table
+        $paymentAccounts = Payment::select('e_wallet_phone_number')
+            ->where('e_wallet_name', $wallet)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('e_wallet_phone_number');
+
+         $payoutAccounts = Payout::select('e_wallet_phone_number')
+            ->where('e_wallet_name', $wallet)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('e_wallet_phone_number');
+
+        // Fetch accounts from e_wallet_transfers table (both from and to accounts)
+        $transferFromAccounts = EWalletTransfer::select('from_account_no')
+            ->where('e_wallet', $wallet)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('from_account_no');
+
+        $transferToAccounts = EWalletTransfer::select('to_account_no')
+            ->where('e_wallet', $wallet)
+            ->whereBetween('created_at', [$from_date, $to_date])
+            ->pluck('to_account_no');
+
+        // Merge all accounts
+        $accounts = $paymentAccounts
+            ->merge($payoutAccounts)
+            ->merge($transferFromAccounts)
+            ->merge($transferToAccounts)
+            ->unique()
+            ->values(); // remove duplicates & reset keys
+
+        return response()->json($accounts);
     }
 
 
