@@ -445,13 +445,16 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::post('/rolescategory', [UsersController::class, 'addRole'])->name('roles.add');
         Route::get('roles/list', [UsersController::class, 'getRoles'])->name('roles.list');
 
+
+        Route::get('ipwhitelist', [TrackController::class, 'whitelist'])->name('whitelist');
+        Route::post('whitelist/store', [TrackController::class, 'whitelistStore'])->name('whitelist.store');
+        Route::post('whitelist/update/{id}', [TrackController::class, 'whitelistUpdate'])->name('whitelist.update');
+        Route::delete('whitelist/delete/{id}', [TrackController::class, 'whitelistDelete'])->name('whitelist.delete');
+
         // Ewallet Commission Summary Route::
         Route::get('ewalletcommissionsummary/report', [PaymentLogController::class, 'ewallet_commission_summary'])->name('ewallet_commission_summary');
         Route::get('ewallet-commission-by-wallet', [PaymentLogController::class, 'ewallet_commission_by_wallet'])->name('ewallet_commission_by_wallet');
         Route::get('ewallet-commission-by-wallet_type', [PaymentLogController::class, 'ewallet_commission_by_wallet_type'])->name('ewallet_commission_by_wallet_type');
-
-
-
 
         Route::get('payment/log', [PaymentLogController::class, 'index'])->name('payment.log');
         Route::get('payment/log2', [PaymentLogController::class, 'log2'])->name('payment.log2');

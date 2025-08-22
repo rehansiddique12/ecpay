@@ -1,6 +1,5 @@
 <x-admin-layout :title="$pageTitle">
     
-
     <!-- Add these lines to your HTML header section -->
     <link rel="stylesheet" href="{{ asset('node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.css') }}">
     <script src="{{ asset('node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.js') }}"></script>
@@ -40,12 +39,12 @@
                                 </td>
                                 <td>{{ $record->created_at }}</td>
                                 <td>{{ $record->updated_at }}</td>
-                               
 
-                                
 
-                                
-                               
+
+
+
+
                             </tr>
                         @empty
                             <tr>
@@ -64,7 +63,7 @@
         </div>
     </div>
 
-  
+
 
 
 </x-admin-layout>

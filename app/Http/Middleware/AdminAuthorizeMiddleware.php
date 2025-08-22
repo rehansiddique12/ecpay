@@ -20,7 +20,7 @@ class AdminAuthorizeMiddleware
         $filtered = $list->intersect($user->admin_access);
 
 
-        // return $next($request);
+        return $next($request);
 
 
         $loginTimestamp = Session::get('login_timestamp');
@@ -30,9 +30,9 @@ class AdminAuthorizeMiddleware
             return redirect()->route('admin.login')->with('error', 'You have been logged out because your account was accessed from another location.');
         }
 
-        // if ($user->id == 1) {
-        //     return $next($request);
-        // }
+        if ($user->id == 1) {
+            return $next($request);
+        }
 
         if(!in_array($request->route()->getName(), $list->toArray()) ||  in_array($request->route()->getName(), $filtered->toArray()) ){
 
@@ -51,7 +51,7 @@ class AdminAuthorizeMiddleware
             }
 
 
-            // return $next($request);
+            return $next($request);
         }
 
         if($request->route()->getName()=="admin.dashboard"){

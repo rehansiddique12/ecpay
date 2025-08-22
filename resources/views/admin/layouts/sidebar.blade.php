@@ -101,6 +101,7 @@ $isMainActive = in_array(Route::currentRouteName(), [
 'admin.parant',
 'admin.workboard',
 'admin.users',
+'admin.whitelist',
 'admin.deposit.manual.index',
 ]);
 
@@ -707,6 +708,16 @@ $languages = [
                                 <a href="{{ route('admin.track.ocrimages') }}" class="menu-link">
                                     <i class="menu-icon icon-base ti tabler-menu-2"></i>
                                     <div data-i18n="OCR Images">OCR Images</div>
+                                </a>
+                            </li>
+                            @endif
+
+                            @if (adminAccessRoute(config('role.ip_whitelist.access.view')))
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.whitelist' ? 'active' : '' }}">
+                                <a href="{{ route('admin.whitelist') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="IP White List">IP White List</div>
                                 </a>
                             </li>
                             @endif

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Admin;
+use App\Models\IpWhitelist;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\TwoStepVerification;
@@ -12,8 +13,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Providers\RouteServiceProvider;
 use App\Services\GoogleAuthenticatorService;
-use Illuminate\Validation\ValidationException;
-
 use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
@@ -34,17 +33,18 @@ class LoginController extends Controller
         return view('admin.auth.login', $data);
     }
 
-    // Handle the login logic
+    // Handle login logic
     public function login(Request $request)
     {
+        $data = []; // ✅ initialize so compact('data') won’t break
 
         $input = $request->all();
+
         $this->validate($request, [
             $this->username() => 'required',
             'password' => 'required',
         ]);
-
-        $data['username'] = $request->username;
+         $data['username'] = $request->username;
         $data['password'] = $request->password;
 
 
@@ -56,86 +56,64 @@ class LoginController extends Controller
             $timestamp = time();
             $partner->last_session_id = $timestamp;
             $partner->save();
-
-
             Session::put('login_timestamp', $timestamp);
 
-
-
-            // if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
-
-
-
-            //     $ipAddress = $_SERVER['REMOTE_ADDR'];
-            //     $user = Auth::guard('admin')->user();
-
-
-            //     return redirect()->intended(route('admin.dashboard'));
-            // }else{
-            //     return redirect()->route('admin.login')
-            //         ->with('error','Email-Address And Password Are Wrong.');
-            // }
-
-            $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)->where('type', 'Admin')
+            // Check if 2FA is enabled
+            $TwoStepVerification = TwoStepVerification::where('user_id', $partner->id)
+                ->where('type', 'Admin')
                 ->first();
-            if($TwoStepVerification){
-                if($TwoStepVerification->g_auth_status=="Yes"){
-                    if(isset($request->otp)){
-                        $checkResult = $this->googleAuthenticatorService->verifyCode($TwoStepVerification->g_secret_key, $request->otp, 0);
-                        if($checkResult){
-                            if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
 
+            if ($TwoStepVerification && $TwoStepVerification->g_auth_status == "Yes") {
+                if (isset($request->otp)) {
+                     $user = Auth::guard('admin')->user();
+                    $checkResult = $this->googleAuthenticatorService
+                        ->verifyCode($TwoStepVerification->g_secret_key, $request->otp, 0);
+                    if ($checkResult) {
+                        if (Auth::guard('admin')->attempt([$fieldType => $input['username'], 'password' => $input['password']])) {
+                            $ipAddress = $request->ip();
+                            $user = Auth::guard('admin')->user();
 
-
-                                $ipAddress = $_SERVER['REMOTE_ADDR'];
-                                $user = Auth::guard('admin')->user();
-
-
-                                return redirect()->intended(route('admin.dashboard'));
-                            }else{
+                            // ✅ IP Whitelist check
+                            if (!$this->checkIpWhitelist($user->id, $ipAddress)) {
+                                Auth::guard('admin')->logout();
                                 return redirect()->route('admin.login')
-                                    ->with('error','Email-Address And Password Are Wrong.');
+                                    ->with('error', 'You have no permission to login from this IP: ' . $ipAddress);
                             }
+
+                            return redirect()->intended(route('admin.dashboard'));
+                        } else {
+                            return redirect()->route('admin.login')
+                                ->with('error', 'Email-Address And Password Are Wrong.');
                         }
-                        $data['wrong'] = 'wrong';
-                        return view('admin.auth.2fa', compact('data'));
                     }
+
+                    $data['wrong'] = 'wrong';
                     return view('admin.auth.2fa', compact('data'));
                 }
+                return view('admin.auth.2fa', compact('data'));
+                 }
+        }
+
+        // Default login if no 2FA
+        if (Auth::guard('admin')->attempt([$fieldType => $input['username'], 'password' => $input['password']])) {
+            $ipAddress = $request->ip();
+            $user = Auth::guard('admin')->user();
+
+            // ✅ IP Whitelist check
+            if (!$this->checkIpWhitelist($user->id, $ipAddress)) {
+                Auth::guard('admin')->logout();
+                return redirect()->route('admin.login')
+                    ->with('error', 'You have no permission to login from this IP: ' . $ipAddress);
             }
 
-        }
-
-        if(Auth::guard('admin')->attempt(array($fieldType => $input['username'], 'password' => $input['password']))){
-
-                                $ipAddress = $_SERVER['REMOTE_ADDR'];
-                                $user = Auth::guard('admin')->user();
-
             return redirect()->intended(route('admin.dashboard'));
-        }else{
+        } else {
             return redirect()->route('admin.login')
-                ->with('error','Email-Address And Password Are Wrong.');
+                ->with('error', 'Email-Address And Password Are Wrong.');
         }
-
-
-        // $input = $request->all();
-
-        // // Validate the request
-        // $this->validateLogin($request);
-
-        // // Determine if the user is logging in with email or username
-        // $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-
-        // // Attempt to log the user in
-        // if (Auth::guard('admin')->attempt([$fieldType => $input['username'], 'password' => $input['password']])) {
-        //     return $this->sendLoginResponse($request);
-        // } else {
-        //     return redirect()->route('admin.login')
-        //         ->with('error', 'Email-Address or Username and Password are wrong.');
-        // }
     }
 
-    // Define the username field (either email or username)
+    // Username field
     public function username()
     {
         $login = request()->input('username');
@@ -144,7 +122,7 @@ class LoginController extends Controller
         return $field;
     }
 
-    // Validate the login form input
+    // Validate login input
     protected function validateLogin(Request $request)
     {
         $request->validate([
@@ -153,77 +131,54 @@ class LoginController extends Controller
         ]);
     }
 
-    // Define which authentication guard to use (for admins)
-
-    // Handle logout and clear the session
-    // public function logout(Request $request)
-    // {
-    //     // $this->guard()->logout();
-    //     Auth::guard('admin')->logout();
-    //     $request->session()->forget('admin');
-    //     $request->session()->regenerateToken();
-    //     return $this->loggedOut($request) ?: redirect()->route('admin.login');
-    // }
-
+    // Logout
     public function logout(Request $request)
     {
         Auth::guard('admin')->logout();
-        // $request->session()->invalidate();
-        // $request->session()->regenerateToken();
         return $this->loggedOut($request) ?: redirect()->route('admin.login');
     }
 
-    // Send the response after the user was authenticated
-    protected function sendLoginResponse(Request $request)
-    {
-
-        $request->session()->regenerate();
-
-        $this->clearLoginAttempts($request);  // Clear login attempts from session
-
-        // Redirect the user to the intended page or a custom page
-        // return redirect()->intended($this->redirectTo);
-
-        if ($response = $this->authenticated($request, Auth::guard('admin')->user())) {
-
-            return $response;
-        }
-
-        return $request->wantsJson()
-            ? new JsonResponse([], 204)
-            : redirect()->intended($this->redirectPath());
-    }
-
-    // After successful authentication, check user status and last login time
+    // After successful authentication
     protected function authenticated(Request $request, $user)
     {
         if ($user->status == 0) {
-            Auth::guard('admin')->logout();  // Log out if the user is banned
-            return redirect()->route('admin.login')->with('error', 'You are banned from this application. Please contact the system administrator.');
+            Auth::guard('admin')->logout();
+            return redirect()->route('admin.login')
+                ->with('error', 'You are banned from this application. Please contact the system administrator.');
         }
 
-        // Update the last login time
+        // Update last login
         $user->last_login = Carbon::now();
         $user->save();
 
-        // Determine the user's accessible areas based on roles (if defined)
         $list = collect(config('role'))->pluck(['access', 'view'])->collapse()->intersect($user->admin_access);
         if (count($list) == 0) {
-            $list = collect(['admin.profile']);  // Default to profile if no roles match
+            $list = collect(['admin.profile']);
         }
-        // dd(route($list->first()));
+
         return redirect()->intended(route($list->first()));
     }
 
-    // Clear login attempts manually from the session
+    // Clear login attempts
     protected function clearLoginAttempts(Request $request)
     {
         $request->session()->forget('login_attempts');
     }
 
-    // Custom method for handling logout success response
+    // Custom logout response
     protected function loggedOut(Request $request)
     {
         return redirect()->route('admin.login');
     }
+
+
+   private function checkIpWhitelist($userId, $ipAddress)
+{
+    // Normalize IPv6 localhost to IPv4
+    if ($ipAddress === '::1') {
+        $ipAddress = '127.0.0.1';
+    }
+
+    return IpWhitelist::where('ip_address', $ipAddress)->exists();
+}
 }
