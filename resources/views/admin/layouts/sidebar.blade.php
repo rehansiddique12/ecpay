@@ -701,6 +701,17 @@ $languages = [
 
                             @endif
 
+                             @if (adminAccessRoute(config('role.ip_whitelist.access.view')))
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.whitelist' ? 'active' : '' }}">
+                                <a href="{{ route('admin.whitelist') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Blacklist">IP Whitelist</div>
+                                </a>
+                            </li>
+
+                            @endif
+
                             @if (adminAccessRoute(config('role.ocrimages.access.view')))
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.track.ocrimages' ? 'active' : '' }}">
