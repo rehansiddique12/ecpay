@@ -226,6 +226,14 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
 
 
+        // verified by iftikhar
+        Route::get('ipwhitelist', [TrackController::class, 'whitelist'])->name('whitelist');
+        Route::post('whitelist/store', [TrackController::class, 'whitelistStore'])->name('whitelist.store');
+        Route::post('whitelist/update/{id}', [TrackController::class, 'whitelistUpdate'])->name('whitelist.update');
+        Route::delete('whitelist/delete/{id}', [TrackController::class, 'whitelistDelete'])->name('whitelist.delete');
+
+
+
 
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');

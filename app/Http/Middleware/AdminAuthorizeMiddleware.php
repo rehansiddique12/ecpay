@@ -20,9 +20,6 @@ class AdminAuthorizeMiddleware
         $filtered = $list->intersect($user->admin_access);
 
 
-        // return $next($request);
-
-
         $loginTimestamp = Session::get('login_timestamp');
         if($user->last_session_id!=$loginTimestamp){
             Auth::guard('admin')->logout();
@@ -46,7 +43,7 @@ class AdminAuthorizeMiddleware
             if($request->path()=="admin/twoFA" || $request->path()=="admin/logout"){
                return $next($request);
             }else{
-
+               
                return  redirect()->route('admin.twoFA');
             }
 
@@ -55,7 +52,7 @@ class AdminAuthorizeMiddleware
         }
 
         if($request->route()->getName()=="admin.dashboard"){
-            return  redirect()->route('admin.profile');
+            return  redirect()->route('admin.profile'); 
          }
 
         return  redirect()->route('admin.403');

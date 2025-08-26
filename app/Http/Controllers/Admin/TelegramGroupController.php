@@ -222,20 +222,6 @@ class TelegramGroupController extends Controller
 
             if(isset($TG_message)){
                 $sender_chat = $TG_message['chat'];
-                $api = TelegramGroup::where('group_username',$sender_chat)->first();
-                if(!$api){
-                    $title = "";
-                    if(isset($sender_chat['title'])){
-                        $title = $sender_chat['title'];
-                    }elseif(isset($sender_chat['first_name']) && isset($sender_chat['last_name'])){
-                        $title = $sender_chat['first_name'] . " " . $sender_chat['last_name'];
-                    }
-                    $api = new TelegramGroup;
-                    $api->group_name = $title;
-                    $api->group_username = $sender_chat['id'];
-                    $api->status = 0;
-                    $api->save();
-                }
 
                 $botToken = "7437302099:AAFdYOPOqw4t-1LHDWbmUb3zgrLkEkY6Gr4";
                 $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
@@ -265,19 +251,40 @@ class TelegramGroupController extends Controller
                     throw new \Exception("Failed to send message after $maxRetries attempts");
                 };
 
+                
+                $api = TelegramGroup::where('group_username',$sender_chat)->first();
+                if(!$api){
+                    $title = "";
+                    if(isset($sender_chat['title'])){
+                        $title = $sender_chat['title'];
+                    }elseif(isset($sender_chat['first_name']) && isset($sender_chat['last_name'])){
+                        $title = $sender_chat['first_name'] . " " . $sender_chat['last_name'];
+                    }
+                    $api = new TelegramGroup;
+                    $api->group_name = $title;
+                    $api->group_username = $sender_chat['id'];
+                    $api->status = 0;
+                    $api->save();
+
+
+                    $message = $this->messages[$api->lang]['request_pending'];
+                    try {
+                        $sendMessage([
+                            'chat_id' => $sender_chat['id'],
+                            'text' => $message,
+                            'reply_to_message_id' => $TG_message['message_id'],
+                            'parse_mode' => 'Markdown',
+                        ]);
+                    } catch (\Exception $e) {
+                        LaravelLog::error("Failed to send pending message: " . $e->getMessage());
+                    }
+                }
+
+                
+
             // Use the new sendMessage function for all Telegram API calls
             if(empty($api->api_id) || $api->api_id==0 || $api->status==0){
-                $message = $this->messages[$api->lang]['request_pending'];
-                try {
-                    $sendMessage([
-                        'chat_id' => $sender_chat['id'],
-                        'text' => $message,
-                        'reply_to_message_id' => $TG_message['message_id'],
-                        'parse_mode' => 'Markdown',
-                    ]);
-                } catch (\Exception $e) {
-                    LaravelLog::error("Failed to send pending message: " . $e->getMessage());
-                }
+                // do nothing
             } else {
                     if(isset($TG_message['text'])){
                         $sender_message = $TG_message['text'];
@@ -325,7 +332,19 @@ class TelegramGroupController extends Controller
 
 
                                 if(!empty($phone_number)){
-                                    $account = EWalletAccount::where('account_no', $phone_number)
+
+                                    $trx_id = trim($txnId);
+                                    $matched_ewallet = "not_belong_to_us";
+                                    // Check for bKash: Starts with A/B/C and contains letters
+                                    if (preg_match('/^[ABC]/i', $trx_id)) {
+                                        $matched_ewallet = 'bkash';
+                                    }elseif (preg_match('/^7/', $trx_id) && preg_match('/[A-Za-z]/', $trx_id) && preg_match('/[0-9]/', $trx_id)) {
+                                        $matched_ewallet = 'nagad';
+                                    }elseif (ctype_digit($trx_id)) {
+                                        $matched_ewallet = 'rocket';
+                                    }
+
+                                    $account = EWalletAccount::where('account_no', $phone_number)->where('e_wallet_name', $matched_ewallet)
                                                 ->first();
                                     if (!$account) {
                                         LaravelLog::info('Account not found:'.$phone_number);
@@ -1551,6 +1570,37 @@ class TelegramGroupController extends Controller
                                     'ocr_text' => $extractedText,
                                     'status' => 1, // Pending
                                 ]);
+
+
+                                if(!empty($phone_number)){
+
+                                    $trx_id = trim($txnId);
+                                    $matched_ewallet = "not_belong_to_us";
+                                    // Check for bKash: Starts with A/B/C and contains letters
+                                    if (preg_match('/^[ABC]/i', $trx_id)) {
+                                        $matched_ewallet = 'bkash';
+                                    }elseif (preg_match('/^7/', $trx_id) && preg_match('/[A-Za-z]/', $trx_id) && preg_match('/[0-9]/', $trx_id)) {
+                                        $matched_ewallet = 'nagad';
+                                    }elseif (ctype_digit($trx_id)) {
+                                        $matched_ewallet = 'rocket';
+                                    }
+
+                                    $account = EWalletAccount::where('account_no', $phone_number)->where('e_wallet_name', $matched_ewallet)
+                                                ->first();
+                                    if (!$account) {
+                                        LaravelLog::info('Account not found:'.$phone_number);
+                                        $phone_number = str_replace('*', '✱', $phone_number);
+                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                            'chat_id' => $TG_message['chat']['id'],
+                                            'text' => 'Account '.$phone_number.' does not belong to us. Please attach image with correct information.',
+                                            'parse_mode' => 'Markdown',
+                                            'reply_to_message_id' => $TG_message['message_id']
+                                        ]);
+
+                                        $image_processed=1;
+                                        return response()->json(['status' => 'success'], 200);
+                                    }
+                                }
 
 
                                 // Format the message with extracted information

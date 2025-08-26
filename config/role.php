@@ -1021,6 +1021,25 @@ $arr = [
         ],
     ],
 
+    'ip_whitelist' => [
+        'label' => 'IP Whitelist',
+        'access' => [
+            'view' => ['admin.whitelist'],
+            'add' => ['admin.store'],
+            'edit' => ['admin.whitelist.update'],
+            'delete' => ['admin.whitelist.delete'],
+        ],
+    ],
+    'without_ip' => [
+        'label' => 'Without IP',
+        'access' => [
+            'view' => ['admin.withoutip'],
+            'add' => [],
+            'edit' => [],
+            'delete' => [],
+        ],
+    ],
+
 ];
 
 return $arr;

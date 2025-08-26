@@ -62,7 +62,8 @@ class PayoutRecordController extends Controller
     }
 
     public function depositFund($username)
-    {
+    {   
+        
         if (session()->has('txn_verified')) {
             session()->forget('txn_verified');
         }
@@ -5470,6 +5471,11 @@ if ($member_id) {
 
     public function newFundOpen(Request $request, $gate, $charge, $final_amo, $amount, $account_no, $open_user, $e_wallet_phone_number): Payment
     {
+        $microtime = microtime(true);
+        $seconds = floor($microtime);
+        $micro = sprintf("%06d", ($microtime - $seconds) * 1000000);
+        $micro2 = substr($micro, 0, 2);
+        $timestamp = $seconds . $micro2;
 
         $fund = new Payment();
         $fund->user_id = 0;
@@ -5481,6 +5487,7 @@ if ($member_id) {
         $fund->transaction = strRandom();
         $fund->try = 0;
         $fund->status = "Pending";
+        $fund->partner_transection_id = $open_user->id."T".$timestamp;
         $fund->api_id = $open_user->id;
         $fund->e_wallet_phone_number = $e_wallet_phone_number;
         $fund->request_source = "URL";
