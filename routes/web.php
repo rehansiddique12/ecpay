@@ -272,6 +272,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::match(['get', 'post'], 'bank_account_log_summary', [ReportsController::class, 'bank_account_log_summary'])
         ->name('reports.bank_account_log_summary');
+        Route::get('/bank-account/gateways', [ReportsController::class, 'getGateways'])->name('bank_account.gateways');
+        Route::get('/bank-account/accounts', [ReportsController::class, 'getAccounts'])->name('bank_account.accounts');
+
 
         /* ===== AdminMerchant Ticket ==== */
         Route::get('merchant/report_by_date', [MerchantController::class, 'report_by_date'])->name('merchant_reports.by_date');

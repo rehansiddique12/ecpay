@@ -4,21 +4,21 @@
         <form action="{{ route('admin.reports.daily_ewallet_summary') }}" method="get">
             <div class="row align-items-center">
                 <h3 style="color: #7367f0">{{ $pageTitle }}</h3>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.from_date') }}</label>
                         <input type="datetime-local" class="form-control" value="{{ $from_date }}" name="from_date"
                             id="datepicker" />
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.to_date') }}</label>
                         <input type="datetime-local" class="form-control" value="{{ $to_date }}" name="to_date"
                             id="datepicker" />
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label>{{ __('reports.e_wallet_name') }}</label>
                         <select class="form-control select2" name="e_wallet_name" data-placeholder="Select E-Wallet Name">
@@ -38,7 +38,7 @@
                         <input type="text" class="form-control" name="account_no" value="{{ request('account_no') }}">
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <div class="form-group">
                         <br>
                         <button type="submit" class="btn waves-effect waves-light btn-primary"><i
@@ -79,7 +79,7 @@
                                     $grandTransferIn = 0;
                                     $grandTransferOut = 0;
                                 @endphp
-                        
+
                                 @if (isset($data))
                                     @forelse($data as $key => $date)
                                         @foreach($date as $key2 => $item)
@@ -109,7 +109,7 @@
                                         </tr>
                                     @endforelse
                                 @endif
-                        
+
                                 {{-- Total Row --}}
                                 <tr class="bg-light font-weight-bold">
                                     <td colspan="4" class="text-right">{{ __('reports.total') }}</td>
@@ -121,7 +121,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        
+
                     </div>
                     <div class="card-footer">
                     </div>
