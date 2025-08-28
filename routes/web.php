@@ -226,14 +226,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
 
 
-        // verified by iftikhar
-        Route::get('ipwhitelist', [TrackController::class, 'whitelist'])->name('whitelist');
-        Route::post('whitelist/store', [TrackController::class, 'whitelistStore'])->name('whitelist.store');
-        Route::post('whitelist/update/{id}', [TrackController::class, 'whitelistUpdate'])->name('whitelist.update');
-        Route::delete('whitelist/delete/{id}', [TrackController::class, 'whitelistDelete'])->name('whitelist.delete');
-
-
-
 
         Route::post('/categories', [CategoryController::class, 'store'])->name('accounts.management');
         Route::post('/category/{id}/status', [CategoryController::class, 'changeStatus'])->name('category.status');
@@ -272,9 +264,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::match(['get', 'post'], 'bank_account_log_summary', [ReportsController::class, 'bank_account_log_summary'])
         ->name('reports.bank_account_log_summary');
-        Route::get('/bank-account/gateways', [ReportsController::class, 'getGateways'])->name('bank_account.gateways');
-        Route::get('/bank-account/accounts', [ReportsController::class, 'getAccounts'])->name('bank_account.accounts');
-
 
         /* ===== AdminMerchant Ticket ==== */
         Route::get('merchant/report_by_date', [MerchantController::class, 'report_by_date'])->name('merchant_reports.by_date');
@@ -458,8 +447,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         // Ewallet Commission Summary Route::
         Route::get('ewalletcommissionsummary/report', [PaymentLogController::class, 'ewallet_commission_summary'])->name('ewallet_commission_summary');
-        Route::get('ewallet-commission-by-wallet', [PaymentLogController::class, 'ewallet_commission_by_wallet'])->name('ewallet_commission_by_wallet');
-        Route::get('ewallet-commission-by-wallet_type', [PaymentLogController::class, 'ewallet_commission_by_wallet_type'])->name('ewallet_commission_by_wallet_type');
+        Route::get('ewallet-commission-by-wallet', [PaymentLogController::class, 'ewallet_commission_by_wallet'])
+    ->name('ewallet_commission_by_wallet');
+    Route::get('ewallet-commission-by-wallet_type', [PaymentLogController::class, 'ewallet_commission_by_wallet_type'])
+    ->name('ewallet_commission_by_wallet_type');
 
 
 
@@ -655,7 +646,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('payment/report/detail/{date}/{gateway}/{status}', [PartnerPaymentLogController::class,'reportDetail'])->name('payment.report.detail');
         Route::get('/payout-request', [PartnerPayoutRecordController::class,'request'])->name('payout-request');
 
-        Route::put('/payout-action/{id}', [Partne\r::class, 'action'])->name('payout-action');
+        Route::put('/payout-action/{id}', [PartnerPayoutRecordController::class, 'action'])->name('payout-action');
 
         Route::get('/payout-log/search', [PartnerPayoutRecordController::class,'search'])->name('payout-log.search');
         Route::get('/payout-report', [PartnerPayoutRecordController::class,'report'])->name('payout-report');
