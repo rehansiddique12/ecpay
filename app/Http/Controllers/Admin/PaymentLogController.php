@@ -4219,7 +4219,7 @@ public function ewallet_commission_by_wallet_type(Request $request)
 
 
     public function makeatest($id=0){
-        $source = "bKash";
+        $source = "Nagad";
         $acc="01343789636";
         $type="Agent";
 
@@ -4237,6 +4237,11 @@ public function ewallet_commission_by_wallet_type(Request $request)
         $string = 'Cash In Tk 2,655.00 to 0194XXXX636 successful. Fee Tk 0.00. Balance Tk 22,944.48. TrxID CHC7GG1D5V at 12/08/2025 17:16';
         $string = 'Cash In Tk 2,655.00 to 0194XXXX636 successful. Fee Tk 0.00. Balance Tk 22,944.48. TrxID CHC7GG1D5V at 12/08/2025 17:16';
 
+        $string = '{"sms_id":null,"sender":"bKash","phone_id":"01343789636","message":"Cash Out Tk 200.00 from 0191XXXX821 successful. Fee Tk 0.00. Balance Tk 8,436.27. TrxID CHB9F08AYR at 11\/08\/2025 06:42","timestamp":"2025-08-26 08:36:27","webhook_url":"https:\/\/ecpay.asia\/api\/direct\/webhook\/bKash\/01343789636\/agent"}';
+
+        $string = 'Cash Out Received.\nAmount: Tk 300.00\nCustomer: 01892358623\nTxnID: 74AP58BF\nComm: Tk 1.23\nBalance: Tk 248003.94\n26\/08\/2025 14:47';
+        $string = '{"sms_id":102,"sender":"Gp8gb200min","phone_id":"01304998281","message":"\u0986\u099c\u0995\u09c7 \u09ee\u099c\u09bf\u09ac\u09bf+\u09e8\u09e6\u09e6\u09ae\u09bf\u09a8\u09bf\u099f (\u09e9\u09e6\u09a6\u09bf\u09a8) \u09e7\u09ef\u09eb\u099f\u09be\u0995\u09be; \u09a8\u09bf\u09a4\u09c7 \u09a1\u09be\u09df\u09be\u09b2 *\u09e7\u09e8\u09e7*\u09eb\u09eb\u09e8\u09eb# \u09ac\u09be https:\/\/mygp.li\/UWs","timestamp":"2025-08-28 10:02:30","webhook_url":"https:\/\/ecpay.asia\/api\/direct\/webhook\/Gp8gb200min\/01304998281\/agent"}';
+
         $textStart = strpos($string, '"content"');
         $format = 1;
         if(!$textStart){
@@ -4244,12 +4249,30 @@ public function ewallet_commission_by_wallet_type(Request $request)
             $format = 2;
         }
 
+        //added
+
+         
+        
+        if (strpos($textStart, 'message') !== false) {
+            $array = json_decode($textStart, true);
+            $textStart = "";
+            if(isset($array['message'])){
+                $textStart = $array['message'];
+            }
+        }
+
+        // $textStart = str_replace('\n', ' ', $textStart);
+        
+        
+
+
 
 
             $result=[];
 
             if(isset($textStart) && !empty($textStart)){
                 if($format==1){
+                    
                     $colonPos = strpos($string, ':', $textStart);
                     $valueStart = strpos($string, '"', $colonPos + 1) + 1;
                     $valueEnd = strpos($string, '",', $valueStart);
@@ -4257,6 +4280,7 @@ public function ewallet_commission_by_wallet_type(Request $request)
                     $jsonWithoutText = substr($string, 0, $textStart) . substr($string, $valueEnd + 2);
                     $jsonWithoutText = rtrim($jsonWithoutText, ",");
                     $array = json_decode($jsonWithoutText, true);
+                    
                 }else{
                     $text = $textStart;
                     $array = [];
@@ -4292,556 +4316,562 @@ public function ewallet_commission_by_wallet_type(Request $request)
                     }
                 }
 
+                    
+               
+                if(isset($array['from'])){
+
+                
+                    if($array['from']=="bKash"){
+
+                        $text = preg_replace('/\s*Download.*$/', '', $text);
+
+                        if (strpos($text, "You have received") === 0) {
+
+                            $t_type = 1;
+
+                            // Extract amount after "Tk" and remove commas
+                            if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract customer phone number after "from" and before "Fee"
+                            if (preg_match('/from .*?(\d+)\. (?:Fee|Ref)/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract commission after "Fee" and before "Balance"
+                            if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['charge'] = 0.00; // Default if not found
+                            }
+
+                            // Extract balance after "Balance Tk" and before "TrxID"
+                            if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['Balance'] = 0.00; // Default if not found
+                            }
+
+                            // Extract TrxID after "TrxID" and before "at"
+                            if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "at"
+                            if (preg_match('/at (.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                            }
+                            $result['Comm'] = 0;
+
+                            $result['Comment'] = "You have received";
+                        }elseif (strpos($text, "Cash Out") === 0) {
+
+                            if(trim(strtolower($type))=="personal"){
+                                $t_type = 2;
+                            }else{
+                                $t_type = 1;
+                            }
+
+                            // Extract amount after "Tk" and remove commas
+                            if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract customer phone number after "from" and before "Fee"
+                            // if (preg_match('/from (.*?) successful/', $text, $matches)) {
+                            //     $result['Customer'] = $matches[1];
+                            // }
+
+                            if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            if(!isset($result['Customer'])){
+                                if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                    $result['Customer'] = $matches[1];
+                                }
+                            }
 
 
-                if($array['from']=="bKash"){
+                            // Extract commission after "Fee" and before "Balance"
+                            if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['charge'] = 0.00; // Default if not found
+                            }
 
-                    $text = preg_replace('/\s*Download.*$/', '', $text);
+                            // Extract balance after "Balance Tk" and before "TrxID"
+                            if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['Balance'] = 0.00; // Default if not found
+                            }
 
-                    if (strpos($text, "You have received") === 0) {
+                            // Extract TrxID after "TrxID" and before "at"
+                            if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
 
-                        $t_type = 1;
+                            // Extract DateTime after "at"
+                            if (preg_match('/at (.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                            }
 
-                        // Extract amount after "Tk" and remove commas
-                        if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            $result['Comment'] = "Cash Out";
+                            $result['Comm'] = 0;
+                        }elseif (strpos($text, "Cash In") === 0) {
+
+                            if(trim(strtolower($type))=="personal"){
+                                $t_type = 1;
+                            }else{
+                                $t_type = 2;
+                            }
+
+
+
+
+
+                            // Extract amount after "Tk" and remove commas
+                            if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract customer phone number after "from" and before "Fee"
+                            // if (preg_match('/from (.*?) successful/', $text, $matches)) {
+                            //     $result['Customer'] = $matches[1];
+                            // }
+
+                            if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            if(!isset($result['Customer'])){
+                                if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                    $result['Customer'] = $matches[1];
+                                }
+                            }
+
+
+                            // Extract commission after "Fee" and before "Balance"
+                            if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['charge'] = 0.00; // Default if not found
+                            }
+
+                            // Extract balance after "Balance Tk" and before "TrxID"
+                            if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['Balance'] = 0.00; // Default if not found
+                            }
+
+                            // Extract TrxID after "TrxID" and before "at"
+                            if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "at"
+                            if (preg_match('/at (.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                            }
+
+                            $result['Comment'] = "Cash Out";
+                            $result['Comm'] = 0;
+                        }
+                    }elseif($array['from']=="NAGAD"){
+                        $text = str_replace('\n', "\n", $text);
+                        $lines = explode("\n", $text);
+                        $lines = array_map('trim', $lines);
+
+                        if(count($lines)>0){
+                            $comment = $lines[0];
+
+                            $result = [
+                                'Comment' => $comment,
+                            ];
+
+                            foreach ($lines as $index => $line) {
+                                if ($index === count($lines) - 1) {
+                                    $result['DateTime'] = trim($line);
+                                }elseif (strpos($line, ':') !== false) {
+                                    [$key, $value] = explode(':', $line, 2);
+                                    $result[trim($key)] = trim($value);
+                                }
+                            }
+                        }
+                        if(isset($result['Sender'])){
+                            $result['Customer'] = $result['Sender'];
                         }
 
-                        // Extract customer phone number after "from" and before "Fee"
-                        if (preg_match('/from .*?(\d+)\. (?:Fee|Ref)/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
+                        if(!isset($result['Comm'])){
+                            $result['Comm'] = 0;
                         }
 
-                        // Extract commission after "Fee" and before "Balance"
-                        if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['charge'] = 0.00; // Default if not found
+                        $result['charge'] = 0;
+
+                        if(isset($result['Receiver'])){
+                            $result['Customer'] = $result['Receiver'];
                         }
 
-                        // Extract balance after "Balance Tk" and before "TrxID"
-                        if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['Balance'] = 0.00; // Default if not found
-                        }
-
-                        // Extract TrxID after "TrxID" and before "at"
-                        if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "at"
-                        if (preg_match('/at (.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                        }
-                        $result['Comm'] = 0;
-
-                        $result['Comment'] = "You have received";
-                    }elseif (strpos($text, "Cash Out") === 0) {
-
-                        if(trim(strtolower($type))=="personal"){
+                        if($result['Comment']=="Cash In Successful." || $result['Comment']=="B2B Transfer Successful."){
                             $t_type = 2;
                         }else{
                             $t_type = 1;
                         }
 
-                        // Extract amount after "Tk" and remove commas
-                        if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract customer phone number after "from" and before "Fee"
-                        // if (preg_match('/from (.*?) successful/', $text, $matches)) {
-                        //     $result['Customer'] = $matches[1];
-                        // }
-
-                        if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        if(!isset($result['Customer'])){
-                            if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
-                                $result['Customer'] = $matches[1];
-                            }
-                        }
+                    }elseif($array['from']=="16216"){
 
 
-                        // Extract commission after "Fee" and before "Balance"
-                        if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['charge'] = 0.00; // Default if not found
-                        }
+                        if (strpos($text, "B2C: Cash-In") === 0) {
 
-                        // Extract balance after "Balance Tk" and before "TrxID"
-                        if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['Balance'] = 0.00; // Default if not found
-                        }
-
-                        // Extract TrxID after "TrxID" and before "at"
-                        if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "at"
-                        if (preg_match('/at (.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                        }
-
-                        $result['Comment'] = "Cash Out";
-                        $result['Comm'] = 0;
-                    }elseif (strpos($text, "Cash In") === 0) {
-
-                        if(trim(strtolower($type))=="personal"){
-                            $t_type = 1;
-                        }else{
                             $t_type = 2;
-                        }
 
+                            $text = str_replace('\\', "", $text);
 
-
-
-
-                        // Extract amount after "Tk" and remove commas
-                        if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract customer phone number after "from" and before "Fee"
-                        // if (preg_match('/from (.*?) successful/', $text, $matches)) {
-                        //     $result['Customer'] = $matches[1];
-                        // }
-
-
-                        if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        if(!isset($result['Customer'])){
-                            if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
                                 $result['Customer'] = $matches[1];
                             }
-                        }
 
-
-                        // Extract commission after "Fee" and before "Balance"
-                        if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['charge'] = 0.00; // Default if not found
-                        }
-
-                        // Extract balance after "Balance Tk" and before "TrxID"
-                        if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['Balance'] = 0.00; // Default if not found
-                        }
-
-                        // Extract TrxID after "TrxID" and before "at"
-                        if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "at"
-                        if (preg_match('/at (.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                        }
-
-                        $result['Comment'] = "Cash Out";
-                        $result['Comm'] = 0;
-                    }
-                }elseif($array['from']=="NAGAD"){
-                    $text = str_replace('\n', "\n", $text);
-                    $lines = explode("\n", $text);
-                    $lines = array_map('trim', $lines);
-
-                    if(count($lines)>0){
-                        $comment = $lines[0];
-
-                        $result = [
-                            'Comment' => $comment,
-                        ];
-
-                        foreach ($lines as $index => $line) {
-                            if ($index === count($lines) - 1) {
-                                $result['DateTime'] = trim($line);
-                            }elseif (strpos($line, ':') !== false) {
-                                [$key, $value] = explode(':', $line, 2);
-                                $result[trim($key)] = trim($value);
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                             }
-                        }
-                    }
-                    if(isset($result['Sender'])){
-                        $result['Customer'] = $result['Sender'];
-                    }
 
-                    if(!isset($result['Comm'])){
-                        $result['Comm'] = 0;
-                    }
+                            // Extract Commission after "Comm" and before "Your"
+                            if (preg_match('/Comm:Tk([\d,]+\.\d+);/', $text, $matches)) {
+                                $result['Comm'] = floatval(str_replace(',', '', $matches[1]));
+                            }
 
-                    $result['charge'] = 0;
+                            if(!isset($result['Comm']) || empty($result['Comm'])){
+                                if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
+                                    $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
+                                }
+                            }
 
-                    if(isset($result['Receiver'])){
-                        $result['Customer'] = $result['Receiver'];
-                    }
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            }
 
-                    if($result['Comment']=="Cash In Successful." || $result['Comment']=="B2B Transfer Successful."){
-                        $t_type = 2;
-                    }else{
-                        $t_type = 1;
-                    }
-
-                }elseif($array['from']=="16216"){
+                            if(!isset($result['Balance']) || empty($result['Balance'])){
+                                if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                    $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                                }
+                            }
 
 
-                    if (strpos($text, "B2C: Cash-In") === 0) {
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
 
-                        $t_type = 2;
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
 
-                        $text = str_replace('\\', "", $text);
+                            $result['Comment'] = "Cash In";
+                            $result['charge'] = 0;
 
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
+                        }elseif (strpos($text, "B2C: Cash-Out") === 0) {
 
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
+                            $t_type = 1;
 
-                        // Extract Commission after "Comm" and before "Your"
-                        if (preg_match('/Comm:Tk([\d,]+\.\d+);/', $text, $matches)) {
-                            $result['Comm'] = floatval(str_replace(',', '', $matches[1]));
-                        }
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        if(!isset($result['Comm']) || empty($result['Comm'])){
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before ";"
                             if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
                                 $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
                             }
-                        }
 
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['Balance']) || empty($result['Balance'])){
+                            // Extract Balance after "Balance:" and before "TxnId"
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }
 
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash In";
-                        $result['charge'] = 0;
-
-                    }elseif (strpos($text, "B2C: Cash-Out") === 0) {
-
-                        $t_type = 1;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before ";"
-                        if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
-                            $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
-                        }
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
-                        }
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash Out";
-                        $result['charge'] = 0;
-
-
-                    }elseif (str_starts_with($text, "Tk") && strpos($text, "received from") !== false) {
-
-
-
-                        $t_type = 1;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*received/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before ";"
-                        if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
-                        }
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
-                        }
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash Received";
-                        $result['Comm'] = 0;
-
-                    }elseif (strpos($text, "Cash-In from") === 0) {
-
-
-
-                        $t_type = 1;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before "Your"
-                        if (preg_match('/Fee: Tk([\d,]+\.\d+);/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['charge']) || empty($result['charge'])){
-                            if (preg_match('/Fee: Tk([\d,\.]+)/', $text, $commMatches)) {
-                                $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
                             }
-                        }
 
-                        if(!isset($result['charge']) || empty($result['charge'])){
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash Out";
                             $result['charge'] = 0;
-                        }
+
+
+                        }elseif (str_starts_with($text, "Tk") && strpos($text, "received from") !== false) {
+
+
+
+                            $t_type = 1;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
 
 
 
 
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        }
 
-                        if(!isset($result['Balance']) || empty($result['Balance'])){
-                            if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                                $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
                             }
-                        }
 
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*received/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
 
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash In";
-                        $result['Comm'] = 0;
-
-
-
-
-
-                    }elseif (strpos($text, "Cash-Out to") === 0) {
-
-
-
-                        $t_type = 2;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-                        $text = preg_replace('/\s*download.*$/', '', $text);
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before "Your"
-                        if (preg_match('/Fee:Tk([\d,]+\.\d+);/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['charge']) || empty($result['charge'])){
+                            // Extract Commission after "Comm" and before ";"
                             if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                                 $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
                             }
-                        }
 
-
-
-                        if(!isset($result['charge']) || empty($result['charge'])){
-                            $result['charge'] = 0;
-                        }
-
-
-
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['Balance']) || empty($result['Balance'])){
+                            // Extract Balance after "Balance:" and before "TxnId"
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash Received";
+                            $result['Comm'] = 0;
+
+                        }elseif (strpos($text, "Cash-In from") === 0) {
+
+
+
+                            $t_type = 1;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
+
+
+
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before "Your"
+                            if (preg_match('/Fee: Tk([\d,]+\.\d+);/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                if (preg_match('/Fee: Tk([\d,\.]+)/', $text, $commMatches)) {
+                                    $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                                }
+                            }
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                $result['charge'] = 0;
+                            }
+
+
+
+
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['Balance']) || empty($result['Balance'])){
+                                if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                    $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                                }
+                            }
+
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash In";
+                            $result['Comm'] = 0;
+
+
+
+
+
+                        }elseif (strpos($text, "Cash-Out to") === 0) {
+
+
+
+                            $t_type = 2;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
+                            $text = preg_replace('/\s*download.*$/', '', $text);
+
+
+
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before "Your"
+                            if (preg_match('/Fee:Tk([\d,]+\.\d+);/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
+                                    $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                                }
+                            }
+
+
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                $result['charge'] = 0;
+                            }
+
+
+
+
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['Balance']) || empty($result['Balance'])){
+                                if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                    $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                                }
+                            }
+
+
+
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+
+
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = preg_replace('/. Please/i', '', $result['DateTime']);
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash In";
+                            $result['Comm'] = 0;
+
+
+
+
+
+                        }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
+
+
+
+                            $t_type = 2;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
+
+
+
+
+
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before ";"
+                            if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                            }
+
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                            }
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash Transferred";
+                            $result['Comm'] = 0;
+
                         }
-
-
-
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-
-
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = preg_replace('/. Please/i', '', $result['DateTime']);
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash In";
-                        $result['Comm'] = 0;
-
-
-
-
-
-                    }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
-
-
-
-                        $t_type = 2;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before ";"
-                        if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
-                        }
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
-                        }
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash Transferred";
-                        $result['Comm'] = 0;
-
                     }
+                }else{
+                    LaravelLog::info('Skipped this Message:'.$string);
                 }
 
+                
 
 
                 if(isset($result['Comment']) && isset($result['Amount']) && isset($result['Customer']) && isset($result['TxnID']) && isset($result['Comm']) && isset($result['Balance']) && isset($result['DateTime'])){
@@ -4853,6 +4883,11 @@ public function ewallet_commission_by_wallet_type(Request $request)
                     $result['Balance'] = floatval($result['Balance']);
                     $result['Comm'] = floatval($result['Comm']);
                     $result['charge'] = floatval($result['charge']);
+
+                    
+                    $result['DateTime'] = str_replace('\\', "", $result['DateTime']);
+                    $date = Carbon::createFromFormat('d/m/Y H:i', $result['DateTime']);
+                    $result['DateTime'] = $date->format('h:ia d/m/y');
 
                     dd($result);
 
@@ -4892,6 +4927,16 @@ public function ewallet_commission_by_wallet_type(Request $request)
                 $format = 2;
             }
 
+
+           
+            if (strpos($textStart, 'message') !== false) {
+                $array = json_decode($textStart, true);
+                $textStart = "";
+                if(isset($array['message'])){
+                    $textStart = $array['message'];
+                }
+            }
+
             $result=[];
 
             if(isset($textStart) && !empty($textStart)){
@@ -4937,554 +4982,558 @@ public function ewallet_commission_by_wallet_type(Request $request)
                 }
 
 
+                if(isset($array['from'])){
 
-                if($array['from']=="bKash"){
+                
+                    if($array['from']=="bKash"){
 
-                    $text = preg_replace('/\s*Download.*$/', '', $text);
+                        $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                    if (strpos($text, "You have received") === 0) {
+                        if (strpos($text, "You have received") === 0) {
 
-                        $t_type = 1;
+                            $t_type = 1;
 
-                        // Extract amount after "Tk" and remove commas
-                        if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            // Extract amount after "Tk" and remove commas
+                            if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract customer phone number after "from" and before "Fee"
+                            if (preg_match('/from .*?(\d+)\. (?:Fee|Ref)/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract commission after "Fee" and before "Balance"
+                            if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['charge'] = 0.00; // Default if not found
+                            }
+
+                            // Extract balance after "Balance Tk" and before "TrxID"
+                            if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['Balance'] = 0.00; // Default if not found
+                            }
+
+                            // Extract TrxID after "TrxID" and before "at"
+                            if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "at"
+                            if (preg_match('/at (.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                            }
+                            $result['Comm'] = 0;
+
+                            $result['Comment'] = "You have received";
+                        }elseif (strpos($text, "Cash Out") === 0) {
+
+                            if(trim(strtolower($type))=="personal"){
+                                $t_type = 2;
+                            }else{
+                                $t_type = 1;
+                            }
+
+                            // Extract amount after "Tk" and remove commas
+                            if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract customer phone number after "from" and before "Fee"
+                            // if (preg_match('/from (.*?) successful/', $text, $matches)) {
+                            //     $result['Customer'] = $matches[1];
+                            // }
+
+                            if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            if(!isset($result['Customer'])){
+                                if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                    $result['Customer'] = $matches[1];
+                                }
+                            }
+
+
+                            // Extract commission after "Fee" and before "Balance"
+                            if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['charge'] = 0.00; // Default if not found
+                            }
+
+                            // Extract balance after "Balance Tk" and before "TrxID"
+                            if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['Balance'] = 0.00; // Default if not found
+                            }
+
+                            // Extract TrxID after "TrxID" and before "at"
+                            if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "at"
+                            if (preg_match('/at (.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                            }
+
+                            $result['Comment'] = "Cash Out";
+                            $result['Comm'] = 0;
+                        }elseif (strpos($text, "Cash In") === 0) {
+
+                            if(trim(strtolower($type))=="personal"){
+                                $t_type = 1;
+                            }else{
+                                $t_type = 2;
+                            }
+
+
+
+
+
+                            // Extract amount after "Tk" and remove commas
+                            if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract customer phone number after "from" and before "Fee"
+                            // if (preg_match('/from (.*?) successful/', $text, $matches)) {
+                            //     $result['Customer'] = $matches[1];
+                            // }
+
+                            if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            if(!isset($result['Customer'])){
+                                if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                                    $result['Customer'] = $matches[1];
+                                }
+                            }
+
+
+                            // Extract commission after "Fee" and before "Balance"
+                            if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['charge'] = 0.00; // Default if not found
+                            }
+
+                            // Extract balance after "Balance Tk" and before "TrxID"
+                            if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            } else {
+                                $result['Balance'] = 0.00; // Default if not found
+                            }
+
+                            // Extract TrxID after "TrxID" and before "at"
+                            if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "at"
+                            if (preg_match('/at (.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                            }
+
+                            $result['Comment'] = "Cash Out";
+                            $result['Comm'] = 0;
+                        }
+                    }elseif($array['from']=="NAGAD"){
+                        $text = str_replace('\n', "\n", $text);
+                        $lines = explode("\n", $text);
+                        $lines = array_map('trim', $lines);
+
+                        if(count($lines)>0){
+                            $comment = $lines[0];
+
+                            $result = [
+                                'Comment' => $comment,
+                            ];
+
+                            foreach ($lines as $index => $line) {
+                                if ($index === count($lines) - 1) {
+                                    $result['DateTime'] = trim($line);
+                                }elseif (strpos($line, ':') !== false) {
+                                    [$key, $value] = explode(':', $line, 2);
+                                    $result[trim($key)] = trim($value);
+                                }
+                            }
+                        }
+                        if(isset($result['Sender'])){
+                            $result['Customer'] = $result['Sender'];
                         }
 
-                        // Extract customer phone number after "from" and before "Fee"
-                        if (preg_match('/from .*?(\d+)\. (?:Fee|Ref)/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
+                        if(!isset($result['Comm'])){
+                            $result['Comm'] = 0;
                         }
 
-                        // Extract commission after "Fee" and before "Balance"
-                        if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['charge'] = 0.00; // Default if not found
+                        $result['charge'] = 0;
+
+                        if(isset($result['Receiver'])){
+                            $result['Customer'] = $result['Receiver'];
                         }
 
-                        // Extract balance after "Balance Tk" and before "TrxID"
-                        if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['Balance'] = 0.00; // Default if not found
-                        }
-
-                        // Extract TrxID after "TrxID" and before "at"
-                        if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "at"
-                        if (preg_match('/at (.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                        }
-                        $result['Comm'] = 0;
-
-                        $result['Comment'] = "You have received";
-                    }elseif (strpos($text, "Cash Out") === 0) {
-
-                        if(trim(strtolower($type))=="personal"){
+                        if($result['Comment']=="Cash In Successful." || $result['Comment']=="B2B Transfer Successful."){
                             $t_type = 2;
                         }else{
                             $t_type = 1;
                         }
 
-                        // Extract amount after "Tk" and remove commas
-                        if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract customer phone number after "from" and before "Fee"
-                        // if (preg_match('/from (.*?) successful/', $text, $matches)) {
-                        //     $result['Customer'] = $matches[1];
-                        // }
-
-                        if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        if(!isset($result['Customer'])){
-                            if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
-                                $result['Customer'] = $matches[1];
-                            }
-                        }
+                    }elseif($array['from']=="16216"){
 
 
-                        // Extract commission after "Fee" and before "Balance"
-                        if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['charge'] = 0.00; // Default if not found
-                        }
+                        if (strpos($text, "B2C: Cash-In") === 0) {
 
-                        // Extract balance after "Balance Tk" and before "TrxID"
-                        if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['Balance'] = 0.00; // Default if not found
-                        }
-
-                        // Extract TrxID after "TrxID" and before "at"
-                        if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "at"
-                        if (preg_match('/at (.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                        }
-
-                        $result['Comment'] = "Cash Out";
-                        $result['Comm'] = 0;
-                    }elseif (strpos($text, "Cash In") === 0) {
-
-                        if(trim(strtolower($type))=="personal"){
-                            $t_type = 1;
-                        }else{
                             $t_type = 2;
-                        }
 
+                            $text = str_replace('\\', "", $text);
 
-
-
-
-                        // Extract amount after "Tk" and remove commas
-                        if (preg_match('/Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract customer phone number after "from" and before "Fee"
-                        // if (preg_match('/from (.*?) successful/', $text, $matches)) {
-                        //     $result['Customer'] = $matches[1];
-                        // }
-
-                        if (preg_match('/from (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        if(!isset($result['Customer'])){
-                            if (preg_match('/to (\d{4}[0-9X]{6,10}) successful/', $text, $matches)) {
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
                                 $result['Customer'] = $matches[1];
                             }
-                        }
 
-
-                        // Extract commission after "Fee" and before "Balance"
-                        if (preg_match('/Fee Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['charge'] = 0.00; // Default if not found
-                        }
-
-                        // Extract balance after "Balance Tk" and before "TrxID"
-                        if (preg_match('/Balance Tk ([\d,]+\.\d+)/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        } else {
-                            $result['Balance'] = 0.00; // Default if not found
-                        }
-
-                        // Extract TrxID after "TrxID" and before "at"
-                        if (preg_match('/TrxID (\w+) at/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "at"
-                        if (preg_match('/at (.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                        }
-
-                        $result['Comment'] = "Cash Out";
-                        $result['Comm'] = 0;
-                    }
-                }elseif($array['from']=="NAGAD"){
-                    $text = str_replace('\n', "\n", $text);
-                    $lines = explode("\n", $text);
-                    $lines = array_map('trim', $lines);
-
-                    if(count($lines)>0){
-                        $comment = $lines[0];
-
-                        $result = [
-                            'Comment' => $comment,
-                        ];
-
-                        foreach ($lines as $index => $line) {
-                            if ($index === count($lines) - 1) {
-                                $result['DateTime'] = trim($line);
-                            }elseif (strpos($line, ':') !== false) {
-                                [$key, $value] = explode(':', $line, 2);
-                                $result[trim($key)] = trim($value);
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
                             }
-                        }
-                    }
-                    if(isset($result['Sender'])){
-                        $result['Customer'] = $result['Sender'];
-                    }
 
-                    if(!isset($result['Comm'])){
-                        $result['Comm'] = 0;
-                    }
+                            // Extract Commission after "Comm" and before "Your"
+                            if (preg_match('/Comm:Tk([\d,]+\.\d+);/', $text, $matches)) {
+                                $result['Comm'] = floatval(str_replace(',', '', $matches[1]));
+                            }
 
-                    $result['charge'] = 0;
+                            if(!isset($result['Comm']) || empty($result['Comm'])){
+                                if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
+                                    $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
+                                }
+                            }
 
-                    if(isset($result['Receiver'])){
-                        $result['Customer'] = $result['Receiver'];
-                    }
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            }
 
-                    if($result['Comment']=="Cash In Successful." || $result['Comment']=="B2B Transfer Successful."){
-                        $t_type = 2;
-                    }else{
-                        $t_type = 1;
-                    }
-
-                }elseif($array['from']=="16216"){
+                            if(!isset($result['Balance']) || empty($result['Balance'])){
+                                if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                    $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                                }
+                            }
 
 
-                    if (strpos($text, "B2C: Cash-In") === 0) {
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
 
-                        $t_type = 2;
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
 
-                        $text = str_replace('\\', "", $text);
+                            $result['Comment'] = "Cash In";
+                            $result['charge'] = 0;
 
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
+                        }elseif (strpos($text, "B2C: Cash-Out") === 0) {
 
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
+                            $t_type = 1;
 
-                        // Extract Commission after "Comm" and before "Your"
-                        if (preg_match('/Comm:Tk([\d,]+\.\d+);/', $text, $matches)) {
-                            $result['Comm'] = floatval(str_replace(',', '', $matches[1]));
-                        }
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
 
-                        if(!isset($result['Comm']) || empty($result['Comm'])){
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before ";"
                             if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
                                 $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
                             }
-                        }
 
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['Balance']) || empty($result['Balance'])){
+                            // Extract Balance after "Balance:" and before "TxnId"
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
-                        }
 
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash In";
-                        $result['charge'] = 0;
-
-                    }elseif (strpos($text, "B2C: Cash-Out") === 0) {
-
-                        $t_type = 1;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }elseif (preg_match('/A\/C:\s*(\*+\d+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Comm/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before ";"
-                        if (preg_match('/Comm:Tk([\d,\.]+)/', $text, $commMatches)) {
-                            $result['Comm'] = floatval(str_replace(',', '', $commMatches[1]));
-                        }
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
-                        }
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash Out";
-                        $result['charge'] = 0;
-
-
-                    }elseif (str_starts_with($text, "Tk") && strpos($text, "received from") !== false) {
-
-
-
-                        $t_type = 1;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*received/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before ";"
-                        if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
-                        }
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
-                        }
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash Received";
-                        $result['Comm'] = 0;
-
-                    }elseif (strpos($text, "Cash-In from") === 0) {
-
-
-
-                        $t_type = 1;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before "Your"
-                        if (preg_match('/Fee: Tk([\d,]+\.\d+);/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['charge']) || empty($result['charge'])){
-                            if (preg_match('/Fee: Tk([\d,\.]+)/', $text, $commMatches)) {
-                                $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
                             }
-                        }
 
-                        if(!isset($result['charge']) || empty($result['charge'])){
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash Out";
                             $result['charge'] = 0;
-                        }
+
+
+                        }elseif (str_starts_with($text, "Tk") && strpos($text, "received from") !== false) {
+
+
+
+                            $t_type = 1;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
 
 
 
 
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        }
 
-                        if(!isset($result['Balance']) || empty($result['Balance'])){
-                            if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                                $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
                             }
-                        }
 
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*received/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
 
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash In";
-                        $result['Comm'] = 0;
-
-
-
-
-
-                    }elseif (strpos($text, "Cash-Out to") === 0) {
-
-
-
-                        $t_type = 2;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-                        $text = preg_replace('/\s*download.*$/', '', $text);
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before "Your"
-                        if (preg_match('/Fee:Tk([\d,]+\.\d+);/', $text, $matches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['charge']) || empty($result['charge'])){
+                            // Extract Commission after "Comm" and before ";"
                             if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
                                 $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
                             }
-                        }
 
-
-
-                        if(!isset($result['charge']) || empty($result['charge'])){
-                            $result['charge'] = 0;
-                        }
-
-
-
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        if(!isset($result['Balance']) || empty($result['Balance'])){
+                            // Extract Balance after "Balance:" and before "TxnId"
                             if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
                                 $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
                             }
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash Received";
+                            $result['Comm'] = 0;
+
+                        }elseif (strpos($text, "Cash-In from") === 0) {
+
+
+
+                            $t_type = 1;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
+
+
+
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before "Your"
+                            if (preg_match('/Fee: Tk([\d,]+\.\d+);/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                if (preg_match('/Fee: Tk([\d,\.]+)/', $text, $commMatches)) {
+                                    $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                                }
+                            }
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                $result['charge'] = 0;
+                            }
+
+
+
+
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['Balance']) || empty($result['Balance'])){
+                                if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                    $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                                }
+                            }
+
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash In";
+                            $result['Comm'] = 0;
+
+
+
+
+
+                        }elseif (strpos($text, "Cash-Out to") === 0) {
+
+
+
+                            $t_type = 2;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
+                            $text = preg_replace('/\s*download.*$/', '', $text);
+
+
+
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Tk/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*Fee/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before "Your"
+                            if (preg_match('/Fee:Tk([\d,]+\.\d+);/', $text, $matches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
+                                    $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                                }
+                            }
+
+
+
+                            if(!isset($result['charge']) || empty($result['charge'])){
+                                $result['charge'] = 0;
+                            }
+
+
+
+
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance:\s*Tk([\d,]+\.\d+)\s*TxnId/', $text, $matches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            if(!isset($result['Balance']) || empty($result['Balance'])){
+                                if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                    $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                                }
+                            }
+
+
+
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+
+
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = preg_replace('/. Please/i', '', $result['DateTime']);
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash In";
+                            $result['Comm'] = 0;
+
+
+
+
+
+                        }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
+
+
+
+                            $t_type = 2;
+
+                            $text = str_replace('\\', "", $text);
+                            $text = preg_replace('/\s*Download.*$/', '', $text);
+
+
+
+
+
+                            if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
+                                $result['Customer'] = $matches[1];
+                            }
+
+                            // Extract Amount after "Tk" and before "Comm"
+                            if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
+                                $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
+                            }
+
+                            // Extract Commission after "Comm" and before ";"
+                            if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
+                                $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
+                            }
+
+                            // Extract Balance after "Balance:" and before "TxnId"
+                            if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
+                                $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
+                            }
+
+                            // Extract Transaction ID after "TxnId:" and before "Date"
+                            if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
+                                $result['TxnID'] = $matches[1];
+                            }
+
+                            // Extract DateTime after "Date:"
+                            if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
+                                $result['DateTime'] = $matches[1];
+                                $result['DateTime'] = rtrim($result['DateTime'], '.');
+                                $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
+                            }
+
+                            $result['Comment'] = "Cash Transferred";
+                            $result['Comm'] = 0;
+
                         }
-
-
-
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-
-
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = preg_replace('/. Please/i', '', $result['DateTime']);
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash In";
-                        $result['Comm'] = 0;
-
-
-
-
-
-                    }elseif (str_starts_with($text, "Tk") && strpos($text, "transferred to") !== false) {
-
-
-
-                        $t_type = 2;
-
-                        $text = str_replace('\\', "", $text);
-                        $text = preg_replace('/\s*Download.*$/', '', $text);
-
-
-
-
-
-                        if (preg_match('/A\/C:\s*([\w\d]+)\s*Fee/', $text, $matches)) {
-                            $result['Customer'] = $matches[1];
-                        }
-
-                        // Extract Amount after "Tk" and before "Comm"
-                        if (preg_match('/Tk([\d,]+\.\d+)\s*transferred/', $text, $matches)) {
-                            $result['Amount'] = floatval(str_replace(',', '', $matches[1]));
-                        }
-
-                        // Extract Commission after "Comm" and before ";"
-                        if (preg_match('/Fee:Tk([\d,\.]+)/', $text, $commMatches)) {
-                            $result['charge'] = floatval(str_replace(',', '', $commMatches[1]));
-                        }
-
-                        // Extract Balance after "Balance:" and before "TxnId"
-                        if (preg_match('/Balance: Tk([\d,\.]+)/', $text, $balanceMatches)) {
-                            $result['Balance'] = floatval(str_replace(',', '', $balanceMatches[1]));
-                        }
-
-                        // Extract Transaction ID after "TxnId:" and before "Date"
-                        if (preg_match('/TxnId:\s*([\d]+)\s*Date/', $text, $matches)) {
-                            $result['TxnID'] = $matches[1];
-                        }
-
-                        // Extract DateTime after "Date:"
-                        if (preg_match('/Date:\s*(.+)$/', $text, $matches)) {
-                            $result['DateTime'] = $matches[1];
-                            $result['DateTime'] = rtrim($result['DateTime'], '.');
-                            $result['DateTime'] = Carbon::createFromFormat('d-M-y h:i:s a', $result['DateTime'])->format('d/m/Y H:i');
-                        }
-
-                        $result['Comment'] = "Cash Transferred";
-                        $result['Comm'] = 0;
-
                     }
-                }
-
+                }else{
+                    LaravelLog::info('Skipped this Message:'.$string);
+                }    
 
 
 

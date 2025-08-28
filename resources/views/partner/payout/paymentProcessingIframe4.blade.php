@@ -35,7 +35,7 @@ body {
         <div style="max-width:400px;margin:auto;" id="pre_complete_div">
             <img class="img-fluid" src="{{ asset('assets/images/complete.gif') }}" />
             <div class="col-md-10 mx-auto text-center">
-                <h5>Your payment request has been received successfully, and the transaction will be processed within 5 minutes.<br>
+                <h5>Your payment request has been received successfully, and the transaction will be processed within 1 minutes.<br>
                     Thank you!
                 </h5>
                 <h5>আপনার পেমেন্ট অনুরোধ সফলভাবে গ্রহণ করা হয়েছে এবং লেনদেন ৫ মিনিটের মধ্যে প্রক্রিয়া করা হবে।.<br>
@@ -51,6 +51,15 @@ body {
 
     </div>
 </div>
+<?php if (!empty($url)) : ?>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+        window.location.href = "<?php echo $url; ?>";
+    }, 2000);
+});
+</script>
+<?php endif; ?>
 
 @push('script')
 
