@@ -24,6 +24,8 @@ class AssignAccountToPayout extends Command
         Log::info('Run Daily AssignAccountToPayout Command');
         $allPayoutInfo = Payout::where('is_account_assign', 0)
             ->where('transfer_status',2)
+            ->where('status', '!=','Complete')
+            ->where('status', '!=','Reject')
             ->where('created_at', '>=', Carbon::now()->subDay())
             ->get();
         $Setting = Setting::where('name', 'last_account_active')->first();
@@ -125,7 +127,7 @@ class AssignAccountToPayout extends Command
             }
 
             if ($source != env('APP_WEBSITE')) {
-              
+
                 $sum = Payout::whereYear('created_at', now()->year)
                     ->whereMonth('created_at', now()->month)
                     ->where('api_id', $api_id)

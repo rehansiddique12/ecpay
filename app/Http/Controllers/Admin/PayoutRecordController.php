@@ -1276,6 +1276,7 @@ class PayoutRecordController extends Controller
                     $data->status = "Complete";
                     $data->completions_at = Carbon::now();
                     $data->transfer_status = 2;
+                    $data->is_account_assign = 1;
                     $data->feedback = $request->feedback;
                     $data->save();
 
@@ -4633,7 +4634,7 @@ class PayoutRecordController extends Controller
                 return response()->json(['message' => 'Partner Transaction id already exist.'], 404);
             }
             $payout = new Payout();
-            
+
 
             if ($api_key->acc_type == "Partner") {
 
@@ -4727,7 +4728,7 @@ class PayoutRecordController extends Controller
                     $payout->e_wallet_phone_number = $account->account_no;
                     $payout->e_wallet_type = $account->type;
                 }
-                
+
                 $payout->transfer_status = 2;
             }
             if ($source != env('APP_WEBSITE') && isset($account->id)) {
@@ -4780,7 +4781,7 @@ class PayoutRecordController extends Controller
                 ], 404);
             }
 
-          
+
             // $payout->source = $source;
             // $payout->sign = $user_sign;
             $payout->api_id = $api_id;
@@ -5278,6 +5279,7 @@ class PayoutRecordController extends Controller
                     $data = Payout::where('id', $payout->payout_log_id)->first();
                     if ($data) {
                         $data->status = 'Complete';
+                        $data->is_account_assign = 1;
                         $data->save();
 
                         $e_wallet_charge = 0;
