@@ -439,7 +439,7 @@ class CategoryController extends Controller
             }
 
             // Telegram Setup
-            $support_chat_id = "-4786890063";
+            $support_chat_id = "-4683359325";
             $botToken_support = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
             $url_support = "https://api.telegram.org/bot{$botToken_support}/sendMessage";
 

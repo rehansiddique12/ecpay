@@ -34,7 +34,7 @@ class TelegramGroupController extends Controller
         'lang_invalid' => "? Your request format is not correct!\n\n? Use the following commands:\n/lang en => To Select English \n/lang ch => To Select Chinese",
         'transaction_completed' => "Your transaction has been marked as completed, and the callback has also been sent.\n\n*Merchant Order:* `%s`\n*Order Id:* `%s`\n*Transaction ID:* `%s`\n*Amount:* `%s`\n*Status:* `Complete`",
         'transaction_pending' => "Transaction in pending state. Please wait a moment while our customer service check on this transaction.",
-        'transaction_not_found' => "The entered ticket number does not match our records. Kindly check your ticket number.",
+        'transaction_not_found' => "The entered partner transaction number does not match our records. Kindly check your partner transaction number.",
         'image_error' => "Image Processing Error! Try Again. Please Attach clear image and add caption /checkorder XXX123XXX  for further checking.",
         'service_error' => "Service Error! Try Again. Please send image and add caption /checkorder XXX123XXX  for further checking.",
         'invalid_command' => "Your request format is not correct!\n\nUse the following commands:\n/checkbalance – to check your balance\n/checkorder XXX123XXX – to check your order status (Please attach Transaction image to check)",
@@ -61,7 +61,7 @@ class TelegramGroupController extends Controller
         'invalid_request_format' => "Your request format is not correct!\n\nUse the following commands:\n/checkbalance – to check your balance\n/checkorder XXX123XXX – to check your order status (Please attach Transaction image to check)",
         'empty_message' => "",
         'phone_number_empty' => "",
-        'image_processing_error_retry' => "Image Processing Error! Try Again. Please Attach clear image and add caption /checkorder XXX123XXX  for further checking.",
+        'image_processing_error_retry' => "Please Attach clear image of receipt to proceed.",
         'transaction_pending_customer_service' => "The transaction is in pending state. Please hold on while we transfer your request to our customer service.",
         'support_message' => "?? *Support Message* ??\n\n*Merchant Order:* `%s`\n*Order Id:* `%s`\n*Transaction ID:* `%s`\n*Amount:* `%s`\n*Phone:* `%s`\n*Remark:* %s\n*Status:* `%s`",
         'transaction_processed' => "Your transaction has been processed successfully.",
@@ -113,7 +113,7 @@ class TelegramGroupController extends Controller
         'invalid_request_format' => "您的请求格式不正确！\n\n使用以下命令：\n/checkbalance – 查询余额\n/checkorder XXX123XXX – 查询订单状态（请附上交易图片以便查询）",
         'empty_message' => "",
         'phone_number_empty' => "",
-        'image_processing_error_retry' => "图片处理错误！请重试。请附上清晰的图片并添加说明 /checkorder XXX123XXX 以便进一步检查。",
+        'image_processing_error_retry' => "请附上清晰的收据图片以便继续。",
         'transaction_pending_customer_service' => "交易正在处理中，请稍候我们将您的请求转给客服。",
         'support_message' => "📞 *支持消息* 📞\n\n*商户订单:* `%s`\n*订单号:* `%s`\n*交易号:* `%s`\n*金额:* `%s`\n*电话:* `%s`\n*备注:* %s\n*状态:* `%s`",
         'transaction_processed' => "交易已处理成功。",
@@ -292,6 +292,8 @@ class TelegramGroupController extends Controller
                         $sender_message = $TG_message['caption'];
                     }
 
+                    $api_key = Api::where('id', $api->api_id)->first();
+
                     if(isset($TG_message['photo']) && (!isset($TG_message['text']) && !isset($TG_message['caption']))){
 
                         $extracted_text_values =  $this->applyocr($TG_message, $url, $sender_chat);
@@ -331,62 +333,82 @@ class TelegramGroupController extends Controller
                                 ]);
 
 
-                                if(!empty($phone_number)){
+                                if(empty($phone_number) && empty($txnId) && empty($amount)){
+                                    $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'],
+                                        '',
+                                        ''
+                                    );
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                }else{
+                                    if(!empty($phone_number)){
 
-                                    $trx_id = trim($txnId);
-                                    $matched_ewallet = "not_belong_to_us";
-                                    // Check for bKash: Starts with A/B/C and contains letters
-                                    if (preg_match('/^[ABC]/i', $trx_id)) {
-                                        $matched_ewallet = 'bkash';
-                                    }elseif (preg_match('/^7/', $trx_id) && preg_match('/[A-Za-z]/', $trx_id) && preg_match('/[0-9]/', $trx_id)) {
-                                        $matched_ewallet = 'nagad';
-                                    }elseif (ctype_digit($trx_id)) {
-                                        $matched_ewallet = 'rocket';
+                                        $trx_id = trim($txnId);
+                                        $matched_ewallet = "not_belong_to_us";
+                                        // Check for bKash: Starts with A/B/C and contains letters
+                                        if (preg_match('/^[ABC]/i', $trx_id)) {
+                                            $matched_ewallet = 'bkash';
+                                        }elseif (preg_match('/^7/', $trx_id) && preg_match('/[A-Za-z]/', $trx_id) && preg_match('/[0-9]/', $trx_id)) {
+                                            $matched_ewallet = 'nagad';
+                                        }elseif (ctype_digit($trx_id)) {
+                                            $matched_ewallet = 'rocket';
+                                        }
+
+                                        $account = EWalletAccount::where('account_no', $phone_number)->where('e_wallet_name', $matched_ewallet)
+                                                    ->first();
+                                        if (!$account) {
+                                            LaravelLog::info('Account not found:'.$phone_number);
+                                            $phone_number = str_replace('*', '✱', $phone_number);
+                                            Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                'chat_id' => $TG_message['chat']['id'],
+                                                'text' => 'Account '.$phone_number.' does not belong to us. Please attach image with correct information.',
+                                                'parse_mode' => 'Markdown',
+                                                'reply_to_message_id' => $TG_message['message_id']
+                                            ]);
+
+                                            $image_processed=1;
+                                            return response()->json(['status' => 'success'], 200);
+                                        }
                                     }
 
-                                    $account = EWalletAccount::where('account_no', $phone_number)->where('e_wallet_name', $matched_ewallet)
-                                                ->first();
-                                    if (!$account) {
-                                        LaravelLog::info('Account not found:'.$phone_number);
-                                        $phone_number = str_replace('*', '✱', $phone_number);
-                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                            'chat_id' => $TG_message['chat']['id'],
-                                            'text' => 'Account '.$phone_number.' does not belong to us. Please attach image with correct information.',
-                                            'parse_mode' => 'Markdown',
-                                            'reply_to_message_id' => $TG_message['message_id']
-                                        ]);
+                                    if(!empty($txnId)){
+                                        $check_payment_txn = Payment::where('txn_id', $txnId)->first();
+                                        if ($check_payment_txn) {
 
-                                        $image_processed=1;
-                                        return response()->json(['status' => 'success'], 200);
+                                            if($check_payment_txn->api_id==$api->api_id){
+                                                $message = "This TXN ID has been claimed in order ".$check_payment_txn->partner_transection_id.".";
+                                            }else{
+                                                $message = "This TXN ID has been claimed by other Merchant.";
+                                            }
+
+                                            Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                                                'chat_id' => $TG_message['chat']['id'],
+                                                'text' => $message,
+                                                'parse_mode' => 'Markdown',
+                                                'reply_to_message_id' => $TG_message['message_id']
+                                            ]);
+
+                                            $image_processed=1;
+                                            return response()->json(['status' => 'success'], 200);
+                                        }
                                     }
+
+
+                                    $message = "Please Enter the partner transaction number for this image";
+                                    $sendMessage([
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
                                 }
 
-                                if(!empty($txnId)){
-                                    $check_payment_txn = Payment::where('txn_id', $txnId)->first();
-                                    if ($check_payment_txn) {
 
-                                        $message = "By This Txn no, Payment Already Completed.";
-
-                                        Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                                            'chat_id' => $TG_message['chat']['id'],
-                                            'text' => $message,
-                                            'parse_mode' => 'Markdown',
-                                            'reply_to_message_id' => $TG_message['message_id']
-                                        ]);
-
-                                        $image_processed=1;
-                                        return response()->json(['status' => 'success'], 200);
-                                    }
-                                }
-
-
-                                $message = "Please Enter the partner transaction number for this image";
-                                $sendMessage([
-                                    'chat_id' => $sender_chat['id'],
-                                    'text' => $message,
-                                    'reply_to_message_id' => $TG_message['message_id'],
-                                    'parse_mode' => 'Markdown',
-                                ]);
+                                    
 
 
 
@@ -399,7 +421,7 @@ class TelegramGroupController extends Controller
                         return response()->json(['status' => 'success'], 200);
                     }
 
-                    $api_key = Api::where('id', $api->api_id)->first();
+                    
                     $lowercaseText = strtolower($sender_message);
                     if($lowercaseText=="checkbalance" || $lowercaseText=="/checkbalance"){
                         if (!$api_key) {
@@ -1064,7 +1086,7 @@ class TelegramGroupController extends Controller
 
                                                             $response = Http::withHeaders([
                                                                 'Content-Type' => 'application/json',
-                                                            ])->post('http://89.46.62.251/ocr/api/applyocr', [
+                                                            ])->post('http://34.126.223.238/ocr/api/applyocr', [
                                                                 'imageurl' => $imageUrl,
                                                             ]);
 
@@ -1686,7 +1708,13 @@ class TelegramGroupController extends Controller
                                     $check_payment_txn = Payment::where('txn_id', $txnId)->first();
                                     if ($check_payment_txn) {
 
-                                        $message = "By This Txn no, Payment Already Completed.";
+                                        if($check_payment_txn->api_id==$api->api_id){
+                                            $message = "This TXN ID has been claimed in order ".$check_payment_txn->partner_transection_id.".";
+                                        }else{
+                                            $message = "This TXN ID has been claimed by other Merchant.";
+                                        }
+
+                                        
 
                                         Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                                             'chat_id' => $TG_message['chat']['id'],
@@ -2931,7 +2959,7 @@ class TelegramGroupController extends Controller
 
                 $response = Http::withHeaders([
                     'Content-Type' => 'application/json',
-                ])->post('http://89.46.62.251/ocr/api/applyocr', [
+                ])->post('http://34.126.223.238/ocr/api/applyocr', [
                     'imageurl' => $imageUrl,
                 ]);
 

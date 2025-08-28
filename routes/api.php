@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/direct/webhook/{source}/{acc}/{type}', [PaymentLogController::class, 'directwebhook']);
+Route::post('/direct/webhook/{source}/{acc}/{type}', [PaymentLogController::class, 'directwebhook'])->withoutMiddleware('throttle:api');
 Route::post('/sms/webhook/{source}/{acc}/{type}', [WebhookController::class, 'webhook']);
 
 Route::get('/paymentGateway', [PaymentController::class, 'paymentGateway']);
