@@ -4615,6 +4615,7 @@ if ($member_id) {
 
     public  function action(Request $request, $id)
     {
+
         $this->validate($request, [
             'id' => 'required',
             'status' => ['required', Rule::in(['2', '3'])],
@@ -4740,14 +4741,10 @@ if ($member_id) {
                     ->values()
                     ->first();
 
-
-                    if (!$account) {
-                        DB::rollBack();
-                        throw new \Exception("No E-wallet account Available at this time to proceed this request.");
-                    }
-
-
-
+                    // if (!$account) {
+                    //     DB::rollBack();
+                    //     throw new \Exception("No E-wallet account Available at this time to proceed this request.");
+                    // }
 
                 // $pre_payout = Payout::where('payout_log_id', $data->id)->first();
                 // if (!$pre_payout) {
@@ -4760,20 +4757,20 @@ if ($member_id) {
                     $user_account_no =  $data->user_account_no;
                 }
 
-
-
+                if(isset($account->id))
+                {
+                    $data->e_wallet_phone_number = $account->account_no;
+                    $data->e_wallet_type = $account->type;
+                }
 
                 // $pre_payout->payout_log_id = $data->id;
                 // $pre_payout->api_id = $data->api_id;
                 // $pre_payout->e_wallet_name = $data->method->name;
                 // $pre_payout->amount = $data->amount;
                 $data->user_account_no = $user_account_no;
-                $data->e_wallet_phone_number = $account->account_no;
-                $data->e_wallet_type = $account->type;
                 $data->status = 'Pending';
                 // $data->payout_id = $pre_payout->id;
                 $data->feedback = $request->feedback;
-
 
 
 
@@ -4788,55 +4785,53 @@ if ($member_id) {
                 if (!$sum) {
                     $sum = 0;
                 }
-
-                $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
-                if ($commissions) {
-                    $charge = $commissions->withdrawal_percentage * $data->amount / 100;
-                } else {
-                    $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                $charge = 0;
+                if(isset($account->id)){
+                    $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                     if ($commissions) {
                         $charge = $commissions->withdrawal_percentage * $data->amount / 100;
-                    }
-                }
-
-
-
-
-
-                $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
-                    ->pluck('parent_id')
-                    ->unique()
-                    ->values();
-                foreach ($parentIds as  $parentId) {
-
-                    $parent_charge = 0;
-
-                    $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
-                    if ($parent_commission) {
-                        $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
                     } else {
-                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
-                        if ($parent_commission) {
-                            $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
+                        $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        if ($commissions) {
+                            $charge = $commissions->withdrawal_percentage * $data->amount / 100;
                         }
                     }
 
-                    if ($parent_charge > 0) {
-                        $PartnerCommission = new PartnerCommission();
-                        $PartnerCommission->api_id = $partner_api_key->id;
-                        $PartnerCommission->from_id = $parentId;
-                        $PartnerCommission->type = 2;
-                        $PartnerCommission->amount = $data->amount;
-                        $PartnerCommission->charges = $charge;
-                        $PartnerCommission->total_amount =  $data->amount + $charge;
-                        $PartnerCommission->charges_p = $commissions->withdrawal_percentage ?? 0;
-                        $profit_p = $parent_commission->withdrawal_percentage;
-                        $profit = $profit_p * $data->amount / 100;
-                        $PartnerCommission->profit = $profit;
-                        $PartnerCommission->profit_p = $profit_p;
-                        $PartnerCommission->transaction_id = $data->id;
-                        $PartnerCommission->status = 0;
-                        $PartnerCommission->save();
+                    $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
+                        ->pluck('parent_id')
+                        ->unique()
+                        ->values();
+                    foreach ($parentIds as  $parentId) {
+
+                        $parent_charge = 0;
+
+                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                        if ($parent_commission) {
+                            $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
+                        } else {
+                            $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                            if ($parent_commission) {
+                                $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
+                            }
+                        }
+
+                        if ($parent_charge > 0) {
+                            $PartnerCommission = new PartnerCommission();
+                            $PartnerCommission->api_id = $partner_api_key->id;
+                            $PartnerCommission->from_id = $parentId;
+                            $PartnerCommission->type = 2;
+                            $PartnerCommission->amount = $data->amount;
+                            $PartnerCommission->charges = $charge;
+                            $PartnerCommission->total_amount =  $data->amount + $charge;
+                            $PartnerCommission->charges_p = $commissions->withdrawal_percentage ?? 0;
+                            $profit_p = $parent_commission->withdrawal_percentage;
+                            $profit = $profit_p * $data->amount / 100;
+                            $PartnerCommission->profit = $profit;
+                            $PartnerCommission->profit_p = $profit_p;
+                            $PartnerCommission->transaction_id = $data->id;
+                            $PartnerCommission->status = 0;
+                            $PartnerCommission->save();
+                        }
                     }
                 }
 
