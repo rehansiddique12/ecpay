@@ -819,7 +819,7 @@ class PayoutRecordController extends Controller
         return view('admin.payout.logs', compact('records', 'pageTitle', 'domains', 'letest_record'));
     }
 
-    public  function action(Request $request, $id)
+    public function action(Request $request, $id)
     {
         $this->validate($request, [
             'id' => 'required',
