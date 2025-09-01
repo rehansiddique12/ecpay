@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('app:send_callback')->everyMinute();
         $schedule->command('app:daily-creat-summaries')->dailyAt('00:01');
+        $schedule->command('command:assign-account-to-payout')->everyMinute();
     }
 
     /**
