@@ -224,6 +224,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/accounts-management/add-gateways', [CategoryController::class, 'gateway'])->name('account_management.gateway');
 
+        Route::get('/available-accounts', [CategoryController::class, 'availableaccounts'])->name('ewallet.accounts.available');
+
 
 
 
@@ -234,6 +236,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 
         Route::get('/account/groups', [CategoryController::class, 'index'])->name('ewallet.accounts.groups');
         Route::post('/categories', [CategoryController::class, 'store'])->name('category.store');
+
+        Route::get('ipwhitelist', [TrackController::class, 'whitelist'])->name('whitelist');
+        Route::post('whitelist/store', [TrackController::class, 'whitelistStore'])->name('whitelist.store');
+        Route::post('whitelist/update/{id}', [TrackController::class, 'whitelistUpdate'])->name('whitelist.update');
+        Route::delete('whitelist/delete/{id}', [TrackController::class, 'whitelistDelete'])->name('whitelist.delete');
 
 
         // rehan Reports:
@@ -626,6 +633,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('merchant-reports/export_month', [PartnerMerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
 
 
+        
 
         // Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
         // Route::get('merchant-reports/export_month', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');

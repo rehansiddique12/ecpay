@@ -76,6 +76,16 @@
                             </button>
                         </div>
                         @endif
+                        @if(adminAccessRoute(config('role.account_management.access.view')))
+                        <div>
+                            <button
+                                class="btn {{ $currentRoute == 'admin.ewallet.accounts.available' ? 'btn-primary' : '' }}">
+                                <a href="{{ route('admin.ewallet.accounts.available') }}" class="menu-link">
+                                    <div data-i18n="Accounts List">Available Accounts</div>
+                                </a>
+                            </button>
+                        </div>
+                        @endif
 
 
                     </div>

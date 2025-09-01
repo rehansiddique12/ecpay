@@ -92,6 +92,202 @@ class CategoryController extends Controller
         return view('admin.accounts.ewallet_accounts', $data);
     }
 
+    public function availableaccounts()
+    {
+        $current_time = Carbon::now('Asia/Dhaka');
+
+        $eWallets = ['nagad', 'bkash', 'rocket'];
+        $result = [];
+
+        foreach ($eWallets as $ewallet) {
+            $accountsData = [];
+
+            // Step 1: All active accounts
+            $all_active_accounts = EWalletAccount::where('e_wallet_name', $ewallet)
+                ->where('status', 1)
+                ->whereIn('account_type', ['Deposit', 'Both'])
+                ->with('timeSlots')
+                ->get();
+
+            foreach ($all_active_accounts as $acc) {
+                $accountsData[$acc->account_no] = [
+                    'account_no' => $acc->account_no,
+                    'e_wallet' => $acc->e_wallet_name,
+                    'active_status' => 'yes',
+                    'available_limit_accounts' => 'no',
+                    'time_slot_accounts' => 'no',
+                    'final_active_accounts' => 'no',
+                    'daily_remaining' => null,
+                    'per_minute_remaining' => null,
+                    'last_used' => $acc->d_last_used,
+                ];
+            }
+
+            // Step 2: Apply monthly/daily transactions conditions
+            $available_limit_accounts = $all_active_accounts->filter(function ($acc) {
+                return $acc->monthly_limit > $acc->monthly_received &&
+                    $acc->daily_limit_transaction > $acc->d_today_count &&
+                    $acc->monthly_limit_transaction > $acc->d_month_count;
+            })->values();
+
+            foreach ($available_limit_accounts as $acc) {
+                if (!isset($accountsData[$acc->account_no])) {
+                    $accountsData[$acc->account_no] = [
+                        'account_no' => $acc->account_no,
+                        'e_wallet' => $acc->e_wallet_name,
+                    ];
+                }
+                $accountsData[$acc->account_no]['available_limit_accounts'] = 'yes';
+            }
+
+            // Step 3: Apply time slot condition
+            $time_slot_accounts = $available_limit_accounts->filter(function ($acc) use ($current_time) {
+                return $acc->timeSlots->contains(function ($slot) use ($current_time) {
+                    $from = Carbon::parse($slot->from_time);
+                    $to = Carbon::parse($slot->to_time);
+                    return $current_time->between($from, $to);
+                });
+            })->values();
+
+            foreach ($time_slot_accounts as $acc) {
+                if (!isset($accountsData[$acc->account_no])) {
+                    $accountsData[$acc->account_no] = [
+                        'account_no' => $acc->account_no,
+                        'e_wallet' => $acc->e_wallet_name,
+                    ];
+                }
+                $accountsData[$acc->account_no]['time_slot_accounts'] = 'yes';
+            }
+
+            // Step 4: Apply last used + per minute transaction conditions
+            $final_active_accounts = $time_slot_accounts->filter(function ($acc) use ($current_time) {
+                $lastUsed = Carbon::parse($acc->d_last_used);
+
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    return $acc->max_transaction_per_minute > $acc->d_one_min_count;
+                }
+
+                return $acc->max_transaction_per_minute > 0;
+            })->map(function ($acc) use ($current_time) {
+                $lastUsed = Carbon::parse($acc->d_last_used);
+
+                $remainingDailyLimit = $acc->daily_limit - $acc->daily_received;
+
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    $remainingPerMinute = $acc->max_amount_per_minute - $acc->d_one_min_sum;
+                } else {
+                    $remainingPerMinute = $acc->max_amount_per_minute;
+                }
+
+                return [
+                    'acc' => $acc,
+                    'remainingDailyLimit' => $remainingDailyLimit,
+                    'remainingPerMinute' => $remainingPerMinute,
+                ];
+            })->values();
+
+            foreach ($final_active_accounts as $fa) {
+                $acc = $fa['acc'];
+                if (!isset($accountsData[$acc->account_no])) {
+                    $accountsData[$acc->account_no] = [
+                        'account_no' => $acc->account_no,
+                        'e_wallet' => $acc->e_wallet_name,
+                    ];
+                }
+
+                $accountsData[$acc->account_no]['final_active_accounts'] = 'yes';
+                $accountsData[$acc->account_no]['daily_remaining'] = $fa['remainingDailyLimit'];
+                $accountsData[$acc->account_no]['per_minute_remaining'] = $fa['remainingPerMinute'];
+                $accountsData[$acc->account_no]['last_used'] = $acc->d_last_used;
+            }
+
+            $result[$ewallet] = $accountsData;
+        }
+
+        $pageTitle = "Available Accounts";
+        return view('admin.accounts.available', compact('pageTitle','result'));
+    }
+
+
+    public function availableaccounts_old(){
+        $current_time = Carbon::now('Asia/Dhaka');
+
+        $eWallets = ['nagad', 'bkash', 'rocket'];
+        $result = [];
+
+        foreach ($eWallets as $ewallet) {
+            // Step 1: All active accounts
+            $all_active_accounts = EWalletAccount::where('e_wallet_name', $ewallet)
+                ->where('status', 1)
+                ->whereIn('account_type', ['Deposit', 'Both'])
+                ->with('timeSlots')
+                ->get();
+
+            // Step 2: Apply monthly/daily transactions conditions
+            $available_limit_accounts = $all_active_accounts->filter(function ($acc) {
+                return $acc->monthly_limit > $acc->monthly_received &&
+                    $acc->daily_limit_transaction > $acc->d_today_count &&
+                    $acc->monthly_limit_transaction > $acc->d_month_count;
+            })->values();
+
+            // Step 3: Apply time slot condition
+            $time_slot_accounts = $available_limit_accounts->filter(function ($acc) use ($current_time) {
+                $validTimeSlot = $acc->timeSlots->contains(function ($slot) use ($current_time) {
+                    $from = Carbon::parse($slot->from_time);
+                    $to = Carbon::parse($slot->to_time);
+                    return $current_time->between($from, $to);
+                });
+                return $validTimeSlot;
+            })->values();
+
+            // Step 4: Apply last used + per minute transaction conditions
+            $final_active_accounts = $time_slot_accounts->filter(function ($acc) use ($current_time) {
+                $lastUsed = Carbon::parse($acc->d_last_used);
+
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    return $acc->max_transaction_per_minute > $acc->d_one_min_count;
+                }
+
+                return $acc->max_transaction_per_minute > 0;
+            })->map(function ($acc) use ($current_time) {
+                $lastUsed = Carbon::parse($acc->d_last_used);
+
+                // baki daily limit
+                $remainingDailyLimit = $acc->daily_limit - $acc->daily_received;
+
+                // baki per-minute limit
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    $remainingPerMinute = $acc->max_amount_per_minute - $acc->d_one_min_sum;
+                } else {
+                    $remainingPerMinute = $acc->max_amount_per_minute;
+                }
+
+                return [
+                    'account_no' => $acc->account_no,
+                    'e_wallet' => $acc->e_wallet_name,
+                    'daily_remaining' => $remainingDailyLimit,
+                    'per_minute_remaining' => $remainingPerMinute,
+                    'last_used' => $acc->d_last_used,
+                ];
+            })->values();
+
+            // Collect result for this wallet
+            $result[$ewallet] = [
+                'all_active_accounts' => $all_active_accounts->pluck('account_no'),
+                'available_limit_accounts' => $available_limit_accounts->pluck('account_no'),
+                'time_slot_accounts' => $time_slot_accounts->pluck('account_no'),
+                'final_active_accounts' => $final_active_accounts,
+            ];
+        }
+
+        dd($result);
+
+
+            
+        $pageTitle = "Available Accounts";
+        return view('admin.accounts.available', compact('pageTitle'));
+    }
+
     public function addAccount(Request $request)
     {
         $pageTitle = __('accounts.add_new_account');
