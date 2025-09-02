@@ -7,7 +7,7 @@
     <div class="container">
         <h2 class="mb-4">{{ __('transaction.audit_logs') }}</h2>
             <form method="GET" class="mb-5 row g-2">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select name="user_id" class="form-select select2" data-allow-clear="true"
                         data-placeholder="{{ __('transaction.select_user') }}">
                         <option></option>
@@ -20,7 +20,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select name="module" class="form-select">
                         <option value="">{{ __('transaction.module') }}</option>
                         <option value="Workboard" {{ request('module') == 'Workboard' ? 'selected' : '' }}>Workboard</option>
@@ -33,13 +33,18 @@
                 </div>
 
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="date" name="date" value="{{ request('date') }}" class="form-control" />
                 </div>
-
                 <div class="col-md-3">
+                    <input type="text" name="description" value="{{ request('description') }}" class="form-control" placeholder="{{ __('transaction.search_description') ?? 'Search Description' }}" />
+                </div>
+
+                <div class="col-md-2">
                     <button class="btn btn-primary">{{ __('transaction.search') }}</button>
                 </div>
+
+
             </form>
             <table class="table table-hover table-striped table-bordered table-sm">
                 <thead>

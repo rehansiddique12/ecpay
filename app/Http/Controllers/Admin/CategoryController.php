@@ -33,6 +33,7 @@ class CategoryController extends Controller
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
+        $currentTime = Carbon::now()->format('H:i:s');
 
     // Default: Active (1), but only if no status is provided at all
 if ($request->has('status')) {
@@ -93,6 +94,11 @@ if ($request->has('status')) {
             ->when($request->filled('account_number'), function ($query) use ($request) {
                 $query->where('e_wallet_accounts.account_no', 'LIKE', "%{$request->account_number}%");
             })
+            ->whereHas('timeSlots', function ($query) use ($currentTime) {
+                $query->where('status', 1)
+                      ->where('from_time', '<=', $currentTime)
+                      ->where('to_time', '>=', $currentTime);
+            })
             ->select(
                 'e_wallet_accounts.*',
                 DB::raw('COALESCE(p.today_transaction_count, 0) as today_transaction_count'),
@@ -104,7 +110,20 @@ if ($request->has('status')) {
                 $query->orderBy('e_wallet_accounts.updated_at', 'desc');
             })
             ->paginate(1000);
+            // dd($data);
+            $gatewayNames = Gateway::where('status', 1)->pluck('name');
 
+
+            $data['EWalletAccount'] = EWalletAccount::where('status', 1)
+        ->whereIn('e_wallet_name', $gatewayNames)
+        ->whereHas('timeSlots', function ($query) use ($currentTime) {
+            $query->where('status', 1)
+                  ->where('from_time', '<=', $currentTime)
+                  ->where('to_time', '>=', $currentTime);
+        })
+        ->select('e_wallet_name')
+        ->distinct()
+        ->get();
         return view('admin.accounts.ewallet_accounts', $data);
     }
 
