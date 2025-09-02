@@ -5146,6 +5146,15 @@ class PayoutRecordController extends Controller
                 $payout->date_time = $formattedDateTime;
             }
 
+
+            $remarks = "";
+            if ($request->filled('feedback')) {
+                $remarks = $request->feedback;
+            }
+
+
+            $payout->feedback = $remarks;
+
             $now = Carbon::now();
             $twoHoursAgo = $now->subHours(2);
 
