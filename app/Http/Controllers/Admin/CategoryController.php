@@ -34,7 +34,7 @@ class CategoryController extends Controller
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
 
-        $input_status = $request->filled('status') ? $request->status : null;
+        $input_status = $request->filled('status') ? $request->status : 1;
         $today = Carbon::today();
 
         $data['gateways'] = EWalletAccount::select('e_wallet_name')->distinct()->pluck('e_wallet_name')->toArray();
@@ -80,6 +80,9 @@ class CategoryController extends Controller
             ->when($request->filled('gateway_input'), function ($query) use ($request) {
                 $query->where('e_wallet_accounts.e_wallet_name', $request->gateway_input);
             })
+            ->when($request->filled('account_number'), function ($query) use ($request) {
+                $query->where('e_wallet_accounts.account_no', 'LIKE', "%{$request->account_number}%");
+            })
             ->select(
                 'e_wallet_accounts.*',
                 DB::raw('COALESCE(p.today_transaction_count, 0) as today_transaction_count'),
@@ -87,10 +90,28 @@ class CategoryController extends Controller
                 DB::raw('COALESCE(po.today_payout_count, 0) as today_payout_count'),
                 DB::raw('COALESCE(po.today_total_payout, 0) as today_total_payout')
             )
+            ->when($request->status === null || $request->status === '', function ($query) {
+                $query->orderBy('e_wallet_accounts.updated_at', 'desc');
+            })
             ->paginate(1000);
 
         return view('admin.accounts.ewallet_accounts', $data);
     }
+
+    public function bulkStatus(Request $request)
+{
+    $request->validate([
+        'action' => 'required|in:activate,deactivate',
+        'ids' => 'required|array'
+    ]);
+
+    $status = $request->action === 'activate' ? 1 : 0;
+
+    EWalletAccount::whereIn('id', $request->ids)->update(['status' => $status]);
+
+    return response()->json(['success' => true]);
+}
+
 
     public function availableaccounts()
     {
@@ -283,7 +304,7 @@ class CategoryController extends Controller
         dd($result);
 
 
-            
+
         $pageTitle = "Available Accounts";
         return view('admin.accounts.available', compact('pageTitle'));
     }

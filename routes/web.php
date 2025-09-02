@@ -210,6 +210,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         Route::get('/webhook', [WebhookController::class, 'index'])->name('webhook');
 
         // accounts details
+        Route::post('/accounts/bulk-status', [CategoryController::class, 'bulkStatus'])->name('accounts.bulk-status');
         Route::get('/accounts-management', [CategoryController::class, 'index'])->name('ewallet.accounts.details');
         Route::get('/accounts-management/add-account', [CategoryController::class, 'addAccount'])->name('account_management.add_account');
         // Route::get('/accounts-management/edit-account/{id}', [CategoryController::class, 'editAccount'])->name('account_management.edit_account');
@@ -633,7 +634,7 @@ Route::group(['prefix' => 'partner', 'as' => 'partner.'], function () {
         Route::get('merchant-reports/export_month', [PartnerMerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');
 
 
-        
+
 
         // Route::get('merchant/report_by_month', [MerchantController::class, 'report_by_month'])->name('merchant_reports.by_month');
         // Route::get('merchant-reports/export_month', [MerchantController::class, 'export_by_month'])->name('merchant_reports.export_by_month');

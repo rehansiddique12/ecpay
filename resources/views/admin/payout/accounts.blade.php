@@ -9,8 +9,8 @@
                 <div class="form-group">
                     <label>{{ __('reports.status') }}</label>
                     <select class="form-select form-select-sm" name="status">
-                        <option value="" {{ request()->status === null ? 'selected' : '' }}>{{ __('reports.all') }}</option>
-                        <option value="1" {{ request()->status === '1' ? 'selected' : '' }}>{{ __('reports.active') }}</option>
+                        <option value="" {{ request()->has('status') && request()->status === '' ? 'selected' : '' }}>{{ __('reports.all') }}</option>
+                        <option value="1" {{ request()->status === '1' || !request()->has('status') ? 'selected' : '' }}>{{ __('reports.active') }}</option>
                         <option value="0" {{ request()->status === '0' ? 'selected' : '' }}>{{ __('reports.inactive') }}</option>
                     </select>
                 </div>
@@ -31,6 +31,12 @@
             </div>
             <div class="col-md-2">
                 <div class="form-group">
+                    <label>@lang('reports.accounts_number')</label>
+                   <input type="text" class="form-control"    value="{{ request('account_number') }}" placeholder="Enter Account Number" name="account_number">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
                     <br>
                     <button type="submit" class="btn waves-effect waves-light btn-primary"><i
                             class="icon-base ti tabler-search me-1"></i> {{ __('reports.search') }}</button>
@@ -43,13 +49,34 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
     <h5 style="color: #7367f0;" class="mb-0">{{ __('accounts.accounts_list') }}</h5>
-</div>
 
+    <!-- Bulk Actions Dropdown -->
+    <div class="dropdown">
+        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="bulkActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ __('accounts.bulk_actions') }}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="bulkActionDropdown">
+            <li>
+                <a class="dropdown-item bulk-action" href="#" data-action="activate">
+                    <i class="icon-base ti tabler-check me-2"></i> {{ __('accounts.activate_selected') }}
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item bulk-action" href="#" data-action="deactivate">
+                    <i class="icon-base ti tabler-x me-2"></i> {{ __('accounts.deactivate_selected') }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
 
 <div class="table-responsive">
     <table class=" table table-hover table-striped table-bordered table-sm">
         <thead class="thead-dark">
             <tr>
+                <th scope="col">
+                    <input type="checkbox" id="select-all">
+                </th>
                 <th scope="col">{{ __('accounts.acc_number') }}</th>
                 <th scope="col">{{ __('accounts.category') }}</th>
                 <th scope="col">{{ __('accounts.code') }}</th>
@@ -71,7 +98,9 @@
             @forelse($records as $key => $item)
             <tr
                 style="background-color: {{ $item['daily_received'] > ($item['daily_limit'] * $item['deposit_daily_limit_percentage']) / 100 || $item['monthly_received'] > ($item['monthly_limit'] * $item['deposit_monthly_limit_percentage']) / 100 || $item['daily_sent'] > ($item['daily_limit_withdrawal'] * $item['withdrawal_daily_limit_percentage']) / 100 || $item['monthly_sent'] > ($item['monthly_limit_withdrawal'] * $item['withdrawal_monthly_limit_percentage']) / 100 ? 'yellow' : '' }}">
-
+                <td>
+                    <input type="checkbox" class="row-checkbox" value="{{ $item->id }}">
+                </td>
                 <td>
                     {{ $item['account_no'] }}
                 </td>
@@ -557,5 +586,48 @@
         //     });
         // });
     });
+    document.addEventListener("DOMContentLoaded", function () {
+    // Select All Checkbox
+    document.getElementById("select-all").addEventListener("change", function () {
+        document.querySelectorAll(".row-checkbox").forEach(cb => cb.checked = this.checked);
+    });
+
+    // Bulk Action Click
+    document.querySelectorAll(".bulk-action").forEach(actionBtn => {
+        actionBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            let action = this.dataset.action;
+            let selected = Array.from(document.querySelectorAll(".row-checkbox:checked")).map(cb => cb.value);
+
+            if (selected.length === 0) {
+                alert("Please select at least one account.");
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to ${action} selected accounts?`)) return;
+
+            fetch("{{ route('admin.accounts.bulk-status') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    action: action,
+                    ids: selected
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Something went wrong.");
+                }
+            });
+        });
+    });
+});
+
 </script>
 @endpush
