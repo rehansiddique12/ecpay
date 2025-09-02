@@ -92,7 +92,7 @@ class CategoryController extends Controller
             ->when($request->filled('account_number'), function ($query) use ($request) {
                 $query->where('e_wallet_accounts.account_no', 'LIKE', "%{$request->account_number}%");
             })
-            ->when($input_status !== null, function ($query) use ($currentTime) {
+            ->when($input_status === '1', function ($query) use ($currentTime) {
                 // Only apply timeslot filter when status is NOT "All"
                 $query->whereHas('timeSlots', function ($subQuery) use ($currentTime) {
                     $subQuery->where('status', 1)
@@ -116,6 +116,7 @@ class CategoryController extends Controller
         // Buttons (Gateways in current slot or all depending on filter)
         $gatewayNames = Gateway::where('status', 1)->pluck('name');
 
+        // Add a condition to filter EWalletAccount based on the gateway names
         $data['EWalletAccount'] = EWalletAccount::when($input_status !== null, function ($query) use ($currentTime) {
                 // If Active/Inactive selected → filter by timeslot
                 $query->whereHas('timeSlots', function ($subQuery) use ($currentTime) {
@@ -124,6 +125,7 @@ class CategoryController extends Controller
                         ->where('to_time', '>=', $currentTime);
                 });
             })
+            ->whereIn('e_wallet_name', $gatewayNames) // Add this line to filter by the gateway names
             ->select('e_wallet_name')
             ->distinct()
             ->get();
