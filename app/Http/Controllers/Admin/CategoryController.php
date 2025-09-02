@@ -34,7 +34,13 @@ class CategoryController extends Controller
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
 
-        $input_status = $request->filled('status') ? $request->status : 1;
+    // Default: Active (1), but only if no status is provided at all
+if ($request->has('status')) {
+    $input_status = $request->status !== '' ? $request->status : null; // null means "All"
+} else {
+    $input_status = 1; // Default Active
+}
+
         $today = Carbon::today();
 
         $data['gateways'] = EWalletAccount::select('e_wallet_name')->distinct()->pluck('e_wallet_name')->toArray();
@@ -74,8 +80,12 @@ class CategoryController extends Controller
                 'location',
                 'accountGroups.group'
             ])
-           ->when($input_status !== null, function ($query) use ($input_status) {
+            ->when($input_status !== null, function ($query) use ($input_status) {
                 return $query->where('e_wallet_accounts.status', $input_status);
+            })
+            ->when($input_status === null, function ($query) {
+                // "All" selected → show everything ordered by updated_at desc
+                return $query->orderBy('e_wallet_accounts.updated_at', 'desc');
             })
             ->when($request->filled('gateway_input'), function ($query) use ($request) {
                 $query->where('e_wallet_accounts.e_wallet_name', $request->gateway_input);
