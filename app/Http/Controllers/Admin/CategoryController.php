@@ -33,44 +33,45 @@ class CategoryController extends Controller
         $data['pageTitle'] = 'Accounts Management';
         $data['groups'] = AccountGroup::all();
         $this->updateLimits();
+
         $currentTime = Carbon::now()->format('H:i:s');
-
-    // Default: Active (1), but only if no status is provided at all
-if ($request->has('status')) {
-    $input_status = $request->status !== '' ? $request->status : null; // null means "All"
-} else {
-    $input_status = 1; // Default Active
-}
-
         $today = Carbon::today();
+
+        // Status handling
+        if ($request->has('status')) {
+            $input_status = $request->status !== '' ? $request->status : null; // null = All
+        } else {
+            $input_status = 1; // Default Active
+        }
 
         $data['gateways'] = EWalletAccount::select('e_wallet_name')->distinct()->pluck('e_wallet_name')->toArray();
 
         // Payments Subquery
         $paymentsSubQuery = DB::table('payments')
             ->selectRaw('
-        e_wallet_phone_number,
-        COUNT(*) as today_transaction_count,
-        SUM(amount) as today_total_deposit
-        ')
+                e_wallet_phone_number,
+                COUNT(*) as today_transaction_count,
+                SUM(amount) as today_total_deposit
+            ')
             ->whereDate('created_at', $today)
             ->where('status', 'Complete')
             ->groupBy('e_wallet_phone_number');
 
-        // Payouts Subquery
+        // Payouts SubQuery
         $payoutsSubQuery = DB::table('payouts')
             ->selectRaw('
-        e_wallet_phone_number,
-        COUNT(*) as today_payout_count,
-        SUM(amount) as today_total_payout
-    ')
+                e_wallet_phone_number,
+                COUNT(*) as today_payout_count,
+                SUM(amount) as today_total_payout
+            ')
             ->whereDate('created_at', $today)
             ->where('status', 'Complete')
             ->groupBy('e_wallet_phone_number');
 
+        // Main query
         $data['records'] = EWalletAccount::leftJoinSub($paymentsSubQuery, 'p', function ($join) {
-            $join->on('e_wallet_accounts.account_no', '=', 'p.e_wallet_phone_number');
-        })
+                $join->on('e_wallet_accounts.account_no', '=', 'p.e_wallet_phone_number');
+            })
             ->leftJoinSub($payoutsSubQuery, 'po', function ($join) {
                 $join->on('e_wallet_accounts.account_no', '=', 'po.e_wallet_phone_number');
             })
@@ -82,11 +83,8 @@ if ($request->has('status')) {
                 'accountGroups.group'
             ])
             ->when($input_status !== null, function ($query) use ($input_status) {
-                return $query->where('e_wallet_accounts.status', $input_status);
-            })
-            ->when($input_status === null, function ($query) {
-                // "All" selected → show everything ordered by updated_at desc
-                return $query->orderBy('e_wallet_accounts.updated_at', 'desc');
+                // Apply Active/Inactive filter
+                $query->where('e_wallet_accounts.status', $input_status);
             })
             ->when($request->filled('gateway_input'), function ($query) use ($request) {
                 $query->where('e_wallet_accounts.e_wallet_name', $request->gateway_input);
@@ -94,10 +92,13 @@ if ($request->has('status')) {
             ->when($request->filled('account_number'), function ($query) use ($request) {
                 $query->where('e_wallet_accounts.account_no', 'LIKE', "%{$request->account_number}%");
             })
-            ->whereHas('timeSlots', function ($query) use ($currentTime) {
-                $query->where('status', 1)
-                      ->where('from_time', '<=', $currentTime)
-                      ->where('to_time', '>=', $currentTime);
+            ->when($input_status !== null, function ($query) use ($currentTime) {
+                // Only apply timeslot filter when status is NOT "All"
+                $query->whereHas('timeSlots', function ($subQuery) use ($currentTime) {
+                    $subQuery->where('status', 1)
+                        ->where('from_time', '<=', $currentTime)
+                        ->where('to_time', '>=', $currentTime);
+                });
             })
             ->select(
                 'e_wallet_accounts.*',
@@ -106,24 +107,27 @@ if ($request->has('status')) {
                 DB::raw('COALESCE(po.today_payout_count, 0) as today_payout_count'),
                 DB::raw('COALESCE(po.today_total_payout, 0) as today_total_payout')
             )
-            ->when($request->status === null || $request->status === '', function ($query) {
+            ->when($input_status === null, function ($query) {
+                // "All" → order by updated_at desc
                 $query->orderBy('e_wallet_accounts.updated_at', 'desc');
             })
             ->paginate(1000);
-            // dd($data);
-            $gatewayNames = Gateway::where('status', 1)->pluck('name');
 
+        // Buttons (Gateways in current slot or all depending on filter)
+        $gatewayNames = Gateway::where('status', 1)->pluck('name');
 
-            $data['EWalletAccount'] = EWalletAccount::where('status', 1)
-        ->whereIn('e_wallet_name', $gatewayNames)
-        ->whereHas('timeSlots', function ($query) use ($currentTime) {
-            $query->where('status', 1)
-                  ->where('from_time', '<=', $currentTime)
-                  ->where('to_time', '>=', $currentTime);
-        })
-        ->select('e_wallet_name')
-        ->distinct()
-        ->get();
+        $data['EWalletAccount'] = EWalletAccount::when($input_status !== null, function ($query) use ($currentTime) {
+                // If Active/Inactive selected → filter by timeslot
+                $query->whereHas('timeSlots', function ($subQuery) use ($currentTime) {
+                    $subQuery->where('status', 1)
+                        ->where('from_time', '<=', $currentTime)
+                        ->where('to_time', '>=', $currentTime);
+                });
+            })
+            ->select('e_wallet_name')
+            ->distinct()
+            ->get();
+
         return view('admin.accounts.ewallet_accounts', $data);
     }
 
