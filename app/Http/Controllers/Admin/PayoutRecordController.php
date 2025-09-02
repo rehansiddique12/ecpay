@@ -5922,9 +5922,18 @@ class PayoutRecordController extends Controller
         $gatewayNames = Gateway::where('status', 1)->pluck('name');
 
         // Get EWalletAccount records with status = 1 and matching e_wallet_name
+
+        $currentTime = Carbon::now()->format('H:i:s'); // current time in HH:MM:SS format
+
         $EWalletAccount = EWalletAccount::where('status', 1)
             ->whereIn('e_wallet_name', $gatewayNames)
+            ->whereHas('timeSlots', function ($query) use ($currentTime) {
+                $query->where('status', 1) // only active slots
+                      ->where('from_time', '<=', $currentTime)
+                      ->where('to_time', '>=', $currentTime);
+            })
             ->get();
+
         $accountIds = EWalletAccount::where('status', 1)
             ->whereIn('account_type', ['Withdrawal', 'Both'])
             ->whereColumn('live_balance', '<=', 'low_balance_amount')

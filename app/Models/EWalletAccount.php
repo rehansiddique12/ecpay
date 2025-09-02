@@ -78,4 +78,7 @@ class EWalletAccount extends Model
     {
         return $this->hasMany(Payment::class, 'sender', 'account_no');
     }
+
+
+
 }

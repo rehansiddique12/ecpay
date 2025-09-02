@@ -40,6 +40,9 @@ class AuditController extends Controller
     ->when($request->date, function ($q) use ($request) {
         $q->whereDate('created_at', $request->date);
     })
+    ->when($request->description, function ($q) use ($request) {
+        $q->where('description', 'like', '%' . $request->description . '%');
+    })
     ->orderBy('id','DESC')
     ->paginate(20);
 
@@ -48,7 +51,4 @@ class AuditController extends Controller
 
             return view('admin.audit_logs.index', compact('logs', 'users','pageTitle'));
         }
-
-
-
 }

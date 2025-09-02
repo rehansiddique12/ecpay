@@ -15,36 +15,59 @@
                     </select>
                 </div>
             </div>
+
             <div class="col-md-2">
                 <div class="form-group">
                     <label>@lang('reports.gateway')</label>
                     <select class="form-select form-select-sm select2" name="gateway_input"
-                        data-placeholder="{{ __('reports.select_gateway') }}">
-                        {{-- <option></option> --}}
+                            data-placeholder="{{ __('reports.select_gateway') }}">
                         <option value="">{{ __('reports.all') }}</option>
-                        @foreach ($gateways as $key => $value )
-                        <option value="{{ $value }}" {{ request()->gateway_input === $value ? 'selected' : '' }}>{{
-                            $value }}</option>
+                        @foreach ($gateways as $key => $value)
+                            <option value="{{ $value }}" {{ request()->gateway_input === $value ? 'selected' : '' }}>
+                                {{ $value }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
             </div>
+
             <div class="col-md-2">
                 <div class="form-group">
                     <label>@lang('reports.accounts_number')</label>
-                   <input type="text" class="form-control"    value="{{ request('account_number') }}" placeholder="Enter Account Number" name="account_number">
+                    <input type="text" class="form-control"
+                           value="{{ request('account_number') }}"
+                           placeholder="Enter Account Number"
+                           name="account_number">
                 </div>
             </div>
+
             <div class="col-md-2">
                 <div class="form-group">
                     <br>
-                    <button type="submit" class="btn waves-effect waves-light btn-primary"><i
-                            class="icon-base ti tabler-search me-1"></i> {{ __('reports.search') }}</button>
+                    <button type="submit" class="btn waves-effect waves-light btn-primary">
+                        <i class="icon-base ti tabler-search me-1"></i> {{ __('reports.search') }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Buttons section -->
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    @foreach($EWalletAccount as $account)
+                        <a href="{{ route('admin.ewallet.accounts.details', [
+                            'status' => 1, // always active
+                            'gateway_input' => $account->e_wallet_name
+                        ]) }}"
+                           class="btn btn-outline-primary btn-sm {{ request('gateway_input') === $account->e_wallet_name && request('status') == 1 ? 'active' : '' }}">
+                            {{ $account->e_wallet_name }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
 
         </div>
     </form>
+
 {{-- </div> --}}
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
