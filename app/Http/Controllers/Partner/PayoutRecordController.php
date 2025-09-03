@@ -62,8 +62,8 @@ class PayoutRecordController extends Controller
     }
 
     public function depositFund($username)
-    {   
-        
+    {
+
         if (session()->has('txn_verified')) {
             session()->forget('txn_verified');
         }
@@ -1973,8 +1973,8 @@ class PayoutRecordController extends Controller
             // $max_consecutive_missing = 0;
             $total_missing = 0;
 
-            $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 3);
-            $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 7);
+            $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 6);
+            $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 12);
 
             foreach ($payments as $payment) {
                 $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
@@ -5929,7 +5929,7 @@ class PayoutRecordController extends Controller
         $success = 0;
 
 
-        
+
 
         $txn_id = "";
         if ($request->filled('txn')) {
@@ -5938,7 +5938,7 @@ class PayoutRecordController extends Controller
 
 
                 $track = session()->get('track');
-                
+
 
                 $username = session()->get('username');
                 $api_key = API::where('username', $username)->where('status', 1)->lockForUpdate()->first();
@@ -5978,14 +5978,14 @@ class PayoutRecordController extends Controller
                 }
 
 
-        
+
 
         while ($attempt < $maxAttempts && $success == 0) {
             LaravelLog::info('verifytxn-PartnerController try(' . $attempt + 1 . ') txn_id: ' . $txn_id);
 
             DB::beginTransaction();
             try {
-                
+
 
 
                 $order = Payment::where('transaction', $track)->where('status', 'Pending')->orderBy('id', 'DESC')->lockForUpdate()->first();
