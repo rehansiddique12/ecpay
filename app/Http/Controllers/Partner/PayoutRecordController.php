@@ -1998,12 +1998,13 @@ class PayoutRecordController extends Controller
                             $blacklist->consecutive_count = 1;
                         }
 
-                        $blacklist->reason = '3 consecutive missing txns';
+                        $blacklist->reason = $con_limit . ' consecutive missing txns';
                         $blacklist->status = 1;
 
                         $blacklist->save();
 
-                        \Illuminate\Support\Facades\Log::info('Blacklisted for 3 consecutive missing txns', ['member_id' => $member_id]);
+
+                        \Illuminate\Support\Facades\Log::info("Blacklisted for {$con_limit} consecutive missing txns", ['member_id' => $member_id]);
                         $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                         return response()->view('partner.payout.blacklist_error', compact('error_message'));
                     }
@@ -2032,13 +2033,14 @@ class PayoutRecordController extends Controller
                     $blacklist->total_count = 1;
                 }
 
-                $blacklist->reason = '7 total missing txns in a day';
+
+                $blacklist->reason = $total_limit . ' total missing txns in a day';
                 $blacklist->status = 1;
 
 
                 $blacklist->save();
 
-                \Illuminate\Support\Facades\Log::info('Blacklisted for 7 total missing txns', ['member_id' => $member_id]);
+                \Illuminate\Support\Facades\Log::info('Blacklisted for ' . $total_limit . ' total missing txns in a day', ['member_id' => $member_id]);
                 $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                 return response()->view('partner.payout.blacklist_error', compact('error_message'));
             }
