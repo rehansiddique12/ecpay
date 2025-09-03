@@ -2802,10 +2802,18 @@ class TelegramGroupController extends Controller
         if (empty($ewallet)){
             $textforewallet = preg_replace('/[^\d\-]/', ' ', $text);
             $textforewallet = str_replace('-', '', $textforewallet);
-            $pattern = '/\b(01\d{2}-?\d{6,8})\b/';
+            $pattern = '/\b(01\d{9}(?:\d)?)\b/';
             if (preg_match($pattern, $textforewallet, $matches)) {
                 $ewallet = $matches[1];
             }
+
+            if (empty($ewallet)){
+                $pattern = '/\b(01\d{2}-?\d{6,8})\b/';
+                if (preg_match($pattern, $textforewallet, $matches)) {
+                    $ewallet = $matches[1];
+                }
+            }
+                
         }
 
         if (empty($ewallet)){
