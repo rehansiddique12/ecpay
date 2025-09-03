@@ -1,6 +1,6 @@
 <x-admin-layout :title="$pageTitle">
     <div class="container">
-        <h2 class="mb-4">{{ __('transaction.audit_logs') }}</h2>
+        <h2 class="mb-4">{{ __('transaction.settings') }}</h2>
 
         <button class="btn btn-primary mb-3" onclick="openAddModal()">Add Setting</button>
             @if(session('success'))

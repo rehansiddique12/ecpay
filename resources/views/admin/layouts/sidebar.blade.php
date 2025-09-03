@@ -701,6 +701,17 @@ $languages = [
 
                             @endif
 
+                            @if (adminAccessRoute(config('role.blacklist.access.view')))
+                            <li
+                                class="menu-item {{ Route::currentRouteName() == 'admin.blacklist.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.settings.index') }}" class="menu-link">
+                                    <i class="menu-icon icon-base ti tabler-menu-2"></i>
+                                    <div data-i18n="Blacklist">Settings</div>
+                                </a>
+                            </li>
+
+                            @endif
+
                              @if (adminAccessRoute(config('role.ip_whitelist.access.view')))
                             <li
                                 class="menu-item {{ Route::currentRouteName() == 'admin.whitelist' ? 'active' : '' }}">
