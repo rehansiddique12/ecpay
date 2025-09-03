@@ -25,6 +25,7 @@ yarn-error.log
 /app/Http/Middleware/AdminAuthorizeMiddleware.php
 /app/Http/Controllers/Admin/DashboardController.php
 app/Http/Controllers/Admin/LoginController.php
+/storage/framework/sessions/*
 
 
 ecpay.sql
