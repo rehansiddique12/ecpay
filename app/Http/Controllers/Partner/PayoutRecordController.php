@@ -74,7 +74,7 @@ class PayoutRecordController extends Controller
                 return redirect(route('user.payment'));
             }
             $totalPayment = null;
-            $gateways = Gateway::where('status', 1)->where('deposit_on' ,1)
+            $gateways = Gateway::where('status', 1)->where('deposit_on', 1)
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'ewallet');
                 })
@@ -94,7 +94,7 @@ class PayoutRecordController extends Controller
         if ($open_user && $open_user->type == "Admin") {
             $min_withdrawal = $open_user->min_withdrawal;
             $title = "Payout Money";
-            $gateways = Gateway::where('status', 1)->where('withdrawal_on' , 1)
+            $gateways = Gateway::where('status', 1)->where('withdrawal_on', 1)
                 ->whereHas('category', function ($query) {
                     $query->where('name', 'ewallet');
                 })
@@ -167,7 +167,7 @@ class PayoutRecordController extends Controller
             }
 
             $basic = (object)config('basic');
-            $gate = Gateway::where('code', $request->gateway)->where('status', 1)->where('deposit_on' ,1)->first();
+            $gate = Gateway::where('code', $request->gateway)->where('status', 1)->where('deposit_on', 1)->first();
             if (!$gate) {
                 DB::rollBack();
                 return response()->json(['error' => 'Invalid Gateway'], 422);
@@ -603,7 +603,7 @@ class PayoutRecordController extends Controller
             $banner = asset('assets/images/Rocket_Background.jpg');
         }
         $txn_verification = "";
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on', 1)->first();
         if (!$gate) {
             $message = "Gateway is inactive.";
             return view('partner.payout.process_transection', compact('data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -1820,7 +1820,7 @@ class PayoutRecordController extends Controller
             $ewallet_to_show = "Rocket";
         }
 
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on', 1)->first();
         if (!$gate) {
             $message = "Gateway is inactive.";
             return view('partner.payout.process_transection2', compact('ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
@@ -1941,29 +1941,27 @@ class PayoutRecordController extends Controller
         $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
         $api_id = $api_key->id;
         if ($member_id) {
-            $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
+            $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id', $api_id)->first();
             if ($blacklisted) {
-                if($blacklisted->status==1){
+                if ($blacklisted->status == 1) {
                     \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
                     $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                     return response()->view('partner.payout.blacklist_error', compact('error_message'));
                 }
-
             }
             // $today = now()->toDateString();
 
             // $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->where('api_id',$api_id)->first();
 
-            if($blacklisted){
+            if ($blacklisted) {
                 $startOfDay = $blacklisted->updated_at;
-            }else{
+            } else {
                 $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
-
             }
 
             $payments = \App\Models\Payment::where('member_id', $member_id)
-                ->where('api_id',$api_id)
-                ->where('created_at','>', $startOfDay)
+                ->where('api_id', $api_id)
+                ->where('created_at', '>', $startOfDay)
                 ->where('status', 'Pending')
                 ->orderBy('created_at')
                 ->get();
@@ -2008,7 +2006,6 @@ class PayoutRecordController extends Controller
                         $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                         return response()->view('partner.payout.blacklist_error', compact('error_message'));
                     }
-
                 } else {
                     $consecutive_missing = 0;
                 }
@@ -2044,7 +2041,6 @@ class PayoutRecordController extends Controller
                 $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
                 return response()->view('partner.payout.blacklist_error', compact('error_message'));
             }
-
         }
 
         LaravelLog::info('fn start processTransection4');
@@ -2095,10 +2091,10 @@ class PayoutRecordController extends Controller
             $ewallet_to_show_bangla = "রকেট";
         }
 
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on', 1)->first();
         if (!$gate) {
             $message = "Gateway is inactive.";
-            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla', 'ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
         $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
@@ -2182,7 +2178,7 @@ class PayoutRecordController extends Controller
             }
         } else {
             $message = "Wrong Username OR Username Not Exist";
-            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla', 'ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
@@ -2190,13 +2186,13 @@ class PayoutRecordController extends Controller
 
         if ($api_key->min_deposit > $amount) {
             $message = "Minimum Deposit Limit is " . $api_key->min_deposit;
-            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla', 'ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
         if ($gate->max_amount < $amount) {
             $message = "Maximum Deposit Limit is " . round($gate->max_amount, 2);
-            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla', 'ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
         }
 
 
@@ -2234,32 +2230,30 @@ class PayoutRecordController extends Controller
                 // Less than 1 minute ago
                 if ($lastUsed->diffInSeconds($current_time) < 60) {
                     return $single_account->max_transaction_per_minute > $single_account->d_one_min_count &&
-                    $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
+                        $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
                 }
 
                 return $single_account->max_transaction_per_minute > 0 &&
-                        $single_account->max_amount_per_minute >= $amount;
-
-
+                    $single_account->max_amount_per_minute >= $amount;
             })
             ->sortBy('d_last_used')
             ->values()->first();
 
 
-            if (!$account) {
-                $data['account_not_found'] = 1;
-                $message = "You Can not Proceed With this E-wallet account";
-                return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
-            }
+        if (!$account) {
+            $data['account_not_found'] = 1;
+            $message = "You Can not Proceed With this E-wallet account";
+            return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla', 'ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+        }
 
 
 
 
-            $e_wallet_phone_number = $account->account_no;
+        $e_wallet_phone_number = $account->account_no;
 
-            $one_minute_ago = Carbon::now()->subMinute();
+        $one_minute_ago = Carbon::now()->subMinute();
 
-            $one_minute_data = DB::table('payments')
+        $one_minute_data = DB::table('payments')
             ->where('e_wallet_name', $ewallet)
             ->where('e_wallet_phone_number', $e_wallet_phone_number)
             ->where('created_at', '>=', $one_minute_ago)
@@ -2269,18 +2263,15 @@ class PayoutRecordController extends Controller
 
 
 
-            $one_minute_data_count = 1;
-            $one_minute_data_sum = $amount;
+        $one_minute_data_count = 1;
+        $one_minute_data_sum = $amount;
 
-            if ($one_minute_data && ($one_minute_data->count > 0 || $one_minute_data->sum > 0)) {
-
-
-                $one_minute_data_count = $one_minute_data->count + 1;
-                $one_minute_data_sum = $one_minute_data->sum + $amount;
+        if ($one_minute_data && ($one_minute_data->count > 0 || $one_minute_data->sum > 0)) {
 
 
-
-            }
+            $one_minute_data_count = $one_minute_data->count + 1;
+            $one_minute_data_sum = $one_minute_data->sum + $amount;
+        }
 
 
         $account->d_one_min_count = $one_minute_data_count;
@@ -2298,7 +2289,7 @@ class PayoutRecordController extends Controller
         LaravelLog::info('fn end processTransection4');
 
         // setting for theme style
-        return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla','ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
+        return view('partner.payout.process_transection4', compact('ewallet_to_show_bangla', 'ewallet_to_show', 'data', 'message', 'ewallet', 'logo', 'banner', 'txn_verification', 'remainingTime'));
     }
 
     public function processNextPayment2(Request $request)
@@ -3229,7 +3220,8 @@ class PayoutRecordController extends Controller
         return back()->with('error', $e->getMessage());
     }
 
-    public function createpayment(Request $request){
+    public function createpayment(Request $request)
+    {
 
         LaravelLog::info("createpayment start");
 
@@ -3358,9 +3350,6 @@ class PayoutRecordController extends Controller
             $fund->request_source = "Iframe-2";
             $fund->e_wallet_name = $gate->name;
             $fund->save();
-
-
-
         }
 
 
@@ -3413,13 +3402,11 @@ class PayoutRecordController extends Controller
                 // Less than 1 minute ago
                 if ($lastUsed->diffInSeconds($current_time) < 60) {
                     return $single_account->max_transaction_per_minute > $single_account->d_one_min_count &&
-                    $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
+                        $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
                 }
 
                 return $single_account->max_transaction_per_minute > 0 &&
-                        $single_account->max_amount_per_minute >= $amount;
-
-
+                    $single_account->max_amount_per_minute >= $amount;
             })
             ->sortBy('d_last_used')
             ->values()->first();
@@ -3434,7 +3421,6 @@ class PayoutRecordController extends Controller
         LaravelLog::info('fn  getaccount round robin applied');
 
         return response()->json(['status' => 'success', 'phone_number' => $account->account_no, 'account_type' => $account->type]);
-
     }
 
 
@@ -3672,7 +3658,7 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'You are only allowed to proceed with Bkash E-Wallet'], 404);
         }
 
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on', 1)->first();
         if (!$gate) {
             $message = "Gateway is inactive.";
             return response()->json(['message' => $message], 404);
@@ -3767,7 +3753,7 @@ class PayoutRecordController extends Controller
             ->where(function ($q) use ($sum) {
                 $q->where(function ($q2) use ($sum) {
                     $q2->where('from_amount', '<=', $sum)
-                    ->where('to_amount', '>=', $sum);
+                        ->where('to_amount', '>=', $sum);
                 })->orWhere(function ($q3) {
                     $q3->whereRaw('1 = 1'); // fallback
                 });
@@ -3786,8 +3772,8 @@ class PayoutRecordController extends Controller
         $final_amo = getAmount($payable * $gate->convention_rate);
 
         $fund = Payment::where('partner_transection_id', $transection_id)
-        ->where('api_id', $api_key->id)
-        ->exists();
+            ->where('api_id', $api_key->id)
+            ->exists();
         if ($fund) {
             $message = "This partner transaction ID has already been created!";
             return response()->json(['status' => 'fail', 'message' => $message]);
@@ -3817,26 +3803,26 @@ class PayoutRecordController extends Controller
 
 
         $accounts = MerchantAccount::where('status', 1)
-        ->get()
-        ->sortBy(fn($acc) => $recordcounts[$acc->e_wallet_phone_number] ?? 0)
-        ->values()
-        ->all();
+            ->get()
+            ->sortBy(fn($acc) => $recordcounts[$acc->e_wallet_phone_number] ?? 0)
+            ->values()
+            ->all();
 
         $count = count($accounts);
 
-        if ($count<1) {
+        if ($count < 1) {
             return response()->json(['error' => 'This gateway has been deactivated by the Administrator.'], 422);
         }
 
         $account_get = 0;
 
-        foreach($accounts as $account){
+        foreach ($accounts as $account) {
 
             $accessToken = $this->getBkashToken($account);
 
-            if(isset($accessToken)){
+            if (isset($accessToken)) {
                 $createBkashPayment = $this->createBkashPayment($accessToken, $amount, $merchantinvoice, $account);
-                if(isset($createBkashPayment['paymentID'])){
+                if (isset($createBkashPayment['paymentID'])) {
                     LaravelLog::info('Account Choosed:' . $account->e_wallet_phone_number);
                     $account_get = 1;
                     break;
@@ -3846,11 +3832,10 @@ class PayoutRecordController extends Controller
             LaravelLog::info('Account Deactivated:' . $account->e_wallet_phone_number);
             $account->status = 0;
             $account->save();
-
         }
 
 
-        if ($account_get==0) {
+        if ($account_get == 0) {
             return response()->json(['error' => 'This gateway has been deactivated by the Administrator.'], 422);
         }
 
@@ -3888,7 +3873,7 @@ class PayoutRecordController extends Controller
             $fund->save();
 
 
-            if($commissions){
+            if ($commissions) {
                 $parentIds = ParentCommission::where('user_id', $api_key->id)
                     ->pluck('parent_id')
                     ->unique()
@@ -3961,7 +3946,7 @@ class PayoutRecordController extends Controller
             return response()->json(['message' => 'You are only allowed to proceed with Bkash E-Wallet'], 404);
         }
 
-        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on' , 1)->first();
+        $gate = Gateway::where('code', $ewallet)->where('status', 1)->where('deposit_on', 1)->first();
         if (!$gate) {
             $message = "Gateway is inactive.";
             return response()->json(['message' => $message], 404);
@@ -4098,7 +4083,7 @@ class PayoutRecordController extends Controller
             ->values()->toArray();
 
 
-            dd($account);
+        dd($account);
 
         if (!$account) {
             return response()->json(['error' => 'This gateway has been deactivated by the Administrator.'], 422);
@@ -4142,7 +4127,7 @@ class PayoutRecordController extends Controller
             $fund->save();
 
 
-            if($commissions){
+            if ($commissions) {
                 $parentIds = ParentCommission::where('user_id', $api_key->id)
                     ->pluck('parent_id')
                     ->unique()
@@ -4252,20 +4237,21 @@ class PayoutRecordController extends Controller
 
 
 
-    public function bkashcallback(Request $request){
+    public function bkashcallback(Request $request)
+    {
 
         $data = $request->all();
         $redirect_url = "https://ecpay.asia/index.html";
         $paymentID = $data['paymentID'];
 
         $fund = Payment::where('live_payment_id', $paymentID)->latest()->first();
-        if($fund){
+        if ($fund) {
 
             $partner_api_key = Api::where('id', $fund->api_id)->first();
             $source = $partner_api_key->website;
             $api_id = $partner_api_key->id;
 
-            if(!empty($partner_api_key->redirect_url)){
+            if (!empty($partner_api_key->redirect_url)) {
                 $redirect_url = $partner_api_key->redirect_url;
             }
 
@@ -4279,13 +4265,13 @@ class PayoutRecordController extends Controller
             }
 
             $account = MerchantAccount::where('status', 1)
-            ->where('e_wallet_phone_number', $fund->e_wallet_phone_number)
-            ->first();
+                ->where('e_wallet_phone_number', $fund->e_wallet_phone_number)
+                ->first();
 
-            if($account){
+            if ($account) {
                 $accessToken = $this->getBkashToken($account);
                 $executeBkashPayment = $this->executeBkashPayment($accessToken, $paymentID, $account);
-                if(isset($executeBkashPayment['paymentID'])){
+                if (isset($executeBkashPayment['paymentID'])) {
 
 
 
@@ -4294,7 +4280,7 @@ class PayoutRecordController extends Controller
                     $serviceFee = $executeBkashPayment['serviceFee'] ?? 0;
                     $account_no = $executeBkashPayment['payerAccount'] ?? "";
 
-                    if($transactionStatus=="Completed"){
+                    if ($transactionStatus == "Completed") {
                         $now = Carbon::now();
                         $twoHoursAgo = $now->subHours(2);
 
@@ -4430,26 +4416,26 @@ class PayoutRecordController extends Controller
 
 
                                 $array_data = [
-                                            'id' => $payment->id,
-                                            'partner_transection_id' => $payment->partner_transection_id,
-                                            'transaction_type' => 'Deposit',
-                                            'e_wallet_name' => $payment->e_wallet_name,
-                                            'amount' => $this->convertStringToNumber($payment->amount),
-                                            'user_account_no' => $payment->sender,
-                                            'txn_id' => $payment->txn_id,
-                                            'e_wallet_phone_number' => $payment->e_wallet_phone_number,
-                                            'e_wallet_type' => $payment->e_wallet_type,
-                                            'charges' => $this->convertStringToNumber($payment->charge),
-                                            'status' => $payment->status,
-                                            'completion_date' => $payment->date,
-                                            'completion_time' => $payment->time,
-                                            'created_at' => $payment->created_at,
-                                            'updated_at' => $payment->updated_at,
-                                            'sign' => $sign,
-                                            'source' => '33Callback',
+                                    'id' => $payment->id,
+                                    'partner_transection_id' => $payment->partner_transection_id,
+                                    'transaction_type' => 'Deposit',
+                                    'e_wallet_name' => $payment->e_wallet_name,
+                                    'amount' => $this->convertStringToNumber($payment->amount),
+                                    'user_account_no' => $payment->sender,
+                                    'txn_id' => $payment->txn_id,
+                                    'e_wallet_phone_number' => $payment->e_wallet_phone_number,
+                                    'e_wallet_type' => $payment->e_wallet_type,
+                                    'charges' => $this->convertStringToNumber($payment->charge),
+                                    'status' => $payment->status,
+                                    'completion_date' => $payment->date,
+                                    'completion_time' => $payment->time,
+                                    'created_at' => $payment->created_at,
+                                    'updated_at' => $payment->updated_at,
+                                    'sign' => $sign,
+                                    'source' => '33Callback',
                                 ];
 
-                                if(!empty($payment->member_id)){
+                                if (!empty($payment->member_id)) {
                                     $array_data['member_id'] = $payment->member_id;
                                 }
 
@@ -4490,29 +4476,21 @@ class PayoutRecordController extends Controller
                             }
                         }
 
-                        if($commit == 0){
+                        if ($commit == 0) {
                             DB::commit();
                         }
-                    }else{
+                    } else {
 
                         $fund->status = 3;
                         $fund->save();
-
                     }
-
                 }
             }
-
-
-
-
-
         }
 
 
 
         return redirect()->away($redirect_url);
-
     }
 
 
@@ -4743,10 +4721,10 @@ class PayoutRecordController extends Controller
                     ->values()
                     ->first();
 
-                    // if (!$account) {
-                    //     DB::rollBack();
-                    //     throw new \Exception("No E-wallet account Available at this time to proceed this request.");
-                    // }
+                // if (!$account) {
+                //     DB::rollBack();
+                //     throw new \Exception("No E-wallet account Available at this time to proceed this request.");
+                // }
 
                 // $pre_payout = Payout::where('payout_log_id', $data->id)->first();
                 // if (!$pre_payout) {
@@ -4759,8 +4737,7 @@ class PayoutRecordController extends Controller
                     $user_account_no =  $data->user_account_no;
                 }
 
-                if(isset($account->id))
-                {
+                if (isset($account->id)) {
                     $data->e_wallet_phone_number = $account->account_no;
                     $data->e_wallet_type = $account->type;
                 }
@@ -4788,7 +4765,7 @@ class PayoutRecordController extends Controller
                     $sum = 0;
                 }
                 $charge = 0;
-                if(isset($account->id)){
+                if (isset($account->id)) {
                     $commissions = Commission::where('category_id', $partner_api_key->category_id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
                     if ($commissions) {
                         $charge = $commissions->withdrawal_percentage * $data->amount / 100;
@@ -5401,11 +5378,8 @@ class PayoutRecordController extends Controller
 
         $min_withdrawal = $open_user->min_withdrawal;
 
-
         $basic = (object)config('basic');
-        $method = Gateway::where('id', $request->gateway)->where('status', 1)->where('withdrawal_on' ,1)->firstOrFail();
-
-
+        $method = Gateway::where('id', $request->gateway)->where('status', 1)->where('withdrawal_on', 1)->firstOrFail();
 
         $authWallet = $open_user;
 
@@ -5422,8 +5396,6 @@ class PayoutRecordController extends Controller
             return back();
         }
 
-
-
         $previous_pending = Payout::where('api_id', $open_user->id)
             ->where(function ($query) {
                 $query->where('transfer_status', 1)
@@ -5434,11 +5406,115 @@ class PayoutRecordController extends Controller
             })
             ->sum('amount');
 
-
-
-
+        $trx = strRandom();
+        $withdraw = new Payout();
+        $withdraw->user_id = 0;
+        $withdraw->gateway_id = $method->id;
+        $withdraw->amount = getAmount($request->amount);
+        $withdraw->charge = $charge;
+        // $withdraw->net_amount = $finalAmo;
+        $withdraw->trx_id = $trx;
+        $withdraw->status = 0;
+        $withdraw->e_wallet_name = $method->name;
+        // $withdraw->api_key = $authWallet['api_key'];
+        $withdraw->api_id = $authWallet['id'];
+        $withdraw->save();
+        session()->put('wtrx', $trx);
+        session()->put('username', $request->username);
 
         if ($finalAmo + $previous_pending > $authWallet['balance']) {
+
+            $withdraw->status  = "Reject";
+            $withdraw->transfer_status  = 3;
+            $withdraw->save();
+
+            $api_endpoint = "";
+            $partner_api_key = Api::where('id', $withdraw->api_id)->where('type', 'Admin')->lockForUpdate()->first();
+            if ($partner_api_key) {
+                $api_endpoint = $partner_api_key->api_endpoint_withdrawal;
+                if (!empty($partner_api_key->api_endpoint_withdrawal) && $partner_api_key->website != env('APP_WEBSITE')) {
+
+                    $string_to_hash = json_encode(array(
+                        "amount" => strval($this->convertStringToNumber($withdraw->amount)),
+                        "api_key" => $partner_api_key->api_key,
+                        "e_wallet_name" => $withdraw->e_wallet_name,
+                        "id" => strval($withdraw->id),
+                        'transaction_type' => 'Withdrawal',
+                        "user_account_no" => strval($withdraw->user_account_no),
+                    ));
+                    $secretKey = $partner_api_key->secret_key;
+                    $hash = hash("sha256", $string_to_hash);
+                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+                    $timestamp = time();
+                    $combined = $hmac . $timestamp;
+                    $sign = base64_encode($combined);
+
+                    $datetime = Carbon::parse($withdraw->date_time);
+                    $api_date = $datetime->toDateString();   // '2025-05-19'
+                    $api_time = $datetime->toTimeString();   // '15:43:00'
+
+                    $array_data = [
+                        'id' => $withdraw->id,
+                        'partner_transection_id' => $withdraw->partner_transection_id,
+                        'transaction_type' => 'Withdrawal',
+                        'e_wallet_name' => $withdraw->e_wallet_name,
+                        'amount' => $this->convertStringToNumber($withdraw->amount),
+                        'user_account_no' => $withdraw->user_account_no,
+                        'txn_id' => $withdraw->txn_id,
+                        'e_wallet_phone_number' => $withdraw->e_wallet_phone_number,
+                        'e_wallet_type' => $withdraw->e_wallet_type,
+                        'charges' => $this->convertStringToNumber($withdraw->charge),
+                        'status' => $withdraw->status,
+                        'completion_date' => $api_date,
+                        'completion_time' => $api_time,
+                        'created_at' => $withdraw->created_at,
+                        'updated_at' => $withdraw->updated_at,
+                        'sign' => $sign,
+                        'remarks' => $request->feedback,
+                        'source' => '13Callback' . auth()->id(),
+                    ];
+
+                    if (!empty($data->member_id)) {
+                        $array_data['member_id'] = $withdraw->member_id;
+                    }
+
+
+                    $requestData = [
+                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                        'request_url' => $partner_api_key->api_endpoint_withdrawal,
+                        'request_payload' => json_encode($array_data),
+                        'request_headers' => json_encode([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
+                        ]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                    $csrfToken = csrf_token();
+                    $responseData = [];
+                    try {
+                        $response = Http::withHeaders([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                        ])
+                            ->post($partner_api_key->api_endpoint_withdrawal, $array_data);
+
+                        $responseData = [
+                            'response_code' => $response->status(),
+                            'response_payload' => $response->body(),
+                            'response_headers' => json_encode($response->headers()),
+                        ];
+                        DB::table('api_logs')->where('id', $logId)->update($responseData);
+                    } catch (\Exception $e) {
+                        // Ignore the error and do nothing
+
+                    }
+                }
+            }
+
             if ($previous_pending > 0) {
                 session()->flash('error', 'You have already requested a withdrawal of ' . (float) number_format($previous_pending, 2, '.', '') . ', which is still in process. Your remaining balance is ' . (float) number_format($authWallet['balance'] - $previous_pending, 2, '.', '') . '.');
                 return back();
@@ -5446,22 +5522,6 @@ class PayoutRecordController extends Controller
                 session()->flash('error', 'Insufficient balance' . snake2Title((float) number_format($authWallet['balance'], 2, '.', '')) . ' For Withdraw.');
                 return back();
             }
-        } else {
-            $trx = strRandom();
-            $withdraw = new Payout();
-            $withdraw->user_id = 0;
-            $withdraw->gateway_id = $method->id;
-            $withdraw->amount = getAmount($request->amount);
-            $withdraw->charge = $charge;
-            // $withdraw->net_amount = $finalAmo;
-            $withdraw->trx_id = $trx;
-            $withdraw->status = 0;
-            $withdraw->e_wallet_name = $method->name;
-            // $withdraw->api_key = $authWallet['api_key'];
-            $withdraw->api_id = $authWallet['id'];
-            $withdraw->save();
-            session()->put('wtrx', $trx);
-            session()->put('username', $request->username);
             return redirect()->route('partner.payout.preview.transection');
         }
     }
@@ -5484,7 +5544,7 @@ class PayoutRecordController extends Controller
         $fund->transaction = strRandom();
         $fund->try = 0;
         $fund->status = "Pending";
-        $fund->partner_transection_id = $open_user->id."T".$timestamp;
+        $fund->partner_transection_id = $open_user->id . "T" . $timestamp;
         $fund->api_id = $open_user->id;
         $fund->e_wallet_phone_number = $e_wallet_phone_number;
         $fund->request_source = "URL";
@@ -5793,7 +5853,7 @@ class PayoutRecordController extends Controller
     }
 
 
-      public function export_for_blance2(Request $request)
+    public function export_for_blance2(Request $request)
     {
         $from_date = $request->query('from_date');
         $to_date = $request->query('to_date');
@@ -5867,9 +5927,9 @@ class PayoutRecordController extends Controller
             $records->where(function ($q) use ($searchTerm) {
                 // Search in transaction fields
                 $q->where('created_at', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('amount', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('charges', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('reason', 'like', '%' . $searchTerm . '%');
+                    ->orWhere('amount', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('charges', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('reason', 'like', '%' . $searchTerm . '%');
 
                 // Search by adjustment type (label matching)
                 if (stripos($searchTerm, 'deposit') !== false) {
@@ -5939,45 +5999,45 @@ class PayoutRecordController extends Controller
         }
 
 
-                $track = session()->get('track');
+        $track = session()->get('track');
 
 
-                $username = session()->get('username');
-                $api_key = API::where('username', $username)->where('status', 1)->lockForUpdate()->first();
-                if (!$api_key || $api_key->type != "Admin") {
-                    abort(404);
-                }
+        $username = session()->get('username');
+        $api_key = API::where('username', $username)->where('status', 1)->lockForUpdate()->first();
+        if (!$api_key || $api_key->type != "Admin") {
+            abort(404);
+        }
 
-                if (!$request->filled('txn') || empty($request->txn)) {
-                    return back()->with('error', 'Kindly Fill Transaction Number.');
-                }
+        if (!$request->filled('txn') || empty($request->txn)) {
+            return back()->with('error', 'Kindly Fill Transaction Number.');
+        }
 
-                if ($api_key) {
-                    $source = $api_key->website;
-                    $api_id = $api_key->id;
-                    if (empty($source)) {
-                        $source = "";
-                    }
+        if ($api_key) {
+            $source = $api_key->website;
+            $api_id = $api_key->id;
+            if (empty($source)) {
+                $source = "";
+            }
 
-                    $secretKey = $api_key->secret_key;
-                } else {
-                    return back()->with('error', 'Wrong API key.');
-                }
+            $secretKey = $api_key->secret_key;
+        } else {
+            return back()->with('error', 'Wrong API key.');
+        }
 
-                $now = Carbon::now();
-                $twoHoursAgo = $now->subHours(2);
+        $now = Carbon::now();
+        $twoHoursAgo = $now->subHours(2);
 
 
-                $orderrr = Payment::where('transaction', $track)->orderBy('id', 'DESC')->first();
+        $orderrr = Payment::where('transaction', $track)->orderBy('id', 'DESC')->first();
 
-                $Txn = Txn::where('txn_no', $request->txn)->where('api_id', $api_id)->orderBy('id', 'DESC')->first();
-                if (!$Txn) {
-                    $Txn = new Txn();
-                    $Txn->txn_no = $request->txn;
-                    $Txn->api_id = $api_id;
-                    $Txn->partner_transection_id = $orderrr->partner_transection_id;
-                    $Txn->save();
-                }
+        $Txn = Txn::where('txn_no', $request->txn)->where('api_id', $api_id)->orderBy('id', 'DESC')->first();
+        if (!$Txn) {
+            $Txn = new Txn();
+            $Txn->txn_no = $request->txn;
+            $Txn->api_id = $api_id;
+            $Txn->partner_transection_id = $orderrr->partner_transection_id;
+            $Txn->save();
+        }
 
 
 
@@ -6282,6 +6342,153 @@ class PayoutRecordController extends Controller
         return view('partner.payout.previewopen', compact('withdraw', 'title', 'remaining'));
     }
 
+    // public function payoutRequestSubmitTransection(Request $request)
+    // {
+    //     $basic = (object)config('basic');
+    //     $withdraw = Payout::latest()->where('trx_id', session()->get('wtrx'))->whereIn('transfer_status', [0, 1])->with('gateway', 'user')->firstOrFail();
+    //     $rules = [];
+    //     $inputField = [];
+    //     if (optional($withdraw->gateway)->input_form != null) {
+    //         foreach ($withdraw->gateway->input_form as $key => $cus) {
+    //             $rules[$key] = [$cus->validation];
+    //             if ($cus->type == 'file') {
+    //                 array_push($rules[$key], 'image');
+    //                 array_push($rules[$key], 'mimes:jpeg,jpg,png');
+    //                 array_push($rules[$key], 'max:2048');
+    //             }
+    //             if ($cus->type == 'text') {
+    //                 array_push($rules[$key], 'max:191');
+    //             }
+    //             if ($cus->type == 'textarea') {
+    //                 array_push($rules[$key], 'max:300');
+    //             }
+    //             $inputField[] = $key;
+    //         }
+    //     }
+
+    //     $this->validate($request, $rules);
+    //     $username = session()->get('username');
+    //     $open_user = API::where('username', $username)->where('status', 1)->first();
+    //     $user = $open_user;
+
+    //     $PhoneNumber = "";
+
+    //     $previous_pending = Payout::where('api_id', $open_user->id)
+    //         ->where(function ($query) {
+    //             $query->where('transfer_status', 1)
+    //                 ->orWhere(function ($subQuery) {
+    //                     $subQuery->where('transfer_status', 2)
+    //                         ->where('status', 'Pending');
+    //                 });
+    //         })
+    //         ->sum('amount');
+
+    //     if ($previous_pending > $user->balance) {
+    //         if ($previous_pending > 0) {
+    //             session()->flash('error', 'You have already requested a withdrawal of ' . (float) number_format($previous_pending, 2, '.', '') . ', which is still in process. Your remaining balance is ' . (float) number_format($user->balance - $previous_pending, 2, '.', '') . '.');
+    //             return back();
+    //         } else {
+    //             session()->flash('error', 'Insufficient balance' . snake2Title((float) number_format($user->balance, 2, '.', '')) . ' For Withdraw.');
+    //             return back();
+    //         }
+    //     } else {
+
+    //         $collection = collect($request);
+
+
+    //         $reqField = [];
+    //         if ($withdraw->gateway->input_form != null) {
+    //             foreach ($collection as $k => $v) {
+    //                 foreach ($withdraw->gateway->input_form as $inKey => $inVal) {
+    //                     if ($k != $inKey) {
+    //                         continue;
+    //                     } else {
+
+    //                         if ($inVal->type == 'file') {
+    //                             if ($request->hasFile($inKey)) {
+    //                                 $image = $request->file($inKey);
+    //                                 $filename = time() . uniqid() . '.jpg';
+    //                                 $location = config('location.withdrawLog.path');
+    //                                 $reqField[$inKey] = [
+    //                                     'field_name' => $filename,
+    //                                     'type' => $inVal->type,
+    //                                 ];
+    //                                 try {
+    //                                     $this->uploadImage($image, $location, $size = null, $old = null, $thumb = null, $filename);
+    //                                 } catch (\Exception $exp) {
+    //                                     return back()->with('error', 'Image could not be uploaded.');
+    //                                 }
+    //                             }
+    //                         } else {
+    //                             if ($inKey == "PhoneNumber") {
+    //                                 $PhoneNumber = $v;
+    //                             }
+    //                             $reqField[$inKey] = $v;
+    //                             $reqField[$inKey] = [
+    //                                 'field_name' => $v,
+    //                                 'type' => $inVal->type,
+    //                             ];
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //             $withdraw['information'] = $reqField;
+    //         } else {
+    //             $withdraw['information'] = null;
+    //         }
+
+
+    //         if (isset($collection['PhoneNumber'])) {
+    //             $PhoneNumber = $collection['PhoneNumber'];
+    //         }
+
+    //         $method = Gateway::where('id', $withdraw->gateway_id)->where('status', 1)->where('withdrawal_on', 1)->firstOrFail();
+
+    //         $acc = $PhoneNumber;
+    //         $ewalletee = strtolower($method->name);
+
+    //         if (!is_numeric($acc)) {
+    //             return back()->with('error', 'Account number formate not valid');
+    //         }
+
+    //         if (substr($acc, 0, 2) === "01") {
+    //             $num_digits = strlen($acc);
+    //             if ($ewalletee == 'bkash' && $num_digits != 11) {
+    //                 return back()->with('error', 'Account number should be 11 digit');
+    //             }
+    //             if ($ewalletee == 'nagad' && $num_digits != 11) {
+    //                 return back()->with('error', 'Account number should be 11 digit');
+    //             }
+    //             if ($ewalletee == 'rocket' && ($num_digits < 11 || $num_digits > 12)) {
+    //                 return back()->with('error', 'Account number should be 11 or 12 digit');
+    //             }
+    //         } else {
+    //             return back()->with('error', 'Account number should start from 01');
+    //         }
+
+    //         $source = $user->website;
+    //         $api_id = $user->api_id;
+
+
+    //         $withdraw->e_wallet_name = $method->name;
+    //         $withdraw->amount = $withdraw->amount;
+    //         $withdraw->user_account_no = $PhoneNumber;
+    //         $withdraw->save();
+
+    //         $charge = 0;
+
+
+
+    //         $withdraw->transfer_status = 1;
+    //         $withdraw->charge = $charge;
+    //         $withdraw->save();
+
+    //         session()->flash('success', 'Payout request Successfully Submitted. Wait For Confirmation.');
+    //         return redirect()->route('partner.methods.get', ['username' => $username]);
+    //     }
+    // }
+
+
     public function payoutRequestSubmitTransection(Request $request)
     {
         $basic = (object)config('basic');
@@ -6323,7 +6530,188 @@ class PayoutRecordController extends Controller
             })
             ->sum('amount');
 
+
+        $collection = collect($request);
+
+        $reqField = [];
+        if ($withdraw->gateway->input_form != null) {
+            foreach ($collection as $k => $v) {
+                foreach ($withdraw->gateway->input_form as $inKey => $inVal) {
+                    if ($k != $inKey) {
+                        continue;
+                    } else {
+
+                        if ($inVal->type == 'file') {
+                            if ($request->hasFile($inKey)) {
+                                $image = $request->file($inKey);
+                                $filename = time() . uniqid() . '.jpg';
+                                $location = config('location.withdrawLog.path');
+                                $reqField[$inKey] = [
+                                    'field_name' => $filename,
+                                    'type' => $inVal->type,
+                                ];
+                                try {
+                                    $this->uploadImage($image, $location, $size = null, $old = null, $thumb = null, $filename);
+                                } catch (\Exception $exp) {
+                                    return back()->with('error', 'Image could not be uploaded.');
+                                }
+                            }
+                        } else {
+                            if ($inKey == "PhoneNumber") {
+                                $PhoneNumber = $v;
+                            }
+                            $reqField[$inKey] = $v;
+                            $reqField[$inKey] = [
+                                'field_name' => $v,
+                                'type' => $inVal->type,
+                            ];
+                        }
+                    }
+                }
+            }
+            $withdraw['information'] = $reqField;
+        } else {
+            $withdraw['information'] = null;
+        }
+
+
+        if (isset($collection['PhoneNumber'])) {
+            $PhoneNumber = $collection['PhoneNumber'];
+        }
+
+        $method = Gateway::where('id', $withdraw->gateway_id)->where('status', 1)->where('withdrawal_on', 1)->firstOrFail();
+
+        $acc = $PhoneNumber;
+        $ewalletee = strtolower($method->name);
+
+        if (!is_numeric($acc)) {
+            return back()->with('error', 'Account number formate not valid');
+        }
+
+        if (substr($acc, 0, 2) === "01") {
+            $num_digits = strlen($acc);
+            if ($ewalletee == 'bkash' && $num_digits != 11) {
+                return back()->with('error', 'Account number should be 11 digit');
+            }
+            if ($ewalletee == 'nagad' && $num_digits != 11) {
+                return back()->with('error', 'Account number should be 11 digit');
+            }
+            if ($ewalletee == 'rocket' && ($num_digits < 11 || $num_digits > 12)) {
+                return back()->with('error', 'Account number should be 11 or 12 digit');
+            }
+        } else {
+            return back()->with('error', 'Account number should start from 01');
+        }
+
+        $source = $user->website;
+        $api_id = $user->api_id;
+
+
+        $withdraw->e_wallet_name = $method->name;
+        $withdraw->amount = $withdraw->amount;
+        $withdraw->user_account_no = $PhoneNumber;
+        $withdraw->save();
+
+        $charge = 0;
+
+        $withdraw->transfer_status = 1;
+        $withdraw->charge = $charge;
+        $withdraw->save();
+
+
         if ($previous_pending > $user->balance) {
+
+            $withdraw->status  = "Reject";
+            $withdraw->transfer_status  = 3;
+            $withdraw->save();
+
+            $api_endpoint = "";
+            $partner_api_key = Api::where('id', $withdraw->api_id)->where('type', 'Admin')->lockForUpdate()->first();
+            if ($partner_api_key) {
+                $api_endpoint = $partner_api_key->api_endpoint_withdrawal;
+                if (!empty($partner_api_key->api_endpoint_withdrawal) && $partner_api_key->website != env('APP_WEBSITE')) {
+
+                    $string_to_hash = json_encode(array(
+                        "amount" => strval($this->convertStringToNumber($withdraw->amount)),
+                        "api_key" => $partner_api_key->api_key,
+                        "e_wallet_name" => $withdraw->e_wallet_name,
+                        "id" => strval($withdraw->id),
+                        'transaction_type' => 'Withdrawal',
+                        "user_account_no" => strval($withdraw->user_account_no),
+                    ));
+                    $secretKey = $partner_api_key->secret_key;
+                    $hash = hash("sha256", $string_to_hash);
+                    $hmac = hash_hmac('sha256', $hash, $secretKey);
+                    $timestamp = time();
+                    $combined = $hmac . $timestamp;
+                    $sign = base64_encode($combined);
+
+                    $datetime = Carbon::parse($withdraw->date_time);
+                    $api_date = $datetime->toDateString();   // '2025-05-19'
+                    $api_time = $datetime->toTimeString();   // '15:43:00'
+
+                    $array_data = [
+                        'id' => $withdraw->id,
+                        'partner_transection_id' => $withdraw->partner_transection_id,
+                        'transaction_type' => 'Withdrawal',
+                        'e_wallet_name' => $withdraw->e_wallet_name,
+                        'amount' => $this->convertStringToNumber($withdraw->amount),
+                        'user_account_no' => $withdraw->user_account_no,
+                        'txn_id' => $withdraw->txn_id,
+                        'e_wallet_phone_number' => $withdraw->e_wallet_phone_number,
+                        'e_wallet_type' => $withdraw->e_wallet_type,
+                        'charges' => $this->convertStringToNumber($withdraw->charge),
+                        'status' => $withdraw->status,
+                        'completion_date' => $api_date,
+                        'completion_time' => $api_time,
+                        'created_at' => $withdraw->created_at,
+                        'updated_at' => $withdraw->updated_at,
+                        'sign' => $sign,
+                        'remarks' => $request->feedback,
+                        'source' => '13Callback' . auth()->id(),
+                    ];
+
+                    if (!empty($data->member_id)) {
+                        $array_data['member_id'] = $withdraw->member_id;
+                    }
+
+
+                    $requestData = [
+                        'request_method' => 'POST', // or 'GET', 'PUT', etc. depending on your HTTP method
+                        'request_url' => $partner_api_key->api_endpoint_withdrawal,
+                        'request_payload' => json_encode($array_data),
+                        'request_headers' => json_encode([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . csrf_token(),
+                        ]),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    $logId = DB::table('api_logs')->insertGetId($requestData);
+
+                    $csrfToken = csrf_token();
+                    $responseData = [];
+                    try {
+                        $response = Http::withHeaders([
+                            'Content-Type' => 'application/json',
+                            'Cookie' => 'XSRF-TOKEN=' . $csrfToken,
+                        ])
+                            ->post($partner_api_key->api_endpoint_withdrawal, $array_data);
+
+                        $responseData = [
+                            'response_code' => $response->status(),
+                            'response_payload' => $response->body(),
+                            'response_headers' => json_encode($response->headers()),
+                        ];
+                        DB::table('api_logs')->where('id', $logId)->update($responseData);
+                    } catch (\Exception $e) {
+                        // Ignore the error and do nothing
+
+                    }
+                }
+            }
+
             if ($previous_pending > 0) {
                 session()->flash('error', 'You have already requested a withdrawal of ' . (float) number_format($previous_pending, 2, '.', '') . ', which is still in process. Your remaining balance is ' . (float) number_format($user->balance - $previous_pending, 2, '.', '') . '.');
                 return back();
@@ -6331,103 +6719,10 @@ class PayoutRecordController extends Controller
                 session()->flash('error', 'Insufficient balance' . snake2Title((float) number_format($user->balance, 2, '.', '')) . ' For Withdraw.');
                 return back();
             }
-        } else {
-
-            $collection = collect($request);
-
-
-            $reqField = [];
-            if ($withdraw->gateway->input_form != null) {
-                foreach ($collection as $k => $v) {
-                    foreach ($withdraw->gateway->input_form as $inKey => $inVal) {
-                        if ($k != $inKey) {
-                            continue;
-                        } else {
-
-                            if ($inVal->type == 'file') {
-                                if ($request->hasFile($inKey)) {
-                                    $image = $request->file($inKey);
-                                    $filename = time() . uniqid() . '.jpg';
-                                    $location = config('location.withdrawLog.path');
-                                    $reqField[$inKey] = [
-                                        'field_name' => $filename,
-                                        'type' => $inVal->type,
-                                    ];
-                                    try {
-                                        $this->uploadImage($image, $location, $size = null, $old = null, $thumb = null, $filename);
-                                    } catch (\Exception $exp) {
-                                        return back()->with('error', 'Image could not be uploaded.');
-                                    }
-                                }
-                            } else {
-                                if ($inKey == "PhoneNumber") {
-                                    $PhoneNumber = $v;
-                                }
-                                $reqField[$inKey] = $v;
-                                $reqField[$inKey] = [
-                                    'field_name' => $v,
-                                    'type' => $inVal->type,
-                                ];
-                            }
-                        }
-                    }
-                }
-                $withdraw['information'] = $reqField;
-            } else {
-                $withdraw['information'] = null;
-            }
-
-
-            if (isset($collection['PhoneNumber'])) {
-                $PhoneNumber = $collection['PhoneNumber'];
-            }
-
-            $method = Gateway::where('id', $withdraw->gateway_id)->where('status', 1)->where('withdrawal_on' ,1)->firstOrFail();
-
-            $acc = $PhoneNumber;
-            $ewalletee = strtolower($method->name);
-
-            if (!is_numeric($acc)) {
-                return back()->with('error', 'Account number formate not valid');
-            }
-
-            if (substr($acc, 0, 2) === "01") {
-                $num_digits = strlen($acc);
-                if ($ewalletee == 'bkash' && $num_digits != 11) {
-                    return back()->with('error', 'Account number should be 11 digit');
-                }
-                if ($ewalletee == 'nagad' && $num_digits != 11) {
-                    return back()->with('error', 'Account number should be 11 digit');
-                }
-                if ($ewalletee == 'rocket' && ($num_digits < 11 || $num_digits > 12)) {
-                    return back()->with('error', 'Account number should be 11 or 12 digit');
-                }
-            } else {
-                return back()->with('error', 'Account number should start from 01');
-            }
-
-            $source = $user->website;
-            $api_id = $user->api_id;
-
-
-
-
-            $withdraw->e_wallet_name = $method->name;
-            $withdraw->amount = $withdraw->amount;
-            $withdraw->user_account_no = $PhoneNumber;
-            $withdraw->save();
-
-            $charge = 0;
-
-
-
-            $withdraw->transfer_status = 1;
-            $withdraw->charge = $charge;
-            $withdraw->save();
-
-            session()->flash('success', 'Payout request Successfully Submitted. Wait For Confirmation.');
-            return redirect()->route('partner.methods.get', ['username' => $username]);
         }
+
+        session()->flash('success', 'Payout request Successfully Submitted. Wait For Confirmation.');
+        return redirect()->route('partner.methods.get', ['username' => $username]);
     }
 
     public function storeSettlement(Request $request)
@@ -6524,12 +6819,12 @@ class PayoutRecordController extends Controller
         }
     }
     public static function resetBlacklistCounters($member_id)
-{
-    $today = now()->toDateString();
-    // Delete all today's payments for this member_id with missing txns
-    $payments = \App\Models\Payment::where('member_id', $member_id)
-    ->where('status','Pending')
-        ->whereDate('created_at', $today)
-        ->get();
-}
+    {
+        $today = now()->toDateString();
+        // Delete all today's payments for this member_id with missing txns
+        $payments = \App\Models\Payment::where('member_id', $member_id)
+            ->where('status', 'Pending')
+            ->whereDate('created_at', $today)
+            ->get();
+    }
 }
