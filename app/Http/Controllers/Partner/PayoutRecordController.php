@@ -241,7 +241,7 @@ class PayoutRecordController extends Controller
 
                     $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                         $from = Carbon::parse($slot->from_time);
-                        $to = Carbon::parse($slot->to_time);
+                        $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
 
                         return $current_time->between($from, $to);
                     });
@@ -809,7 +809,7 @@ class PayoutRecordController extends Controller
 
                     $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                         $from = Carbon::parse($slot->from_time);
-                        $to = Carbon::parse($slot->to_time);
+                        $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
 
                         return $current_time->between($from, $to);
                     });
@@ -1937,113 +1937,103 @@ class PayoutRecordController extends Controller
     public function processTransection4($username, $ewallet, $acc, $amount, $transection_id = 0, $sign = null, $member_id = null)
     {
 
-        \Illuminate\Support\Facades\Log::info('Blacklist logic start', ['member_id' => $member_id]);
+        // \Illuminate\Support\Facades\Log::info('Blacklist logic start', ['member_id' => $member_id]);
         $api_key = API::where('username', $username)->where('status', 1)->select('id', 'type', 'secret_key', 'txn_verification', 'redirect_url', 'sign', 'api_key', 'min_deposit', 'parent_id')->first();
         $api_id = $api_key->id;
         if ($member_id) {
-            $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
-            if ($blacklisted) {
-                if($blacklisted->status==1){
-                    \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
-                    $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
-                    return response()->view('partner.payout.blacklist_error', compact('error_message'));
-                }
+            // $blacklisted = \App\Models\Blacklist::where('member_id', $member_id)->where('api_id',$api_id)->first();
+            // if ($blacklisted) {
+            //     if($blacklisted->status==1){
+            //         \Illuminate\Support\Facades\Log::info('Member is already blacklisted', ['member_id' => $member_id]);
+            //         $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+            //         return response()->view('partner.payout.blacklist_error', compact('error_message'));
+            //     }
 
-            }
-            // $today = now()->toDateString();
+            // }
+            
 
-            // $blacklist_removal = BlacklistRemoval::where('member_id', $member_id)->where('api_id',$api_id)->first();
+            // if($blacklisted){
+            //     $startOfDay = $blacklisted->updated_at;
+            // }else{
+            //     $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
 
-            if($blacklisted){
-                $startOfDay = $blacklisted->updated_at;
-            }else{
-                $startOfDay = Carbon::now()->startOfDay()->toDateTimeString();
+            // }
 
-            }
+            // $payments = \App\Models\Payment::where('member_id', $member_id)
+            //     ->where('api_id',$api_id)
+            //     ->where('created_at','>', $startOfDay)
+            //     ->where('status', 'Pending')
+            //     ->orderBy('created_at')
+            //     ->get();
 
-            $payments = \App\Models\Payment::where('member_id', $member_id)
-                ->where('api_id',$api_id)
-                ->where('created_at','>', $startOfDay)
-                ->where('status', 'Pending')
-                ->orderBy('created_at')
-                ->get();
+            // \Illuminate\Support\Facades\Log::info('Payments found for blacklist check', ['count' => $payments->count(), 'member_id' => $member_id]);
+            // $consecutive_missing = 0;
+            // $total_missing = 0;
 
-            \Illuminate\Support\Facades\Log::info('Payments found for blacklist check', ['count' => $payments->count(), 'member_id' => $member_id]);
-            $consecutive_missing = 0;
-            // $max_consecutive_missing = 0;
-            $total_missing = 0;
+            // $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 6);
+            // $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 12);
 
-            $con_limit = (int) (\App\Models\Setting::where('name', 'Consecutive Missing')->value('value') ?? 6);
-            $total_limit = (int) (\App\Models\Setting::where('name', 'Total Missing')->value('value') ?? 12);
+            // foreach ($payments as $payment) {
+            //     $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
+            //     \Illuminate\Support\Facades\Log::info('Checking payment', [
+            //         'payment_id' => $payment->id,
+            //         'partner_transection_id' => $payment->partner_transection_id,
+            //         'txn_exists' => $exists,
+            //     ]);
+            //     if (!$exists) {
+            //         $consecutive_missing++;
+            //         $total_missing++;
+            //         if ($consecutive_missing >= $con_limit) {
+            //             $blacklist = \App\Models\Blacklist::firstOrNew(
+            //                 ['member_id' => $member_id, 'api_id' => $api_id]
+            //             );
+            //             if ($blacklist->exists) {
+            //                 $blacklist->consecutive_count = ($blacklist->consecutive_count ?? 0) + 1;
+            //             } else {
+            //                 $blacklist->consecutive_count = 1;
+            //             }
+            //             $blacklist->reason = $con_limit . ' consecutive missing txns';
+            //             $blacklist->status = 1;
+            //             $blacklist->save();
+            //             \Illuminate\Support\Facades\Log::info("Blacklisted for {$con_limit} consecutive missing txns", ['member_id' => $member_id]);
+            //             $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+            //             return response()->view('partner.payout.blacklist_error', compact('error_message'));
+            //         }
 
-            foreach ($payments as $payment) {
-                $exists = \App\Models\Txn::where('partner_transection_id', $payment->partner_transection_id)->exists();
-                \Illuminate\Support\Facades\Log::info('Checking payment', [
-                    'payment_id' => $payment->id,
-                    'partner_transection_id' => $payment->partner_transection_id,
-                    'txn_exists' => $exists,
-                ]);
-                if (!$exists) {
-                    $consecutive_missing++;
-                    $total_missing++;
-                    if ($consecutive_missing >= $con_limit) {
-                        $blacklist = \App\Models\Blacklist::firstOrNew(
-                            ['member_id' => $member_id, 'api_id' => $api_id]
-                        );
-
-                        // Increment consecutive_count if already exists, otherwise initialize it
-                        if ($blacklist->exists) {
-                            $blacklist->consecutive_count = ($blacklist->consecutive_count ?? 0) + 1;
-                        } else {
-                            $blacklist->consecutive_count = 1;
-                        }
-
-                        $blacklist->reason = $con_limit . ' consecutive missing txns';
-                        $blacklist->status = 1;
-
-                        $blacklist->save();
-
-
-                        \Illuminate\Support\Facades\Log::info("Blacklisted for {$con_limit} consecutive missing txns", ['member_id' => $member_id]);
-                        $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
-                        return response()->view('partner.payout.blacklist_error', compact('error_message'));
-                    }
-
-                } else {
-                    $consecutive_missing = 0;
-                }
-            }
-            \Illuminate\Support\Facades\Log::info('Blacklist check results', [
-                'api_id' => $api_id,
-                'total_missing' => $total_missing,
-                'member_id' => $member_id
-            ]);
+            //     } else {
+            //         $consecutive_missing = 0;
+            //     }
+            // }
+            // \Illuminate\Support\Facades\Log::info('Blacklist check results', [
+            //     'api_id' => $api_id,
+            //     'total_missing' => $total_missing,
+            //     'member_id' => $member_id
+            // ]);
 
             // dd($total_limit);
 
-            if ($total_missing >= $total_limit) {
-                $blacklist = \App\Models\Blacklist::firstOrNew(
-                    ['member_id' => $member_id, 'api_id' => $api_id]
-                );
-
-                // Increment total_count if exists, otherwise set to 1
-                if ($blacklist->exists) {
-                    $blacklist->total_count = ($blacklist->total_count ?? 0) + 1;
-                } else {
-                    $blacklist->total_count = 1;
-                }
-
-
-                $blacklist->reason = $total_limit . ' total missing txns in a day';
-                $blacklist->status = 1;
+            // if ($total_missing >= $total_limit) {
+            //     $blacklist = \App\Models\Blacklist::firstOrNew(
+            //         ['member_id' => $member_id, 'api_id' => $api_id]
+            //     );
+                
+            //     if ($blacklist->exists) {
+            //         $blacklist->total_count = ($blacklist->total_count ?? 0) + 1;
+            //     } else {
+            //         $blacklist->total_count = 1;
+            //     }
 
 
-                $blacklist->save();
+            //     $blacklist->reason = $total_limit . ' total missing txns in a day';
+            //     $blacklist->status = 1;
 
-                \Illuminate\Support\Facades\Log::info('Blacklisted for ' . $total_limit . ' total missing txns in a day', ['member_id' => $member_id]);
-                $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
-                return response()->view('partner.payout.blacklist_error', compact('error_message'));
-            }
+
+            //     $blacklist->save();
+
+            //     \Illuminate\Support\Facades\Log::info('Blacklisted for ' . $total_limit . ' total missing txns in a day', ['member_id' => $member_id]);
+            //     $error_message = 'Your account has been suspended for deposit transaction. Please contact customer service. Thank you';
+            //     return response()->view('partner.payout.blacklist_error', compact('error_message'));
+            // }
 
         }
 
@@ -2219,7 +2209,7 @@ class PayoutRecordController extends Controller
             ->filter(function ($single_account) use ($current_time, $amount) {
                 $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                     $from = Carbon::parse($slot->from_time);
-                    $to = Carbon::parse($slot->to_time);
+                    $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
                     return $current_time->between($from, $to);
                 });
 
@@ -3398,7 +3388,7 @@ class PayoutRecordController extends Controller
             ->filter(function ($single_account) use ($current_time, $amount) {
                 $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                     $from = Carbon::parse($slot->from_time);
-                    $to = Carbon::parse($slot->to_time);
+                    $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
                     return $current_time->between($from, $to);
                 });
 
@@ -3537,7 +3527,7 @@ class PayoutRecordController extends Controller
 
                 $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                     $from = Carbon::parse($slot->from_time);
-                    $to = Carbon::parse($slot->to_time);
+                    $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
 
                     return $current_time->between($from, $to);
                 });
@@ -4729,7 +4719,7 @@ class PayoutRecordController extends Controller
 
                         $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                             $from = Carbon::parse($slot->from_time);
-                            $to = Carbon::parse($slot->to_time);
+                            $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
 
                             return $current_time->between($from, $to);
                         });
