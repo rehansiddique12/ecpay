@@ -133,19 +133,19 @@ class PaymentMethodController extends Controller
                     ($combined[$date][$payment->api_id][$field] ?? 0) + ($payment->$field ?? 0);
             }
 
-            $e_combined[$date][$payment->e_wallet_name]['fund_count'] = 
-                isset($e_combined[$date][$payment->e_wallet_name]['fund_count']) 
-                    ? $e_combined[$date][$payment->e_wallet_name]['fund_count'] + ($payment->fund_count ?? 0) 
+            $e_combined[$date][$payment->e_wallet_name]['fund_count'] =
+                isset($e_combined[$date][$payment->e_wallet_name]['fund_count'])
+                    ? $e_combined[$date][$payment->e_wallet_name]['fund_count'] + ($payment->fund_count ?? 0)
                     : ($payment->fund_count ?? 0);
 
-            $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] = 
-                isset($e_combined[$date][$payment->e_wallet_name]['auto_process_count']) 
-                    ? $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] + ($payment->auto_process_count ?? 0) 
+            $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] =
+                isset($e_combined[$date][$payment->e_wallet_name]['auto_process_count'])
+                    ? $e_combined[$date][$payment->e_wallet_name]['auto_process_count'] + ($payment->auto_process_count ?? 0)
                     : ($payment->auto_process_count ?? 0);
 
-            $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] = 
-                isset($e_combined[$date][$payment->e_wallet_name]['manual_process_count']) 
-                    ? $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] + ($payment->manual_process_count ?? 0) 
+            $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] =
+                isset($e_combined[$date][$payment->e_wallet_name]['manual_process_count'])
+                    ? $e_combined[$date][$payment->e_wallet_name]['manual_process_count'] + ($payment->manual_process_count ?? 0)
                     : ($payment->manual_process_count ?? 0);
 
         }
@@ -160,6 +160,114 @@ class PaymentMethodController extends Controller
             'combined',
             'e_combined'
         ));
+    }
+
+    public function payment_gateway_report_detail($id, $from_date, $to_date)
+    {
+        $pageTitle = "Payment Gateway Performance Report Detail";
+        $partner_id = $id;
+        $partners = Api::where('type', 'Admin')->where('id',$id)->pluck('name', 'id');
+
+        $partner = $partners[$id];
+
+        $combined = [];
+        $time_slots = [];
+
+        $start = strtotime($from_date . ' 00:00:00');
+        $end = strtotime($to_date . ' 23:59:59');
+
+        while ($start <= $end) {
+            $from_time = date('Y-m-d H:i:s', $start);
+            $to_time = date('Y-m-d H:i:s', $start + 1799);
+            $time_slots[] = ['from' => $from_time, 'to' => $to_time];
+            $start += 1800;
+        }
+
+        // Fetch all fund counts in one query
+        $funds = Payment::selectRaw('COUNT(*) as fund_count, api_id, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i") as slot')
+            ->where('api_id', $partner_id)
+            ->whereBetween('created_at', [$from_date . ' 00:00:00', $to_date . ' 23:59:59'])
+            ->groupBy('api_id', 'slot')
+            ->get()
+            ->keyBy('slot');
+
+        // Fetch all payments in one query
+        $payments = Payment::selectRaw('
+            api_id,
+            DATE_FORMAT(trans_complete_date, "%Y-%m-%d %H:%i") as slot,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" THEN 1 END) as auto_process_count,
+            COUNT(CASE WHEN completed_source = "AdminPanel" AND status = "Complete" THEN 1 END) as manual_process_count,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) <= 10 THEN 1 END) as time_less_than_10,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 11 AND 20 THEN 1 END) as time_between_10_and_20,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 21 AND 30 THEN 1 END) as time_between_20_and_30,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 31 AND 40 THEN 1 END) as time_between_30_and_40,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 41 AND 50 THEN 1 END) as time_between_40_and_50,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 51 AND 60 THEN 1 END) as time_between_50_and_60,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 61 AND 300 THEN 1 END) as time_between_60_and_5_minutes,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) BETWEEN 301 AND 600 THEN 1 END) as time_between_5_and_10_minutes,
+            COUNT(CASE WHEN completed_source != "AdminPanel" AND status = "Complete" AND TIMESTAMPDIFF(SECOND, created_at, trans_complete_date) > 600 THEN 1 END) as time_greater_than_10_minutes
+        ')
+        ->where('api_id', $partner_id)
+        ->whereBetween('trans_complete_date', [$from_date . ' 00:00:00', $to_date . ' 23:59:59'])
+        ->groupBy('api_id', 'slot')
+        ->get()
+        ->keyBy('slot');
+
+        foreach ($time_slots as $slot) {
+            $time_range = date('H:i:s', strtotime($slot['from'])) . " To " . date('H:i:s', strtotime($slot['to']));
+
+            if (!isset($combined[$time_range][$partner_id])) {
+                $combined[$time_range][$partner_id] = [
+                    'fund_count' => 0,
+                    'auto_process_count' => 0,
+                    'manual_process_count' => 0,
+                    'time_less_than_10' => 0,
+                    'time_between_10_and_20' => 0,
+                    'time_between_20_and_30' => 0,
+                    'time_between_30_and_40' => 0,
+                    'time_between_40_and_50' => 0,
+                    'time_between_50_and_60' => 0,
+                    'time_between_60_and_5_minutes' => 0,
+                    'time_between_5_and_10_minutes' => 0,
+                    'time_greater_than_10_minutes' => 0,
+                ];
+            }
+
+            // Sum all funds within the time slot range
+            foreach ($funds as $fund_key => $fund) {
+                $fund_time = strtotime($fund_key);
+                $slot_start = strtotime($slot['from']);
+                $slot_end = strtotime($slot['to']);
+
+                if ($fund_time >= $slot_start && $fund_time < $slot_end) {
+                    $combined[$time_range][$partner_id]['fund_count'] += $fund->fund_count ?? 0;
+                }
+            }
+
+            // Sum all payments within the time slot range
+            foreach ($payments as $payment_key => $payment) {
+                $payment_time = strtotime($payment_key);
+                $slot_start = strtotime($slot['from']);
+                $slot_end = strtotime($slot['to']);
+
+                if ($payment_time >= $slot_start && $payment_time < $slot_end) {
+                    $combined[$time_range][$partner_id]['auto_process_count'] += $payment->auto_process_count ?? 0;
+                    $combined[$time_range][$partner_id]['manual_process_count'] += $payment->manual_process_count ?? 0;
+                    $combined[$time_range][$partner_id]['time_less_than_10'] += $payment->time_less_than_10 ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_10_and_20'] += $payment->time_between_10_and_20 ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_20_and_30'] += $payment->time_between_20_and_30 ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_30_and_40'] += $payment->time_between_30_and_40 ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_40_and_50'] += $payment->time_between_40_and_50 ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_50_and_60'] += $payment->time_between_50_and_60 ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_60_and_5_minutes'] += $payment->time_between_60_and_5_minutes ?? 0;
+                    $combined[$time_range][$partner_id]['time_between_5_and_10_minutes'] += $payment->time_between_5_and_10_minutes ?? 0;
+                    $combined[$time_range][$partner_id]['time_greater_than_10_minutes'] += $payment->time_greater_than_10_minutes ?? 0;
+                }
+            }
+        }
+
+
+        return view('admin.payment.payment_gateway_report_detail', compact('pageTitle', 'from_date', 'to_date', 'partners', 'combined','partner'));
     }
 
 
