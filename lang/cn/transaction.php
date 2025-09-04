@@ -304,5 +304,14 @@ return [
     'time_blacklisted' => '黑名单次数',
     'blacklist' => '黑名单',
     'search_by_member_id' => '按会员ID搜索',
+    'settings' => '设置',
+    'add_setting' => '添加设置',
+    'name' => '名称',
+    'value' => '值',
+    'delete' => '删除',
+    'add' => '添加',
+    'save' => '保存',
+    'update' => '更新',
+    'edit_setting' => '编辑设置',
 
 ];

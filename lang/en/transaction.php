@@ -327,7 +327,14 @@ return [
     'blacklisted_at' => 'Blacklisted At',
     'time_blacklisted' => 'Times Blacklisted',
     'search_by_member_id' => 'Search by Member ID',
-
-
+    'settings' => 'Settings',
+    'add_setting' => 'Add Setting',
+    'name' =>'Name',
+    'value' =>'Value',
+    'delete' =>'Delete',
+    'add' => 'Add',
+    'save' => 'Save',
+    'update' => 'Update',
+    'edit_setting' => 'Edit Setting',
 
 ];

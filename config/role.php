@@ -1039,6 +1039,17 @@ $arr = [
             'delete' => [],
         ],
     ],
+    'setting' => [
+        'label' => 'Setting',
+        'access' => [
+            'view' => ['admin.settings.index'],
+            'add' => [
+                'admin.settings.store',
+            ],
+            'edit' => ['admin.settings.update'],
+            'delete' => ['admin.settings.delete'],
+        ],
+    ],
 
 ];
 
