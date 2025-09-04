@@ -200,7 +200,7 @@ class CategoryController extends Controller
             $time_slot_accounts = $available_limit_accounts->filter(function ($acc) use ($current_time) {
                 return $acc->timeSlots->contains(function ($slot) use ($current_time) {
                     $from = Carbon::parse($slot->from_time);
-                    $to = Carbon::parse($slot->to_time);
+                    $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
                     return $current_time->between($from, $to);
                 });
             })->values();
@@ -290,7 +290,7 @@ class CategoryController extends Controller
             $time_slot_accounts = $available_limit_accounts->filter(function ($acc) use ($current_time) {
                 $validTimeSlot = $acc->timeSlots->contains(function ($slot) use ($current_time) {
                     $from = Carbon::parse($slot->from_time);
-                    $to = Carbon::parse($slot->to_time);
+                    $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
                     return $current_time->between($from, $to);
                 });
                 return $validTimeSlot;

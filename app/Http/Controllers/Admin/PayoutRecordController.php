@@ -904,7 +904,7 @@ class PayoutRecordController extends Controller
 
                             $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                                 $from = Carbon::parse($slot->from_time);
-                                $to = Carbon::parse($slot->to_time);
+                                $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
 
                                 return $current_time->between($from, $to);
                             });
@@ -4706,7 +4706,7 @@ class PayoutRecordController extends Controller
 
                         $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
                             $from = Carbon::parse($slot->from_time);
-                            $to = Carbon::parse($slot->to_time);
+                            $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
 
                             return $current_time->between($from, $to);
                         });
