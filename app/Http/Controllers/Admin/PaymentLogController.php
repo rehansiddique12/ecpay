@@ -4223,9 +4223,70 @@ public function ewallet_commission_by_wallet_type(Request $request)
         $acc="01343789636";
         $type="Agent";
 
-        $this->directwebhookddd($source, $acc, $type);
+        // $this->directwebhookddd($source, $acc, $type);
 
-            exit;
+            
+
+
+            $current_time = Carbon::now('Asia/Dhaka');
+            $current_time = Carbon::parse('23:31:00');
+
+            // $from = Carbon::parse('23:30:00');
+            // $to_time = '00:00:00';
+            // $to = Carbon::parse($to_time);
+
+            // dd($to);
+            // dd($current_time->between($from, $to));
+            
+
+            
+
+            $ewallet = "bkash";
+            $amount = 50;
+
+        $account = EWalletAccount::where('e_wallet_name', $ewallet)
+            ->where('monthly_limit', '>', 'monthly_received')
+            ->whereRaw('daily_limit - daily_received > ?', [$amount])
+
+            ->where('daily_limit_transaction', '>', 'd_today_count')
+            ->where('monthly_limit_transaction', '>', 'd_month_count')
+            ->where('status', 1)
+            ->whereIn('account_type', ['Deposit', 'Both'])
+            ->with('timeSlots')
+            ->get()
+            ->filter(function ($single_account) use ($current_time, $amount) {
+                $validTimeSlot = $single_account->timeSlots->contains(function ($slot) use ($current_time) {
+                    $from = Carbon::parse($slot->from_time);
+                    // $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
+                    $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
+                    return $current_time->between($from, $to);
+
+                    
+                });
+
+                if (!$validTimeSlot) {
+                    return false;
+                }
+
+                // return true;
+
+                $lastUsed = Carbon::parse($single_account->d_last_used);
+
+                // Less than 1 minute ago
+                if ($lastUsed->diffInSeconds($current_time) < 60) {
+                    return $single_account->max_transaction_per_minute > $single_account->d_one_min_count &&
+                    $single_account->max_amount_per_minute >= $single_account->d_one_min_sum + $amount;
+                }
+
+                return $single_account->max_transaction_per_minute > 0 &&
+                        $single_account->max_amount_per_minute >= $amount;
+
+
+            })
+            ->sortBy('d_last_used')
+            ->values()->first();
+
+            dd($account);
     }
 
 
