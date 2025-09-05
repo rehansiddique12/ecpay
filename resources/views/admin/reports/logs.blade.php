@@ -46,8 +46,10 @@
                 <div class="col-md-3">
                     <div class="form-group mt-2">
                         <br>
-                        <button type="submit" value="submit" class="btn waves-effect waves-light btn-primary"><i
-                                class="icon-base ti tabler-search me-1"></i>{{ __('reports.search') }}</button>
+                        <button type="submit" class="btn waves-effect waves-light btn-primary">
+                            <i class="icon-base ti tabler-search me-1"></i>{{ __('reports.search') }}
+                        </button>
+                        <a href="{{ route('admin.reports.logs') }}?export=true" class="btn btn-success">Export to Excel</a>
                     </div>
                 </div>
             </div>
@@ -114,7 +116,7 @@
                                                 $differance = $filter_data[$key + 1]['balance'] + $item['final_amount'] - $item['balance'];
                                             }
                                             $differance = number_format($differance, 2);
-                                            
+
                                             if (@request()->website && !empty(@request()->website)) {
                                                 if ($differance == 0) {
                                                     echo '<td>' . $differance . '</td>';
@@ -125,18 +127,18 @@
                                                 echo '<td></td>';
                                             }
                                             // }
-                                            
+
                                             // if($orderval == "asc")
                                             // {
-                                            
+
                                             //     $differance = 0;
                                             //     if( $key > 0 && isset($filter_data[$key+1]['balance'])){
                                             //         $f_amount = (float)$filter_data[$key+1]['final_amount'];
                                             //         $differance = $filter_data[$key]['balance'] + $f_amount - $filter_data[$key + 1]['balance'];
                                             //     }
-                                            
+
                                             //     $differance = number_format($differance, 2);
-                                            
+
                                             //     if (@request()->website && !empty(@request()->website)) {
                                             //         if($differance==0){
                                             //             echo '<td>'.$differance.'</td>';
