@@ -4260,8 +4260,6 @@ public function ewallet_commission_by_wallet_type(Request $request)
                     // $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
                     $to = Carbon::parse($slot->to_time === '00:00:00' ? '23:59:59' : $slot->to_time);
                     return $current_time->between($from, $to);
-
-                    
                 });
 
                 if (!$validTimeSlot) {
