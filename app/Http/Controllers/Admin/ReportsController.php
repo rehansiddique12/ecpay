@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\DailyEWalletSummary;
 use App\Models\DailyPartnerSummary;
 use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LogsExport;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportsController extends Controller
@@ -2272,6 +2274,17 @@ public function logs(Request $request)
                 break;
         }
     }
+
+      // Check if the user wants to export the data
+      if ($request->has('export') && $request->export == 'true') {
+        // dd('helo');
+        // Export the data to Excel
+        $currentDateTime = now()->format('d_F_Y_h_i_A');
+        $fileName = "logs_{$currentDateTime}.xlsx";
+
+        return Excel::download(new LogsExport($filter_data), $fileName);
+    }
+
 
     $pageTitle = __('reports.partner_balance_logs');
     return view('admin.reports.logs', compact('pageTitle', 'domains', 'filter_data', 'from_date', 'to_date', 'orderval'));
