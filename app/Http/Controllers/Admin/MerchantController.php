@@ -132,7 +132,7 @@ class MerchantController extends Controller
 
             $admin = Auth::user(); // logged-in admin
 
-    $staff = User::where('type', 'staff')
+    $staff = Api::where('type', 'Staff')
                  ->where('api_key', $admin->api_key)
                  ->get();
 
@@ -144,7 +144,8 @@ class MerchantController extends Controller
             'categories',
             'id',
             'PartnerCommission',
-            'MCommissions'
+            'MCommissions',
+            'staff'
         ));
     }
 
