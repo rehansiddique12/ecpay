@@ -681,6 +681,9 @@ class PayoutRecordController extends Controller
                 ->when($search['status'] != 4, function ($query) use ($search) {
                     $query->where('transfer_status', $search['status']);
                 })
+                ->when($search['transfer_status'] != 4, function ($query) use ($search) {
+                    $query->where('status', $search['transfer_status']);
+                })
                 ->when($search['domain'], function ($query) use ($search) {
                     $query->where('api_id', $search['domain']);
                 })
@@ -4855,7 +4858,7 @@ class PayoutRecordController extends Controller
                 $payout->feedback  = "Insufficient Balance";
                 $rejectReason  = "Insufficient Balance";
                 $shouldReject = true;
-                
+
             }
 
             if ($shouldReject) {
@@ -5101,7 +5104,7 @@ class PayoutRecordController extends Controller
                 });
             })
             ->get();
-    
+
 
         $array = [];
         $count = 0;

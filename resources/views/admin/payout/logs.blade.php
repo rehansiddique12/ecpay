@@ -21,7 +21,7 @@
                             id="datepicker" />
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <select name="status" class="form-select">
                             <option value="4">{{ __('transaction.all_payment') }}</option>
@@ -35,7 +35,9 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
+
+
+                <div class="col-md-3">
                     <div class="form-group">
                         <select name="domain" class="form-select select2" data-allow-clear="true"
                             data-placeholder="{{ __('transaction.select_domain') }}">
@@ -48,9 +50,21 @@
                         </select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <select name="transfer_status" class="form-select">
+                            <option value="4">{{ __('transaction.all_payment') }}</option>
+                            <option value="Pending" @if (request()->transfer_status == 'Pending') selected @endif>
+                                {{ __('transaction.pending_payment') }}</option>
+                            <option value="Complete" @if (request()->transfer_status == 'Complete') selected @endif>
+                                {{ __('transaction.complete_payment') }}</option>
+                            <option value="Cancel" @if (request()->transfer_status == 'Cancel') selected @endif>
+                                {{ __('transaction.cancel_payment') }}</option>
+                        </select>
+                    </div>
+                </div>
 
-
-                <div class="col-md-4 d-flex gap-5">
+                <div class="col-md-3 d-flex gap-5">
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">
                             <i class="icon-base ti tabler-search me-1"></i>
