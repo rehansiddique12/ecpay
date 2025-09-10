@@ -5067,11 +5067,26 @@ class PayoutRecordController extends Controller
     public function allPayoutInfo()
     {
 
+        // $allPayoutInfo = Payout::where('status', 'Pending')
+        //     ->where('transfer_status', 2)
+        //     ->where('is_account_assign', 1)
+        //     ->where('created_at', '>=', Carbon::now()->subDay())
+        //     ->get();
+
+
         $allPayoutInfo = Payout::where('status', 'Pending')
             ->where('transfer_status', 2)
             ->where('is_account_assign', 1)
             ->where('created_at', '>=', Carbon::now()->subDay())
+            ->where(function ($q) {
+                $q->where('retry', 0)
+                ->orWhere(function ($q2) {
+                    $q2->where('retry', 1)
+                        ->where('last_retry_time', '<=', Carbon::now()->subMinutes(10));
+                });
+            })
             ->get();
+    
 
         $array = [];
         $count = 0;
@@ -5692,6 +5707,10 @@ class PayoutRecordController extends Controller
                 if ($commit == 0) {
                     DB::commit();
                 }
+            } elseif ($request->status == "Retry") {
+                    $payout->retry = 1;
+                    $payout->last_retry_time = Carbon::now();
+                    $payout->save();
             }
 
             if ($commit == 0) {

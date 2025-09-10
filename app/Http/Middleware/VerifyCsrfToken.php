@@ -12,6 +12,9 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        'iframe/*',
+        'iframe2/*',
+        'process/payment4',
+        'process/iframe/createpayment',
     ];
 }

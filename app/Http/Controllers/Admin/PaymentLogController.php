@@ -4247,7 +4247,6 @@ public function ewallet_commission_by_wallet_type(Request $request)
         $account = EWalletAccount::where('e_wallet_name', $ewallet)
             ->where('monthly_limit', '>', 'monthly_received')
             ->whereRaw('daily_limit - daily_received > ?', [$amount])
-
             ->where('daily_limit_transaction', '>', 'd_today_count')
             ->where('monthly_limit_transaction', '>', 'd_month_count')
             ->where('status', 1)
