@@ -889,6 +889,7 @@ class PayoutRecordController extends Controller
             $fund->user_id = 0;
             $fund->gateway_id = $gate->id;
             $fund->amount = $amount;
+            $fund->request_amount = $amount;
             $fund->partner_transection_id = $transection_id;
             if (isset($member_id) && !empty($member_id)) {
                 $fund->member_id = $member_id;
@@ -1351,6 +1352,7 @@ class PayoutRecordController extends Controller
                                 'transaction_type' => 'Deposit',
                                 'e_wallet_name' => $order->e_wallet_name,
                                 'amount' => $this->convertStringToNumber($order->amount),
+                                'request_amount' => $this->convertStringToNumber($order->request_amount),
                                 'user_account_no' => $order->sender,
                                 'txn_id' => $order->txn_id,
                                 'e_wallet_phone_number' => $order->e_wallet_phone_number,
@@ -1702,6 +1704,7 @@ class PayoutRecordController extends Controller
                     'transaction_type' => 'Deposit',
                     'e_wallet_name' => $order->e_wallet_name,
                     'amount' => $this->convertStringToNumber($order->amount),
+                    'request_amount' => $this->convertStringToNumber($order->request_amount),
                     'user_account_no' => $order->sender,
                     'txn_id' => $order->txn_id,
                     'e_wallet_phone_number' => $order->e_wallet_phone_number,
@@ -2657,6 +2660,7 @@ class PayoutRecordController extends Controller
                                 'transaction_type' => 'Deposit',
                                 'e_wallet_name' => $order->e_wallet_name,
                                 'amount' => $this->convertStringToNumber($order->amount),
+                                'request_amount' => $this->convertStringToNumber($order->request_amount),
                                 'user_account_no' => $order->sender,
                                 'txn_id' => $order->txn_id,
                                 'e_wallet_phone_number' => $order->e_wallet_phone_number,
@@ -3124,6 +3128,7 @@ class PayoutRecordController extends Controller
                                 'transaction_type' => 'Deposit',
                                 'e_wallet_name' => $order->e_wallet_name,
                                 'amount' => $this->convertStringToNumber($order->amount),
+                                'request_amount' => $this->convertStringToNumber($order->request_amount),
                                 'user_account_no' => $order->sender,
                                 'txn_id' => $order->txn_id,
                                 'e_wallet_phone_number' => $order->e_wallet_phone_number,
@@ -3329,6 +3334,7 @@ class PayoutRecordController extends Controller
             $fund->user_id = 0;
             $fund->gateway_id = $gate->id;
             $fund->amount = $amount;
+            $fund->request_amount = $amount;
             $fund->partner_transection_id = $transection_id;
             if (isset($member_id) && !empty($member_id)) {
                 $fund->member_id = $member_id;
@@ -3599,6 +3605,7 @@ class PayoutRecordController extends Controller
             $fund->user_id = 0;
             $fund->gateway_id = $gate->id;
             $fund->amount = $amount;
+            $fund->request_amount = $amount;
             $fund->partner_transection_id = $transection_id;
             if (isset($member_id) && !empty($member_id)) {
                 $fund->member_id = $member_id;
@@ -3841,6 +3848,7 @@ class PayoutRecordController extends Controller
         $fund = new Payment();
         $fund->gateway_id = $gate->id;
         $fund->amount = $amount;
+        $fund->request_amount = $amount;
         $fund->partner_transection_id = $transection_id;
         if (isset($member_id) && !empty($member_id)) {
             $fund->member_id = $member_id;
@@ -4091,6 +4099,7 @@ class PayoutRecordController extends Controller
         $fund = new Payment();
         $fund->gateway_id = $gate->id;
         $fund->amount = $amount;
+        $fund->request_amount = $amount;
         $fund->partner_transection_id = $transection_id;
         if (isset($member_id) && !empty($member_id)) {
             $fund->member_id = $member_id;
@@ -4415,6 +4424,7 @@ class PayoutRecordController extends Controller
                                     'transaction_type' => 'Deposit',
                                     'e_wallet_name' => $payment->e_wallet_name,
                                     'amount' => $this->convertStringToNumber($payment->amount),
+                                    'request_amount' => $this->convertStringToNumber($payment->request_amount),
                                     'user_account_no' => $payment->sender,
                                     'txn_id' => $payment->txn_id,
                                     'e_wallet_phone_number' => $payment->e_wallet_phone_number,
@@ -5534,6 +5544,7 @@ class PayoutRecordController extends Controller
         $fund->e_wallet_name = $gate->name;
         $fund->gateway_id = $gate->id;
         $fund->amount = $amount;
+        $fund->request_amount = $amount;
         $fund->charge = $charge;
         $fund->sender = $account_no;
         $fund->transaction = strRandom();
@@ -6232,6 +6243,7 @@ class PayoutRecordController extends Controller
                             'transaction_type' => 'Deposit',
                             'e_wallet_name' => $order->e_wallet_name,
                             'amount' => $this->convertStringToNumber($order->amount),
+                            'request_amount' => $this->convertStringToNumber($order->request_amount),
                             'user_account_no' => $order->sender,
                             'txn_id' => $order->txn_id,
                             'e_wallet_phone_number' => $order->e_wallet_phone_number,

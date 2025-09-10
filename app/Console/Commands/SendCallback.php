@@ -65,6 +65,7 @@ class SendCallback extends Command
                             'transaction_type' => 'Deposit',
                             'e_wallet_name' => $payment->e_wallet_name,
                             'amount' => $this->convertStringToNumber($payment->amount),
+                            'request_amount' => $this->convertStringToNumber($payment->request_amount),
                             'user_account_no' => $payment->sender,
                             'txn_id' => $payment->txn_id,
                             'e_wallet_phone_number' => $payment->e_wallet_phone_number,

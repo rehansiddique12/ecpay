@@ -293,6 +293,7 @@ class PaymentController extends Controller
         $fund->e_wallet_name = $request->e_wallet_name;
         // $fund->gateway_currency = strtoupper($gate->currency);
         $fund->amount = $request->amount;
+        $fund->request_amount = $request->amount;
         $fund->partner_transection_id = $partner_transection_id;
         $fund->member_id = $member_id;
         $fund->charge = $charge;

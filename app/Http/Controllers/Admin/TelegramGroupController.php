@@ -1299,6 +1299,7 @@ class TelegramGroupController extends Controller
                                                     'transaction_type' => 'Deposit',
                                                     'e_wallet_name' => $payment->e_wallet_name,
                                                     'amount' => $this->convertStringToNumber($payment->amount),
+                                                    'request_amount' => $this->convertStringToNumber($payment->request_amount),
                                                     'user_account_no' => $payment->sender,
                                                     'txn_id' => $payment->txn_id,
                                                     'e_wallet_phone_number' => $payment_e_wallet_phone_number,
@@ -1973,7 +1974,7 @@ class TelegramGroupController extends Controller
                                                     $message .= " *Transaction ID:* `".$txnId."`\n";
                                                     $message .= " *Status:* `Pending`\n";
                                                     $message .= " *Payment Platform:* `".$deposit->gateway->name."`\n";
-                                                    $message .= "New TRX number submitted and callback sent with correct amount.";
+                                                    $message .= "TRX number submitted and callback sent with correct amount.";
 
                                                     $support_chat_id = "-4786890063";
                                                     $botToken_supprot = "7813176060:AAEduBE3za8d-MjoN79ZOBHAhWLVDeLiVBk";
@@ -2043,97 +2044,28 @@ class TelegramGroupController extends Controller
                                             if($amount>0){
                                                 $final_amo = getAmount($amount - $charge);
 
+                                                $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+
                                                 if($amount==$deposit->amount){
-                                                    $order = Payment::where('id', $deposit->id)->with(['gateway', 'user'])->lockForUpdate()->first();
+                                                    
 
                                                     $message_to_show = "*Transection Completed*";
                                                 }
                                                 else
                                                 {
                                                         $message_to_show = "*Transection of Differant Amount Completed*";
-                                                        $partner_transection_id = "createdByAdmin_" . $deposit->partner_transection_id;
-
-                                                        $order = new Payment();
-                                                        $order->user_id = 0;
-                                                        $order->gateway_id = $deposit->gateway_id;
-
-                                                        $order->e_wallet_name = $account->e_wallet_name;
-                                                        $order->e_wallet_type = $account->type;
-
                                                         $order->amount = $amount;
-                                                        $order->partner_transection_id = $partner_transection_id;
-                                                        $order->member_id = $deposit->member_id;
-                                                        $order->charge = $charge;
-                                                        $order->sender = $deposit->account_no;
-                                                        $order->transaction = strRandom();
-                                                        $order->try = 0;
-                                                        $order->status = "Pending";
-                                                        $order->api_id = $api_id;
-                                                        $order->e_wallet_phone_number = $deposit->e_wallet_phone_number;
-                                                        $order->request_source = "Telegram";
                                                         $order->save();
 
 
                                                         $new_order = 1;
 
 
-                                                        $parentIds = ParentCommission::where('user_id', $partner_api_key->id)
-                                                            ->pluck('parent_id')
-                                                            ->unique()
-                                                            ->values();
-                                                        foreach($parentIds as  $parentId){
-
-                                                            $parent_charge = 0;
-
-                                                            $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
-                                                            if ($parent_commission) {
-                                                                $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
-                                                            } else {
-                                                                $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
-                                                                if ($parent_commission) {
-                                                                    $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
-                                                                }
-                                                            }
-
-                                                            if($parent_charge>0){
-                                                                $PartnerCommission = new PartnerCommission();
-                                                                $PartnerCommission->api_id = $partner_api_key->id;
-                                                                $PartnerCommission->from_id = $parentId;
-                                                                $PartnerCommission->type = 1;
-                                                                $PartnerCommission->amount = $amount;
-                                                                $PartnerCommission->charges = $charge;
-                                                                $PartnerCommission->total_amount = $amount - $charge;
-                                                                $PartnerCommission->charges_p = $commissions->deposit_percentage ?? 0;
-                                                                $profit_p = $parent_commission->deposit_percentage;
-                                                                $profit = $profit_p * $amount / 100;
-                                                                $PartnerCommission->profit = $profit;
-                                                                $PartnerCommission->profit_p = $profit_p;
-                                                                $PartnerCommission->transaction_id = $deposit->id;
-                                                                $PartnerCommission->status = 0;
-                                                                $PartnerCommission->save();
-                                                            }
-
-
-
-
-                                                        }
-
-
-
-
-
-
-
                                                 }
 
 
                                                 if($order){
-                                                    $order = Payment::where('id', $order->id)->with(['gateway', 'user'])->lockForUpdate()->first();
                                                     $commit = 0;
-
-
-
-
                                                     if ($source != env('APP_WEBSITE')) {
                                                         $api_balance_row = Api::where('id', $api_id)->where('type', 'Admin')->lockForUpdate()->first();
                                                         $net_amount = $amount - $charge;
@@ -2177,21 +2109,6 @@ class TelegramGroupController extends Controller
                                                     $order->commission = $payment_commission;
                                                     $order->e_wallet_charges = $payment_e_wallet_charges;
                                                     $order->payment_received_at = $payment->created_at;
-
-                                                    // if(empty($order->sender) || $order->sender==0){
-                                                    //     $order->sender = $payment->sender;
-                                                    // }
-
-                                                    // $order->txn_id = $payment->txn_id;
-                                                    // $order->date_time = $payment->date_time;
-                                                    // $order->transaction_type = $payment->transaction_type;
-                                                    // $order->ip_address = $payment->ip_address;
-                                                    // $order->e_wallet_type = $payment->e_wallet_type;
-                                                    // $order->mac_address = $payment->mac_address;
-                                                    // $order->fee = $payment->fee;
-                                                    // $order->commission = $payment->commission;
-                                                    // $order->e_wallet_charges = $payment->e_wallet_charges;
-                                                    // $order->payment_received_at = $payment->created_at;
 
 
 
@@ -2311,6 +2228,7 @@ class TelegramGroupController extends Controller
                                                                 'transaction_type' => 'Deposit',
                                                                 'e_wallet_name' => $order->e_wallet_name,
                                                                 'amount' => $this->convertStringToNumber($order->amount),
+                                                                'request_amount' => $this->convertStringToNumber($order->request_amount),
                                                                 'user_account_no' => $order->sender,
                                                                 'txn_id' => $order->txn_id,
                                                                 'e_wallet_phone_number' => $order->e_wallet_phone_number,
@@ -2385,25 +2303,22 @@ class TelegramGroupController extends Controller
 
                                                     $message = "";
                                                     if($new_order==1){
-                                                        $message .= "Order amount is not same as payment receipt. New Merchant Order has been created and sent.\n\n";
-                                                        $message .= "*Original Order:* `".$orderNumber."`\n";
-                                                        $message .= "*New Merchant Order:* `".$order->partner_transection_id."`\n";
+                                                        $message .= "Order amount is not same as payment receipt. So your transaction has been marked as completed with receipt amount, and the callback has also been sent.\n\n";
                                                     }else{
                                                         $message .= "Your transaction has been marked as completed, and the callback has also been sent.\n\n";
-                                                        $message .= "*Merchant Order:* `".$order->partner_transection_id."`\n";
                                                     }
 
                                                     
                                                     
-                                                    
+                                                    $message .= "*Merchant Order:* `".$order->partner_transection_id."`\n";
                                                     $message .= "*Order Id:* `".$order->id."`\n";
                                                     $message .= "*Transaction ID:* `".$txnId."`\n";
                                                     $message .= "*Amount:* `".(isset($amount) ? $amount : "Not found")."`\n";
                                                     $message .= "*Status:* `Complete`\n";
 
-                                                    if($new_order==1){
-                                                        $message .= "\nYour transaction has been marked as completed, and the callback has also been sent.";
-                                                    }
+                                                    // if($new_order==1){
+                                                    //     $message .= "\nYour transaction has been marked as completed, and the callback has also been sent.";
+                                                    // }
 
                                                     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                                                         'chat_id' => $TG_message['chat']['id'],
