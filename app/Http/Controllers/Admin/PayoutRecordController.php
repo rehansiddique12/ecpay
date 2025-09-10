@@ -5172,7 +5172,7 @@ class PayoutRecordController extends Controller
                 return response()->json(['message' => 'Payout Already Added']);
             }
 
-            if ($request->status != "Complete" && $request->status != "Reject") {
+            if ($request->status != "Complete" && $request->status != "Reject" && $request->status != "Retry") {
                 DB::rollBack();
                 return response()->json(['message' => 'Wrong Status!']);
             }
