@@ -4846,7 +4846,7 @@ class PayoutRecordController extends Controller
                 $payout->status  = "Reject";
                 $payout->transfer_status  = 3;
                 $payout->feedback  = "Account number should start from 01";
-                $rejectReason = "Account number should start from 01";
+                $rejectReason = "Account number should start from 01";
                 $shouldReject = true;
             }
             else if ($request->amount + $charge + $previous_pending > $api_key->balance) {
