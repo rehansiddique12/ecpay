@@ -332,8 +332,33 @@ class TelegramGroupController extends Controller
                                     'status' => 0, // Pending
                                 ]);
 
+                                $trx_id = trim($txnId);
+                                $matched_ewallet = "not_belong_to_us";
+                                if (preg_match('/^[ABC]/i', $trx_id)) {
+                                    $matched_ewallet = 'bkash';
+                                }elseif (preg_match('/^7/', $trx_id) && preg_match('/[A-Za-z]/', $trx_id) && preg_match('/[0-9]/', $trx_id)) {
+                                    $matched_ewallet = 'nagad';
+                                }elseif (ctype_digit($trx_id)) {
+                                    $matched_ewallet = 'rocket';
+                                }
 
-                                if(empty($phone_number) && empty($txnId) && empty($amount)){
+                                if($matched_ewallet=="not_belong_to_us"){
+                                    $url = "https://api.telegram.org/bot" . $botToken . "/setMessageReaction";
+                                    LaravelLog::info('not_belong_to_us');
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],            // jis chat me message aya
+                                        'message_id' => $TG_message['message_id'],  // jis message par react karna hai
+                                        'reaction' => json_encode([
+                                            ['type' => 'emoji', 'emoji' => '👎']    // cross emoji
+                                        ]),
+                                        'is_big' => false                           // optional, chhota reaction
+                                    ]);
+                                    LaravelLog::info('Telegram Reaction Response', $response->json());
+                                    return response()->json(['status' => 'success'], 200);
+                                }
+
+
+                                if(empty($phone_number) || empty($txnId) || empty($amount)){
                                     $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'],
                                         '',
                                         ''
@@ -347,16 +372,7 @@ class TelegramGroupController extends Controller
                                 }else{
                                     if(!empty($phone_number)){
 
-                                        $trx_id = trim($txnId);
-                                        $matched_ewallet = "not_belong_to_us";
-                                        // Check for bKash: Starts with A/B/C and contains letters
-                                        if (preg_match('/^[ABC]/i', $trx_id)) {
-                                            $matched_ewallet = 'bkash';
-                                        }elseif (preg_match('/^7/', $trx_id) && preg_match('/[A-Za-z]/', $trx_id) && preg_match('/[0-9]/', $trx_id)) {
-                                            $matched_ewallet = 'nagad';
-                                        }elseif (ctype_digit($trx_id)) {
-                                            $matched_ewallet = 'rocket';
-                                        }
+                                        
 
                                         $account = EWalletAccount::where('account_no', $phone_number)->where('e_wallet_name', $matched_ewallet)
                                                     ->first();
@@ -1481,12 +1497,15 @@ class TelegramGroupController extends Controller
                                                 'welcome',
                                                 'okeydokey',
                                                 'yessir',
+                                                '@',
                                                 'copythat'
                                             ];
 
-                            $orderNumberwithoutspace = str_replace(' ', '', $orderNumber);
-                            if (in_array(strtolower($orderNumberwithoutspace), array_map('strtolower', $userResponses))) {
-                                return response()->json(['status' => 'success'], 200);
+                            $orderNumberwithoutspace = strtolower(trim($orderNumber)); // normalize text
+                            foreach ($userResponses as $resp) {
+                                if (str_starts_with($orderNumberwithoutspace, strtolower($resp))) {
+                                    return response()->json(['status' => 'success'], 200);
+                                }
                             }
 
 
@@ -1658,30 +1677,26 @@ class TelegramGroupController extends Controller
                                         $pendingSession->status=1;
                                         $pendingSession->save();
                                     }else{
-                                        $message = sprintf($this->messages[$api->lang]['service_error'],
-                                                                        $deposit->partner_transection_id,
-                                                                        $deposit->id
-                                                                    );
+                                        $message = "For the deposit transaction, attaching the receipt image is mandatory, so please attach the image again and also write the transaction ID. Thank you.";
                                             $response = Http::post($url, [
                                                 'chat_id' => $sender_chat['id'],
                                                 'text' => $message,
                                                 'reply_to_message_id' => $TG_message['message_id'],
                                                 'parse_mode' => 'Markdown',
                                             ]);
+                                            return response()->json(['status' => 'success'], 200);
                                     }
 
 
                                 }else{
-                                    $message = sprintf($this->messages[$api->lang]['service_error'],
-                                                                        $deposit->partner_transection_id,
-                                                                        $deposit->id
-                                                                    );
-                                            $response = Http::post($url, [
-                                                'chat_id' => $sender_chat['id'],
-                                                'text' => $message,
-                                                'reply_to_message_id' => $TG_message['message_id'],
-                                                'parse_mode' => 'Markdown',
-                                            ]);
+                                    $message = "For the deposit transaction, attaching the receipt image is mandatory, so please attach the image again and also write the transaction ID. Thank you.";
+                                    $response = Http::post($url, [
+                                        'chat_id' => $sender_chat['id'],
+                                        'text' => $message,
+                                        'reply_to_message_id' => $TG_message['message_id'],
+                                        'parse_mode' => 'Markdown',
+                                    ]);
+                                    return response()->json(['status' => 'success'], 200);
                                 }
                     }
 
@@ -1689,7 +1704,7 @@ class TelegramGroupController extends Controller
                         try {
 
 
-                                if(empty($phone_number) && empty($txnId) && empty($amount)){
+                                if(empty($phone_number) || empty($txnId) || empty($amount)){
                                     $message = sprintf($this->messages[$api->lang]['image_processing_error_retry'],
                                         $deposit->partner_transection_id,
                                         $deposit->id
