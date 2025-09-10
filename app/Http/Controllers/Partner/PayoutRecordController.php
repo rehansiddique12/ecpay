@@ -1950,7 +1950,7 @@ class PayoutRecordController extends Controller
             //     }
 
             // }
-            
+
 
             // if($blacklisted){
             //     $startOfDay = $blacklisted->updated_at;
@@ -2016,7 +2016,7 @@ class PayoutRecordController extends Controller
             //     $blacklist = \App\Models\Blacklist::firstOrNew(
             //         ['member_id' => $member_id, 'api_id' => $api_id]
             //     );
-                
+
             //     if ($blacklist->exists) {
             //         $blacklist->total_count = ($blacklist->total_count ?? 0) + 1;
             //     } else {
@@ -5420,6 +5420,7 @@ class PayoutRecordController extends Controller
 
             $withdraw->status  = "Reject";
             $withdraw->transfer_status  = 3;
+            $withdraw->feedback  = "Insufficient Balance";
             $withdraw->save();
 
             $api_endpoint = "";
@@ -5464,7 +5465,7 @@ class PayoutRecordController extends Controller
                         'created_at' => $withdraw->created_at,
                         'updated_at' => $withdraw->updated_at,
                         'sign' => $sign,
-                        'remarks' => $request->feedback,
+                        'remarks' => $withdraw->feedback,
                         'source' => '13Callback' . auth()->id(),
                     ];
 

@@ -4539,9 +4539,10 @@ class PayoutRecordController extends Controller
                 if ($ewalletee == 'rocket' && ($num_digits < 11 || $num_digits > 12)) {
                     return response()->json(['code' => 605, 'error' => 'Account number should be 11 or 12 digit'], 404);
                 }
-            } else {
-                return response()->json(['code' => 605, 'error' => 'Account number should start from 01'], 404);
             }
+            // else {
+            //     return response()->json(['code' => 605, 'error' => 'Account number should start from 01'], 404);
+            // }
 
             $request->amount = str_replace(',', '', $request->amount);
             $user_sign = "";
@@ -4763,7 +4764,7 @@ class PayoutRecordController extends Controller
                                 ->where('status', 'Pending');
                         });
                 })
-                ->sum('amount');
+            ->sum('amount');
 
 
             // $previous_pending = PayoutLog::where('api_id', $api_key->id)
@@ -4838,9 +4839,26 @@ class PayoutRecordController extends Controller
             $payout->status = 'Pending';
             $payout->save();
 
-            if ($request->amount + $charge + $previous_pending > $api_key->balance) {
+            $shouldReject = false;
+            $rejectReason = null;
+
+            if (substr($acc, 0, 2) !== "01") {
                 $payout->status  = "Reject";
                 $payout->transfer_status  = 3;
+                $payout->feedback  = "Account number should start from 01";
+                $rejectReason = "Account number should start from 01";
+                $shouldReject = true;
+            }
+            else if ($request->amount + $charge + $previous_pending > $api_key->balance) {
+                $payout->status  = "Reject";
+                $payout->transfer_status  = 3;
+                $payout->feedback  = "Insufficient Balance";
+                $rejectReason  = "Insufficient Balance";
+                $shouldReject = true;
+                
+            }
+
+            if ($shouldReject) {
                 $payout->save();
                 $api_endpoint = "";
                 $partner_api_key = Api::where('id', $payout->api_id)->where('type', 'Admin')->lockForUpdate()->first();
@@ -4884,8 +4902,8 @@ class PayoutRecordController extends Controller
                             'created_at' => $payout->created_at,
                             'updated_at' => $payout->updated_at,
                             'sign' => $sign,
-                            'remarks' => $request->feedback,
-                            'source' => '13Callback' . auth()->id(),
+                            'remarks' => $payout->feedback,
+                            'source' => 'Admin addPayout function ' . auth()->id(),
                         ];
 
                         if (!empty($data->member_id)) {
@@ -4928,15 +4946,12 @@ class PayoutRecordController extends Controller
                         }
                     }
                 }
-
                 return response()->json([
                     'code' => '51',
                     'status' => 'fail',
-                    'message' => 'Your Transaction is rejected due to Insufficient Balance.'
+                    'message' => 'Your Transaction is rejected due to '. $rejectReason
                 ], 404);
             }
-
-
 
             return response()->json(['id' => $payout->id, 'message' => 'Payout Request has been sent'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
