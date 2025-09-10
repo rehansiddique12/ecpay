@@ -5420,7 +5420,7 @@ class PayoutRecordController extends Controller
 
             $withdraw->status  = "Reject";
             $withdraw->transfer_status  = 3;
-            $withdraw->feedback  = "Insufficient Balance";
+            $withdraw->feedback  = "Merchant account have Insufficient Balance";
             $withdraw->save();
 
             $api_endpoint = "";

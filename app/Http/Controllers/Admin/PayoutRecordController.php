@@ -4852,8 +4852,8 @@ class PayoutRecordController extends Controller
             else if ($request->amount + $charge + $previous_pending > $api_key->balance) {
                 $payout->status  = "Reject";
                 $payout->transfer_status  = 3;
-                $payout->feedback  = "Insufficient Balance";
-                $rejectReason  = "Insufficient Balance";
+                $payout->feedback  = "Merchant account have Insufficient Balance";
+                $rejectReason  = "Merchant account have Insufficient Balance";
                 $shouldReject = true;
                 
             }
@@ -5235,7 +5235,9 @@ class PayoutRecordController extends Controller
             }
 
             if ($request->filled('status')) {
-                $payout->status = $request->status;
+                if($request->status != "Retry"){
+                    $payout->status = $request->status;
+                }
             }
 
             if ($request->filled('fee')) {
