@@ -672,8 +672,8 @@ class PayoutRecordController extends Controller
                     $request_hash = substr($decoded, 0, -$timestamp_length);
                     $sign_timestamp = substr($decoded, -$timestamp_length);
                     if (hash_equals($request_hash, $hmac)) {
-                        if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
-                            $signature = Signature::where('sign', $sign)->first();
+                        if ($sign_timestamp >= $timestamp - 600 && $sign_timestamp <= $timestamp + 600) {
+                            $signature = Signature::where('sign', $sign)->where('created_at', '>=', now()->subMinutes(10))->first();
                             if (!$signature) {
                                 $signature = new Signature();
                                 $signature->sign = $sign;
@@ -2154,8 +2154,8 @@ class PayoutRecordController extends Controller
                     $request_hash = substr($decoded, 0, -$timestamp_length);
                     $sign_timestamp = substr($decoded, -$timestamp_length);
                     if (hash_equals($request_hash, $hmac)) {
-                        if ($sign_timestamp >= $timestamp - 60 && $sign_timestamp <= $timestamp + 60) {
-                            $signature = Signature::where('sign', $sign)->first();
+                        if ($sign_timestamp >= $timestamp - 600 && $sign_timestamp <= $timestamp + 600) {
+                            $signature = Signature::where('sign', $sign)->where('created_at', '>=', now()->subMinutes(10))->first();
                             if (!$signature) {
                                 $signature = new Signature();
                                 $signature->sign = $sign;
