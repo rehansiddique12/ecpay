@@ -36,7 +36,7 @@ Route::get('/payoutGateway', [PayoutRecordController::class, 'payoutGateway']);
 
 
 Route::post('/lastPayoutDetail', [PayoutRecordController::class, 'lastPayoutDetail']);
-Route::get('/allPayoutInfo', [PayoutRecordController::class, 'allPayoutInfo']);
+Route::get('/allPayoutInfo', [PayoutRecordController::class, 'allPayoutInfo'])->withoutMiddleware('throttle:api');
 
 
 
@@ -59,12 +59,12 @@ Route::middleware('api_logs_middleware')->group(function () {
     Route::post('/paymentGatewayInfo', [PaymentController::class, 'paymentGatewayInfo']);
     Route::post('/uploadReceipt', [PaymentController::class, 'uploadReceipt']);
     Route::post('/rejectPayoutInfo', [PayoutRecordController::class, 'rejectPayoutInfo']);
-    Route::post('/addPayout', [PayoutRecordController::class, 'addPayout']);
-    Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo']);
+    Route::post('/addPayout', [PayoutRecordController::class, 'addPayout'])->withoutMiddleware('throttle:api');
+    Route::post('/addPayoutInfo', [PayoutRecordController::class, 'addPayoutInfo'])->withoutMiddleware('throttle:api');
     Route::post('/checkBalance', [PaymentController::class, 'checkBalance']);
 
 
-    Route::post('/updateAccountBalance', [PayoutRecordController::class, 'updateAccountBalance']);
+    Route::post('/updateAccountBalance', [PayoutRecordController::class, 'updateAccountBalance'])->withoutMiddleware('throttle:api');
 
     
 

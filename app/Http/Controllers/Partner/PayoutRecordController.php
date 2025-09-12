@@ -306,11 +306,11 @@ class PayoutRecordController extends Controller
 
                 $parent_charge = 0;
 
-                $parent_commission = ParentCommission::where('user_id', $user->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                $parent_commission = ParentCommission::where('user_id', $user->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                 if ($parent_commission) {
                     $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                 } else {
-                    $parent_commission = ParentCommission::where('user_id', $user->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    $parent_commission = ParentCommission::where('user_id', $user->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                     }
@@ -673,7 +673,7 @@ class PayoutRecordController extends Controller
                     $sign_timestamp = substr($decoded, -$timestamp_length);
                     if (hash_equals($request_hash, $hmac)) {
                         if ($sign_timestamp >= $timestamp - 600 && $sign_timestamp <= $timestamp + 600) {
-                            $signature = Signature::where('sign', $sign)->where('created_at', '>=', now()->subMinutes(10))->first();
+                            $signature = Signature::where('sign', $sign)->where('created_at', '<', now()->subMinutes(10))->first();
                             if (!$signature) {
                                 $signature = new Signature();
                                 $signature->sign = $sign;
@@ -920,11 +920,11 @@ class PayoutRecordController extends Controller
 
 
 
-                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                 if ($parent_commission) {
                     $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                 } else {
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                     }
@@ -2155,7 +2155,7 @@ class PayoutRecordController extends Controller
                     $sign_timestamp = substr($decoded, -$timestamp_length);
                     if (hash_equals($request_hash, $hmac)) {
                         if ($sign_timestamp >= $timestamp - 600 && $sign_timestamp <= $timestamp + 600) {
-                            $signature = Signature::where('sign', $sign)->where('created_at', '>=', now()->subMinutes(10))->first();
+                            $signature = Signature::where('sign', $sign)->where('created_at', '<', now()->subMinutes(10))->first();
                             if (!$signature) {
                                 $signature = new Signature();
                                 $signature->sign = $sign;
@@ -2345,11 +2345,11 @@ class PayoutRecordController extends Controller
 
                 $parent_charge = 0;
 
-                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                 if ($parent_commission) {
                     $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                 } else {
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                     }
@@ -2813,11 +2813,11 @@ class PayoutRecordController extends Controller
 
                 $parent_charge = 0;
 
-                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                 if ($parent_commission) {
                     $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                 } else {
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                     }
@@ -3884,11 +3884,11 @@ class PayoutRecordController extends Controller
 
                     $parent_charge = 0;
 
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                     } else {
-                        $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                         if ($parent_commission) {
                             $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                         }
@@ -4139,11 +4139,11 @@ class PayoutRecordController extends Controller
 
                     $parent_charge = 0;
 
-                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                    $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                     if ($parent_commission) {
                         $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                     } else {
-                        $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                        $parent_commission = ParentCommission::where('user_id', $api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                         if ($parent_commission) {
                             $parent_charge = $parent_commission->deposit_percentage * $amount / 100;
                         }
@@ -4788,11 +4788,11 @@ class PayoutRecordController extends Controller
 
                         $parent_charge = 0;
 
-                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->first();
+                        $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('from_amount', '<=', $sum)->where('to_amount', '>=', $sum)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->first();
                         if ($parent_commission) {
                             $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
                         } else {
-                            $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->orderBy('to_amount', 'desc')->first();
+                            $parent_commission = ParentCommission::where('user_id', $partner_api_key->id)->where('parent_id', $parentId)->where('commission_id', $commissions->id)->where('gateway_id', 'like', "%{$account->e_wallet_name}%")->where('type', 'like', "%{$account->type}%")->where('parent_id',$parentId)->orderBy('to_amount', 'desc')->first();
                             if ($parent_commission) {
                                 $parent_charge = $parent_commission->withdrawal_percentage * $data->amount / 100;
                             }
